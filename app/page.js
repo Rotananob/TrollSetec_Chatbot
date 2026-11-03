@@ -141,7 +141,7 @@ export default function Home() {
                       <span className="truncate">Clinic System</span>
                     </a>
                     <a
-                      href="https://nri-studio.vercel.app"
+                      href="https://rotananob-nri-studio.vercel.app"
                       target="_blank"
                       rel="noreferrer"
                       className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-blue-100 border border-blue-100 text-blue-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
@@ -149,23 +149,40 @@ export default function Home() {
                       <i className="fas fa-laptop-code text-blue-500 text-sm mb-0.5"></i>
                       <span className="truncate">NRI Studio (IDE)</span>
                     </a>
+                    <div className="flex flex-col items-center px-1 py-1 rounded bg-white border border-amber-200 text-amber-700 text-[10px] font-semibold min-w-0 w-full shadow-xs">
+                      <div className="flex items-center gap-1 text-amber-600 mb-0.5">
+                        <i className="fas fa-graduation-cap text-amber-500 text-xs"></i>
+                        <span className="font-bold text-[10px] truncate">Rotana Education</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 w-full">
+                        <a
+                          href="https://rotana-elearningg.web.app"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-center py-0.5 px-1 rounded bg-amber-100 hover:bg-amber-200 text-amber-800 text-[9px] font-bold transition"
+                          title="Rotana E-Learning V1"
+                        >
+                          V1
+                        </a>
+                        <a
+                          href="https://rotana-education.web.app"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-center py-0.5 px-1 rounded bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold transition"
+                          title="Rotana Education V2 (Tech Course)"
+                        >
+                          V2 Tech
+                        </a>
+                      </div>
+                    </div>
                     <a
-                      href="https://phum-angkor-3d.vercel.app"
+                      href="https://qr-scan-y659.vercel.app/"
                       target="_blank"
                       rel="noreferrer"
-                      className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-amber-100 border border-amber-100 text-amber-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
+                      className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-purple-100 border border-purple-100 text-purple-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
                     >
-                      <i className="fas fa-monument text-amber-500 text-sm mb-0.5"></i>
-                      <span className="truncate">Phum Angkor 3D</span>
-                    </a>
-                    <a
-                      href="https://bacii-cal.web.app/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-green-100 border border-green-100 text-green-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
-                    >
-                      <i className="fas fa-graduation-cap text-green-500 text-sm mb-0.5"></i>
-                      <span className="truncate">Web&App គណនាបាក់ឌុប</span>
+                      <i className="fas fa-qrcode text-purple-500 text-sm mb-0.5"></i>
+                      <span className="truncate">QR Scan</span>
                     </a>
                     <a
                       href="https://play.google.com/store/apps/developer?id=youngapp"
