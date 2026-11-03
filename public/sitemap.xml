@@ -5,43 +5,11 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://troll-setec-chatbot.web.app/KonPov</loc>
+    <loc>https://troll-setec-chatbot.web.app/KonBong</loc>
     <priority>0.9</priority>
   </url>
   <url>
-        <loc>https://troll-setec-chatbot.web.app/KonBong.html</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/KonPov.html</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/offline.html</loc>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/tukjorl/genZ.html</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/tukjorl/GenZ1.html</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/tukjorl/ortyk.html</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/tukjorl/ortyk2.html</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/tukjorl/OTYK3.html</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://yourdomain.com/tukjorl/otyk4.html</loc>
-    <priority>0.7</priority>
+    <loc>https://troll-setec-chatbot.web.app/KonPov</loc>
+    <priority>0.9</priority>
   </url>
 </urlset>
