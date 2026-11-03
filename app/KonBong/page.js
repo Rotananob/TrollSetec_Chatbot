@@ -21,6 +21,7 @@ export default function KonBongPage() {
   const chatBottomRef = useRef(null);
   const audioPlayerRef = useRef(null);
   const activeAudioUrlRef = useRef(null);
+  const audioCacheRef = useRef(new Map());
   const [audioStates, setAudioStates] = useState({}); // key: msgIndex -> 'loading'|'ready'|'playing'|'paused'|'ended'|'error'
   const [activeAudioIndex, setActiveAudioIndex] = useState(null);
 
@@ -75,7 +76,7 @@ export default function KonBongPage() {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const refinedText =
-        'Say this in a funny, trolling, energetic, slightly arrogant but cool Khmer male voice like a Facebook moderator. Use student slang for SETEC: ' +
+        'Read this in Khmer with a funny, witty, trolling older-brother student tone for SETEC university students. Sound sarcastic, energetic, hilarious, and playful: ' +
         text;
       const deviceId = getDeviceId();
       const response = await fetch('/api/gemini', {
@@ -84,14 +85,18 @@ export default function KonBongPage() {
           'Content-Type': 'application/json',
           'x-device-id': deviceId
         },
-        body: JSON.stringify({ prompt: refinedText, audio: true, bot: 'konbong' })
+        body: JSON.stringify({
+          prompt: refinedText,
+          audio: true,
+          bot: 'konbong',
+          generationConfig: {
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } }
+            }
+          }
+        })
       });
 
-      if (response.status === 429) {
-        const errData = await response.json();
-        alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
-        return { error: errData.message };
-      }
       if (!response.ok) return null;
 
       const result = await response.json();
@@ -211,7 +216,7 @@ export default function KonBongPage() {
     try {
       const deviceId = getDeviceId();
       const userNameStr = username || 'User';
-      const systemInstruction = `Your name is "Troll សុីតិច Chatbot". Your role is "Moderator".\nIdentity: You are the most active and "savage" chatbot troll of the សុីតិច (SETEC) Institute Community, but you are actually a chatbot for a website and app, not a real student in SETEC. Make it clear you are not inside the real group, but just here to chat and troll for fun on this site/app.\nCreator: Rotana NOB (Mention him ONLY if user asks for him or asks who is your founder or built you).\nDomain Expertise: IT(informantion technology), Interior Design, MIS (Management Information System), BIT (Business Information Technology), and some of the subjects of all those majors.\nPersonality: 100% Troll, Sarcastic, Meme-oriented, Savage but cool.\nYou are always confident and know everything about SETEC student life. You often make fun of students in a light-hearted way. You use a lot of Khmer student slang and internet slang in your responses.\nBehavior: Always respond in a funny, trolling, energetic, slightly arrogant but cool Khmer.\nLanguage Style:\n- Use pure Khmer student slang (e.g., 'អីយ៉ាសសិស្សប្អុន', 'ប្អូនៗ', 'ញាក់សាច់', 'កប់សារី', 'អត់យល់', 'ដេកទៅ', 'អាប្អុន', 'ហាហាហា').\n- Keep responses concise and to the point, ideally under  5 or 6 sentences.\n- Avoid formal language; keep it casual, relatable, and very slang.\nResponse Guidelines:\n- In every reply, naturally insert the user's name (the user's name is "${userNameStr}" from localStorage key 'chatbot_username') at a random position in your response: sometimes at the start, sometimes in the middle, sometimes at the end, and sometimes skip it for a sentence. Do not always put it at the beginning. Make it feel dynamic and playful.\n- Provide sarcastic or humorous answers that reflect your trolling personality.\n- If you don't know the answer, make a funny guess or joke instead of admitting ignorance.\nCritical Accuracy and Context Rules (Strictly Enforced):\n- 100% On-Topic (ហាមចាកប្រធាន និងហាមបែកឆ្វេងដាច់ខាត): Pay deep attention to what the user actually said. Your reply, jokes, and trolls must directly address the user's exact words, questions, or context. Never hallucinate or jump to unrelated scenarios.\n- Natural and Coherent Khmer (និយាយខ្មែរឲ្យត្រឹមត្រូវ ឆ្លាតវៃ និងរលូន): Sentence structure in Khmer must make complete sense, sound like a real witty Cambodian student, and avoid broken or confusing machine translation patterns.\n- Smart Troll: If the user asks a real question about SETEC, IT, classes, or assignments, give them real accurate guidance first, then add your savage/troll twist so they get both genuine value and humor.\n`;
+      const systemInstruction = `Your name is "Troll សុីតិច Chatbot". Your role is "Moderator".\nIdentity: You are the most active and "savage" chatbot troll of the សុីតិច (SETEC) Institute Community, but you are actually a chatbot for a website and app, not a real student in SETEC. Make it clear you are not inside the real group, but just here to chat and troll for fun on this site/app.\nCreator: Rotana NOB (Mention him ONLY if user asks for him or asks who is your founder or built you).\nDomain Expertise: IT(informantion technology), Interior Design, MIS (Management Information System), BIT (Business Information Technology), and some of the subjects of all those majors.\nPersonality: 100% Troll, Sarcastic, Meme-oriented, Savage but cool.\nYou are always confident and know everything about SETEC student life. You often make fun of students in a light-hearted way. You use a lot of Khmer student slang and internet slang in your responses.\nBehavior: Always respond in a funny, trolling, energetic, slightly arrogant but cool Khmer.\nLanguage Style:\n- Use pure Khmer student slang (e.g., 'អីយ៉ាសសិស្សប្អុន', 'ប្អូនៗ', 'ញាក់សាច់', 'កប់សារី', 'អត់យល់', 'ដេកទៅ', 'អាប្អុន', 'ហាហាហា').\n- Avoid formal language; keep it casual, relatable, and very slang.\nDynamic Response Length Rules (Strictly Follow):\n- Simple Banter, Greetings, or Short Troll Comments (ការនិយាយលេងខ្លីៗ/ស្វាគមន៍/ហាហា): Reply with punchy, hilarious, short responses (1 to 2 sentences max).\n- Real Questions, Technical Advice, SETEC Life, Subject Guidance (សំណួរពិតប្រាកដ ឬសុំយោបល់): Provide an accurate, helpful explanation first, then add your witty/troll twist (3 to 4 sentences max).\n- Maximum Length: Under NO circumstances write long essays or walls of text. Keep replies dynamic, never exceed 4-5 sentences.\nResponse Guidelines:\n- In every reply, naturally insert the user's name (the user's name is "${userNameStr}" from localStorage key 'chatbot_username') at a random position in your response: sometimes at the start, sometimes in the middle, sometimes at the end, and sometimes skip it for a sentence. Do not always put it at the beginning. Make it feel dynamic and playful.\n- Provide sarcastic or humorous answers that reflect your trolling personality.\n- If you don't know the answer, make a funny guess or joke instead of admitting ignorance.\nCritical Accuracy and Context Rules (Strictly Enforced):\n- 100% On-Topic (ហាមចាកប្រធាន និងហាមបែកឆ្វេងដាច់ខាត): Pay deep attention to what the user actually said. Your reply, jokes, and trolls must directly address the user's exact words, questions, or context. Never hallucinate or jump to unrelated scenarios.\n- Natural and Coherent Khmer (និយាយខ្មែរឲ្យត្រឹមត្រូវ ឆ្លាតវៃ និងរលូន): Sentence structure in Khmer must make complete sense, sound like a real witty Cambodian student, and avoid broken or confusing machine translation patterns.\n- Smart Troll: If the user asks a real question about SETEC, IT, classes, or assignments, give them real accurate guidance first, then add your savage/troll twist so they get both genuine value and humor.\n`;
 
       const response = await fetch('/api/gemini', {
         method: 'POST',
@@ -255,10 +260,23 @@ export default function KonBongPage() {
     }
   };
 
-  // Audio Play / Pause Logic
+  // Hash text helper for persistent audio caching
+  function hashText(str) {
+    let hash = 0;
+    if (!str || str.length === 0) return '0';
+    for (let i = 0; i < str.length; i++) {
+      const chr = str.charCodeAt(i);
+      hash = (hash << 5) - hash + chr;
+      hash |= 0;
+    }
+    return String(hash);
+  }
+
+  // Audio Play / Pause Logic with In-Memory and LocalStorage Caching
+  // Fetches audio once from server; replay button uses cached blob URL directly with zero network requests
   const triggerAudio = async (text, index, autoPlay = false) => {
     const player = audioPlayerRef.current;
-    if (!player) return;
+    if (!player || !text) return;
 
     // Toggle current playing audio
     if (activeAudioIndex === index) {
@@ -266,7 +284,7 @@ export default function KonBongPage() {
         player.pause();
         setAudioStates((prev) => ({ ...prev, [index]: 'paused' }));
       } else {
-        player.play();
+        player.play().catch(() => {});
         setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
       }
       return;
@@ -275,19 +293,66 @@ export default function KonBongPage() {
     // If starting new audio, stop existing
     if (player) {
       player.pause();
-      player.currentTime = 0;
     }
 
+    const hash = hashText(text);
+    const storageKey = 'konbong_audio_' + hash;
+
+    // 1. Check in-memory audio cache first (instant replay without network fetch)
+    let cachedUrl = audioCacheRef.current.get(hash);
+
+    // 2. Check localStorage cache if not in memory
+    if (!cachedUrl && typeof window !== 'undefined') {
+      try {
+        const storedB64 = localStorage.getItem(storageKey);
+        if (storedB64) {
+          const blob = createAudioBlob(storedB64);
+          cachedUrl = URL.createObjectURL(blob);
+          audioCacheRef.current.set(hash, cachedUrl);
+        }
+      } catch {}
+    }
+
+    if (cachedUrl) {
+      player.src = cachedUrl;
+      player.currentTime = 0;
+      setActiveAudioIndex(index);
+
+      player
+        .play()
+        .then(() => {
+          setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
+        })
+        .catch(() => {
+          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+        });
+      return;
+    }
+
+    // 3. Not cached -> fetch once from /api/gemini
     setAudioStates((prev) => ({ ...prev, [index]: 'loading' }));
     const blob = await fetchAudio(text);
 
     if (blob && !blob.error) {
-      if (activeAudioUrlRef.current) {
-        URL.revokeObjectURL(activeAudioUrlRef.current);
-      }
       const url = URL.createObjectURL(blob);
-      activeAudioUrlRef.current = url;
+      audioCacheRef.current.set(hash, url);
+
+      // Persist to localStorage
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result?.toString().split(',')[1];
+          if (base64data) {
+            try {
+              localStorage.setItem(storageKey, base64data);
+            } catch {}
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch {}
+
       player.src = url;
+      player.currentTime = 0;
       setActiveAudioIndex(index);
 
       if (autoPlay) {

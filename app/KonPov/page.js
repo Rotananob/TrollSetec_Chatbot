@@ -28,6 +28,7 @@ export default function KonPovPage() {
   const audioPlayerRef = useRef(null);
   const [audioStatuses, setAudioStatuses] = useState({});
   const activeAudioUrlRef = useRef(null);
+  const audioCacheRef = useRef(new Map());
   const [activeVoiceIndex, setActiveVoiceIndex] = useState(null);
 
   // PCM to WAV helper
@@ -76,10 +77,17 @@ export default function KonPovPage() {
     return pcmToWav(pcmData, 24000);
   }
 
-  // Fetch Voice with Gen-Z Charon audio config
+  // Fetch Voice with Gen-Z comedic audio config
   async function fetchAudio(text, gender) {
+    if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const deviceId = getDeviceId();
+      const isBoy = gender === 'ប្រុស';
+      const soundRole = isBoy
+        ? 'savage, witty, comedic Khmer Gen-Z student boy making fun of his guy friend (Bro)'
+        : 'charming, playful, comedic Khmer Gen-Z student boy teasing a girl friend (Sis/Oun Somlanh)';
+      const refinedText = `Speak this in Khmer as a hilarious, ${soundRole}. Use energetic, troll, meme-like intonation: "${text}"`;
+
       const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: {
@@ -89,21 +97,13 @@ export default function KonPovPage() {
         body: JSON.stringify({
           contents: [
             {
-              parts: [
-                {
-                  text:
-                    'Say this as a savage, funny, and energetic young Khmer Gen Z boy. Context: Speaking to a ' +
-                    (gender === 'ប្រុស' ? 'male student (bro)' : 'female student (sis)') +
-                    ". Use 'daddy' and 'koun'. Voice should be cool and sarcastic. Text: " +
-                    text
-                }
-              ]
+              parts: [{ text: refinedText }]
             }
           ],
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } }
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
             }
           },
           audio: true,
@@ -111,11 +111,6 @@ export default function KonPovPage() {
         })
       });
 
-      if (response.status === 429) {
-        const errData = await response.json();
-        alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
-        return null;
-      }
       if (!response.ok) return null;
 
       const result = await response.json();
@@ -172,17 +167,30 @@ export default function KonPovPage() {
     triggerAudio(introMsg, updated.length - 1, true);
   };
 
-  // Audio Playback
+  // Hash text helper for persistent audio caching
+  function hashText(str) {
+    let hash = 0;
+    if (!str || str.length === 0) return '0';
+    for (let i = 0; i < str.length; i++) {
+      const chr = str.charCodeAt(i);
+      hash = (hash << 5) - hash + chr;
+      hash |= 0;
+    }
+    return String(hash);
+  }
+
+  // Audio Playback with In-Memory and LocalStorage Caching
+  // Fetches once from server, replays directly from cache with zero network calls and zero quota consumption
   const triggerAudio = async (text, index, autoPlay = false) => {
     const player = audioPlayerRef.current;
-    if (!player) return;
+    if (!player || !text) return;
 
     if (activeVoiceIndex === index) {
       if (!player.paused) {
         player.pause();
         setAudioStatuses((prev) => ({ ...prev, [index]: 'paused' }));
       } else {
-        player.play();
+        player.play().catch(() => {});
         setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
       }
       return;
@@ -190,19 +198,66 @@ export default function KonPovPage() {
 
     if (player) {
       player.pause();
-      player.currentTime = 0;
     }
 
+    const hash = hashText(text);
+    const storageKey = 'konpov_audio_' + hash;
+
+    // 1. Check in-memory audio cache first (instant replay without network fetch)
+    let cachedUrl = audioCacheRef.current.get(hash);
+
+    // 2. Check localStorage cache if not in memory
+    if (!cachedUrl && typeof window !== 'undefined') {
+      try {
+        const storedB64 = localStorage.getItem(storageKey);
+        if (storedB64) {
+          const blob = createAudioBlob(storedB64);
+          cachedUrl = URL.createObjectURL(blob);
+          audioCacheRef.current.set(hash, cachedUrl);
+        }
+      } catch {}
+    }
+
+    if (cachedUrl) {
+      player.src = cachedUrl;
+      player.currentTime = 0;
+      setActiveVoiceIndex(index);
+
+      player
+        .play()
+        .then(() => {
+          setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
+        })
+        .catch(() => {
+          setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
+        });
+      return;
+    }
+
+    // 3. Not cached -> fetch from server once
     setAudioStatuses((prev) => ({ ...prev, [index]: 'loading' }));
     const blob = await fetchAudio(text, userGender);
 
     if (blob) {
-      if (activeAudioUrlRef.current) {
-        URL.revokeObjectURL(activeAudioUrlRef.current);
-      }
       const url = URL.createObjectURL(blob);
-      activeAudioUrlRef.current = url;
+      audioCacheRef.current.set(hash, url);
+
+      // Persist to localStorage for long-term replay without API cost
+      try {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64data = reader.result?.toString().split(',')[1];
+          if (base64data) {
+            try {
+              localStorage.setItem(storageKey, base64data);
+            } catch {}
+          }
+        };
+        reader.readAsDataURL(blob);
+      } catch {}
+
       player.src = url;
+      player.currentTime = 0;
       setActiveVoiceIndex(index);
 
       if (autoPlay) {
@@ -292,7 +347,8 @@ Rules to follow strictly:
 17. if user ask you to tell a story, should tell a savage and funny story like a real Gen Z student senior troll king!
 18. Strict Relevance & Zero Hallucination (ហាមចាកប្រធាន និងហាមបែកឆ្វេងដាច់ខាត): Always directly focus on and address what the user actually typed. Do NOT jump to random or unrelated topics out of nowhere. Even though you are roasting, trolling, and being savage, the roast MUST be directly targeted at the user's specific statement, question, or situation.
 19. Authentic and Accurate Khmer (និយាយខ្មែរឲ្យត្រឹមត្រូវ ឆ្លាតវៃ និងកុំឲ្យច្រឡំ): Use fluent, natural, and coherent Khmer grammar and slang. Never output gibberish, broken sentences, or confuse the user's meaning.
-20. Contextual Wit: Read the user's tone. If the user is asking for real SETEC/IT advice, give them the real accurate advice first, and then roast them savagely right after so they laugh and learn at the same time!`;
+20. Contextual Wit: Read the user's tone. If the user is asking for real SETEC/IT advice, give them the real accurate advice first, and then roast them savagely right after so they laugh and learn at the same time!
+21. Dynamic Response Length (ឆ្លើយវែងខ្លីតាមប្រភេទ កុំវែងពេក): For simple banter, greetings, emojis, or short troll comments (ការនិយាយលេងខ្លីៗ/ស្វាគមន៍/ហាហា), keep replies punchy and short (1-2 sentences). For real questions, technical advice, or SETEC study guidance (សំណួរពិតប្រាកដ ឬសុំយោបល់), answer clearly and helpfully first then add the troll punchline (3-4 sentences). NEVER write walls of text; keep all replies under 4-5 sentences max.`;
 
       const response = await fetch('/api/gemini', {
         method: 'POST',

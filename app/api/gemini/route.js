@@ -34,7 +34,13 @@ function checkRateLimit(key) {
 
 // Active models with automated fallback to guarantee 100% uptime
 const TEXT_MODELS = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
-const AUDIO_MODELS = ['gemini-3.8-flash-tts', 'gemini-3.1-flash-tts-preview', 'gemini-3.8-flash-lite-tts'];
+const AUDIO_MODELS = [
+  'gemini-2.5-flash-preview-tts',
+  'gemini-3.8-flash-lite-tts',
+  'gemini-3.8-flash-tts',
+  'gemini-3.1-flash-tts-preview',
+  'gemini-2.5-pro-preview-tts'
+];
 
 async function callGeminiWithFallback(models, apiKey, payload) {
   let lastError = null;
@@ -66,28 +72,32 @@ async function callGeminiWithFallback(models, apiKey, payload) {
 
 export async function POST(req) {
   try {
-    // 1. Anti-Spam / Anti-DDoS Rate Limiting
-    const forwardedFor = req.headers.get('x-forwarded-for') || '';
-    const ip = forwardedFor.split(',')[0].trim() || 'unknown-ip';
-    const deviceId = req.headers.get('x-device-id') || req.headers.get('user-agent') || 'default-device';
-    const rateLimitKey = `${ip}_${deviceId}`;
-
-    const rateResult = checkRateLimit(rateLimitKey);
-    if (!rateResult.allowed) {
-      return Response.json(
-        {
-          error: 'Too Many Requests',
-          message: `⚠️ ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីទៀតមុនពេលសាកល្បងម្ដងទៀត ដើម្បីការពារ Server ពីការ Spam។`
-        },
-        {
-          status: 429,
-          headers: { 'Retry-After': String(rateResult.retryAfter) }
-        }
-      );
-    }
-
     const body = await req.json();
     const { prompt, systemInstruction, audio, contents, generationConfig, bot } = body;
+
+    // 1. Anti-Spam / Anti-DDoS Rate Limiting
+    // Enforces strict maximum 5 chat messages per minute per device/IP
+    // Internal audio synthesis requests do not consume the chat message quota
+    if (!audio) {
+      const forwardedFor = req.headers.get('x-forwarded-for') || '';
+      const ip = forwardedFor.split(',')[0].trim() || 'unknown-ip';
+      const deviceId = req.headers.get('x-device-id') || req.headers.get('user-agent') || 'default-device';
+      const rateLimitKey = `${ip}_${deviceId}`;
+
+      const rateResult = checkRateLimit(rateLimitKey);
+      if (!rateResult.allowed) {
+        return Response.json(
+          {
+            error: 'Too Many Requests',
+            message: `⚠️ ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីទៀតមុនពេលសាកល្បងម្ដងទៀត ដើម្បីការពារ Server ពីការ Spam។`
+          },
+          {
+            status: 429,
+            headers: { 'Retry-After': String(rateResult.retryAfter) }
+          }
+        );
+      }
+    }
 
     // 2. Select API Key according to the Bot (KonPov vs KonBong)
     let apiKey = process.env.GEMINI_API_KEY;
@@ -114,7 +124,8 @@ export async function POST(req) {
     if (audio) {
       const audioContents = contents || [{ parts: [{ text: prompt }] }];
       const voiceName =
-        generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Charon';
+        generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
+        (bot === 'konpov' ? 'Puck' : 'Charon');
       const audioGenConfig = {
         responseModalities: ['AUDIO'],
         speechConfig: {
