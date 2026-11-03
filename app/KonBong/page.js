@@ -65,7 +65,7 @@ export default function KonBongPage() {
           'Content-Type': 'application/json',
           'x-device-id': deviceId
         },
-        body: JSON.stringify({ prompt: refinedText, audio: true })
+        body: JSON.stringify({ prompt: refinedText, audio: true, bot: 'konbong' })
       });
 
       if (response.status === 429) {
@@ -203,7 +203,7 @@ export default function KonBongPage() {
           'Content-Type': 'application/json',
           'x-device-id': deviceId
         },
-        body: JSON.stringify({ prompt, systemInstruction })
+        body: JSON.stringify({ prompt, systemInstruction, bot: 'konbong' })
       });
 
       if (response.status === 429) {

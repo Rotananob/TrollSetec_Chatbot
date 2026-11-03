@@ -88,7 +88,8 @@ export default function KonPovPage() {
               speakingRate: 0.85
             }
           },
-          audio: true
+          audio: true,
+          bot: 'konpov'
         })
       });
 
@@ -283,7 +284,8 @@ Rules to follow strictly:
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          systemInstruction: { parts: [{ text: systemInstruction }] }
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          bot: 'konpov'
         })
       });
 
