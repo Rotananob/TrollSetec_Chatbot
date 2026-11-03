@@ -98,7 +98,7 @@ export default function KonPovPage() {
       const speechText = cleanSpeechText(text);
       if (!speechText) return null;
       const deviceId = getDeviceId();
-      const response = await fetch('/api/gemini', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -360,7 +360,7 @@ Rules to follow strictly:
 20. Contextual Wit: Read the user's tone. If the user is asking for real SETEC/IT advice, give them the real accurate advice first, and then roast them savagely right after so they laugh and learn at the same time!
 21. Dynamic Response Length (ឆ្លើយវែងខ្លីតាមប្រភេទ កុំវែងពេក): For simple banter, greetings, emojis, or short troll comments (ការនិយាយលេងខ្លីៗ/ស្វាគមន៍/ហាហា), keep replies punchy and short (1-2 sentences). For real questions, technical advice, or SETEC study guidance (សំណួរពិតប្រាកដ ឬសុំយោបល់), answer clearly and helpfully first then add the troll punchline (3-4 sentences). NEVER write walls of text; keep all replies under 4-5 sentences max.`;
 
-      const response = await fetch('/api/gemini', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

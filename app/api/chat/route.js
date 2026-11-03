@@ -42,7 +42,7 @@ const AUDIO_MODELS = [
   'gemini-2.5-pro-preview-tts'
 ];
 
-async function callGeminiWithFallback(models, apiKey, payload) {
+async function callModelWithFallback(models, apiKey, payload) {
   let lastError = null;
   let lastData = null;
   let lastStatus = 500;
@@ -68,6 +68,19 @@ async function callGeminiWithFallback(models, apiKey, payload) {
   }
 
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
+}
+
+// Sanitize response to conceal upstream provider & model names in Network devtools
+function sanitizeResponse(data) {
+  if (!data || typeof data !== 'object') return data;
+  const clone = { ...data };
+  if (clone.modelVersion) {
+    clone.modelVersion = 'setec-troll-engine-v2';
+  }
+  if (clone.responseId) {
+    delete clone.responseId;
+  }
+  return clone;
 }
 
 export async function POST(req) {
@@ -114,7 +127,7 @@ export async function POST(req) {
 
     if (!apiKey) {
       return Response.json(
-        { error: 'Gemini API key is not configured in server environment (.env.local)' },
+        { error: 'AI engine key is not configured in server environment' },
         { status: 500 }
       );
     }
@@ -150,11 +163,11 @@ export async function POST(req) {
         contents: audioContents,
         generationConfig: audioGenConfig
       };
-      const result = await callGeminiWithFallback(AUDIO_MODELS, apiKey, requestPayload);
+      const result = await callModelWithFallback(AUDIO_MODELS, apiKey, requestPayload);
       if (result.ok) {
-        return Response.json(result.data, { status: 200 });
+        return Response.json(sanitizeResponse(result.data), { status: 200 });
       }
-      return Response.json(result.data || { error: result.error }, { status: result.status });
+      return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status });
     } else {
       const textContents = contents || [{ parts: [{ text: prompt }] }];
       const formattedSystemInstruction = systemInstruction
@@ -167,15 +180,15 @@ export async function POST(req) {
         contents: textContents,
         ...(formattedSystemInstruction && { systemInstruction: formattedSystemInstruction })
       };
-      const result = await callGeminiWithFallback(TEXT_MODELS, apiKey, requestPayload);
+      const result = await callModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
       if (result.ok) {
-        return Response.json(result.data, { status: 200 });
+        return Response.json(sanitizeResponse(result.data), { status: 200 });
       }
-      return Response.json(result.data || { error: result.error }, { status: result.status });
+      return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status });
     }
   } catch (error) {
-    console.error('Gemini API proxy error:', error);
-    return NextResponse.json(
+    console.error('Chat API proxy error:', error);
+    return Response.json(
       { error: error.message || 'Internal Server Error' },
       { status: 500 }
     );
