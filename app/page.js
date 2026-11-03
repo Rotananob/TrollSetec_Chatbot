@@ -13,7 +13,10 @@ export default function Home() {
   useEffect(() => {
     const savedName = localStorage.getItem('chatbot_username');
     const savedAvatar = localStorage.getItem('chatbot_avatar');
-    if (savedName) setUsername(savedName);
+    if (savedName) {
+      setUsername(savedName);
+      setIsSubmitted(true);
+    }
     if (savedAvatar) setAvatar(savedAvatar);
   }, []);
 
@@ -30,22 +33,23 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!username.trim()) return;
-    localStorage.setItem('chatbot_username', username);
+  const handleContinue = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const trimmed = username.trim();
+    if (!trimmed) {
+      alert('សូមបញ្ចូលឈ្មោះរបស់អ្នកជាមុនសិន!');
+      return;
+    }
+    localStorage.setItem('chatbot_username', trimmed);
     localStorage.setItem('chatbot_avatar', avatar);
     setIsSubmitted(true);
   };
 
   const handleBackToForm = () => {
     setIsSubmitted(false);
-  };
-
-  const handleSelectBot = (path) => {
-    localStorage.setItem('chatbot_username', username);
-    localStorage.setItem('chatbot_avatar', avatar);
-    router.push(path);
   };
 
   return (
@@ -75,7 +79,7 @@ export default function Home() {
 
           {!isSubmitted ? (
             <>
-              <form onSubmit={handleSubmit} className="mb-6">
+              <div className="mb-6">
                 <div className="flex flex-col items-center gap-3">
                   <label htmlFor="avatar-input" className="avatar-upload cursor-pointer flex flex-col items-center">
                     <img id="avatar-preview" src={avatar} className="avatar-preview mb-1" alt="Avatar Preview" />
@@ -93,6 +97,9 @@ export default function Home() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleContinue(e);
+                    }}
                     className="mt-2 px-4 py-2 rounded-xl border border-indigo-200 focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 text-center font-bold bg-indigo-50"
                     placeholder="បញ្ចូលឈ្មោះអ្នក..."
                     maxLength={24}
@@ -100,12 +107,13 @@ export default function Home() {
                   />
                 </div>
                 <button
-                  type="submit"
-                  className="mt-4 w-full py-2 rounded-xl bg-gradient-to-r from-indigo-400 to-pink-400 text-white font-extrabold text-lg shadow hover:from-pink-400 hover:to-indigo-400 transition"
+                  type="button"
+                  onClick={handleContinue}
+                  className="mt-4 w-full py-2 rounded-xl bg-gradient-to-r from-indigo-400 to-pink-400 text-white font-extrabold text-lg shadow hover:from-pink-400 hover:to-indigo-400 transition cursor-pointer"
                 >
                   បន្ត
                 </button>
-              </form>
+              </div>
 
               {/* Other Websites Section */}
               <div id="other-websites-section" className="flex flex-col items-center mt-2 mb-4">
@@ -182,8 +190,12 @@ export default function Home() {
               <div id="bot-select-section">
                 <p className="text-slate-500 mb-4">ជ្រើសរើស Chatbot ដែលអ្នកចង់សាកល្បង៖</p>
                 <div className="grid grid-cols-1 gap-4">
-                  <div
-                    onClick={() => handleSelectBot('/KonBong')}
+                  <Link
+                    href="/KonBong"
+                    onClick={() => {
+                      localStorage.setItem('chatbot_username', username);
+                      localStorage.setItem('chatbot_avatar', avatar);
+                    }}
                     className="flex items-center gap-3 p-4 rounded-xl border border-cyan-300 bg-cyan-50 hover:bg-cyan-100 transition shadow group cursor-pointer"
                   >
                     <img
@@ -200,10 +212,14 @@ export default function Home() {
                       </div>
                     </div>
                     <i className="fas fa-arrow-right text-cyan-400"></i>
-                  </div>
+                  </Link>
 
-                  <div
-                    onClick={() => handleSelectBot('/KonPov')}
+                  <Link
+                    href="/KonPov"
+                    onClick={() => {
+                      localStorage.setItem('chatbot_username', username);
+                      localStorage.setItem('chatbot_avatar', avatar);
+                    }}
                     className="flex items-center gap-3 p-4 rounded-xl border border-blue-300 bg-blue-50 hover:bg-blue-100 transition shadow group cursor-pointer"
                   >
                     <img
@@ -220,15 +236,16 @@ export default function Home() {
                       </div>
                     </div>
                     <i className="fas fa-arrow-right text-blue-400"></i>
-                  </div>
+                  </Link>
                 </div>
               </div>
               <br />
               <button
+                type="button"
                 onClick={handleBackToForm}
-                className="mx-auto mb-4 px-5 py-2 bg-gradient-to-r from-pink-400 via-indigo-400 to-cyan-400 text-white text-base font-extrabold rounded-full shadow-lg flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:from-cyan-400 hover:to-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-300"
+                className="mx-auto mb-4 px-5 py-2 bg-gradient-to-r from-pink-400 via-indigo-400 to-cyan-400 text-white text-base font-extrabold rounded-full shadow-lg flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:from-cyan-400 hover:to-pink-400 focus:outline-none focus:ring-2 focus:ring-pink-300 cursor-pointer"
               >
-                <i className="fas fa-arrow-left animate-bounce mr-1"></i> ត្រឡប់ក្រោយ
+                <i className="fas fa-arrow-left animate-bounce mr-1"></i> ត្រឡប់ក្រោយ / ប្ដូរឈ្មោះ
               </button>
             </>
           )}
