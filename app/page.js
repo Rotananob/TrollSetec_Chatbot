@@ -115,40 +115,40 @@ export default function Home() {
                   </span>
                   <div className="grid grid-cols-2 gap-1 w-full min-w-0">
                     <a
-                      href="https://rotana-elearningg.firebaseapp.com/"
+                      href="https://www.s-tech-store.tech"
                       target="_blank"
                       rel="noreferrer"
                       className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-indigo-100 border border-indigo-100 text-indigo-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
                     >
-                      <i className="fas fa-book-open text-indigo-400 text-sm mb-0.5"></i>
-                      <span className="truncate">Elearning</span>
+                      <i className="fas fa-store text-indigo-500 text-sm mb-0.5"></i>
+                      <span className="truncate">S-Tech Store</span>
                     </a>
                     <a
-                      href="https://moon-coffee-kh.web.app/"
+                      href="https://clinic-systems.vercel.app"
                       target="_blank"
                       rel="noreferrer"
-                      className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-yellow-100 border border-yellow-100 text-yellow-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
+                      className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-emerald-100 border border-emerald-100 text-emerald-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
                     >
-                      <i className="fas fa-coffee text-yellow-500 text-sm mb-0.5"></i>
-                      <span className="truncate">Coffee</span>
+                      <i className="fas fa-clinic-medical text-emerald-500 text-sm mb-0.5"></i>
+                      <span className="truncate">Clinic System</span>
                     </a>
                     <a
-                      href="https://rotana-map.web.app"
+                      href="https://nri-studio.vercel.app"
                       target="_blank"
                       rel="noreferrer"
                       className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-blue-100 border border-blue-100 text-blue-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
                     >
-                      <i className="fas fa-map-marked-alt text-blue-400 text-sm mb-0.5"></i>
-                      <span className="truncate">Web&App Map</span>
+                      <i className="fas fa-laptop-code text-blue-500 text-sm mb-0.5"></i>
+                      <span className="truncate">NRI Studio (IDE)</span>
                     </a>
                     <a
-                      href="https://financial-management-v1.web.app/"
+                      href="https://phum-angkor-3d.vercel.app"
                       target="_blank"
                       rel="noreferrer"
-                      className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-pink-100 border border-pink-100 text-pink-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
+                      className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-amber-100 border border-amber-100 text-amber-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
                     >
-                      <i className="fas fa-wallet text-pink-400 text-sm mb-0.5"></i>
-                      <span className="truncate">Web&App គ្រប់គ្រងប្រាក់</span>
+                      <i className="fas fa-monument text-amber-500 text-sm mb-0.5"></i>
+                      <span className="truncate">Phum Angkor 3D</span>
                     </a>
                     <a
                       href="https://bacii-cal.web.app/"
@@ -156,17 +156,17 @@ export default function Home() {
                       rel="noreferrer"
                       className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-green-100 border border-green-100 text-green-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
                     >
-                      <i className="fas fa-university text-green-400 text-sm mb-0.5"></i>
+                      <i className="fas fa-graduation-cap text-green-500 text-sm mb-0.5"></i>
                       <span className="truncate">Web&App គណនាបាក់ឌុប</span>
                     </a>
                     <a
-                      href="https://www.odeposcambodia.com/"
+                      href="https://play.google.com/store/apps/developer?id=youngapp"
                       target="_blank"
                       rel="noreferrer"
                       className="flex flex-col items-center px-1 py-1 rounded bg-white hover:bg-red-100 border border-red-100 text-red-700 text-[10px] font-semibold transition min-w-0 w-full break-words"
                     >
-                      <i className="fas fa-newspaper text-red-400 text-sm mb-0.5"></i>
-                      <span className="truncate"> POS System</span>
+                      <i className="fas fa-cash-register text-red-500 text-sm mb-0.5"></i>
+                      <span className="truncate">YOUNG POS</span>
                     </a>
                   </div>
                 </div>
