@@ -77,17 +77,27 @@ export default function KonPovPage() {
     return pcmToWav(pcmData, 24000);
   }
 
-  // Fetch Voice with Gen-Z comedic audio config
+  // Clean markdown and non-spoken characters for clean Khmer TTS speech
+  function cleanSpeechText(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .replace(/\*\*(.*?)\*\*/g, '$1') // remove bold **
+      .replace(/\*(.*?)\*/g, '$1')     // remove italic *
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/_(.*?)_/g, '$1')
+      .replace(/#{1,6}\s+/g, '')       // remove headers
+      .replace(/`{1,3}[^`]*`{1,3}/g, '') // remove code snippets
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [text](url) -> text
+      .trim();
+  }
+
+  // Fetch Voice - reads ONLY the clean Khmer bot response (NO prompt commands)
   async function fetchAudio(text, gender) {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
+      const speechText = cleanSpeechText(text);
+      if (!speechText) return null;
       const deviceId = getDeviceId();
-      const isBoy = gender === 'ប្រុស';
-      const soundRole = isBoy
-        ? 'savage, witty, comedic Khmer Gen-Z student boy making fun of his guy friend (Bro)'
-        : 'charming, playful, comedic Khmer Gen-Z student boy teasing a girl friend (Sis/Oun Somlanh)';
-      const refinedText = `Speak this in Khmer as a hilarious, ${soundRole}. Use energetic, troll, meme-like intonation: "${text}"`;
-
       const response = await fetch('/api/gemini', {
         method: 'POST',
         headers: {
@@ -97,7 +107,7 @@ export default function KonPovPage() {
         body: JSON.stringify({
           contents: [
             {
-              parts: [{ text: refinedText }]
+              parts: [{ text: speechText }]
             }
           ],
           generationConfig: {

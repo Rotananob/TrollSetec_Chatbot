@@ -122,7 +122,17 @@ export async function POST(req) {
     // 3. Format payload
     let requestPayload;
     if (audio) {
-      const audioContents = contents || [{ parts: [{ text: prompt }] }];
+      // Clean speech text: Remove any prompt prefixes so the voice reads ONLY the clean message text
+      let speechText = prompt || '';
+      if (contents && contents[0]?.parts?.[0]?.text) {
+        speechText = contents[0].parts[0].text;
+      }
+      speechText = speechText
+        .replace(/^(?:Say|Speak|Read)\s+this[\s\S]*?(?:Text:\s*|:\s*)/i, '')
+        .replace(/^["']|["']$/g, '')
+        .trim();
+
+      const audioContents = [{ parts: [{ text: speechText }] }];
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
         (bot === 'konpov' ? 'Puck' : 'Charon');

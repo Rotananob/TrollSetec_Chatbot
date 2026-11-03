@@ -71,13 +71,26 @@ export default function KonBongPage() {
     return pcmToWav(pcmData, 24000);
   }
 
-  // Fetch TTS Audio
+  // Clean markdown and non-spoken characters for clean Khmer TTS speech
+  function cleanSpeechText(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .replace(/\*\*(.*?)\*\*/g, '$1') // remove bold **
+      .replace(/\*(.*?)\*/g, '$1')     // remove italic *
+      .replace(/__(.*?)__/g, '$1')
+      .replace(/_(.*?)_/g, '$1')
+      .replace(/#{1,6}\s+/g, '')       // remove headers
+      .replace(/`{1,3}[^`]*`{1,3}/g, '') // remove code snippets
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [text](url) -> text
+      .trim();
+  }
+
+  // Fetch TTS Audio - reads ONLY the clean Khmer bot response (NO prompt commands)
   async function fetchAudio(text) {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
-      const refinedText =
-        'Read this in Khmer with a funny, witty, trolling older-brother student tone for SETEC university students. Sound sarcastic, energetic, hilarious, and playful: ' +
-        text;
+      const speechText = cleanSpeechText(text);
+      if (!speechText) return null;
       const deviceId = getDeviceId();
       const response = await fetch('/api/gemini', {
         method: 'POST',
@@ -86,7 +99,7 @@ export default function KonBongPage() {
           'x-device-id': deviceId
         },
         body: JSON.stringify({
-          prompt: refinedText,
+          prompt: speechText,
           audio: true,
           bot: 'konbong',
           generationConfig: {
