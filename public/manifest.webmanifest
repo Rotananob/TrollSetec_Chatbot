@@ -1,0 +1,25 @@
+{
+  "name": "SETEC Troll Chatbots",
+  "short_name": "SETEC Chat",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "/img/icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/img/icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/img/icon.jpg",
+      "sizes": "96x96",
+      "type": "image/jpeg"
+    }
+  ]
+}
