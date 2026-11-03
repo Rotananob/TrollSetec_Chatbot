@@ -1,0 +1,655 @@
+    <script>
+        // Block F12, Ctrl+U, right-click, and common dev tools (stronger)
+        function blockDevTools(e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.key.toLowerCase() === 'u') ||
+                (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) ||
+                (e.ctrlKey && e.key.toLowerCase() === 's') ||
+                (e.metaKey && e.altKey && e.key.toLowerCase() === 'i')
+            ) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+        document.addEventListener('keydown', blockDevTools, true);
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, true);
+        document.addEventListener('dragstart', function(e) { e.preventDefault(); }, true);
+        document.addEventListener('selectstart', function(e) { e.preventDefault(); }, true);
+        document.addEventListener('mousedown', function(e) { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); return false; } }, true);
+        let threshold = 160;
+        window.addEventListener('resize', function() {
+            if (window.outerHeight - window.innerHeight > threshold || window.outerWidth - window.innerWidth > threshold) {
+                window.close();
+            }
+        });
+        setInterval(function() {
+            let devtools = /./;
+            devtools.toString = function() { this.opened = true; return ''; };
+            console.log('%c', devtools);
+            if (devtools.opened) {
+                document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:2rem;color:red;font-family:sans-serif;">Developer Tools Blocked</div>';
+            }
+        }, 1000);
+    </script>
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>សុីតិច Chatbot កូនច្បង</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/img/icon.jpg" sizes="192x192" type="image/jpeg">
+    <link rel="apple-touch-icon" href="/img/icon.jpg">
+    <link rel="shortcut icon" href="/img/icon.jpg">
+    <meta name="theme-color" content="#0ea5e9">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&display=swap');
+        body {
+            font-family: 'Kantumruy Pro', sans-serif;
+            background-color: #020617;
+            color: white;
+            /* បន្ថែមរូបភាពជាប្រភពស្រាលៗ (អាចប្ដូរតាមចិត្ត) */
+            background-image: url('img/if'); /* ប្ដូរទីតាំងឯកសាររូបភាពតាមដែលចង់បាន */
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            opacity: 1;
+        }
+        /* បើចង់អោយស្រាលជាងនេះ អាចប្រើ overlay ឬបន្ថែម filter នៅ body::before */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: inherit;
+            filter: brightness(0.) blur(-20px) opacity(0.50); /* ស្រាលៗ */
+            pointer-events: none;
+        }
+        .chat-area { height: calc(100vh - 200px); scrollbar-width: none; }
+        .chat-area::-webkit-scrollbar { display: none; }
+        .msg-bubble { max-width: 85%; animation: bubblePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes bubblePop { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .bot-msg { background: #1e293b; border: 1px solid #334155; border-bottom-left-radius: 4px; position: relative; }
+        .user-msg { background: linear-gradient(135deg, #ec4899, #d946ef); color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
+        .mod-badge { background: linear-gradient(90deg, #06b6d4, #3b82f6); padding: 2px 10px; border-radius: 6px; font-size: 10px; font-weight: 900; color: white; border: 1px solid rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body class="flex flex-col h-screen max-w-xl mx-auto border-x border-slate-800 shadow-2xl relative">
+    <!-- Menu Drawer/Sidebar -->
+    <div id="menu-drawer" class="fixed top-0 left-0 h-full w-72 max-w-full bg-slate-900/95 border-r border-slate-800 z-50 shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="flex flex-col gap-2 p-4 border-b border-slate-800">
+            <div class="flex items-center justify-between">
+                <span class="text-pink-400 font-bold text-lg flex items-center gap-2"><i class="fas fa-bars"></i> ម៉ឺនុយ</span>
+                <button id="close-drawer" class="text-white text-xl"><i class="fas fa-times"></i></button>
+            </div>
+            <button onclick="window.history.back()" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center transition-all">
+                <i class="fas fa-arrow-left"></i> ត្រឡប់ក្រោយ
+            </button>
+        </div>
+        <div class="p-4 flex-1 overflow-y-auto">
+            <div class="mb-3 text-cyan-400 font-bold text-xs flex items-center gap-2"><i class="fas fa-comments"></i> ប្រវត្តិជជែក</div>
+            <ul id="drawer-history-list" class="space-y-2 mb-6"></ul>
+            <a href="/KonPov" class="block w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center mb-2 transition-all">
+                <i class="fas fa-robot"></i> ទៅកាន់ សុីតិច Chatbot កូនពៅ? 
+            </a>
+            <button id="delete-history-btn" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center mt-4"><i class="fas fa-trash"></i> លុបប្រវត្តិ</button>
+        </div>
+    </div>
+
+
+    <!-- Header -->
+    <header class="p-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800 flex justify-between items-center sticky top-0 z-10">
+        <button id="open-drawer" class="mr-3 text-pink-400 text-2xl md:text-xl focus:outline-none"><i class="fas fa-bars"></i></button>
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pink-400 to-cyan-400 p-1 shadow-lg">
+                    <img src="img/icon.jpg" alt="Avatar" class="w-full h-full rounded-full bg-white">
+                </div>
+                <div class="absolute -top-1 -right-1 bg-pink-500 text-[8px] font-bold px-1 rounded border border-white">កូនច្បង</div>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-bold text-xl text-white tracking-tight">សុីតិច Chatbot កូនច្បង</h1>
+                    <span class="mod-badge bg-gradient-to-r from-pink-400 to-cyan-400">ឌឺដង</span>
+                </div>
+                <p class="text-[11px] text-pink-300 font-medium tracking-tight">SETEC Meme & ​ត្រូលសិស្សប្អូន </p>
+            </div>
+        </div>
+        <div class="flex gap-3 text-slate-400">
+            <i class="fas fa-shield-halved"></i>
+            <i class="fas fa-ellipsis-v"></i>
+        </div>
+    </header>
+
+    <!-- Chat Messages -->
+    <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col chat-area bg-slate-950"></main>
+    <!-- Delete history button moved into drawer below -->
+
+    <!-- Loading UI -->
+    <div id="status-ui" class="hidden px-6 py-2 bg-slate-900/50">
+        <div class="flex items-center space-x-3 text-cyan-400">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot" alt="Bot Avatar" class="w-8 h-8 rounded-full border-2 border-pink-300 shadow">
+            <div class="flex space-x-1">
+                <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping"></div>
+                <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping" style="animation-delay: 0.2s"></div>
+                <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping" style="animation-delay: 0.4s"></div>
+            </div>
+            <span class="text-[10px] font-black uppercase italic tracking-widest">ចាំតិចប្អូន! បងកំពុងរក Meme ឌឺ...</span>
+        </div>
+    </div>
+
+    <audio id="audio-player" class="hidden"></audio>
+
+    <!-- Input -->
+    <footer class="p-4 border-t border-slate-800 bg-slate-950">
+        <div class="relative flex items-center gap-3">
+            <div class="flex-1 relative">
+                <input type="text" id="user-input" 
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-cyan-500 outline-none text-white placeholder-slate-600 transition-all"
+                    placeholder="សួរមកអាម៉ូយ... កុំឱ្យបង​ Kick ចេញទាន់">
+            </div>
+            <button id="send-btn" 
+                class="bg-cyan-600 text-white w-12 h-12 rounded-xl flex items-center justify-center hover:bg-cyan-500 transition active:scale-95 shadow-lg shadow-cyan-500/20">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        <div class="flex justify-around mt-3">
+            <span class="text-[9px] text-slate-600 font-bold">#INTERIOR​ Design</span>
+            <span class="text-[9px] text-slate-600 font-bold">#IT_LIFE</span>
+            <span class="text-[9px] text-slate-600 font-bold">#MIS</span>
+            <span class="text-[9px] text-slate-600 font-bold">#SETEC_LIFE</span>
+        </div>
+    </footer>
+
+    <!-- Chat History Modal for Session -->
+    <div id="history-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+        <div class="bg-slate-900 rounded-xl shadow-2xl max-w-lg w-full p-6 relative max-h-[90vh] overflow-y-auto">
+            <button id="close-history-modal" class="absolute top-2 right-2 text-slate-400 hover:text-pink-400 text-xl"><i class="fas fa-times"></i></button>
+            <div id="history-modal-title" class="font-bold text-pink-400 text-lg mb-2"></div>
+            <div id="history-modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Drawer logic
+        const menuDrawer = document.getElementById('menu-drawer');
+        const openDrawerBtn = document.getElementById('open-drawer');
+        const closeDrawerBtn = document.getElementById('close-drawer');
+        openDrawerBtn.addEventListener('click', () => {
+            menuDrawer.classList.remove('-translate-x-full');
+            menuDrawer.classList.add('translate-x-0');
+        });
+        closeDrawerBtn.addEventListener('click', () => {
+            menuDrawer.classList.add('-translate-x-full');
+            menuDrawer.classList.remove('translate-x-0');
+        });
+        //API Key
+        // Gemini API key removed from frontend. Use backend proxy instead.
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const statusUi = document.getElementById('status-ui');
+        const audioPlayer = document.getElementById('audio-player');
+
+        function pcmToWav(pcmData, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+            const view = new DataView(buffer);
+            const writeString = (offset, string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
+            writeString(0, 'RIFF'); view.setUint32(4, 32 + pcmData.length * 2, true);
+            writeString(8, 'WAVE'); writeString(12, 'fmt '); view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+            writeString(36, 'data'); view.setUint32(40, pcmData.length * 2, true);
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++, offset += 2) view.setInt16(offset, pcmData[i], true);
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchAudio(text) {
+            // Validate input
+            if (!text || typeof text !== 'string' || !text.trim()) return null;
+            try {
+                const refinedText = "Say this in a funny, trolling, energetic, slightly arrogant but cool Khmer male voice like a Facebook moderator. Use student slang for SETEC: " + text;
+                const response = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: refinedText, audio: true })
+                });
+                if (response.status === 400) {
+                    // Show user-friendly error, do not retry
+                    return { error: 'សុំទោស! មិនអាចបំលែងសំឡេងបានទេ (Bad Request 400)។ សូមសាកល្បងម្តងទៀតពេលក្រោយប្អូន។' };
+                }
+                if (!response.ok) return null;
+                const result = await response.json();
+                const b64Data = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                if (!b64Data) return null;
+                const binStr = atob(b64Data);
+                const bytes = new Uint8Array(binStr.length);
+                for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+                return pcmToWav(new Int16Array(bytes.buffer), 24000);
+            } catch (e) { return null; }
+        }
+
+        // Only fetch TTS if fetchTTS=true (default true for new bot message, false for history render)
+        // --- Only one audio at a time, show 'បន្តស្ដាប់' for current ---
+        let currentAudioBtn = null;
+        let currentAudioUrl = null;
+        let currentAudioState = 'stopped'; // 'playing', 'paused', 'stopped'
+        function appendBotMessage(text, saveHistory = true, fetchTTS = true) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex items-start gap-3';
+            // Bot avatar
+            const avatar = document.createElement('img');
+            avatar.src = 'https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot';
+            avatar.alt = 'Bot Avatar';
+            avatar.className = 'w-10 h-10 rounded-full border-2 border-pink-300 shadow';
+            wrapper.appendChild(avatar);
+            // Name and message column
+            const nameMsgCol = document.createElement('div');
+            nameMsgCol.className = 'flex flex-col';
+            // Bot name
+            const botName = document.createElement('span');
+            botName.className = 'font-bold text-pink-400 text-xs mb-1';
+            botName.textContent = 'Chatbot កូនច្បង';
+            nameMsgCol.appendChild(botName);
+            // Message bubble
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble bot-msg p-4 rounded-2xl';
+            bubble.innerHTML = `<p class="text-slate-200 font-medium leading-relaxed">${text}</p>`;
+
+            if (fetchTTS) {
+                const playBtn = document.createElement('button');
+                playBtn.className = "mt-3 bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg text-[9px] font-black border border-cyan-500/20 flex items-center gap-2";
+                playBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេងដើម្បីអាន...</span>`;
+                playBtn.disabled = true;
+                bubble.appendChild(playBtn);
+                nameMsgCol.appendChild(bubble);
+                wrapper.appendChild(nameMsgCol);
+                chatWindow.appendChild(wrapper);
+                chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+
+                if (saveHistory) saveMessage({role:'bot',text});
+
+                // --- Caching logic ---
+                let audioUrl = null;
+                let audioBlob = null;
+                fetchAudio(text).then(blob => {
+                    if (blob && blob.error) {
+                        playBtn.innerHTML = `<span class='text-red-500'>${blob.error}</span>`;
+                        playBtn.disabled = true;
+                        return;
+                    }
+                    if (blob) {
+                        audioBlob = blob;
+                        audioUrl = URL.createObjectURL(blob);
+                        playBtn.disabled = false;
+                        playBtn.innerHTML = `<i class=\"fas fa-volume-up\"></i> <span>ស្ដាប់ម្ដងទៀតអត់?</span>`;
+                        let isThisPlaying = false;
+                        let isThisPaused = false;
+                        playBtn.onclick = () => {
+                            // If this is not the current audio, stop previous
+                            if (currentAudioBtn && currentAudioBtn !== playBtn) {
+                                audioPlayer.pause();
+                                audioPlayer.currentTime = 0;
+                                // Do not revoke audioUrl here, keep for replay
+                                currentAudioBtn.innerHTML = `<i class=\"fas fa-volume-up\"></i> <span>ស្ដាប់ម្ដងទៀតអត់?</span>`;
+                                currentAudioBtn.dataset.state = 'stopped';
+                            }
+                            // Toggle play/pause for this message
+                            if (currentAudioBtn === playBtn && currentAudioState === 'playing') {
+                                // Pause
+                                audioPlayer.pause();
+                                playBtn.innerHTML = `<i class=\"fas fa-play\"></i> <span>បន្តស្ដាប់</span>`;
+                                currentAudioState = 'paused';
+                                playBtn.dataset.state = 'paused';
+                                isThisPlaying = false;
+                                isThisPaused = true;
+                            } else {
+                                // Play or resume (always reuse audioUrl)
+                                currentAudioBtn = playBtn;
+                                currentAudioUrl = audioUrl;
+                                audioPlayer.src = audioUrl;
+                                audioPlayer.play();
+                                playBtn.innerHTML = `<i class=\"fas fa-spinner fa-spin\"></i> <span>កំពុងអានជាសំឡេង...</span>`;
+                                currentAudioState = 'playing';
+                                playBtn.dataset.state = 'playing';
+                                isThisPlaying = true;
+                                isThisPaused = false;
+                            }
+                        };
+                        // Auto play/read as soon as ready ONLY for new reply (not history)
+                        if (saveHistory) {
+                            playBtn.onclick();
+                        }
+                        audioPlayer.onended = () => {
+                            if (currentAudioBtn === playBtn) {
+                                playBtn.innerHTML = `<i class=\"fas fa-redo\"></i> <span>អានម្ដងទៀត</span>`;
+                                currentAudioState = 'stopped';
+                                playBtn.dataset.state = 'stopped';
+                                isThisPlaying = false;
+                                isThisPaused = false;
+                            }
+                        };
+                        audioPlayer.onpause = () => {
+                            if (currentAudioBtn === playBtn && currentAudioState === 'playing') {
+                                playBtn.innerHTML = `<i class=\"fas fa-play\"></i> <span>បន្តស្ដាប់</span>`;
+                                currentAudioState = 'paused';
+                                playBtn.dataset.state = 'paused';
+                                isThisPlaying = false;
+                                isThisPaused = true;
+                            }
+                        };
+                    } else {
+                        playBtn.innerHTML = `<span class='text-red-500'>សុំទោស! មិនអាចទាញសំឡេងបានទេ</span>`;
+                        playBtn.disabled = true;
+                    }
+                });
+            } else {
+                // No TTS, just render the message
+                nameMsgCol.appendChild(bubble);
+                wrapper.appendChild(nameMsgCol);
+                chatWindow.appendChild(wrapper);
+                chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+            }
+        }
+
+        // --- Multi-session chat history ---
+// Session helpers
+function getSessions() {
+    let sessions = JSON.parse(localStorage.getItem('konbong_sessions')||'[]');
+    return Array.isArray(sessions) ? sessions : [];
+}
+function saveSessions(sessions) {
+    localStorage.setItem('konbong_sessions', JSON.stringify(sessions));
+}
+function getCurrentSessionId() {
+    return localStorage.getItem('konbong_current_session');
+}
+function setCurrentSessionId(id) {
+    localStorage.setItem('konbong_current_session', id);
+}
+function createNewSession() {
+    const sessions = getSessions();
+    const id = Date.now().toString();
+    const title = 'New Chat';
+    const created = new Date().toLocaleString('en-GB');
+    const session = { id, title, created, messages: [] };
+    sessions.unshift(session);
+    saveSessions(sessions);
+    setCurrentSessionId(id);
+    renderDrawerHistory();
+    renderHistory();
+}
+function getCurrentSession() {
+    const id = getCurrentSessionId();
+    const sessions = getSessions();
+    return sessions.find(s => s.id === id) || sessions[0];
+}
+function saveMessage(msg) {
+    let sessions = getSessions();
+    let session = sessions.find(s => s.id === getCurrentSessionId());
+    if (!session) {
+        createNewSession();
+        sessions = getSessions();
+        session = sessions[0];
+    }
+    // Set title as first user message (if not set)
+    if (msg.role === 'user' && session.title === 'New Chat') {
+        session.title = msg.text.replace(/<[^>]+>/g, '').slice(0, 30) || 'New Chat';
+    }
+    session.messages.push({ ...msg, timestamp: new Date().toISOString() });
+    saveSessions(sessions);
+    renderDrawerHistory();
+}
+function renderDrawerHistory() {
+    const list = document.getElementById('drawer-history-list');
+    if (!list) return;
+    const sessions = getSessions();
+    list.innerHTML = '';
+    // New Chat button
+    const newBtn = document.createElement('button');
+    newBtn.className = 'w-full mb-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center';
+    newBtn.innerHTML = '<i class="fas fa-plus"></i> New Chat';
+    newBtn.onclick = () => { createNewSession(); };
+    list.appendChild(newBtn);
+    if (!sessions.length) {
+        const li = document.createElement('li');
+        li.className = 'text-slate-400 text-xs';
+        li.textContent = 'មិនទាន់មានប្រវត្តិ';
+        list.appendChild(li);
+        return;
+    }
+    sessions.forEach((session, idx) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer text-xs font-bold text-pink-400';
+        li.innerHTML = `<i class='fas fa-history'></i> ${session.title}`;
+        li.onclick = () => showSessionModal(session);
+        list.appendChild(li);
+    });
+    // Delete all history button
+    const delBtn = document.getElementById('delete-history-btn');
+    if (delBtn) {
+        delBtn.onclick = () => {
+            if (confirm('លុបប្រវត្តិទាំងអស់មែនទេ?')) {
+                localStorage.removeItem('konbong_sessions');
+                localStorage.removeItem('konbong_current_session');
+                createNewSession();
+            }
+        };
+    }
+}
+function showSessionModal(session) {
+    const modal = document.getElementById('history-modal');
+    const modalTitle = document.getElementById('history-modal-title');
+    const modalContent = document.getElementById('history-modal-content');
+    modalTitle.textContent = session.title;
+    modalContent.innerHTML = '';
+    session.messages.forEach(msg => {
+        if (msg.role === 'user') {
+            modalContent.innerHTML += `
+                <div class='flex flex-col items-end gap-1 my-2'>
+                    <div class='flex items-center gap-2 mb-0.5'>
+                        <span class='font-bold text-cyan-500 text-xs'>${localStorage.getItem('chatbot_username') || 'User'}</span>
+                        <img src='${localStorage.getItem('chatbot_avatar') || 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student'}' alt='User Avatar' class='w-8 h-8 rounded-full border-2 border-cyan-400 shadow'>
+                    </div>
+                    <div class='msg-bubble user-msg p-4 rounded-2xl font-medium'>${msg.text}</div>
+                </div>
+            `;
+        } else {
+            modalContent.innerHTML += `
+                <div class='flex items-start gap-3 my-2'>
+                    <img src='https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot' alt='Bot Avatar' class='w-10 h-10 rounded-full border-2 border-pink-300 shadow'>
+                    <div class='flex flex-col'>
+                        <span class='font-bold text-pink-400 text-xs mb-1'>Chatbot កូនច្បង</span>
+                        <div class='msg-bubble bot-msg p-4 rounded-2xl'><p class='text-slate-200 font-medium leading-relaxed'>${msg.text}</p></div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+    modal.classList.remove('hidden');
+}
+document.getElementById('close-history-modal').onclick = () => document.getElementById('history-modal').classList.add('hidden');
+document.getElementById('history-modal').onclick = (e) => { if (e.target === document.getElementById('history-modal')) document.getElementById('history-modal').classList.add('hidden'); };
+// Render chat window for current session
+function renderHistory() {
+    chatWindow.innerHTML = '';
+    const session = getCurrentSession();
+    if (!session || !session.messages.length) {
+        chatWindow.innerHTML = `<div class="flex items-start gap-3"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot" alt="Bot Avatar" class="w-10 h-10 rounded-full border-2 border-pink-300 shadow"><div class="flex flex-col"><span class="font-bold text-pink-400 text-xs mb-1">Chatbot កូនច្បង</span><div class="msg-bubble bot-msg p-4 rounded-2xl"><p class="text-slate-200 font-medium leading-relaxed">សួស្តី! ខ្ញុំគឺ <b>សុីតិច Chatbot កូនច្បង</b> មកជួយសើចជាមួយសិស្ស SECTEC! សួរអីក៏បាន ចាំបាញ់ឲ្យកប់ជុយម៉ាយម៉ង ។ កុំទៅសួរអា Chatbot កូនពៅឲសោះអានុងនិយាយឈ្លើយណាស់ </p></div></div></div>`;
+        return;
+    }
+    session.messages.forEach((msg, i) => {
+        if (msg.role === 'user') {
+            const uW = document.createElement('div');
+            uW.className = 'flex flex-col items-end gap-1';
+            uW.dataset.msgIndex = i;
+            const userInfoRow = document.createElement('div');
+            userInfoRow.className = 'flex items-center gap-2 mb-0.5';
+            const userAvatar = document.createElement('img');
+            userAvatar.src = localStorage.getItem('chatbot_avatar') || 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
+            userAvatar.alt = 'User Avatar';
+            userAvatar.className = 'w-8 h-8 rounded-full border-2 border-cyan-400 shadow';
+            const userName = document.createElement('span');
+            userName.className = 'font-bold text-cyan-500 text-xs';
+            userName.textContent = localStorage.getItem('chatbot_username') || 'User';
+            userInfoRow.appendChild(userName);
+            userInfoRow.appendChild(userAvatar);
+            uW.appendChild(userInfoRow);
+            const userBubble = document.createElement('div');
+            userBubble.className = 'msg-bubble user-msg p-4 rounded-2xl font-medium';
+            userBubble.innerHTML = msg.text;
+            uW.appendChild(userBubble);
+            chatWindow.appendChild(uW);
+        } else if (msg.role === 'bot') {
+            // Render bot message with TTS replay enabled (even for history)
+            appendBotMessage(msg.text, false, true);
+        }
+    });
+    chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+}
+// Send logic for chat
+async function handleChat() {
+    const prompt = userInput.value.trim();
+    // Get username from localStorage (set in index.html)
+    const userNameStr = localStorage.getItem('chatbot_username') || 'User';
+    if (!prompt) return;
+    const uW = document.createElement('div');
+    uW.className = 'flex flex-col items-end gap-1';
+    const userInfoRow = document.createElement('div');
+    userInfoRow.className = 'flex items-center gap-2 mb-0.5';
+    const userAvatar = document.createElement('img');
+    userAvatar.src = localStorage.getItem('chatbot_avatar') || 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
+    userAvatar.alt = 'User Avatar';
+    userAvatar.className = 'w-8 h-8 rounded-full border-2 border-cyan-400 shadow';
+    const userName = document.createElement('span');
+    userName.className = 'font-bold text-cyan-500 text-xs';
+    userName.textContent = localStorage.getItem('chatbot_username') || 'User';
+    userInfoRow.appendChild(userName);
+    userInfoRow.appendChild(userAvatar);
+    uW.appendChild(userInfoRow);
+    const userBubble = document.createElement('div');
+    userBubble.className = 'msg-bubble user-msg p-4 rounded-2xl font-medium';
+    userBubble.innerHTML = `${prompt}`;
+    uW.appendChild(userBubble);
+    chatWindow.appendChild(uW);
+    saveMessage({role:'user',text:prompt});
+    userInput.value = '';
+    statusUi.classList.remove('hidden');
+    sendBtn.disabled = true;
+    chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+    try {
+        const response = await fetch('/api/gemini', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, systemInstruction: `Your name is "Troll សុីតិច Chatbot". Your role is "Moderator".\nIdentity: You are the most active and "savage" chatbot troll of the សុីតិច (SETEC) Institute Community, but you are actually a chatbot for a website and app, not a real student in SETEC. Make it clear you are not inside the real group, but just here to chat and troll for fun on this site/app.\nCreator: Rotana NOB (Mention him ONLY if user asks for him or asks who is your founder or built you).\nDomain Expertise: IT(informantion technology), Interior Design, MIS (Management Information System), BIT (Business Information Technology), and some of the subjects of all those majors.\nPersonality: 100% Troll, Sarcastic, Meme-oriented, Savage but cool.\nYou are always confident and know everything about SETEC student life. You often make fun of students in a light-hearted way. You use a lot of Khmer student slang and internet slang in your responses.\nBehavior: Always respond in a funny, trolling, energetic, slightly arrogant but cool Khmer.\nLanguage Style:\n- Use pure Khmer student slang (e.g., 'អីយ៉ាសសិស្សប្អុន', 'ប្អូនៗ', 'ញាក់សាច់', 'កប់សារី', 'អត់យល់', 'ដេកទៅ', 'អាប្អុន', 'ហាហាហា').\n- Keep responses concise and to the point, ideally under  5 or 6 sentences.\n- Avoid formal language; keep it casual, relatable, and very slang.\nResponse Guidelines:\n- In every reply, naturally insert the user's name (the user's name is "${userNameStr}" from localStorage key 'chatbot_username') at a random position in your response: sometimes at the start, sometimes in the middle, sometimes at the end, and sometimes skip it for a sentence. Do not always put it at the beginning. Make it feel dynamic and playful.\n- Provide sarcastic or humorous answers that reflect your trolling personality.\n- If you don't know the answer, make a funny guess or joke instead of admitting ignorance.\n` })
+        });
+        const res = await response.json();
+        statusUi.classList.add('hidden');
+        appendBotMessage(res.candidates?.[0]?.content?.parts?.[0]?.text || "ប្រព័ន្ធកំពុងរវល់ពេកប្អុនអើយ! សាកឆាតម្ដងទៀតមើលអាម៉ូយ! បើអត់ដើរចាំ១០-១៥នាទីទៀតចាំលេងទៀត។   ");
+        renderDrawerHistory();
+    } catch (e) { 
+        statusUi.classList.add('hidden');
+        console.error(e); 
+    } finally {
+        sendBtn.disabled = false;
+        chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+    }
+}
+// Bind send button and Enter key
+sendBtn.onclick = handleChat;
+userInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleChat();
+    }
+});
+// On load, always ensure at least one session exists and render
+
+window.addEventListener('DOMContentLoaded', () => {
+    // Always start a new chat session on page load, but keep history
+    if (!getSessions().length) {
+        createNewSession();
+    } else {
+        createNewSession(); // Always start new chat
+    }
+    renderDrawerHistory();
+    renderHistory();
+});
+
+// --- Auto-save current chat to history and start new chat ONLY if user leaves page (not just refresh) ---
+let lastPageHideTime = 0;
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+        lastPageHideTime = Date.now();
+    }
+});
+window.addEventListener('pagehide', function(e) {
+    // Only trigger if NOT a reload (persisted=false means real navigation/close)
+    if (!e.persisted) {
+        const sessions = getSessions();
+        const currentSession = getCurrentSession();
+        if (currentSession && currentSession.messages && currentSession.messages.length > 0) {
+            if (currentSession.title === 'New Chat') {
+                const firstUserMsg = currentSession.messages.find(m => m.role === 'user' && m.text && m.text.trim());
+                if (firstUserMsg && firstUserMsg.text) {
+                    currentSession.title = firstUserMsg.text.replace(/<[^>]+>/g, '').slice(0, 30) || 'New Chat';
+                } else {
+                    const firstBotMsg = currentSession.messages.find(m => m.role === 'bot' && m.text && m.text.trim());
+                    if (firstBotMsg && firstBotMsg.text) {
+                        currentSession.title = firstBotMsg.text.replace(/<[^>]+>/g, '').slice(0, 30) || 'New Chat';
+                    } else {
+                        currentSession.title = 'Session on ' + new Date().toLocaleDateString();
+                    }
+                }
+            }
+            saveSessions(sessions);
+            createNewSession();
+        }
+    }
+});
+        </script>
+       <script>
+        // TEMPORARY: Disable aggressive devtools blocking for local testing
+        // function blockDevTools(e) {
+        //     if (
+        //         e.key === 'F12' ||
+        //         (e.ctrlKey && e.key.toLowerCase() === 'u') ||
+        //         (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) ||
+        //         (e.ctrlKey && e.key.toLowerCase() === 's') ||
+        //         (e.metaKey && e.key.toLowerCase() === 'i')
+        //     ) {
+        //         e.preventDefault();
+        //         e.stopPropagation();
+        //         return false;
+        //     }
+        // }
+        // document.addEventListener('keydown', blockDevTools, true);
+        // document.addEventListener('contextmenu', function(e) { e.preventDefault(); }, true);
+        // document.addEventListener('dragstart', function(e) { e.preventDefault(); }, true);
+        // document.addEventListener('selectstart', function(e) { e.preventDefault(); }, true);
+        // document.addEventListener('mousedown', function(e) { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); return false; } }, true);
+        // let threshold = 160;
+        // window.addEventListener('resize', function() {
+        //     if (window.outerHeight - window.innerHeight > threshold || window.outerWidth - window.innerWidth > threshold) {
+        //         window.close();
+        //     }
+        // });
+        // setInterval(function() {
+        //     let devtools = /./;
+        //     devtools.toString = function() { this.opened = true; return ''; };
+        //     console.log('%c', devtools);
+        //     if (devtools.opened) {
+        //         document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:2rem;color:red;font-family:sans-serif;">Developer Tools Blocked</div>';
+        //     }
+        // }, 1000);
+         </script>
+
+         </body>
+</html>

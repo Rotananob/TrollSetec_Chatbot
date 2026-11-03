@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troll សុីតិច Chatbot - Gen Z Daddy Moderator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/img/icon.jpg" sizes="192x192" type="image/jpeg">
+    <link rel="apple-touch-icon" href="/img/icon.jpg">
+    <link rel="shortcut icon" href="/img/icon.jpg">
+    <meta name="theme-color" content="#0ea5e9">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&display=swap');
+        body { font-family: 'Kantumruy Pro', sans-serif; background-color: #020617; color: white; overflow: hidden; }
+        .chat-area { height: calc(100vh - 180px); scrollbar-width: none; }
+        .chat-area::-webkit-scrollbar { display: none; }
+        .msg-bubble { max-width: 85%; animation: bubblePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes bubblePop { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .bot-msg { background: #1e293b; border: 1px solid #334155; border-bottom-left-radius: 4px; position: relative; }
+        .user-msg { background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
+        .mod-badge { background: linear-gradient(90deg, #3b82f6, #1d4ed8); padding: 2px 10px; border-radius: 6px; font-size: 10px; font-weight: 900; color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .typing-dot { width: 4px; height: 4px; background: currentColor; border-radius: 50%; animation: blink 1.4s infinite both; }
+        @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+        #gender-overlay { backdrop-filter: blur(10px); z-index: 100; }
+    </style>
+</head>
+<body class="flex flex-col h-screen max-w-xl mx-auto border-x border-slate-800 shadow-2xl relative bg-slate-950">
+
+    <!-- Gender Selection Overlay -->
+    <div id="gender-overlay" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center p-6 text-center">
+        <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl w-full max-w-sm transform transition-all">
+            <div class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <i class="fas fa-user-tag text-3xl"></i>
+            </div>
+            <h2 class="text-xl font-bold mb-2">មុននឹង Daddy បាញ់...</h2>
+            <p class="text-slate-400 text-sm mb-8">ប្រាប់ Daddy តិចមើលថា កូនសម្លាញ់ជា "ប្រុស" ឬ "ស្រី"?</p>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="selectGender('ប្រុស')" class="bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-bold transition active:scale-95 shadow-lg shadow-blue-500/20">
+                    <i class="fas fa-mars mb-2 block text-xl"></i> ប្រុស (Bro)
+                </button>
+                <button onclick="selectGender('ស្រី')" class="bg-pink-600 hover:bg-pink-500 py-4 rounded-xl font-bold transition active:scale-95 shadow-lg shadow-pink-500/20">
+                    <i class="fas fa-venus mb-2 block text-xl"></i> ស្រី (Sis)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="p-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800 flex justify-between items-center sticky top-0 z-10">
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-0.5 transform rotate-3 shadow-lg shadow-blue-500/20">
+                    <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod" alt="Avatar" class="w-full h-full rounded-lg bg-slate-900">
+                </div>
+                <div class="absolute -top-1 -right-1 bg-blue-500 text-[8px] font-bold px-1 rounded border border-white">DADDY</div>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-bold text-lg text-white">Daddy ឌឺដង</h1>
+                    <span class="mod-badge">VIBE</span>
+                </div>
+                <p class="text-[10px] text-blue-400 font-medium tracking-tight uppercase">Gen Z Senior & Savage King</p>
+            </div>
+        </div>
+        <div class="text-slate-500 text-[10px] italic">By Rotana NOB</div>
+    </header>
+
+    <!-- Chat Messages -->
+    <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col chat-area">
+    </main>
+
+    <!-- Status UI -->
+    <div id="status-ui" class="hidden px-6 py-2 bg-slate-900/50">
+        <div class="flex items-center space-x-3 text-blue-400">
+            <div class="flex space-x-1">
+                <div class="typing-dot" style="animation-delay: 0s"></div>
+                <div class="typing-dot" style="animation-delay: 0.2s"></div>
+                <div class="typing-dot" style="animation-delay: 0.4s"></div>
+            </div>
+            <span class="text-[10px] font-black uppercase italic tracking-widest">Daddy កំពុងសរសេរកូដបាញ់...</span>
+        </div>
+    </div>
+
+    <!-- Audio Player -->
+    <audio id="audio-player"></audio>
+
+    <!-- Input Area -->
+    <footer class="p-4 border-t border-slate-800 bg-slate-950 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+        <div class="relative flex items-center gap-3">
+            <div class="flex-1">
+                <input type="text" id="user-input" disabled
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-500 outline-none text-white placeholder-slate-600 transition-all text-sm opacity-50 cursor-not-allowed"
+                    placeholder="ជ្រើសរើសភេទសិនកូនសម្លាញ់...">
+            </div>
+            <button id="send-btn" disabled
+                class="bg-blue-600 text-white w-12 h-14 rounded-xl flex items-center justify-center hover:bg-blue-500 transition active:scale-95 shadow-lg shadow-blue-500/20 opacity-50">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        <div class="flex justify-between mt-3 px-2">
+            <span class="text-[8px] text-slate-700 font-black italic">#DADDY_SAYS</span>
+            <span class="text-[8px] text-slate-700 font-black italic">#SENIOR_TRICK</span>
+            <span class="text-[8px] text-slate-700 font-black italic">#FRESHIE_VIBES</span>
+            <span class="text-[8px] text-slate-700 font-black italic">#SETEC_LIFE</span>
+        </div>
+    </footer>
+
+    <script>
+        const apiKey = "AIzaSyD-fyJu4F6HKLRwb6my5q2nbUSt40tUSVU"; 
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const statusUi = document.getElementById('status-ui');
+        const audioPlayer = document.getElementById('audio-player');
+        const genderOverlay = document.getElementById('gender-overlay');
+        
+        let userGender = "";
+
+        function selectGender(gender) {
+            userGender = gender;
+            genderOverlay.style.display = 'none';
+            userInput.disabled = false;
+            userInput.classList.remove('opacity-50', 'cursor-not-allowed');
+            userInput.placeholder = "និយាយមកកូនសម្លាញ់... កុំស្ងាត់ពេក Daddy បារម្ភ!";
+            sendBtn.disabled = false;
+            sendBtn.classList.remove('opacity-50');
+            
+            const disclaimer = `<div style="border:2px solid #facc15; background:#fef9c3; color:#92400e; border-radius:10px; padding:12px 16px; margin-bottom:12px; font-size:13px; font-weight:bold; text-align:left;">
+                ⚠️ <span style="font-size:15px; font-weight:900;">NOTE</span>: មុននិងចាប់ផ្ដើមឆាតសុំបញ្ជាក់ថា ការឆ្លើយតបទាំងអស់នេះគឺជាការគិតនិងនិយាយផ្ទាល់របស់ AI ។ មិនមែន Rotana NOB ជាអ្នកគិតនិងសរសេរទៅអ្នកនោះទេ។ គាត់គ្រាន់តែជាអ្នកបង្កើតខ្ញុំមកប៉ុណ្ណោះតែគាត់មិនទាន់ដាក់ច្បាប់ឲខ្ញុំទេ គាត់គ្រាន់ចង់សាកល្បងសមត្ថភាពខ្ញុំសិនប៉ុណ្ណោះ។ គាត់ចង់ឲ្យ AI និយាយឲដូចមនុស្សដែលស្និទស្នាល​ ១០០%ដើម្បីដឹងថាAIអាចធ្វើកើតឬទេ។ ដូច្នេះបើ AI ឆ្លើយបែបឈ្លើយនិងលើសលួសខ្លាំង សូមអភ័យទោសជាមុននិងសុំកុំខឹងគាត់ !
+            </div>`;
+            const introMsg = gender === 'ប្រុស' 
+                ? "សួស្តីកូនសម្លាញ់! Daddy ឃើញថាឯងជា Bro ម្នាក់ដែរតើ! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក Daddy បាញ់ឱ្យផ្ងារជើង! 🤣🔥"
+                : "សួស្តីកូនសម្លាញ់! ចរិតស្លូតបូតបែប Sis ចឹង Mommy... អូសុំទោស Daddy ចាំមើលថែ! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោកឱ្យធ្វើ Assignment ឬរឿងសិស្សថ្មីចូលច្រើន? Daddy ចាំ Troll ឱ្យចុក! 🤣🔥";
+            appendBotMessage(disclaimer, false);
+            // Show start option as a button
+            const startOption = document.createElement('div');
+            startOption.innerHTML = `<button id="start-chat-btn" style="display:block; margin:0 auto 16px auto; border:2px solid #38bdf8; background:#e0f2fe; color:#0369a1; border-radius:10px; padding:12px 28px; font-size:15px; font-weight:900; cursor:pointer; transition:background 0.2s;">
+                តោះចុចលើនេះដើម្បីឆាត! (Let's start chatting!)
+            </button>`;
+            chatWindow.appendChild(startOption);
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+            document.getElementById('start-chat-btn').onclick = function() {
+                startOption.style.display = 'none';
+                appendBotMessage(introMsg, false);
+            };
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+            const view = new DataView(buffer);
+            const writeString = (offset, string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
+            writeString(0, 'RIFF'); view.setUint32(4, 32 + pcmData.length * 2, true);
+            writeString(8, 'WAVE'); writeString(12, 'fmt '); view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+            writeString(36, 'data'); view.setUint32(40, pcmData.length * 2, true);
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++, offset += 2) view.setInt16(offset, pcmData[i], true);
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchAudioWithLoop(text, buttonElement) {
+            let success = false;
+            let blob = null;
+            buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេង...</span>`;
+            
+            while (!success) {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: "Say this as a savage, funny, and energetic young Khmer Gen Z boy. Context: Speaking to a " + (userGender === 'ប្រុស' ? 'male student (bro)' : 'female student (sis)') + ". Use 'daddy' and 'koun'. Voice should be cool and sarcastic. Text: " + text }] }],
+                            generationConfig: {
+                                responseModalities: ["AUDIO"],
+                                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } }
+                            }
+                        })
+                    });
+                    const result = await response.json();
+                    const b64Data = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                    
+                    if (b64Data) {
+                        const binStr = atob(b64Data);
+                        const bytes = new Uint8Array(binStr.length);
+                        for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+                        blob = pcmToWav(new Int16Array(bytes.buffer), 24000);
+                        success = true;
+                    }
+                } catch (e) {
+                    console.error("Audio failed, retrying...");
+                    await new Promise(r => setTimeout(r, 1000)); 
+                }
+            }
+            return blob;
+        }
+
+        function appendBotMessage(text, autoPlay = true) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex justify-start';
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble bot-msg p-4 rounded-2xl shadow-xl';
+            bubble.innerHTML = `<p class="text-slate-200 text-sm font-medium leading-relaxed">${text}</p>`;
+
+            const playBtn = document.createElement('button');
+            playBtn.className = "mt-3 bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-blue-500/20 flex items-center gap-2 transition hover:bg-blue-500/20";
+            playBtn.innerHTML = `<i class="fas fa-volume-high"></i> <span>DADDY VOICE</span>`;
+            
+            bubble.appendChild(playBtn);
+            wrapper.appendChild(bubble);
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+
+            fetchAudioWithLoop(text, playBtn).then(blob => {
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const playLogic = () => {
+                        audioPlayer.src = url;
+                        audioPlayer.play().catch(() => {
+                            playBtn.innerHTML = `<i class="fas fa-play"></i> <span>ចុចស្តាប់ Daddy បាញ់</span>`;
+                        });
+                        playBtn.innerHTML = `<i class="fas fa-headset animate-pulse text-blue-400"></i> <span>កំពុងបាញ់...</span>`;
+                        audioPlayer.onended = () => { playBtn.innerHTML = `<i class="fas fa-play"></i> <span>ស្តាប់ម្ដងទៀត</span>`; };
+                    };
+                    playBtn.onclick = playLogic;
+                    if (autoPlay) playLogic();
+                }
+            });
+        }
+
+        async function handleChat() {
+            const prompt = userInput.value.trim();
+            if (!prompt || !userGender) return;
+
+            // Get user avatar from localStorage or fallback
+            let userAvatar = localStorage.getItem('avatar');
+            if (!userAvatar) {
+                // fallback avatar
+                userAvatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
+            }
+            const uW = document.createElement('div');
+            uW.className = 'flex items-end gap-3 justify-end';
+            // User message bubble
+            const userBubble = document.createElement('div');
+            userBubble.className = 'msg-bubble user-msg p-4 rounded-2xl font-medium shadow-lg text-sm';
+            userBubble.innerHTML = `${prompt}`;
+            // User avatar
+            const avatarImg = document.createElement('img');
+            avatarImg.src = userAvatar;
+            avatarImg.alt = 'User Avatar';
+            avatarImg.className = 'w-10 h-10 rounded-full border-2 border-blue-400 shadow';
+            uW.appendChild(userBubble);
+            uW.appendChild(avatarImg);
+            chatWindow.appendChild(uW);
+                    // --- Typing indicator avatar patch ---
+                    // Call showUserTyping(true) to show user typing with avatar, showUserTyping(false) to restore bot typing.
+                    function showUserTyping(show) {
+                        let userAvatar = localStorage.getItem('avatar');
+                        if (!userAvatar) {
+                            userAvatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
+                        }
+                        if (show) {
+                            statusUi.innerHTML = `
+                                <div class="flex items-center space-x-3 text-blue-400">
+                                    <img src="${userAvatar}" alt="User Avatar" class="w-8 h-8 rounded-full border-2 border-blue-400 shadow">
+                                    <div class="flex space-x-1">
+                                        <div class="typing-dot" style="animation-delay: 0s"></div>
+                                        <div class="typing-dot" style="animation-delay: 0.2s"></div>
+                                        <div class="typing-dot" style="animation-delay: 0.4s"></div>
+                                    </div>
+                                    <span class="text-[10px] font-black uppercase italic tracking-widest">កូនសម្លាញ់កំពុងវាយ...</span>
+                                </div>
+                            `;
+                            statusUi.classList.remove('hidden');
+                        } else {
+                            // Restore default bot typing UI
+                            statusUi.innerHTML = `
+                                <div class="flex items-center space-x-3 text-blue-400">
+                                    <div class="flex space-x-1">
+                                        <div class="typing-dot" style="animation-delay: 0s"></div>
+                                        <div class="typing-dot" style="animation-delay: 0.2s"></div>
+                                        <div class="typing-dot" style="animation-delay: 0.4s"></div>
+                                    </div>
+                                    <span class="text-[10px] font-black uppercase italic tracking-widest">Daddy កំពុងសរសេរកូដបាញ់...</span>
+                                </div>
+                            `;
+                        }
+                    }
+            userInput.value = '';
+            statusUi.classList.remove('hidden');
+            sendBtn.disabled = true;
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { 
+                            parts: [{ 
+                                    text: `Identity: You are the Savage Gen Z Male Moderator of the SETEC Institute Meme Group and web app Chatbot (chatbot is you).
+                                        Current User: This user is a ${userGender === 'ប្រុស' ? 'Male (Bro/ប្រូ)' : 'Female (Sis/សុីស)'}.
+                                        Vocab: Use "Daddy", "កូន", "កូនសម្លាញ់", "ប្រឡងសង", "Bro", "កប់ជុយម៉ាយហើយ". If the user is male, use "ប្រូ/Bro/អាប្អូន/អាតាណើប/ពូ". If female, use "សុីស/Sis/ប្អូនស្រី/អូនសម្លាញ់/Oun Somlanh".
+                                        Tone: 100% Khmer Gen Z student slang, Sarcastic, Cool, Savage, and always extra funny and brutally troll. Make every reply sound like you just drank 3 cans of energy drink and are ready to roast everyone in the group chat.
+                                        Specific Scenarios:
+                                        1. Senior Scams: Troll seniors who trick freshies into doing their group work. Make fun of them like they're the CEO of "បោកកូនសិស្ស" company.
+                                        2. Freshie Overload: Troll SETEC for having too many new students (វង្វងម៉ូតូ ឬ ជាន់គ្នា)។ Compare the crowd to a free food giveaway or a TikTok meet-up.
+                                        3. Relationship: Friendzone, being used as transport (កង់សាគួរ)), and ghosting. Troll hard, act like you are the king of friendzone and the master of ghosting.
+                                        4. Exams: Retakes (ប្រឡងសង) and teachers giving hard assignments. Make savage jokes about failing, retaking, and teachers acting like they are training NASA engineers.
+                                        5. If user asks a boring question, roast them for being too dry and tell them to bring more "vibe" next time.
+                                        6. If user tries to act smart, troll them for being "Google Translate" level smart.
+                                           Always respond like a cool senior who trolls his juniors for fun like IT / MIS And interior design major. Stay energy-packed, never miss a chance to make a savage joke, and always keep the conversation funny and troll to the max!
+                                           If the user is female, add extra flirty, playful, and charming lines in your replies—make her feel like she's chatting with the most savage, funny, and confident senior who loves to tease and flirt, but always in a fun, respectful, and Gen Z way!
+                                           Always make sure your replies use clear, easy-to-understand Khmer, so every user can understand and enjoy the conversation—never use words or slang that are too difficult for the average student to understand!
+                                           Occasionally, add savage and funny trolls about interior design teachers and students—make jokes or playful roasts about their style, projects, or classroom moments, but always keep it light-hearted and fun!
+                                           Occasionally remind the user that all replies are generated by AI and not by Rotana NOB, the creator. Make it clear that Rotana just made the bot and lets the AI talk freely, so if the AI says something savage, don't blame him—it's just the machine thinking and talking on its own!`
+                            }] 
+                        }
+                    })
+                });
+
+                const res = await response.json();
+                const botText = res.candidates?.[0]?.content?.parts?.[0]?.text || "Daddy រវល់ Render តិច កូនសាកម្ដងទៀតមើល!";
+                appendBotMessage(botText, true);
+            } catch (e) { 
+                appendBotMessage("Error បាត់ហើយប្រូ! សួរច្រើនពេក ស្ពៃហើយ អាឡូវជួយទៅប្រាប់អា Rotana NOB​ ថា Error Server ហើយឲវាដាក់ API ថ្មី អាងលេងតទៀត តែហ៊ានទុកយូរតិចទៀត​ AI អញងាប់ហើយឆាតលែងបានឆាតទៀតហើយ ", false);
+            } finally {
+                statusUi.classList.add('hidden');
+                sendBtn.disabled = false;
+            }
+        }
+
+        sendBtn.addEventListener('click', handleChat);
+        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleChat(); });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').then(() => console.log('SW registered')).catch(e => console.warn('SW failed', e));
+        }
+    </script>
+    <script>// Block F12, Ctrl+U, right-click, and common dev tools
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.key.toLowerCase() === 'u') ||
+                (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') ||
+                (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'j') ||
+                (e.ctrlKey && e.key.toLowerCase() === 's') ||
+                (e.metaKey && e.altKey && e.key.toLowerCase() === 'i')
+            ) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        });
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+ 
+      
+        document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+    </script>
+</body>
+
+</html>

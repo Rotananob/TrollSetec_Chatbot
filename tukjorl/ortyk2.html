@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troll សុីតិច Chatbot - Gen Z Daddy Moderator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@300;400;700&display=swap');
+        body { font-family: 'Kantumruy Pro', sans-serif; background-color: #020617; color: white; overflow: hidden; }
+        .chat-area { height: calc(100vh - 180px); scrollbar-width: none; }
+        .chat-area::-webkit-scrollbar { display: none; }
+        .msg-bubble { max-width: 85%; animation: bubblePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes bubblePop { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .bot-msg { background: #1e293b; border: 1px solid #334155; border-bottom-left-radius: 4px; position: relative; }
+        .user-msg { background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; border-bottom-right-radius: 4px; align-self: flex-end; }
+        .mod-badge { background: linear-gradient(90deg, #3b82f6, #1d4ed8); padding: 2px 10px; border-radius: 6px; font-size: 10px; font-weight: 900; color: white; border: 1px solid rgba(255,255,255,0.2); }
+        .typing-dot { width: 4px; height: 4px; background: currentColor; border-radius: 50%; animation: blink 1.4s infinite both; }
+        @keyframes blink { 0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; } }
+        #gender-overlay { backdrop-filter: blur(10px); z-index: 100; }
+    </style>
+</head>
+<body class="flex flex-col h-screen max-w-xl mx-auto border-x border-slate-800 shadow-2xl relative bg-slate-950">
+
+    <!-- Gender Selection Overlay -->
+    <div id="gender-overlay" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center p-6 text-center">
+        <div class="bg-slate-900 border border-slate-700 p-8 rounded-3xl shadow-2xl w-full max-w-sm transform transition-all">
+            <div class="w-20 h-20 bg-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <i class="fas fa-user-tag text-3xl"></i>
+            </div>
+            <h2 class="text-xl font-bold mb-2">មុននឹង Daddy បាញ់...</h2>
+            <p class="text-slate-400 text-sm mb-8">ប្រាប់ Daddy តិចមើលថា កូនសម្លាញ់ជា "ប្រុស" ឬ "ស្រី"?</p>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="selectGender('ប្រុស')" class="bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-bold transition active:scale-95 shadow-lg shadow-blue-500/20">
+                    <i class="fas fa-mars mb-2 block text-xl"></i> ប្រុស (Bro)
+                </button>
+                <button onclick="selectGender('ស្រី')" class="bg-pink-600 hover:bg-pink-500 py-4 rounded-xl font-bold transition active:scale-95 shadow-lg shadow-pink-500/20">
+                    <i class="fas fa-venus mb-2 block text-xl"></i> ស្រី (Sis)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="p-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800 flex justify-between items-center sticky top-0 z-10">
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 p-0.5 transform rotate-3 shadow-lg shadow-blue-500/20">
+                    <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod" alt="Avatar" class="w-full h-full rounded-lg bg-slate-900">
+                </div>
+                <div class="absolute -top-1 -right-1 bg-blue-500 text-[8px] font-bold px-1 rounded border border-white">DADDY</div>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-bold text-lg text-white">Daddy ឌឺដង</h1>
+                    <span class="mod-badge">VIBE</span>
+                </div>
+                <p class="text-[10px] text-blue-400 font-medium tracking-tight uppercase">Gen Z Senior & Savage King</p>
+            </div>
+        </div>
+        <div class="text-slate-500 text-[10px] italic">By Rotana NOB</div>
+    </header>
+
+    <!-- Chat Messages -->
+    <main id="chat-window" class="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col chat-area">
+    </main>
+
+    <!-- Status UI -->
+    <div id="status-ui" class="hidden px-6 py-2 bg-slate-900/50">
+        <div class="flex items-center space-x-3 text-blue-400">
+            <div class="flex space-x-1">
+                <div class="typing-dot" style="animation-delay: 0s"></div>
+                <div class="typing-dot" style="animation-delay: 0.2s"></div>
+                <div class="typing-dot" style="animation-delay: 0.4s"></div>
+            </div>
+            <span class="text-[10px] font-black uppercase italic tracking-widest">Daddy កំពុងសរសេរកូដបាញ់...</span>
+        </div>
+    </div>
+
+    <!-- Audio Player -->
+    <audio id="audio-player"></audio>
+
+    <!-- Input Area -->
+    <footer class="p-4 border-t border-slate-800 bg-slate-950 shadow-[0_-10px_20_rgba(0,0,0,0.5)]">
+        <div class="relative flex items-center gap-3">
+            <div class="flex-1">
+                <input type="text" id="user-input" disabled
+                    class="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-blue-500 outline-none text-white placeholder-slate-600 transition-all text-sm opacity-50 cursor-not-allowed"
+                    placeholder="ជ្រើសរើសភេទសិនកូនសម្លាញ់...">
+            </div>
+            <button id="send-btn" disabled
+                class="bg-blue-600 text-white w-12 h-14 rounded-xl flex items-center justify-center hover:bg-blue-500 transition active:scale-95 shadow-lg shadow-blue-500/20 opacity-50">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+        <div class="flex justify-between mt-3 px-2">
+            <span class="text-[8px] text-slate-700 font-black italic">#DADDY_SAYS</span>
+            <span class="text-[8px] text-slate-700 font-black italic">#SENIOR_TRICK</span>
+            <span class="text-[8px] text-slate-700 font-black italic">#FRESHIE_VIBES</span>
+            <span class="text-[8px] text-slate-700 font-black italic">#SETEC_LIFE</span>
+        </div>
+    </footer>
+
+    <script>
+        const apiKey = "AIzaSyDbq9IC3jToT2BrfVjmJ3_B1A4sbZyN7ME"; 
+        const chatWindow = document.getElementById('chat-window');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const statusUi = document.getElementById('status-ui');
+        const audioPlayer = document.getElementById('audio-player');
+        const genderOverlay = document.getElementById('gender-overlay');
+        
+        let userGender = "";
+
+        function selectGender(gender) {
+            userGender = gender;
+            genderOverlay.style.display = 'none';
+            userInput.disabled = false;
+            userInput.classList.remove('opacity-50', 'cursor-not-allowed');
+            userInput.placeholder = "និយាយមកកូនសម្លាញ់... កុំស្ងាត់ពេក Daddy បារម្ភ!";
+            sendBtn.disabled = false;
+            sendBtn.classList.remove('opacity-50');
+            
+            const introMsg = gender === 'ប្រុស' 
+                ? "សួស្តីកូនសម្លាញ់! Daddy ឃើញថាឯងជា Bro ម្នាក់ដែរតើ! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក Daddy បាញ់ឱ្យផ្ងារជើង! 🤣🔥"
+                : "សួស្តីកូនសម្លាញ់! ចរិតស្លូតបូតបែប Sis ចឹង Daddy ចាំមើលថែ! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោកឱ្យធ្វើ Assignment ឬរឿងសិស្សថ្មីចូលច្រើន? Daddy ចាំ Troll ឱ្យចុក! 🤣🔥";
+            
+            appendBotMessage(introMsg, false);
+        }
+
+        // Helper function for exponential backoff retries
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return response;
+                    if (response.status === 429 || response.status >= 500) {
+                        const delay = Math.pow(2, i) * 1000;
+                        await new Promise(r => setTimeout(r, delay));
+                        continue;
+                    }
+                    throw new Error(`HTTP Error ${response.status}`);
+                } catch (e) {
+                    if (i === maxRetries - 1) throw e;
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(r => setTimeout(r, delay));
+                }
+            }
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+            const view = new DataView(buffer);
+            const writeString = (offset, string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
+            writeString(0, 'RIFF'); view.setUint32(4, 32 + pcmData.length * 2, true);
+            writeString(8, 'WAVE'); writeString(12, 'fmt '); view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+            writeString(36, 'data'); view.setUint32(40, pcmData.length * 2, true);
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++, offset += 2) view.setInt16(offset, pcmData[i], true);
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        async function fetchAudioWithLoop(text, buttonElement) {
+            buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេង...</span>`;
+            
+            try {
+                // Ensure text isn't too long for TTS, and provide clear system context
+                const ttsPrompt = `Speak as a sarcastic Gen Z boy named Charon. Be funny and energetic. Text: ${text}`;
+                
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: ttsPrompt }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Charon" } } }
+                        }
+                    })
+                });
+                
+                const result = await response.json();
+                const b64Data = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                
+                if (b64Data) {
+                    const binStr = atob(b64Data);
+                    const bytes = new Uint8Array(binStr.length);
+                    for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+                    return pcmToWav(new Int16Array(bytes.buffer), 24000);
+                }
+            } catch (e) {
+                console.error("Audio generation permanently failed:", e);
+                buttonElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i> <span>Audio Error</span>`;
+                return null;
+            }
+        }
+
+        function appendBotMessage(text, autoPlay = true) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'flex justify-start';
+            const bubble = document.createElement('div');
+            bubble.className = 'msg-bubble bot-msg p-4 rounded-2xl shadow-xl';
+            bubble.innerHTML = `<p class="text-slate-200 text-sm font-medium leading-relaxed">${text}</p>`;
+
+            const playBtn = document.createElement('button');
+            playBtn.className = "mt-3 bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-blue-500/20 flex items-center gap-2 transition hover:bg-blue-500/20";
+            playBtn.innerHTML = `<i class="fas fa-volume-high"></i> <span>DADDY VOICE</span>`;
+            
+            bubble.appendChild(playBtn);
+            wrapper.appendChild(bubble);
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+
+            fetchAudioWithLoop(text, playBtn).then(blob => {
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const playLogic = () => {
+                        audioPlayer.src = url;
+                        audioPlayer.play().catch(() => {
+                            playBtn.innerHTML = `<i class="fas fa-play"></i> <span>ចុចស្តាប់ Daddy បាញ់</span>`;
+                        });
+                        playBtn.innerHTML = `<i class="fas fa-headset animate-pulse text-blue-400"></i> <span>កំពុងបាញ់...</span>`;
+                        audioPlayer.onended = () => { playBtn.innerHTML = `<i class="fas fa-play"></i> <span>ស្តាប់ម្ដងទៀត</span>`; };
+                    };
+                    playBtn.onclick = playLogic;
+                    if (autoPlay) playLogic();
+                } else {
+                     playBtn.disabled = true;
+                     playBtn.innerHTML = `<i class="fas fa-volume-mute"></i> <span>បាញ់អត់ចេញ</span>`;
+                }
+            });
+        }
+
+        async function handleChat() {
+            const prompt = userInput.value.trim();
+            if (!prompt || !userGender) return;
+
+            const uW = document.createElement('div');
+            uW.className = 'flex justify-end';
+            uW.innerHTML = `<div class="msg-bubble user-msg p-4 rounded-2xl font-medium shadow-lg text-sm">${prompt}</div>`;
+            chatWindow.appendChild(uW);
+            userInput.value = '';
+            statusUi.classList.remove('hidden');
+            sendBtn.disabled = true;
+            chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
+
+            try {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        systemInstruction: { 
+                            parts: [{ 
+                                text: `Identity: You are the Savage Gen Z Male Moderator of the SETEC University Community. 
+                                       Current User: This user is a ${userGender === 'ប្រុស' ? 'Male (Bro/ប្រូ)' : 'Female (Sis/សុីស)'}.
+                                       Vocab: Use "Daddy", "កូន", "កូនសម្លាញ់", "អេភី (AP)", "Bro", "Slay". If the user is male, use "ប្រូ/Bro/អាប្អូន". If female, use "សុីស/Sis/ប្អូនស្រី".
+                                       Tone: 100% Khmer Gen Z student slang, Sarcastic, Cool, Savage.
+                                       Specific Scenarios:
+                                       1. Senior Scams: Troll seniors who trick freshies into doing their group work.
+                                       2. Freshie Overload: Troll SETEC for having too many new students (ជាន់គ្នាងាប់)។
+                                       3. Relationship: Friendzone, being used as transport (កង់បីស្នេហ៍), and ghosting.
+                                       4. Exams: Retakes (ប្រឡងសង) and teachers giving hard assignments.
+                                       Always respond like a cool senior who trolls his juniors for fun. Stay energy-packed!` 
+                            }] 
+                        }
+                    })
+                });
+
+                const res = await response.json();
+                const botText = res.candidates?.[0]?.content?.parts?.[0]?.text || "Daddy រវល់ Render តិច កូនសាកម្ដងទៀតមើល!";
+                appendBotMessage(botText, true);
+            } catch (e) { 
+                appendBotMessage("Error បាត់ហើយប្រូ! សង្ស័យសិស្សច្បងលួច Password ហើយ! 🤣", false);
+            } finally {
+                statusUi.classList.add('hidden');
+                sendBtn.disabled = false;
+            }
+        }
+
+        sendBtn.addEventListener('click', handleChat);
+        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleChat(); });
+    </script>
+</body>
+</html>
