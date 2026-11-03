@@ -113,9 +113,17 @@ export async function POST(req) {
     let requestPayload;
     if (audio) {
       const audioContents = contents || [{ parts: [{ text: prompt }] }];
-      const audioGenConfig = generationConfig || {
+      const voiceName =
+        generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName || 'Charon';
+      const audioGenConfig = {
         responseModalities: ['AUDIO'],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } } }
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName
+            }
+          }
+        }
       };
       requestPayload = {
         contents: audioContents,

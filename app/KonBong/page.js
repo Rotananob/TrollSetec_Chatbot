@@ -51,6 +51,25 @@ export default function KonBongPage() {
     return new Blob([buffer], { type: 'audio/wav' });
   }
 
+  function createAudioBlob(b64Data, mimeType = 'audio/wav') {
+    const binStr = atob(b64Data);
+    const len = binStr.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+
+    const isWav =
+      (bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70) ||
+      (mimeType && mimeType.includes('wav'));
+
+    if (isWav) {
+      return new Blob([bytes], { type: 'audio/wav' });
+    }
+
+    const pcmBytes = len % 2 === 0 ? bytes : bytes.slice(0, len - 1);
+    const pcmData = new Int16Array(pcmBytes.buffer, pcmBytes.byteOffset, pcmBytes.byteLength / 2);
+    return pcmToWav(pcmData, 24000);
+  }
+
   // Fetch TTS Audio
   async function fetchAudio(text) {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
@@ -76,13 +95,10 @@ export default function KonBongPage() {
       if (!response.ok) return null;
 
       const result = await response.json();
-      const b64Data = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-      if (!b64Data) return null;
+      const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
+      if (!inlineData?.data) return null;
 
-      const binStr = atob(b64Data);
-      const bytes = new Uint8Array(binStr.length);
-      for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
-      return pcmToWav(new Int16Array(bytes.buffer), 24000);
+      return createAudioBlob(inlineData.data, inlineData.mimeType);
     } catch {
       return null;
     }
