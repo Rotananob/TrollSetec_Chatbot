@@ -1,5 +1,15 @@
 // Standard Web API Response is used natively in Next.js Route Handlers
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+
 // In-memory sliding window rate limiter
 // Max 5 messages per 1 minute (60 seconds) per device/IP
 const rateLimitMap = new Map();
@@ -106,7 +116,7 @@ export async function POST(req) {
           },
           {
             status: 429,
-            headers: { 'Retry-After': String(rateResult.retryAfter) }
+            headers: { ...corsHeaders, 'Retry-After': String(rateResult.retryAfter) }
           }
         );
       }
@@ -128,7 +138,7 @@ export async function POST(req) {
     if (!apiKey) {
       return Response.json(
         { error: 'AI engine key is not configured in server environment' },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -165,9 +175,9 @@ export async function POST(req) {
       };
       const result = await callModelWithFallback(AUDIO_MODELS, apiKey, requestPayload);
       if (result.ok) {
-        return Response.json(sanitizeResponse(result.data), { status: 200 });
+        return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }
-      return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status });
+      return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status, headers: corsHeaders });
     } else {
       const textContents = contents || [{ parts: [{ text: prompt }] }];
       const formattedSystemInstruction = systemInstruction
@@ -182,15 +192,15 @@ export async function POST(req) {
       };
       const result = await callModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
       if (result.ok) {
-        return Response.json(sanitizeResponse(result.data), { status: 200 });
+        return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }
-      return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status });
+      return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status, headers: corsHeaders });
     }
   } catch (error) {
     console.error('Chat API proxy error:', error);
     return Response.json(
       { error: error.message || 'Internal Server Error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }

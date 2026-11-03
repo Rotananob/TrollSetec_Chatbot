@@ -4,6 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkClientRateLimit, getDeviceId } from '../utils/rateLimiter';
 
+const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/chat`
+  : '/api/chat';
+
 export default function KonPovPage() {
   const router = useRouter();
   const [userGender, setUserGender] = useState('');
@@ -98,7 +102,7 @@ export default function KonPovPage() {
       const speechText = cleanSpeechText(text);
       if (!speechText) return null;
       const deviceId = getDeviceId();
-      const response = await fetch('/api/chat', {
+      const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -368,7 +372,7 @@ Rules to follow strictly:
   4. If User types in Khmer script (អក្សរខ្មែរ): Reply in fluent, funny Khmer script.
 - Always retain your signature savage Gen Z King personality across all languages!`;
 
-      const response = await fetch('/api/chat', {
+      const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
