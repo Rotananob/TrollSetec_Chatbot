@@ -227,7 +227,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ២</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">«បន្ថែមទៅទំព័រដើម»</strong> (Add to Home Screen)។
+                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">«បន្ថែមទៅទំព័រដើម»</strong>។
                     </p>
                   </div>
                 </div>
@@ -241,7 +241,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ៣</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      ចុចពាក្យ <strong className="text-emerald-400">«បន្ថែម»</strong> (Add) នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
+                      ចុចពាក្យ <strong className="text-emerald-400">«បន្ថែម»</strong> នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
                     </p>
                   </div>
                 </div>
@@ -270,7 +270,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                       <div>
                         <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ១</span>
                         <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                          ចុចលើសញ្ញាចុចបី <strong className="text-blue-400">Menu (⋮)</strong> នៅជ្រុងស្ដាំខាងលើនៃ Chrome។
+                          ចុចលើសញ្ញាចុចបី <strong className="text-blue-400">Menu</strong> នៅជ្រុងស្ដាំខាងលើនៃ Chrome។
                         </p>
                       </div>
                     </div>
@@ -284,7 +284,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                       <div>
                         <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ២</span>
                         <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                          ជ្រើសរើសយក <strong className="text-emerald-400">«ដំឡើងកម្មវិធី»</strong> (Install app) ឬ <strong className="text-emerald-400">«បន្ថែមទៅអេក្រង់ដើម»</strong> (Add to Home screen)។
+                          ជ្រើសរើសយក <strong className="text-emerald-400">«ដំឡើងកម្មវិធី»</strong> ឬ <strong className="text-emerald-400">«បន្ថែមទៅអេក្រង់ដើម»</strong>។
                         </p>
                       </div>
                     </div>
@@ -314,7 +314,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                     <div>
                       <span className="font-extrabold text-xs block mb-0.5">របៀបដំឡើងលើកុំព្យូទ័រ</span>
                       <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                        ចុចលើ Icon ដំឡើង (Install) នៅជ្រុងស្ដាំនៃ Address bar របស់ Google Chrome ឬ Microsoft Edge។
+                        ចុចលើ Icon ដំឡើង នៅជ្រុងស្ដាំនៃ Address bar របស់ Google Chrome ឬ Microsoft Edge។
                       </p>
                     </div>
                   </div>

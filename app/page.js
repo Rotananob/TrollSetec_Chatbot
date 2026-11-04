@@ -115,7 +115,7 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 pt-14 pb-32 sm:py-8 relative overflow-x-hidden ${
+      className={`min-h-screen transition-colors duration-300 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 pt-16 pb-20 sm:py-8 relative overflow-x-hidden ${
         isDark
           ? 'bg-slate-950 text-slate-100'
           : 'bg-gradient-to-br from-sky-100 via-indigo-50 to-pink-50 text-slate-800'
@@ -208,27 +208,8 @@ export default function Home() {
       </div>
 
 
-      {/* Site Logo Bottom Right with Awesome Looping Animated Ring */}
-      <Link
-        href="/"
-        className="bottom-logo-container"
-        title="SETEC Chat Troll Bot"
-      >
-        <div className="bottom-logo-glow"></div>
-        <div className="bottom-logo-ring"></div>
-        <div className="bottom-logo-inner">
-          <img
-            src="/img/logo1.png"
-            alt="SETEC Logo Bottom Right"
-            width="76"
-            height="76"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </div>
-      </Link>
-
       {/* Main Popup Modal Card */}
-      <div className="w-full max-w-md my-auto z-20">
+      <div className="w-full max-w-md my-auto z-20 mt-3 sm:mt-0">
         <div
           className={`rounded-3xl shadow-2xl p-5 sm:p-8 text-center relative border transition-all duration-300 ${
             isDark
