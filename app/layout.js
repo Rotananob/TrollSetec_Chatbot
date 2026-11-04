@@ -1,10 +1,20 @@
 import Script from 'next/script';
+import VisitorTracker from '../components/VisitorTracker';
 import './globals.css';
 
 export const metadata = {
   title: 'ជ្រើសរើស Chatbot - SETEC',
   description: 'SETEC Meme & AI Chatbot by Rotana NOB',
   manifest: '/manifest.webmanifest',
+  applicationName: 'SETEC Chat',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'SETEC Chat',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: '/img/icon.jpg',
     shortcut: '/img/icon.jpg',
@@ -14,6 +24,10 @@ export const metadata = {
 
 export const viewport = {
   themeColor: '#0ea5e9',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }) {
@@ -48,15 +62,20 @@ export default function RootLayout({ children }) {
         {/* Tailwind CDN */}
         <Script src="https://cdn.tailwindcss.com" strategy="beforeInteractive" />
       </head>
-      <body>
+      <body className="antialiased selection:bg-indigo-500 selection:text-white">
+        <VisitorTracker />
         {children}
         {/* Service Worker */}
         <Script id="service-worker-reg" strategy="lazyOnload">
           {`
             if ('serviceWorker' in navigator) {
-              navigator.serviceWorker.register('/sw.js')
-                .then(() => console.log('SW registered'))
-                .catch(e => console.warn('SW failed', e));
+              window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                  .then((reg) => {
+                    console.log('PWA ServiceWorker registered with scope:', reg.scope);
+                  })
+                  .catch((err) => console.warn('PWA ServiceWorker registration failed:', err));
+              });
             }
           `}
         </Script>

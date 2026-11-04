@@ -1,5 +1,11 @@
 // Standard Web API Response is used natively in Next.js Route Handlers
 
+import {
+  alertChatActivity,
+  alertSecuritySpam,
+  alertSystemError
+} from '../../../lib/telegram';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -150,21 +156,41 @@ function sanitizeResponse(data) {
 }
 
 export async function POST(req) {
+  let reqBot = '';
+  let reqUsername = '';
+  let clientIp = 'unknown-ip';
+  let clientUserAgent = 'Unknown';
+
   try {
+    const forwardedFor = req.headers.get('x-forwarded-for') || '';
+    clientIp = forwardedFor.split(',')[0].trim() || 'unknown-ip';
+    clientUserAgent = req.headers.get('user-agent') || 'Unknown';
+
     const body = await req.json();
-    const { prompt, systemInstruction, audio, contents, generationConfig, bot } = body;
+    const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender } = body;
+    reqBot = bot;
+    reqUsername = username;
 
     // 1. Anti-Spam / Anti-DDoS Rate Limiting
     // Enforces strict maximum 5 chat messages per minute per device/IP
     // Internal audio synthesis requests do not consume the chat message quota
     if (!audio) {
-      const forwardedFor = req.headers.get('x-forwarded-for') || '';
-      const ip = forwardedFor.split(',')[0].trim() || 'unknown-ip';
       const deviceId = req.headers.get('x-device-id') || req.headers.get('user-agent') || 'default-device';
-      const rateLimitKey = `${ip}_${deviceId}`;
+      const rateLimitKey = `${clientIp}_${deviceId}`;
 
       const rateResult = checkRateLimit(rateLimitKey);
       if (!rateResult.allowed) {
+        // High-priority Telegram Security Spam Alert
+        const userPrompt = prompt || contents?.[contents.length - 1]?.parts?.[0]?.text || '';
+        alertSecuritySpam({
+          username: username || 'Unknown',
+          ip: clientIp,
+          userAgent: clientUserAgent,
+          bot: bot || 'Unknown',
+          retryAfter: rateResult.retryAfter,
+          prompt: userPrompt
+        }).catch((e) => console.error('[Telegram] Alert spam error:', e));
+
         return Response.json(
           {
             error: 'Too Many Requests',
@@ -192,6 +218,15 @@ export async function POST(req) {
     }
 
     if (!apiKey) {
+      alertSystemError({
+        type: 'Missing API Key Config',
+        username,
+        bot,
+        ip: clientIp,
+        userAgent: clientUserAgent,
+        errorMessage: 'AI engine key is not configured in server environment'
+      }).catch((e) => console.error('[Telegram] API key error alert:', e));
+
       return Response.json(
         { error: 'AI engine key is not configured in server environment' },
         { status: 500, headers: corsHeaders }
@@ -259,6 +294,17 @@ export async function POST(req) {
         );
       }
 
+      // If both AI TTS and fallback speech synthesis fail, alert Telegram
+      alertSystemError({
+        type: 'Voice Synthesis Failure',
+        username,
+        bot,
+        ip: clientIp,
+        userAgent: clientUserAgent,
+        errorMessage: result.error || 'Audio generation failed',
+        details: { textLength: speechText.length }
+      }).catch((e) => console.error('[Telegram] Audio error alert:', e));
+
       return Response.json(
         sanitizeResponse(result.data) || { error: result.error || 'Audio generation failed' },
         { status: result.status, headers: corsHeaders }
@@ -277,12 +323,45 @@ export async function POST(req) {
       };
       const result = await callModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
       if (result.ok) {
+        // Send real-time chat alert to Telegram
+        const userPrompt = prompt || textContents?.[textContents.length - 1]?.parts?.[0]?.text || '';
+        alertChatActivity({
+          username: username || 'Unknown',
+          gender,
+          bot,
+          ip: clientIp,
+          userAgent: clientUserAgent,
+          prompt: userPrompt,
+          isError: false
+        }).catch((e) => console.error('[Telegram] Chat alert error:', e));
+
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }
+
+      // AI Generation Failure alert to Telegram
+      alertSystemError({
+        type: 'AI Generation Failure',
+        username,
+        bot,
+        ip: clientIp,
+        userAgent: clientUserAgent,
+        errorMessage: result.error || 'Failed to generate response',
+        details: { status: result.status }
+      }).catch((e) => console.error('[Telegram] AI error alert:', e));
+
       return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status, headers: corsHeaders });
     }
   } catch (error) {
     console.error('Chat API proxy error:', error);
+    alertSystemError({
+      type: 'Internal Server Error / Bad Request',
+      username: reqUsername,
+      bot: reqBot,
+      ip: clientIp,
+      userAgent: clientUserAgent,
+      errorMessage: error.message
+    }).catch((e) => console.error('[Telegram] Catch error alert:', e));
+
     return Response.json(
       { error: error.message || 'Internal Server Error' },
       { status: 500, headers: corsHeaders }

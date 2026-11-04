@@ -137,7 +137,9 @@ export default function KonPovPage() {
             }
           },
           audio: true,
-          bot: 'konpov'
+          bot: 'konpov',
+          username: userNameStr,
+          gender: userGender
         })
       });
 
@@ -437,7 +439,9 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
         body: JSON.stringify({
           contents: formattedContents,
           systemInstruction: { parts: [{ text: systemInstruction }] },
-          bot: 'konpov'
+          bot: 'konpov',
+          username: userNameStr,
+          gender: userGender
         })
       });
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'troll-setec-nextjs-v1';
+const CACHE_NAME = 'troll-setec-nextjs-v2';
 const ASSETS = [
   '/',
   '/KonBong',

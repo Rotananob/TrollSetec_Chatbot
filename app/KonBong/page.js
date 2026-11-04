@@ -312,7 +312,12 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
           'Content-Type': 'application/json',
           'x-device-id': deviceId
         },
-        body: JSON.stringify({ contents: formattedContents, systemInstruction, bot: 'konbong' })
+        body: JSON.stringify({
+          contents: formattedContents,
+          systemInstruction,
+          bot: 'konbong',
+          username: userNameStr
+        })
       });
 
       if (response.status === 429) {
