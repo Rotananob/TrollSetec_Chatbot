@@ -58,10 +58,10 @@ const TEXT_MODELS = [
   'gemini-3.5-flash'
 ];
 const AUDIO_MODELS = [
-  'gemini-2.5-flash-preview-tts',
-  'gemini-3.8-flash-lite-tts',
-  'gemini-3.8-flash-tts',
-  'gemini-3.1-flash-tts-preview'
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-exp',
+  'gemini-2.5-flash',
+  'gemini-flash-latest'
 ];
 
 async function callModelWithFallback(models, apiKey, payload) {
@@ -255,7 +255,13 @@ export async function POST(req) {
         .replace(/^["']|["']$/g, '')
         .trim();
 
-      const audioContents = [{ parts: [{ text: speechText }] }];
+      // Provide expressive vocal instruction so Gemini's voice sounds ultra-funny, smug, and full of life
+      const voicePrompt =
+        bot === 'konpov'
+          ? `Read this aloud in an ultra-expressive, funny, cheeky, sarcastic, and energetic Khmer Gen Z tone with playful swagger and laughter: "${speechText}"`
+          : `Read this aloud clearly, warmly, and playfully in Khmer: "${speechText}"`;
+
+      const audioContents = [{ parts: [{ text: voicePrompt }] }];
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
         (bot === 'konpov'
