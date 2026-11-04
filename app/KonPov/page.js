@@ -702,11 +702,17 @@ ${
             }`}
           >
             <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-600 p-0.5 shadow-lg">
-              <img src="/img/icon.jpg" alt="Daddy Mod" className="w-full h-full object-cover rounded-[14px]" />
+              <img
+                src="/img/icon.jpg"
+                alt="KonPov Bot"
+                width="64"
+                height="64"
+                className="w-full h-full object-cover rounded-[14px]"
+              />
             </div>
-            <h3 className="text-xl font-black mb-1">សូមជ្រើសរើសភេទរបស់អ្នក</h3>
+            <h3 className="text-xl font-black mb-1">មុននឹងខ្ញុំជាកូនពៅបាញ់...</h3>
             <p className="text-xs text-slate-400 mb-6 font-semibold">
-              ដើម្បីឱ្យ Daddy កំណត់សំឡេង និងចរិត Troll ឱ្យត្រូវតម្រូវការ!
+              ជួយប្រាប់តិចមើលថាឯងជា "ប្រុស" ឬ "ស្រី"? គឺចង់ដឹងភេទ ស្រួលកូនពៅងាយហៅ និងបាញ់ឱ្យត្រូវ!
             </p>
             <div className="grid grid-cols-2 gap-3.5">
               <button
