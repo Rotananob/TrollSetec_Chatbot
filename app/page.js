@@ -112,8 +112,53 @@ export default function Home() {
       {/* Instant Funny Haha Background Audio Element */}
       <audio ref={bgmRef} src="/audio/funny-bgm.mp3" loop preload="none" />
 
-      {/* Top Floating Controls: Theme Toggle & Funny BGM */}
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+      {/* Mobile Top App Bar (< 640px) to prevent any UI collision */}
+      <div className="sm:hidden fixed top-0 left-0 right-0 z-50 px-3 py-2 flex items-center justify-between backdrop-blur-md bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm">
+        <Link href="/" className="flex items-center gap-2 select-none" title="SETEC Chat">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-sm overflow-hidden flex-shrink-0">
+            <img
+              src="/img/logo.jpg"
+              alt="SETEC Logo"
+              width="32"
+              height="32"
+              className="w-full h-full object-cover rounded-[10px]"
+            />
+          </div>
+          <span className="font-black text-xs tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+            SETEC Chatbot
+          </span>
+        </Link>
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const bgm = bgmRef.current;
+              if (!bgm) return;
+              if (isMusicPlaying) {
+                bgm.pause();
+                setIsMusicPlaying(false);
+              } else {
+                bgm.play().then(() => setIsMusicPlaying(true)).catch(() => {});
+              }
+            }}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full border shadow-sm transition-all duration-300 text-[11px] font-bold cursor-pointer select-none ${
+              isMusicPlaying
+                ? 'bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 text-white border-pink-400 animate-pulse'
+                : isDark
+                ? 'bg-slate-900/90 text-slate-400 border-slate-700'
+                : 'bg-white/95 text-slate-600 border-slate-300'
+            }`}
+            title={isMusicPlaying ? 'ចុចដើម្បីបិទភ្លេងកំប្លែង' : 'ចុចដើម្បីបើកភ្លេងកំប្លែង'}
+          >
+            <i className={`fas ${isMusicPlaying ? 'fa-volume-up text-amber-300' : 'fa-volume-mute text-slate-400'} text-xs`}></i>
+            <span className="font-extrabold">{isMusicPlaying ? 'BGM' : 'ភ្លេង'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Desktop Top Floating Controls (>= 640px) */}
+      <div className="hidden sm:flex fixed top-4 right-4 z-50 items-center gap-2">
         <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
 
         <button
@@ -150,10 +195,10 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Site Logo Top Left */}
-      <Link href="/" className="site-logo" title="SETEC Chat">
+      {/* Site Logo Top Left (Desktop Only) */}
+      <Link href="/" className="site-logo hidden sm:flex" title="SETEC Chat">
         <div className="logo-glow"></div>
-        <img src="/img/logo.jpg" alt="SETEC Logo" />
+        <img src="/img/logo.jpg" alt="SETEC Logo" width="90" height="90" />
       </Link>
 
       {/* Site Logo Bottom Right with Awesome Looping Animated Ring */}
@@ -168,13 +213,15 @@ export default function Home() {
           <img
             src="/img/logo1.png"
             alt="SETEC Logo Bottom Right"
+            width="76"
+            height="76"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </div>
       </Link>
 
       {/* Main Popup Modal Card */}
-      <div className="w-full max-w-md mt-16 mb-8 sm:my-8 z-20">
+      <div className="w-full max-w-md pt-16 pb-16 sm:py-8 z-20">
         <div
           className={`rounded-3xl shadow-2xl p-6 sm:p-8 text-center relative max-h-[92vh] overflow-y-auto border transition-all duration-300 ${
             isDark
@@ -189,6 +236,8 @@ export default function Home() {
             <img
               src="/img/logo.jpg"
               alt="SETEC Troll Bot"
+              width="64"
+              height="64"
               className="w-full h-full object-cover rounded-[14px]"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
@@ -210,6 +259,8 @@ export default function Home() {
                       <img
                         id="avatar-preview"
                         src={avatar}
+                        width="80"
+                        height="80"
                         className="w-20 h-20 rounded-full border-4 border-indigo-400/50 shadow-md object-cover group-hover:scale-105 transition-transform"
                         style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                         alt="Avatar Preview"
@@ -404,6 +455,8 @@ export default function Home() {
                     <div className="relative">
                       <img
                         src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
+                        width="48"
+                        height="48"
                         className="w-12 h-12 rounded-2xl border-2 border-cyan-400 p-0.5 bg-slate-900 object-cover"
                         alt="SETEC Bot"
                       />
@@ -438,6 +491,8 @@ export default function Home() {
                     <div className="relative">
                       <img
                         src="/img/icon.jpg"
+                        width="48"
+                        height="48"
                         className="w-12 h-12 rounded-2xl border-2 border-indigo-400 p-0.5 bg-slate-900 object-cover"
                         alt="GenZ Bot"
                       />
@@ -454,7 +509,7 @@ export default function Home() {
                         </span>
                       </div>
                       <div className={`text-xs mt-1 leading-snug line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
-                        ចរិកមហាឈ្លើយ ស្ដេច Troll បាញ់សិស្ស SETEC ផ្ងារជើង និយាយកំបុតៗបែប Gen Z, Savage!
+                        ចរិកមហាឈ្លើយ តែហ៊ានជេរវា វាជេរវិញ និងកំពូលឌឹកំពូលបាញ់ ចរិកចេញមកបែប chillៗ និងពាល
                       </div>
                     </div>
                     <i className="fas fa-chevron-right text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
@@ -473,7 +528,7 @@ export default function Home() {
           )}
 
           <div className="mt-6 pt-4 border-t border-slate-700/30">
-            <div className="text-[11px] text-slate-400 font-medium">Developed by Rotana NOB • 2025-2026</div>
+            <div className="text-[11px] text-slate-400 font-medium">Developed by Rotana NOB • 2025</div>
             <div className="flex gap-3 justify-center items-center mt-2.5">
               <a
                 href="https://web.facebook.com/TheRotanaNob"
@@ -507,6 +562,8 @@ export default function Home() {
               <img
                 src="/img/DevPic.JPG"
                 alt="Developer 1"
+                width="28"
+                height="28"
                 className="w-7 h-7 rounded-full border-2 border-indigo-400 object-cover"
                 style={{ width: '28px', height: '28px', objectFit: 'cover' }}
                 title="Rotana NOB"
@@ -514,6 +571,8 @@ export default function Home() {
               <img
                 src="/img/newPic.jpg"
                 alt="Developer 2"
+                width="28"
+                height="28"
                 className="w-7 h-7 rounded-full border-2 border-pink-400 object-cover"
                 style={{ width: '28px', height: '28px', objectFit: 'cover' }}
                 title="Rotana NOB Co-Dev"

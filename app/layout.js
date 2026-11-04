@@ -64,13 +64,45 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{
             __html: `
               *, *::before, *::after { box-sizing: border-box; }
-              html, body { margin: 0; padding: 0; background-color: #f0f9ff; font-family: 'Kantumruy Pro', system-ui, -apple-system, sans-serif; }
-              .hidden { display: none !important; }
-              input[type="file"].hidden { display: none !important; }
-              .site-logo { position: fixed; top: 12px; left: 12px; width: 90px; height: 90px; z-index: 60; border-radius: 14px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-              .site-logo img { width: 100%; height: 100%; object-fit: cover; }
-              .bottom-logo-container { position: fixed; bottom: 16px; right: 16px; width: 68px; height: 68px; z-index: 60; }
+              html, body {
+                margin: 0;
+                padding: 0;
+                background-color: #f0f9ff;
+                font-family: 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+                overflow-x: hidden;
+              }
+              .hidden, input[type="file"].hidden { display: none !important; }
               img { max-width: 100%; height: auto; }
+              .site-logo {
+                position: fixed;
+                top: 12px;
+                left: 12px;
+                width: 90px;
+                height: 90px;
+                max-width: 90px;
+                max-height: 90px;
+                z-index: 60;
+                border-radius: 14px;
+                overflow: hidden;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              .site-logo img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+              @media (max-width: 640px) {
+                .site-logo { display: none !important; }
+              }
+              .bottom-logo-container {
+                position: fixed;
+                bottom: 16px;
+                right: 16px;
+                width: 68px;
+                height: 68px;
+                max-width: 68px;
+                max-height: 68px;
+                z-index: 40;
+              }
+              .bottom-logo-container img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
             `,
           }}
         />
