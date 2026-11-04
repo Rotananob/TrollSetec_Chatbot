@@ -13,7 +13,17 @@ export default function Home() {
   const [hasCheckedStorage, setHasCheckedStorage] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [theme, setTheme] = useState('light');
+  const [isLogoSpinning, setIsLogoSpinning] = useState(false);
+  const [spinKey, setSpinKey] = useState(0);
   const bgmRef = useRef(null);
+
+  const handleTriggerLogoSpin = () => {
+    setIsLogoSpinning(true);
+    setSpinKey((prev) => prev + 1);
+    setTimeout(() => {
+      setIsLogoSpinning(false);
+    }, 850);
+  };
 
   useEffect(() => {
     const savedName = localStorage.getItem('chatbot_username');
@@ -226,18 +236,33 @@ export default function Home() {
               : 'bg-white/95 border-indigo-100 text-slate-800 shadow-indigo-200/50'
           }`}
         >
+          {/* Interactive Troll Logo with Pop-in & Funny Spin */}
           <div
-            className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/30 overflow-hidden"
-            style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px' }}
+            onClick={handleTriggerLogoSpin}
+            className="troll-logo-wrapper mx-auto mb-3 cursor-pointer"
+            title="ចុចដើម្បីឱ្យវិលកំប្លែង"
           >
-            <img
-              src="/img/logo.jpg"
-              alt="SETEC Troll Bot"
-              width="64"
-              height="64"
-              className="w-full h-full object-cover rounded-[14px]"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            <div
+              key={spinKey}
+              className={`w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/30 overflow-hidden troll-logo-inner ${
+                isLogoSpinning ? 'troll-logo-spin' : 'troll-logo-idle'
+              }`}
+              style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px' }}
+            >
+              <img
+                src="/img/logo.jpg"
+                alt="SETEC Troll Bot"
+                width="64"
+                height="64"
+                className="w-full h-full object-cover rounded-[14px]"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+            {isLogoSpinning && (
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-indigo-600 text-[9px] font-black text-white px-2 py-0.5 rounded-full shadow-lg border border-white whitespace-nowrap animate-bounce pointer-events-none">
+                វិលមុខហើយ
+              </span>
+            )}
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-1">

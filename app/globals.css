@@ -22,6 +22,108 @@ body {
 }
 
 
+/* ============================================================
+   Interactive Troll Logo Animation (Pop-in & Funny Spinning)
+   ============================================================ */
+@keyframes trollPopIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.15) rotate(-180deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25) rotate(14deg);
+  }
+  75% {
+    transform: scale(0.9) rotate(-7deg);
+  }
+  90% {
+    transform: scale(1.08) rotate(3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes trollIdleWobble {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-4px) rotate(-6deg);
+  }
+  40% {
+    transform: translateY(2px) rotate(6deg);
+  }
+  60% {
+    transform: translateY(-2px) rotate(-3deg);
+  }
+  80% {
+    transform: translateY(1px) rotate(3deg);
+  }
+}
+
+@keyframes trollSpinFast {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  20% {
+    transform: scale(0.78) rotate(-45deg);
+  }
+  50% {
+    transform: scale(1.32) rotate(360deg);
+  }
+  80% {
+    transform: scale(1.12) rotate(720deg);
+  }
+  92% {
+    transform: scale(0.95) rotate(710deg);
+  }
+  100% {
+    transform: scale(1) rotate(720deg);
+  }
+}
+
+@keyframes trollBorderGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(236, 72, 153, 0.75));
+  }
+}
+
+.troll-logo-wrapper {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  animation: trollPopIn 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, trollBorderGlow 3s ease-in-out infinite 0.9s;
+}
+
+.troll-logo-inner {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.troll-logo-wrapper:hover .troll-logo-inner {
+  transform: scale(1.18) rotate(8deg);
+}
+
+.troll-logo-wrapper:active .troll-logo-inner {
+  transform: scale(0.88) rotate(-8deg);
+}
+
+.troll-logo-idle {
+  animation: trollIdleWobble 3.6s ease-in-out infinite 0.9s;
+}
+
+.troll-logo-spin {
+  animation: trollSpinFast 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.2) !important;
+}
+
 .popup-bg {
   background: rgba(30, 41, 59, 0.7);
 }
