@@ -165,3 +165,123 @@ body {
   0%, 80%, 100% { opacity: 0; }
   40% { opacity: 1; }
 }
+
+/* ============================================================
+   Bottom-Right Troll Logo with Awesome Looping Animated Ring
+   ============================================================ */
+.bottom-logo-container {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: 76px;
+  height: 76px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-decoration: none;
+}
+
+@media (min-width: 640px) {
+  .bottom-logo-container {
+    right: 24px;
+    bottom: 24px;
+    width: 88px;
+    height: 88px;
+  }
+}
+
+.bottom-logo-container:hover {
+  transform: scale(1.1) rotate(4deg);
+}
+
+/* Outer Spinning Gradient Ring Loop */
+.bottom-logo-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 20px;
+  background: conic-gradient(
+    from 0deg,
+    #06b6d4,
+    #ec4899,
+    #8b5cf6,
+    #f59e0b,
+    #10b981,
+    #06b6d4
+  );
+  animation: spinLogoRing 3.5s linear infinite;
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.5), 0 0 30px rgba(6, 182, 212, 0.35);
+}
+
+/* Ambient Pulsing Glow Loop */
+.bottom-logo-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 24px;
+  background: conic-gradient(
+    from 180deg,
+    #06b6d4,
+    #ec4899,
+    #8b5cf6,
+    #06b6d4
+  );
+  filter: blur(10px);
+  opacity: 0.65;
+  animation: spinLogoRing 6s linear infinite reverse, pulseLogoGlow 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Inner Container for logo1.png */
+.bottom-logo-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.bottom-logo-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center;
+  animation: logoGentleBounce 3s ease-in-out infinite;
+}
+
+@keyframes spinLogoRing {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseLogoGlow {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes logoGentleBounce {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.04) translateY(-2px);
+  }
+}

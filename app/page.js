@@ -155,15 +155,21 @@ export default function Home() {
         <img src="/img/logo.jpg" alt="SETEC Logo" />
       </Link>
 
-      {/* Site Logo Bottom Right */}
+      {/* Site Logo Bottom Right with Awesome Looping Animated Ring */}
       <Link
         href="/"
-        className="site-logo hidden sm:block"
-        style={{ right: '24px', bottom: '24px', top: 'auto', left: 'auto', width: '80px', height: '80px' }}
-        title="SETEC Chat Bottom Right"
+        className="bottom-logo-container"
+        title="SETEC Chat Troll Bot"
       >
-        <div className="logo-glow"></div>
-        <img src="/img/logo1.png" alt="SETEC Logo Bottom Right" />
+        <div className="bottom-logo-glow"></div>
+        <div className="bottom-logo-ring"></div>
+        <div className="bottom-logo-inner">
+          <img
+            src="/img/logo1.png"
+            alt="SETEC Logo Bottom Right"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </div>
       </Link>
 
       {/* Main Popup Modal Card */}
