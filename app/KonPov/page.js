@@ -418,13 +418,17 @@ export default function KonPovPage() {
       : '😏 ចាំបន្តិចកូនសម្លាញ់! Daddy កំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
   }
 
-  // Dedicated Meme Generator Trigger (Strict 1-Image Per User Quota)
+  // Dedicated Meme Generator Trigger (1-Image per 1-Hour per Device Quota)
   const handleRequestMeme = async (customIdea = '') => {
     const isMaleUser = userGender === 'ប្រុស';
     const botSelf = isMaleUser ? 'ចែ' : 'Daddy';
-    const quotaUsed = localStorage.getItem('setec_meme_quota_used');
-    if (quotaUsed === 'true') {
-      const refusalMsg = `អាម៉ូយ ${username}! គេប្រាប់ថាម្នាក់បានតែមួយរូបទេ! ចង់បានលើសហ្នឹងទៅដេកយល់សប្តិទៅអាប្អូន! 😂 កុំមកលោភលន់ពេក ទុក quota ឱ្យគេលេងផង! 🔥`;
+    const lastMemeTime = parseInt(localStorage.getItem('setec_meme_last_time') || '0', 10);
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+
+    if (lastMemeTime && now - lastMemeTime < oneHour) {
+      const remainingMin = Math.ceil((lastMemeTime + oneHour - now) / (60 * 1000));
+      const refusalMsg = `អាម៉ូយ ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើត Meme បានតែ ១ សន្លឹកក្នុង ១ ម៉ោងទេ! ចង់បានទៀតរង់ចាំ ${remainingMin} នាទីទៀតណា៎អាប្អូន! 😂 កុំមកលោភលន់ពេក ទុកឱ្យគេលេងផង! 🔥`;
       const updated = [...messages, { role: 'bot', text: refusalMsg }];
       setMessages(updated);
       triggerAudio(refusalMsg, updated.length - 1, true);
@@ -455,7 +459,7 @@ export default function KonPovPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        localStorage.setItem('setec_meme_quota_used', 'true');
+        localStorage.setItem('setec_meme_last_time', String(Date.now()));
         const botMemeMsg = {
           role: 'bot',
           text: data.caption,
@@ -465,7 +469,7 @@ export default function KonPovPage() {
         setMessages(updatedWithBot);
         triggerAudio(data.caption, updatedWithBot.length - 1, true);
       } else {
-        const errorText = data.message || `អាម៉ូយ ${username}! គេប្រាប់ថាម្នាក់បានតែមួយរូបទេ! 😂`;
+        const errorText = data.message || `អាម៉ូយ ${username}! ១ ឧបករណ៍បង្កើត Meme បានតែ ១ សន្លឹកក្នុង ១ ម៉ោងទេ! 😂`;
         const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText }];
         setMessages(updatedWithBot);
         triggerAudio(errorText, updatedWithBot.length - 1, true);

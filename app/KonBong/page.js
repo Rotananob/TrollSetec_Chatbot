@@ -288,18 +288,22 @@ export default function KonBongPage() {
     }
   };
 
-  // Dedicated Meme Generator Trigger (Strict 1-Image Per User Quota)
+  // Dedicated Meme Generator Trigger (1-Image per 1-Hour per Device Quota)
   const handleRequestMeme = async (customIdea = '') => {
-    const quotaUsed = localStorage.getItem('setec_meme_quota_used');
-    if (quotaUsed === 'true') {
-      const refusalMsg = `អូអាប្អូន ${username}! កូតាបង្កើតរូបភាព Meme របស់ប្អូនអស់ហើយ (១ នាក់បង្កើតបានតែ ១ រូបគត់)! សុំទោសផងប្អូន ទុកឱកាសឱ្យមិត្តភក្តិដទៃទៀតផងណា៎! 😂✨`;
+    const lastMemeTime = parseInt(localStorage.getItem('setec_meme_last_time') || '0', 10);
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+
+    if (lastMemeTime && now - lastMemeTime < oneHour) {
+      const remainingMin = Math.ceil((lastMemeTime + oneHour - now) / (60 * 1000));
+      const refusalMsg = `អូអាប្អូន ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតរូប Meme បាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! សូមរង់ចាំ ${remainingMin} នាទីទៀតណា៎ប្អូន! 😂✨`;
       const updated = [...messages, { role: 'bot', text: refusalMsg }];
       saveCurrentSessionMessages(updated);
       triggerAudio(refusalMsg, updated.length - 1, true);
       return;
     }
 
-    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? (ឧ. សិស្ស SETEC ជិតប្រឡង, Crush មិនតប...)') || 'SETEC student life and funny exam moment';
+    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? (ឧ. សិស្ស សុីតិច ជិតប្រឡង, Crush មិនតប...)') || 'SETEC student life and funny exam moment';
     if (!idea) return;
 
     setIsGeneratingMeme(true);
@@ -323,7 +327,7 @@ export default function KonBongPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        localStorage.setItem('setec_meme_quota_used', 'true');
+        localStorage.setItem('setec_meme_last_time', String(Date.now()));
         const botMemeMsg = {
           role: 'bot',
           text: data.caption,
@@ -333,7 +337,7 @@ export default function KonBongPage() {
         saveCurrentSessionMessages(updatedWithBot);
         triggerAudio(data.caption, updatedWithBot.length - 1, true);
       } else {
-        const errorText = data.message || `អូអាប្អូន ${username}! កូតាបង្កើតរូបភាព Meme របស់ប្អូនអស់ហើយ (១ នាក់បានតែ ១ រូបទេ)!`;
+        const errorText = data.message || `អូអាប្អូន ${username}! ១ ឧបករណ៍បង្កើតរូប Meme បាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោងណា៎ប្អូន!`;
         const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText }];
         saveCurrentSessionMessages(updatedWithBot);
         triggerAudio(errorText, updatedWithBot.length - 1, true);
