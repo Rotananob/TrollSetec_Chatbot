@@ -63,8 +63,51 @@ export async function POST(req) {
     // Expert meme prompt focusing strictly on pure comedic troll meme humor
     const memePrompt = `hilarious viral internet meme caricature, pure comedy humor, exaggerated funny facial expression, comic meme format, funny situation about ${userIdea}, vibrant funny cartoon colors, witty comedic masterpiece, masterpiece meme, bold meme text vibe`;
 
-    const seed = Math.floor(Math.random() * 9000000) + 1000000;
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=768&height=768&model=flux&seed=${seed}&nologo=true`;
+    let imageUrl = null;
+    let engineUsed = 'Pollinations Flux';
+
+    const apiKey =
+      (bot === 'konpov' ? process.env.GEMINI_API_KEY_KONPOV : process.env.GEMINI_API_KEY_KONBONG) ||
+      process.env.GEMINI_API_KEY;
+
+    // 2. Primary Engine: Gemini Nano Banana 2.1 (Google GenAI 2026 Image Generation)
+    if (apiKey) {
+      try {
+        const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
+          method: 'POST',
+          headers: {
+            'x-goog-api-key': apiKey,
+            'Content-Type': 'application/json',
+            'Api-Revision': '2026-05-20'
+          },
+          body: JSON.stringify({
+            model: 'gemini-nano-banana-2.1',
+            input: [{ type: 'text', text: memePrompt }]
+          })
+        });
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          if (geminiData.output_image?.data) {
+            const mime = geminiData.output_image.mime_type || 'image/png';
+            imageUrl = `data:${mime};base64,${geminiData.output_image.data}`;
+            engineUsed = 'Gemini Nano Banana 2.1';
+          }
+        } else {
+          const errText = await geminiRes.text();
+          console.warn('[Gemini Nano Banana 2.1] Fallback due to:', geminiRes.status, errText.slice(0, 100));
+        }
+      } catch (err) {
+        console.warn('[Gemini Nano Banana 2.1] Fetch error, falling back:', err.message);
+      }
+    }
+
+    // 3. Fallback Engine: High-resolution Flux Pollinations with randomized seed
+    if (!imageUrl) {
+      const seed = Math.floor(Math.random() * 9000000) + 1000000;
+      imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=768&height=768&model=flux&seed=${seed}&nologo=true`;
+      engineUsed = 'Pollinations Flux';
+    }
 
     const funnyCaption =
       bot === 'konpov'
@@ -77,8 +120,8 @@ export async function POST(req) {
       bot,
       ip: clientIp,
       userAgent: clientUserAgent,
-      prompt: userIdea,
-      imageUrl,
+      prompt: `${userIdea} (Engine: ${engineUsed})`,
+      imageUrl: imageUrl.startsWith('data:') ? 'Gemini Nano Banana 2.1 Base64 Image' : imageUrl,
       caption: funnyCaption
     }).catch((e) => console.error('[Telegram] Meme alert error:', e));
 
@@ -87,7 +130,8 @@ export async function POST(req) {
         success: true,
         imageUrl,
         caption: funnyCaption,
-        prompt: userIdea
+        prompt: userIdea,
+        engine: engineUsed
       },
       { headers: corsHeaders }
     );

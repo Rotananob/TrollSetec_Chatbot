@@ -499,7 +499,7 @@ export default function Home() {
                   >
                     <div className="relative">
                       <img
-                        src="/img/icon.jpg"
+                        src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
                         width="48"
                         height="48"
                         className="w-12 h-12 rounded-2xl border-2 border-indigo-400 p-0.5 bg-slate-900 object-cover"

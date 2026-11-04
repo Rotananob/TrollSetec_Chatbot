@@ -1012,8 +1012,41 @@ export default function KonBongPage() {
           }
         })}
 
+        {/* Dedicated Meme Image Loading Blur Card */}
+        {isGeneratingMeme && (
+          <div className="flex items-start gap-2.5 max-w-[85%] animate-fade-in">
+            <img
+              src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
+              alt="Bot Avatar"
+              className="w-9 h-9 rounded-full border-2 border-cyan-400 shadow"
+            />
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-bold text-cyan-400 text-xs mb-1">
+                Chatbot កូនច្បង
+              </span>
+              <div className="rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-gradient-to-br from-slate-900/90 to-cyan-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
+                <div className="w-full h-52 sm:h-60 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center mb-3 shadow-lg shadow-cyan-500/30">
+                    <i className="fas fa-wand-magic-sparkles text-white text-xl animate-pulse"></i>
+                  </div>
+                  <h4 className="font-black text-sm text-cyan-200 mb-1 text-center flex items-center gap-1.5">
+                    <i className="fas fa-palette text-amber-400 text-xs"></i>
+                    <span>កំពុងបង្កើតរូបភាព Meme...</span>
+                  </h4>
+                  <p className="text-[11px] text-cyan-300/80 text-center font-medium mb-3">
+                    ដំណើរការជាមួយ Gemini Nano Banana 2.1 & AI សូមរង់ចាំបន្តិចណា៎ប្អូន!
+                  </p>
+                  <div className="w-48 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
+                    <div className="h-full bg-gradient-to-r from-cyan-500 via-sky-400 to-indigo-500 w-2/3 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Loading UI */}
-        {(isLoading || isGeneratingMeme) && (
+        {isLoading && !isGeneratingMeme && (
           <div className="flex items-center space-x-3 text-cyan-400 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl w-fit">
             <img
               src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
@@ -1026,7 +1059,7 @@ export default function KonBongPage() {
               <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping [animation-delay:0.4s]"></div>
             </div>
             <span className="text-[10px] font-black uppercase italic tracking-wider">
-              {isGeneratingMeme ? 'កំពុងបង្កើតរូបភាព Meme...' : (typingStatus || 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...')}
+              {typingStatus || 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...'}
             </span>
           </div>
         )}

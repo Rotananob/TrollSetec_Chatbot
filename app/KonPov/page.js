@@ -722,7 +722,7 @@ ${
           >
             <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-600 p-0.5 shadow-lg">
               <img
-                src="/img/icon.jpg"
+                src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
                 alt="KonPov Bot"
                 width="64"
                 height="64"
@@ -772,7 +772,7 @@ ${
 
           <div className="relative">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-0.5 shadow-md">
-              <img src="/img/icon.jpg" alt="Avatar" className="w-full h-full rounded-[14px] object-cover" />
+              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod" alt="Avatar" className="w-full h-full rounded-[14px] object-cover" />
             </div>
             <div className="absolute -top-1 -right-1 bg-blue-500 text-[8px] font-black px-1.5 py-0.2 rounded-full text-white border border-white">
               កូនពៅ
@@ -965,8 +965,41 @@ ${
           }
         })}
 
+        {/* Dedicated Meme Image Loading Blur Card */}
+        {isGeneratingMeme && (
+          <div className="flex items-start gap-2.5 max-w-[85%] animate-fade-in">
+            <img
+              src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
+              alt="Bot Avatar"
+              className="w-9 h-9 rounded-full border-2 border-purple-400 shadow"
+            />
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-bold text-purple-400 text-xs mb-1">
+                Chatbot កូនពៅ
+              </span>
+              <div className="rounded-2xl overflow-hidden border-2 border-purple-500/40 bg-gradient-to-br from-slate-900/90 to-purple-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
+                <div className="w-full h-52 sm:h-60 rounded-xl bg-purple-950/60 border border-purple-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center mb-3 shadow-lg shadow-purple-500/30">
+                    <i className="fas fa-wand-magic-sparkles text-white text-xl animate-pulse"></i>
+                  </div>
+                  <h4 className="font-black text-sm text-purple-200 mb-1 text-center flex items-center gap-1.5">
+                    <i className="fas fa-palette text-amber-400 text-xs"></i>
+                    <span>កំពុងគូររូបភាព Meme...</span>
+                  </h4>
+                  <p className="text-[11px] text-purple-300/80 text-center font-medium mb-3">
+                    ដំណើរការជាមួយ Gemini Nano Banana 2.1 & AI សូមរង់ចាំបន្តិចណា៎!
+                  </p>
+                  <div className="w-48 h-2 bg-purple-950 rounded-full overflow-hidden border border-purple-500/30">
+                    <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-amber-400 w-2/3 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Status UI while loading / interactive typing thought */}
-        {(isLoading || isGeneratingMeme) && (
+        {isLoading && !isGeneratingMeme && (
           <div className="flex items-center space-x-3 text-blue-400 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl w-fit shadow-md animate-fade-in">
             <img
               src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
@@ -979,9 +1012,7 @@ ${
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
             </div>
             <span className="text-[10px] font-black tracking-wider">
-              {isGeneratingMeme
-                ? `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងបង្កើតរូបភាព Meme...`
-                : typingStatus || `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងរកនឹកពាក្យឌឺ...`}
+              {typingStatus || `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងរកនឹកពាក្យឌឺ...`}
             </span>
           </div>
         )}
