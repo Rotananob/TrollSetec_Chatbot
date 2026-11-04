@@ -34,7 +34,7 @@ export function checkClientRateLimit() {
     return {
       allowed: false,
       retryAfter,
-      message: `⚠️ ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី!\nសូមរង់ចាំ ${retryAfter} វិនាទីទៀតមុនពេលឆាតបន្ត ដើម្បីការពារ Server ពីការ Spam។`
+      message: `ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី!\nសូមរង់ចាំ ${retryAfter} វិនាទីទៀតមុនពេលឆាតបន្ត ដើម្បីការពារ Server ពីការ Spam។`
     };
   }
 

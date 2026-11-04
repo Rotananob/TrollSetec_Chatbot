@@ -1,5 +1,6 @@
 import Script from 'next/script';
 import VisitorTracker from '../components/VisitorTracker';
+import PwaInstallPrompt from '../components/PwaInstallPrompt';
 import './globals.css';
 
 export const metadata = {
@@ -73,25 +74,6 @@ export default function RootLayout({ children }) {
               }
               .hidden, input[type="file"].hidden { display: none !important; }
               img { max-width: 100%; height: auto; }
-              .site-logo {
-                position: fixed;
-                top: 12px;
-                left: 12px;
-                width: 90px;
-                height: 90px;
-                max-width: 90px;
-                max-height: 90px;
-                z-index: 60;
-                border-radius: 14px;
-                overflow: hidden;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              }
-              .site-logo img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
-              @media (max-width: 640px) {
-                .site-logo { display: none !important; }
-              }
               .bottom-logo-container {
                 position: fixed;
                 bottom: 16px;
@@ -109,23 +91,15 @@ export default function RootLayout({ children }) {
       </head>
       <body className="antialiased selection:bg-indigo-500 selection:text-white">
         <VisitorTracker />
+        <PwaInstallPrompt />
         {children}
-        {/* Service Worker Cleanup for iOS Safari stability */}
-        <Script id="service-worker-cleanup" strategy="afterInteractive">
+        {/* Service Worker Registration for PWA Installability */}
+        <Script id="service-worker-register" strategy="afterInteractive">
           {`
             if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-              navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for (var i = 0; i < registrations.length; i++) {
-                  registrations[i].unregister();
-                }
-              }).catch(function() {});
-              if ('caches' in window) {
-                caches.keys().then(function(keys) {
-                  for (var j = 0; j < keys.length; j++) {
-                    caches.delete(keys[j]);
-                  }
-                }).catch(function() {});
-              }
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function() {});
+              });
             }
           `}
         </Script>

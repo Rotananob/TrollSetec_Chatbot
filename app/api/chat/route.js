@@ -205,7 +205,7 @@ export async function POST(req) {
             ip: clientIp,
             device: clientUserAgent,
             retryAfter: rateResult.retryAfter,
-            message: `⚠️ ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីទៀតមុនពេលសាកល្បងម្ដងទៀត ដើម្បីការពារ Server ពីការ Spam។`
+            message: `ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីទៀតមុនពេលសាកល្បងម្ដងទៀត ដើម្បីការពារ Server ពីការ Spam។`
           },
           {
             status: 429,
@@ -345,7 +345,7 @@ export async function POST(req) {
       const lastPart = textContents?.[textContents.length - 1]?.parts || [];
       const hasImg = lastPart.some((p) => p.inlineData);
       const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
-      const userPrompt = (hasImg ? '🖼️ [រូបភាព] ' : '') + textFound;
+      const userPrompt = (hasImg ? '[រូបភាព] ' : '') + textFound;
 
       // Real-time ChatGPT-like Streaming Mode (SSE)
       if (body.stream) {

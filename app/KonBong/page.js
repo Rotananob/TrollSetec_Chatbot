@@ -714,7 +714,7 @@ export default function KonBongPage() {
 
   const handleCloseSpamModal = () => {
     setSpamModalOpen(false);
-    const postSpamRoast = `ខំឆាតច្រើនម៉េះអាប្អូន ${username}! កុំ spam អត់ប្រយោជន៍ទេអាអូន មក chill ជាមួយបងវិញមក! 😂🔥 ឃើញ server ដើរលឿនចង់មកសាកល្បង spam ឬ? ទុកម្រាមដៃធ្វើ assignment វិញទៅអាប្អូន!`;
+    const postSpamRoast = `ខំឆាតច្រើនម៉េះអាប្អូន ${username}! កុំ spam អត់ប្រយោជន៍ទេអាអូន មក chill ជាមួយបងវិញមក! ឃើញ server ដើរលឿនចង់មកសាកល្បង spam ឬ? ទុកម្រាមដៃធ្វើ assignment វិញទៅអាប្អូន!`;
     const updated = [...messages, { role: 'bot', text: postSpamRoast }];
     saveCurrentSessionMessages(updated);
     triggerAudio(postSpamRoast, updated.length - 1, true);

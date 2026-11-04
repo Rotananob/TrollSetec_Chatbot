@@ -197,11 +197,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Site Logo Top Left (Desktop Only) */}
-      <Link href="/" className="site-logo hidden sm:flex" title="SETEC Chat">
-        <div className="logo-glow"></div>
-        <img src="/img/logo.jpg" alt="SETEC Logo" width="90" height="90" />
-      </Link>
 
       {/* Site Logo Bottom Right with Awesome Looping Animated Ring */}
       <Link
@@ -526,13 +521,26 @@ export default function Home() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleBackToForm}
-                className="mt-5 mx-auto px-5 py-2 rounded-full border border-pink-400/50 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:bg-pink-500/30 text-pink-400 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
-              >
-                <i className="fas fa-arrow-left"></i> <span>ត្រឡប់ក្រោយ ឬប្ដូរឈ្មោះ</span>
-              </button>
+              <div className="mt-5 flex items-center justify-center gap-2.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={handleBackToForm}
+                  className="px-4 py-2 rounded-full border border-pink-400/50 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:bg-pink-500/30 text-pink-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <i className="fas fa-arrow-left text-[11px]"></i> <span>ប្ដូរឈ្មោះ</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      window.dispatchEvent(new CustomEvent('open-pwa-install'));
+                    }
+                  }}
+                  className="px-4 py-2 rounded-full border border-blue-400/50 bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-sky-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <i className="fas fa-download text-[11px]"></i> <span>ដំឡើងជា App</span>
+                </button>
+              </div>
             </>
           )}
 
