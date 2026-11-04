@@ -172,16 +172,12 @@ export default function KonPovPage() {
   const handleSelectGender = (gender) => {
     setUserGender(gender);
 
-    const showDisclaimer = !localStorage.getItem('konpov_disclaimer_shown');
-    const initialList = [];
-
-    if (showDisclaimer) {
-      initialList.push({
+    const initialList = [
+      {
         role: 'disclaimer',
-        text: `⚠️ NOTE: មុននិងចាប់ផ្ដើមឆាតសុំបញ្ជាក់ថា ការឆ្លើយតបទាំងអស់នេះគឺជាការគិតនិងនិយាយផ្ទាល់របស់ AI ។ មិនមែន Rotana NOB ជាអ្នកគិតនិងសរសេរទៅអ្នកនោះទេ។ គាត់គ្រាន់តែជាអ្នកបង្កើតខ្ញុំមកប៉ុណ្ណោះតែគាត់មិនទាន់ដាក់ច្បាប់ឲខ្ញុំទេ គាត់គ្រាន់ចង់សាកល្បងសមត្ថភាពខ្ញុំសិនប៉ុណ្ណោះ។ គាត់ចង់ឲ្យ AI និយាយឲដូចមនុស្សដែលស្និទស្នាល​ ១០០%ដើម្បីដឹងថាAIអាចធ្វើកើតឬទេ។ ដូច្នេះបើ AI ឆ្លើយបែបឈ្លើយនិងលើសលួសខ្លាំង សូមអភ័យទោសជាមុននិងសុំកុំខឹងគាត់ !`
-      });
-      localStorage.setItem('konpov_disclaimer_shown', '1');
-    }
+        text: `⚠️ NOTE សំខាន់ (Disclaimer): មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ (មិនមែន Rotana NOB ជាអ្នកគិត ឬវាយអក្សរឆ្លើយតបមកកាន់អ្នកនោះទេ)។ គាត់គ្រាន់តែជាអ្នកបង្កើតប្រព័ន្ធនេះឡើងប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ឡើយ ដើម្បីចង់ឱ្យការជជែកមានលក្ខណៈដូចមនុស្ស ស្និទ្ធស្នាល និង Chill បែប Gen Z។\n\nដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឈ្លើយ កំហូច ឬលើសលួសជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យគាត់ (Rotana NOB) អីណា៎! ពួកយើងសុំអភ័យទោសទុកជាមុន! 🙏`
+      }
+    ];
 
     setMessages(initialList);
     setShowStartBtn(true);
@@ -337,7 +333,7 @@ export default function KonPovPage() {
   // Send message
   const handleChat = async () => {
     const prompt = inputText.trim();
-    if (!prompt || !userGender || isLoading) return;
+    if (!prompt || !userGender || showStartBtn || isLoading) return;
 
     // Anti-Spam / Anti-DDoS Rate Limiting Check (Max 5 per minute per device)
     const rateCheck = checkClientRateLimit();
@@ -602,9 +598,15 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
             return (
               <div
                 key={idx}
-                className="border-2 border-yellow-400 bg-yellow-100 text-yellow-900 rounded-xl p-3 text-xs font-bold leading-relaxed shadow"
+                className="border-2 border-yellow-400 bg-amber-100 text-amber-950 rounded-2xl p-4 shadow-xl text-xs md:text-sm font-semibold leading-relaxed animate-fade-in"
               >
-                {item.text}
+                <div className="flex items-center gap-2 mb-2 font-black text-amber-900 text-sm">
+                  <span className="text-xl">⚠️</span>
+                  <span className="uppercase tracking-wider">NOTE សំខាន់ (ការបញ្ជាក់ពីអ្នកបង្កើត)</span>
+                </div>
+                <div className="whitespace-pre-line leading-relaxed text-slate-900 font-semibold">
+                  {item.text.replace(/^⚠️ NOTE សំខាន់ \(Disclaimer\):\s*/, '')}
+                </div>
               </div>
             );
           } else if (item.role === 'user') {
@@ -680,12 +682,15 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
         {/* Start Button */}
         {showStartBtn && (
-          <button
-            onClick={handleStartChatClick}
-            className="block mx-auto mb-4 border-2 border-sky-400 bg-sky-100 text-sky-800 rounded-xl px-6 py-3 font-black text-sm shadow hover:bg-sky-200 transition"
-          >
-            តោះចុចលើនេះដើម្បីឆាត! (Let's start chatting!)
-          </button>
+          <div className="flex flex-col items-center justify-center my-3 animate-fade-in">
+            <button
+              onClick={handleStartChatClick}
+              className="w-full max-w-lg border-2 border-sky-400 bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-600 text-white rounded-2xl px-5 py-3.5 font-black text-xs md:text-sm shadow-xl hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <i className="fas fa-check-circle text-amber-300"></i>
+              <span>តើអ្នកយល់ និង យល់ព្រមឆាតហើយឬនៅ? បើព្រមចុចលើនេះដើម្បីឆាត! (Let&apos;s start chatting!) 🔥</span>
+            </button>
+          </div>
         )}
 
         {/* Status UI while loading */}
@@ -717,30 +722,50 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
       {/* Input Area */}
       <footer className="p-4 border-t border-slate-800 bg-slate-950 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+        {showStartBtn && (
+          <div className="mb-2 text-center text-xs font-bold text-amber-400 flex items-center justify-center gap-1.5 animate-pulse">
+            <i className="fas fa-lock"></i>
+            <span>ប្រព័ន្ធត្រូវបានចាក់សោរ៖ សូមចុចប៊ូតុង &quot;យល់ព្រមឆាត&quot; ខាងលើសិន</span>
+          </div>
+        )}
         <div className="relative flex items-center gap-3">
           <div className="flex-1">
             <input
               type="text"
-              disabled={!userGender}
+              disabled={!userGender || showStartBtn || isLoading}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleChat();
               }}
-              className="w-full h-12 max-h-12 bg-slate-900 border border-slate-700 rounded-xl px-5 py-3 focus:ring-2 focus:ring-blue-500 outline-none text-white placeholder-slate-600 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder={userGender ? 'និយាយមកកូនសម្លាញ់... កុំស្ងាត់ពេក Daddy បារម្ភ!' : 'ជ្រើសរើសភេទសិនកូនសម្លាញ់...'}
+              className={`w-full h-12 max-h-12 bg-slate-900 border border-slate-700 rounded-xl px-5 py-3 outline-none text-white text-sm transition-all ${
+                !userGender || showStartBtn
+                  ? 'opacity-50 cursor-not-allowed bg-slate-900/60 border-slate-800 text-slate-500 placeholder-slate-500'
+                  : 'focus:ring-2 focus:ring-blue-500 placeholder-slate-600'
+              }`}
+              placeholder={
+                !userGender
+                  ? 'ជ្រើសរើសភេទសិនកូនសម្លាញ់...'
+                  : showStartBtn
+                  ? '🔒 សូមអាន Note និងចុច "យល់ព្រមឆាត" ខាងលើសិន...'
+                  : 'និយាយមកកូនសម្លាញ់... កុំស្ងាត់ពេក Daddy បារម្ភ!'
+              }
             />
           </div>
           <button
             onClick={handleChat}
-            disabled={!userGender || isLoading}
-            className="bg-blue-600 text-white w-12 h-12 rounded-xl flex items-center justify-center hover:bg-blue-500 transition active:scale-95 shadow-lg shadow-blue-500/20 disabled:opacity-50"
+            disabled={!userGender || showStartBtn || isLoading || !inputText.trim()}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition active:scale-95 shadow-lg ${
+              !userGender || showStartBtn || isLoading || !inputText.trim()
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'
+            }`}
           >
-            <i className="fas fa-paper-plane"></i>
+            <i className={!userGender || showStartBtn ? 'fas fa-lock' : 'fas fa-paper-plane'}></i>
           </button>
         </div>
 
-        <div className="flex justify-between mt-3 px-2">
+        <div className={`flex justify-between mt-3 px-2 transition-opacity ${showStartBtn ? 'opacity-30' : 'opacity-100'}`}>
           <span className="text-[8px] text-slate-700 font-black italic">#DADDY_SAYS</span>
           <span className="text-[8px] text-slate-700 font-black italic">#SENIOR_TRICK</span>
           <span className="text-[8px] text-slate-700 font-black italic">#FRESHIE_VIBES</span>

@@ -15,6 +15,7 @@ export default function KonBongPage() {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [selectedSessionModal, setSelectedSessionModal] = useState(null);
@@ -214,6 +215,7 @@ export default function KonBongPage() {
     setSessions(updated);
     setCurrentSessionId(newId);
     setMessages([]);
+    setHasAgreed(false);
     setDrawerOpen(false);
   };
 
@@ -228,7 +230,7 @@ export default function KonBongPage() {
   // Chat message send handler
   const handleChat = async () => {
     const prompt = inputText.trim();
-    if (!prompt || isLoading) return;
+    if (!prompt || (!hasAgreed && messages.length === 0) || isLoading) return;
 
     // 1. Anti-Spam / Anti-DDoS Rate Limiting Check (Max 5 per minute per device)
     const rateCheck = checkClientRateLimit();
@@ -587,6 +589,32 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
       {/* Chat Messages */}
       <main className="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col chat-area bg-slate-950">
+        {/* Yellow Disclaimer Note */}
+        <div className="border-2 border-yellow-400 bg-amber-100 text-amber-950 rounded-2xl p-4 shadow-xl text-xs md:text-sm font-semibold leading-relaxed animate-fade-in">
+          <div className="flex items-center gap-2 mb-2 font-black text-amber-900 text-sm">
+            <span className="text-xl">⚠️</span>
+            <span className="uppercase tracking-wider">NOTE សំខាន់ (ការបញ្ជាក់ពីអ្នកបង្កើត)</span>
+          </div>
+          <p className="whitespace-pre-line leading-relaxed text-slate-900 font-semibold">
+            មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ (មិនមែន Rotana NOB ជាអ្នកគិត ឬវាយអក្សរឆ្លើយតបមកកាន់អ្នកនោះទេ)។ គាត់គ្រាន់តែជាអ្នកបង្កើតប្រព័ន្ធនេះឡើងប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ឡើយ ដើម្បីចង់ឱ្យការជជែកមានលក្ខណៈដូចមនុស្ស ស្និទ្ធស្នាល និង Chill បែប Gen Z។
+
+ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឈ្លើយ កំហូច ឬលើសលួសជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យគាត់ (Rotana NOB) អីណា៎! ពួកយើងសុំអភ័យទោសទុកជាមុន! 🙏
+          </p>
+        </div>
+
+        {/* Start Agreement Button */}
+        {!hasAgreed && messages.length === 0 && (
+          <div className="flex flex-col items-center justify-center my-3 animate-fade-in">
+            <button
+              onClick={() => setHasAgreed(true)}
+              className="w-full max-w-lg border-2 border-sky-400 bg-gradient-to-r from-pink-500 via-rose-500 to-cyan-500 text-white rounded-2xl px-5 py-3.5 font-black text-xs md:text-sm shadow-xl hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <i className="fas fa-check-circle text-amber-300"></i>
+              <span>តើអ្នកយល់ និង យល់ព្រមឆាតហើយឬនៅ? បើព្រមចុចលើនេះដើម្បីឆាត! (Let&apos;s start chatting!) 🔥</span>
+            </button>
+          </div>
+        )}
+
         {/* Intro Message */}
         <div className="flex items-start gap-3">
           <img
@@ -711,10 +739,17 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
       {/* Chat Input */}
       <footer className="p-4 border-t border-slate-800 bg-slate-950">
+        {!hasAgreed && messages.length === 0 && (
+          <div className="mb-2 text-center text-xs font-bold text-amber-400 flex items-center justify-center gap-1.5 animate-pulse">
+            <i className="fas fa-lock"></i>
+            <span>ប្រព័ន្ធត្រូវបានចាក់សោរ៖ សូមចុចប៊ូតុង &quot;យល់ព្រមឆាត&quot; ខាងលើសិន</span>
+          </div>
+        )}
         <div className="relative flex items-center gap-3">
           <div className="flex-1 relative">
             <input
               type="text"
+              disabled={(!hasAgreed && messages.length === 0) || isLoading}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
@@ -723,16 +758,28 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
                   handleChat();
                 }
               }}
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 focus:ring-2 focus:ring-cyan-500 outline-none text-white placeholder-slate-600 transition-all text-sm"
-              placeholder="សួរមកអាម៉ូយ... កុំឱ្យបង​ Kick ចេញទាន់"
+              className={`w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 outline-none text-white transition-all text-sm ${
+                !hasAgreed && messages.length === 0
+                  ? 'opacity-50 cursor-not-allowed bg-slate-900/60 border-slate-800 text-slate-500 placeholder-slate-500'
+                  : 'focus:ring-2 focus:ring-cyan-500 placeholder-slate-600'
+              }`}
+              placeholder={
+                !hasAgreed && messages.length === 0
+                  ? '🔒 សូមអាន Note និងចុច "យល់ព្រមឆាត" ខាងលើសិន...'
+                  : 'សួរមកអាម៉ូយ... កុំឱ្យបង​ Kick ចេញទាន់'
+              }
             />
           </div>
           <button
             onClick={handleChat}
-            disabled={isLoading}
-            className="bg-cyan-600 text-white w-12 h-12 rounded-xl flex items-center justify-center hover:bg-cyan-500 transition active:scale-95 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+            disabled={(!hasAgreed && messages.length === 0) || isLoading || !inputText.trim()}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition active:scale-95 shadow-lg ${
+              (!hasAgreed && messages.length === 0) || isLoading || !inputText.trim()
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+                : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-500/20'
+            }`}
           >
-            <i className="fas fa-paper-plane"></i>
+            <i className={!hasAgreed && messages.length === 0 ? 'fas fa-lock' : 'fas fa-paper-plane'}></i>
           </button>
         </div>
         <div className="flex justify-around mt-3">
