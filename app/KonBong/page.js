@@ -18,7 +18,7 @@ const MEME_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
 
 export default function KonBongPage() {
   const router = useRouter();
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -170,7 +170,7 @@ export default function KonBongPage() {
     const savedAvatar =
       localStorage.getItem('chatbot_avatar') ||
       'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
-    const savedTheme = localStorage.getItem('chatbot_theme') || 'dark';
+    const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
     setUsername(savedName);
     setAvatar(savedAvatar);
     setTheme(savedTheme);

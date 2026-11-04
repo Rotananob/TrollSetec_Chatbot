@@ -59,8 +59,6 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
-        {/* Tailwind CDN */}
-        <Script src="https://cdn.tailwindcss.com" strategy="beforeInteractive" />
       </head>
       <body className="antialiased selection:bg-indigo-500 selection:text-white">
         <VisitorTracker />

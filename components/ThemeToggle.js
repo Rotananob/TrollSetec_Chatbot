@@ -1,6 +1,6 @@
 'use client';
 
-export default function ThemeToggle({ theme = 'dark', onToggle, className = '' }) {
+export default function ThemeToggle({ theme = 'light', onToggle, className = '' }) {
   const isDark = theme === 'dark';
 
   return (
@@ -15,7 +15,11 @@ export default function ThemeToggle({ theme = 'dark', onToggle, className = '' }
       title={isDark ? 'ប្ដូរទៅ Light Mode (ភ្លឺ)' : 'ប្ដូរទៅ Dark Mode (ងងឹត)'}
       aria-label="Toggle Dark/Light Mode"
     >
-      <span className="text-sm">{isDark ? '🌙' : '☀️'}</span>
+      {isDark ? (
+        <i className="fas fa-moon text-amber-300 text-sm"></i>
+      ) : (
+        <i className="fas fa-sun text-amber-500 text-sm"></i>
+      )}
       <span className="text-[11px] font-extrabold uppercase tracking-wider">
         {isDark ? 'Dark' : 'Light'}
       </span>

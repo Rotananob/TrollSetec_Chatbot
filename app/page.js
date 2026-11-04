@@ -11,13 +11,13 @@ export default function Home() {
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
   const bgmRef = useRef(null);
 
   useEffect(() => {
     const savedName = localStorage.getItem('chatbot_username');
     const savedAvatar = localStorage.getItem('chatbot_avatar');
-    const savedTheme = localStorage.getItem('chatbot_theme') || 'dark';
+    const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
     setTheme(savedTheme);
 
     if (savedName) {
@@ -175,8 +175,16 @@ export default function Home() {
               : 'bg-white/95 border-indigo-100 text-slate-800 shadow-indigo-200/50'
           }`}
         >
-          <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/30">
-            <img src="/img/logo.jpg" alt="SETEC Troll Bot" className="w-full h-full object-cover rounded-[14px]" />
+          <div
+            className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/30 overflow-hidden"
+            style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px' }}
+          >
+            <img
+              src="/img/logo.jpg"
+              alt="SETEC Troll Bot"
+              className="w-full h-full object-cover rounded-[14px]"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-1">
