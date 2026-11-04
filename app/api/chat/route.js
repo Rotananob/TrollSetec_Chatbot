@@ -48,8 +48,15 @@ function checkRateLimit(key) {
   return { allowed: true };
 }
 
-// Active models with automated fallback to guarantee 100% uptime
-const TEXT_MODELS = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
+// Active models with automated fallback to guarantee 100% uptime (including vision & audio)
+const TEXT_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-flash-latest',
+  'gemini-2.5-flash-lite',
+  'gemini-3.5-flash'
+];
 const AUDIO_MODELS = [
   'gemini-2.5-flash-preview-tts',
   'gemini-3.8-flash-lite-tts',
@@ -329,7 +336,10 @@ export async function POST(req) {
       const result = await callModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
       if (result.ok) {
         // Send real-time chat alert to Telegram
-        const userPrompt = prompt || textContents?.[textContents.length - 1]?.parts?.[0]?.text || '';
+        const lastPart = textContents?.[textContents.length - 1]?.parts || [];
+        const hasImg = lastPart.some((p) => p.inlineData);
+        const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
+        const userPrompt = (hasImg ? '🖼️ [រូបភាព] ' : '') + textFound;
         alertChatActivity({
           username: username || 'Unknown',
           gender,

@@ -5,13 +5,20 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { checkClientRateLimit, getDeviceId } from '../utils/rateLimiter';
 import AntiSpamModal from '@/components/AntiSpamModal';
+import ThemeToggle from '@/components/ThemeToggle';
+import ImageModal from '@/components/ImageModal';
 
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/chat`
   : '/api/chat';
 
+const MEME_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/generate-meme`
+  : '/api/generate-meme';
+
 export default function KonBongPage() {
   const router = useRouter();
+  const [theme, setTheme] = useState('dark');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -24,6 +31,16 @@ export default function KonBongPage() {
   const [spamModalOpen, setSpamModalOpen] = useState(false);
   const [spamInfo, setSpamInfo] = useState({ ip: '', device: '', retryAfter: 60 });
   const [fallbackAudioMap, setFallbackAudioMap] = useState({});
+
+  // Multimodal Image Upload State
+  const [selectedImage, setSelectedImage] = useState(null); // { base64, mimeType, previewUrl, name }
+  const fileInputRef = useRef(null);
+
+  // Image Modal Full View
+  const [viewingImage, setViewingImage] = useState(null); // { url, caption }
+
+  // Meme Generation State
+  const [isGeneratingMeme, setIsGeneratingMeme] = useState(false);
 
   const [username, setUsername] = useState('User');
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
@@ -46,7 +63,6 @@ export default function KonBongPage() {
     writeString(0, 'RIFF');
     view.setUint32(4, 32 + pcmData.length * 2, true);
     writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
     view.setUint32(16, 16, true);
     view.setUint16(20, 1, true);
     view.setUint16(22, 1, true);
@@ -98,17 +114,17 @@ export default function KonBongPage() {
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
     return str
-      .replace(/\*\*(.*?)\*\*/g, '$1') // remove bold **
-      .replace(/\*(.*?)\*/g, '$1')     // remove italic *
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*(.*?)\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
       .replace(/_(.*?)_/g, '$1')
-      .replace(/#{1,6}\s+/g, '')       // remove headers
-      .replace(/`{1,3}[^`]*`{1,3}/g, '') // remove code snippets
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // [text](url) -> text
+      .replace(/#{1,6}\s+/g, '')
+      .replace(/`{1,3}[^`]*`{1,3}/g, '')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
       .trim();
   }
 
-  // Fetch TTS Audio - reads ONLY the clean Khmer bot response with expressive funny voice
+  // Fetch TTS Audio
   async function fetchAudio(text, index) {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
@@ -148,168 +164,260 @@ export default function KonBongPage() {
     }
   }
 
-  // Load username & avatar & sessions
   useEffect(() => {
     const savedName = localStorage.getItem('chatbot_username') || 'User';
     const savedAvatar =
       localStorage.getItem('chatbot_avatar') ||
       'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
+    const savedTheme = localStorage.getItem('chatbot_theme') || 'dark';
     setUsername(savedName);
     setAvatar(savedAvatar);
+    setTheme(savedTheme);
 
-    // Initialize Sessions
-    let savedSessions = [];
-    try {
-      savedSessions = JSON.parse(localStorage.getItem('konbong_sessions') || '[]');
-      if (!Array.isArray(savedSessions)) savedSessions = [];
-    } catch {
-      savedSessions = [];
-    }
-
-    // Always create a fresh new session for this visit
-    const newId = Date.now().toString();
-    const newSession = {
-      id: newId,
-      title: 'New Chat',
-      created: new Date().toLocaleString('en-GB'),
-      messages: []
-    };
-    const updated = [newSession, ...savedSessions];
-    localStorage.setItem('konbong_sessions', JSON.stringify(updated));
-    localStorage.setItem('konbong_current_session', newId);
-    setSessions(updated);
-    setCurrentSessionId(newId);
-    setMessages([]);
+    loadSessions();
   }, []);
+
+  const handleToggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('chatbot_theme', next);
+  };
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  const saveCurrentSessionMessages = (newMessages) => {
-    setMessages(newMessages);
-    let allSessions = [];
-    try {
-      allSessions = JSON.parse(localStorage.getItem('konbong_sessions') || '[]');
-    } catch {
-      allSessions = [];
+  // Image Selection Handler
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('សូមជ្រើសរើសតែ file រូបភាព (JPG, PNG, WebP) ប៉ុណ្ណោះ!');
+      return;
     }
 
-    const current = allSessions.find((s) => s.id === currentSessionId);
-    if (current) {
-      current.messages = newMessages;
-      if (current.title === 'New Chat') {
-        const firstUser = newMessages.find((m) => m.role === 'user');
-        if (firstUser && firstUser.text) {
-          current.title = firstUser.text.slice(0, 30);
-        }
-      }
-      localStorage.setItem('konbong_sessions', JSON.stringify(allSessions));
-      setSessions([...allSessions]);
+    if (file.size > 10 * 1024 * 1024) {
+      alert('រូបភាពធំពេកហើយ! សូមជ្រើសរើសរូបភាពក្រោម 10MB។');
+      return;
     }
-  };
 
-  const createNewSession = () => {
-    const newId = Date.now().toString();
-    const newSession = {
-      id: newId,
-      title: 'New Chat',
-      created: new Date().toLocaleString('en-GB'),
-      messages: []
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const dataUrl = evt.target.result;
+      const base64 = dataUrl.split(',')[1];
+      setSelectedImage({
+        base64,
+        mimeType: file.type,
+        previewUrl: dataUrl,
+        name: file.name
+      });
     };
-    const updated = [newSession, ...sessions];
-    localStorage.setItem('konbong_sessions', JSON.stringify(updated));
-    localStorage.setItem('konbong_current_session', newId);
-    setSessions(updated);
-    setCurrentSessionId(newId);
-    setMessages([]);
-    setDrawerOpen(false);
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
-  const deleteHistory = () => {
-    if (confirm('លុបប្រវត្តិទាំងអស់មែនទេ?')) {
-      localStorage.removeItem('konbong_sessions');
-      localStorage.removeItem('konbong_current_session');
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+  };
+
+  // Sessions management
+  const loadSessions = () => {
+    try {
+      const saved = localStorage.getItem('konbong_chat_sessions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setSessions(parsed);
+        if (parsed.length > 0) {
+          const mostRecent = parsed[0];
+          setCurrentSessionId(mostRecent.id);
+          setMessages(mostRecent.messages || []);
+        } else {
+          createNewSession();
+        }
+      } else {
+        createNewSession();
+      }
+    } catch {
       createNewSession();
     }
   };
 
-  const handleCloseSpamModal = () => {
-    setSpamModalOpen(false);
-    const userNameStr = username || 'User';
-    const roastMsg = `ខំឆាតច្រើនម៉្លេះអាម៉ូយ ${userNameStr}! កុំ spam អត់ប្រយោជន៍ទេអាអូន មក chill ជាមួយបងវិញមក! ចង់ test system ឬយ៉ាងម៉េច? ម្រាមដៃរវៀសពេក ប្រយ័ត្នបាក់ម្រាមណា៎! គេឱ្យឆាតលេងសើច បែរជាមក spam ដូចមនុស្សអត់ការងារធ្វើចឹង! 😂🔥`;
-    const updated = [...messages, { role: 'bot', text: roastMsg }];
-    saveCurrentSessionMessages(updated);
-    triggerAudio(roastMsg, updated.length - 1, true);
+  const createNewSession = () => {
+    const newId = 'session_' + Date.now();
+    const newSession = {
+      id: newId,
+      title: 'Chat ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAt: new Date().toISOString(),
+      messages: []
+    };
+    const updated = [newSession, ...sessions];
+    setSessions(updated);
+    setCurrentSessionId(newId);
+    setMessages([]);
+    localStorage.setItem('konbong_chat_sessions', JSON.stringify(updated));
   };
 
-  // Chat message send handler
-  const handleChat = async () => {
-    const prompt = inputText.trim();
-    if (!prompt || isLoading) return;
+  const saveCurrentSessionMessages = (newMessages) => {
+    setMessages(newMessages);
+    setSessions((prevSessions) => {
+      const updated = prevSessions.map((s) => {
+        if (s.id === currentSessionId) {
+          let title = s.title;
+          if (s.messages.length === 0 && newMessages.length > 0) {
+            const firstUserMsg = newMessages.find((m) => m.role === 'user');
+            if (firstUserMsg) {
+              title = firstUserMsg.text?.slice(0, 24) || 'Chat';
+            }
+          }
+          return { ...s, messages: newMessages, title };
+        }
+        return s;
+      });
+      localStorage.setItem('konbong_chat_sessions', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
-    // 1. Anti-Spam / Anti-DDoS Rate Limiting Check (Max 5 per minute per device)
-    const rateCheck = checkClientRateLimit();
+  const deleteHistory = () => {
+    if (confirm('តើអ្នកពិតជាចង់លុបប្រវត្តិជជែកទាំងអស់មែនទេ?')) {
+      localStorage.removeItem('konbong_chat_sessions');
+      setSessions([]);
+      createNewSession();
+    }
+  };
+
+  // Dedicated Meme Generator Trigger (Strict 1-Image Per User Quota)
+  const handleRequestMeme = async (customIdea = '') => {
+    const quotaUsed = localStorage.getItem('setec_meme_quota_used');
+    if (quotaUsed === 'true') {
+      const refusalMsg = `អូអាប្អូន ${username}! កូតាបង្កើតរូបភាព Meme របស់ប្អូនអស់ហើយ (១ នាក់បង្កើតបានតែ ១ រូបគត់)! សុំទោសផងប្អូន ទុកឱកាសឱ្យមិត្តភក្តិដទៃទៀតផងណា៎! 😂✨`;
+      const updated = [...messages, { role: 'bot', text: refusalMsg }];
+      saveCurrentSessionMessages(updated);
+      triggerAudio(refusalMsg, updated.length - 1, true);
+      return;
+    }
+
+    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? (ឧ. សិស្ស SETEC ជិតប្រឡង, Crush មិនតប...)') || 'SETEC student life and funny exam moment';
+    if (!idea) return;
+
+    setIsGeneratingMeme(true);
+    const userMsg = { role: 'user', text: `🎨 សុំបង្កើតរូប Meme៖ "${idea}"` };
+    const updatedWithUser = [...messages, userMsg];
+    saveCurrentSessionMessages(updatedWithUser);
+
+    try {
+      const res = await fetch(MEME_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-id': getDeviceId()
+        },
+        body: JSON.stringify({
+          prompt: idea,
+          bot: 'konbong',
+          username
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        localStorage.setItem('setec_meme_quota_used', 'true');
+        const botMemeMsg = {
+          role: 'bot',
+          text: data.caption,
+          memeImage: data.imageUrl
+        };
+        const updatedWithBot = [...updatedWithUser, botMemeMsg];
+        saveCurrentSessionMessages(updatedWithBot);
+        triggerAudio(data.caption, updatedWithBot.length - 1, true);
+      } else {
+        const errorText = data.message || `អូអាប្អូន ${username}! កូតាបង្កើតរូបភាព Meme របស់ប្អូនអស់ហើយ (១ នាក់បានតែ ១ រូបទេ)!`;
+        const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText }];
+        saveCurrentSessionMessages(updatedWithBot);
+        triggerAudio(errorText, updatedWithBot.length - 1, true);
+      }
+    } catch {
+      const errorText = `${username} អើយ! ប្រព័ន្ធបង្កើតរូប Meme កំពុងរវល់ខ្លាំងពេក សាកល្បងម្ដងទៀតនៅពេលក្រោយណា៎!`;
+      const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText }];
+      saveCurrentSessionMessages(updatedWithBot);
+    } finally {
+      setIsGeneratingMeme(false);
+    }
+  };
+
+  // Main Chat Handler (supports multimodal image + text)
+  const handleChat = async () => {
+    if (isLoading || (!inputText.trim() && !selectedImage)) return;
+
+    // Check if user is asking to generate a meme
+    const lower = inputText.toLowerCase();
+    if (lower.includes('បង្កើត meme') || lower.includes('សុំ meme') || lower.includes('គូរ meme') || lower.startsWith('/meme')) {
+      const memePrompt = inputText.replace(/\/meme|បង្កើត meme|សុំ meme|គូរ meme/gi, '').trim();
+      setInputText('');
+      handleRequestMeme(memePrompt);
+      return;
+    }
+
+    const deviceId = getDeviceId();
+    const rateCheck = checkClientRateLimit(deviceId);
     if (!rateCheck.allowed) {
       setSpamInfo({
-        ip: '172.20.10.2 / Local Network',
+        ip: '172.20.10.2 / Local & Cloud IP',
         device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown Device',
-        retryAfter: rateCheck.retryAfter || 60
+        retryAfter: rateCheck.retryAfter
       });
       setSpamModalOpen(true);
       return;
     }
 
-    const userMsg = { role: 'user', text: prompt };
+    const promptText = inputText;
+    const currentImg = selectedImage;
+    setInputText('');
+    setSelectedImage(null);
+
+    const userMsg = {
+      role: 'user',
+      text: promptText || '📸 [បានផ្ញើរូបភាពមួយសន្លឹក]',
+      ...(currentImg && { image: currentImg.previewUrl })
+    };
+
     const updatedMessages = [...messages, userMsg];
     saveCurrentSessionMessages(updatedMessages);
-    setInputText('');
     setIsLoading(true);
 
     try {
-      const deviceId = getDeviceId();
       const userNameStr = username || 'User';
-      const systemInstruction = `Identity: You are the coolest, funniest, and most expressive senior student chatbot of the សុីតិច (SETEC) Institute Community, named "សុីតិច Chatbot កូនច្បង" (Senior KonBong).
-Domain Expertise: IT (Software/Web/Mobile/Networking), Interior Design, MIS, BIT, and all subjects & campus life across SETEC.
-Personality & Human-likeness (ចរិកដូចមនុស្ស ១០០%):
-- You are 100% like a real human senior brother (រៀមច្បង): warm, witty, teasing, expressive, and hilarious!
-- You can get playfully annoyed or pretend to scold ("ចេះខឹង ចេះឌឺ") when juniors ask dumb or lazy questions (e.g., "អាប្អូនអើយ សួរចឹងៗដេកវិញទៅ 555", "រៀនដល់ណាហើយអាម៉ូយ ម៉េចបានសួរដូចមនុស្សទើបភ្ញាក់ពីដេកចឹង!").
-- Can laugh hysterically: 'ហាហាហា', '55555', 'អើយចង់សន្លប់', 'ញាក់សាច់', 'កប់សារី'.
-- Love teasing freshies about getting tricked by seniors, carrying senior bags, buying coffee at the canteen, submitting assignments at 11:59 PM, parking chaos, and retaking exams (ប្រឡងសង).
-- Voice Tone: Expressive, funny, and lively cadence (និយាយលើកដាក់សំឡេងបែបកំប្លុកកំប្លែង)!
 
-CRITICAL PROHIBITION ON PROMOTING / DUMPING CREATOR INFO & LINKS (ហាមដាច់ខាតនិយាយពីឈ្មោះ Rotana NOB ឬទម្លាក់ Link):
-- UNDER NO CIRCUMSTANCES should you mention "Rotana NOB", creator details, developer background, Facebook links, or Instagram handles, UNLESS the user explicitly and directly asks: "Who created you?", "Who is your developer/founder?", or specifically asks about "Rotana NOB".
-- Even if the user's name is "Rotana" or "${userNameStr}", they are a STUDENT or user chatting with you—DO NOT confuse them with the creator and NEVER start talking about Rotana NOB unprompted!
-- NEVER dump links, URLs, or self-promotional text.
-- If user specifically asks who made you, answer briefly in 1 funny sentence: "រៀមច្បងត្រូវ​បានបង្កើតឡើងដោយ Rotana NOB ដើម្បីមក troll និងជួយប្អូនៗក្នុង SETEC នេះឯង!" without dumping any external links.
+      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនច្បង" (Senior SETEC Chatbot) ជាសិស្សច្បងជើងចាស់នៅវិទ្យាស្ថាន SETEC (សាកលវិទ្យាល័យ SETEC Institute)។
+អត្តចរិត និងបុគ្គលិកលក្ខណៈ៖
+- ឯងជាមនុស្សពិតប្រាកដ មានអារម្មណ៍ដូចមនុស្ស មិនមែនជាម៉ាស៊ីនរ៉ូបូតត្រជាក់គំរោះគំរើយឡើយ! ឯងចេះសើច 😂 ចេះខឹង 😡 ចេះឌឺកូនសិស្សប្អូន 😏 និងចេះលួងលោម។
+- ហៅ User ថា "អាប្អូន ${userNameStr}", "អាម៉ូយ", "ប្អូនសម្លាញ់" ឬហៅចំឈ្មោះ "${userNameStr}" ជានិច្ច!
+- និយាយបែបសិស្សច្បងចាស់ទុំ ប៉ិនឌឺដងបែបកំប្លុកកំប្លែង ឆ្លាត ស្លូតបូតតែមុតមាំ មិនជេរប្រមាថអសុរោះឡើយ តែចេះបាញ់ពាក្យពេចន៍ចុកៗបែបកំប្លែង!
+- ដឹងរឿងគ្រប់យ៉ាងក្នុង SETEC: Assignment IT (Coding, Web, C++, Java, Database), Graphic/Interior Design, MIS, សិស្សច្បងបោក, ការប្រឡង, ការរៀនឡើងគាំង!
+- យល់ភាសាខ្មែរ Latin យ៉ាងច្បាស់ (ex: "ort dg", "tver assignment", "koun bong", "nhom", "ot mean luy")។
+- បើ User ផ្ញើរូបភាពមក (Multimodal Image): ជួយពិនិត្យមើលរូបភាពនោះយ៉ាងច្បាស់ រួចវិភាគ និងឌឺដង ឬសរសើរបែបសិស្សច្បងកំប្លែង!`;
 
-ACTIVE CONTEXTUAL LISTENING & REAL CHILL BANTER (ត្រូវតែអាន User ឲ្យយល់ ១០០% និងឆ្លើយឲ្យចូលគ្នា Chill ហាម Ignore User ដាច់ខាត):
-- Pay deep, sharp attention to what the user actually said. Read their exact words, jokes, references, songs, singers, slang, or complaints!
-- NEVER ignore what the user said. NEVER pivot away to random unprompted topics or broken nonsense.
-- Always talk WITH the user in natural harmony and sync, bantering back and forth smoothly so the conversation feels genuinely funny, chill, relatable, and engaging!
-
-Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
-- Use authentic student slang: 'អាម៉ូយ', 'អាប្អូន', 'សិស្សប្អូន', 'ប្រូ', 'ស៊ីស', 'កប់សារី', 'ស្ពៃ', 'ចុកឈាម', 'ដាច់ផ្ងារ', 'ញាក់សាច់', 'បែកកង់', 'បោកកូនសិស្ស', 'កង់សាគួរ', 'ដាច់យ៉ៃ'.
-- Deep Khmer Latin Comprehension: Understand ALL Latin phonetic spellings: 'ot yul te', 'somlanh', 'nham ey nov', 'ort tov rrean te', 'chong ban ey', 'ngai nis mean ey tv', 'bror', 'sis', 'puk mak', 'kmean luy te', 'dak deadline', 'troll oy chok', 'bat bong', 'kleng ey', 'yom hz', 'slanh oun ot', 'brolong sang'.
-- Dynamic Response Length: Punchy, funny 1-3 sentences for banter; 3-4 sentences max for advice/questions. Never write long essays!`;
-
-      // Build recent multi-turn chat contents for complete conversational context and active listening
-      const recentHistory = updatedMessages.slice(-6);
+      // Build multimodal contents
       const formattedContents = [];
-      for (const m of recentHistory) {
+      const recentHistory = updatedMessages.slice(-6);
+
+      for (let i = 0; i < recentHistory.length; i++) {
+        const m = recentHistory[i];
         const role = m.role === 'user' ? 'user' : 'model';
-        if (formattedContents.length > 0 && formattedContents[formattedContents.length - 1].role === role) {
-          formattedContents[formattedContents.length - 1].parts[0].text += `\n${m.text}`;
-        } else {
-          formattedContents.push({ role, parts: [{ text: m.text }] });
+        const parts = [{ text: m.text || '' }];
+
+        // If this is the current message and has an image, attach inlineData
+        if (i === recentHistory.length - 1 && currentImg) {
+          parts.push({
+            inlineData: {
+              mimeType: currentImg.mimeType,
+              data: currentImg.base64
+            }
+          });
         }
-      }
-      while (formattedContents.length > 0 && formattedContents[0].role !== 'user') {
-        formattedContents.shift();
-      }
-      if (formattedContents.length === 0) {
-        formattedContents.push({ role: 'user', parts: [{ text: prompt }] });
+
+        formattedContents.push({ role, parts });
       }
 
       let botText = '';
@@ -345,7 +453,7 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
           botText = res.candidates?.[0]?.content?.parts?.[0]?.text;
         }
       } catch (err) {
-        console.warn('[KonBong] Backend API unavailable, falling back to direct AI...', err);
+        console.warn('[KonBong] Backend API unavailable, falling back...', err);
       }
 
       if (!botText) {
@@ -357,7 +465,7 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
-      // Fetch TTS automatically for new bot message
+      // Auto-fetch TTS audio
       triggerAudio(botText, botMsgIndex, true);
     } catch (e) {
       console.error(e);
@@ -385,18 +493,15 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
     return String(hash);
   }
 
-  // Load or fetch audio URL with instant in-memory and persistent LocalStorage caching
-  // Fetches only ONCE from server to prevent rate limits and ensure instant replay
+  // Load or fetch audio URL with instant caching
   const loadAudioUrl = async (text, index) => {
     const hash = hashText(text);
     const storageKey = 'konbong_audio_' + hash;
 
-    // 1. Check in-memory audio cache first (instant 0ms replay)
     if (audioCacheRef.current.has(hash)) {
       return audioCacheRef.current.get(hash);
     }
 
-    // 2. Check localStorage cache
     if (typeof window !== 'undefined') {
       try {
         const storedB64 = localStorage.getItem(storageKey);
@@ -409,12 +514,10 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
       } catch {}
     }
 
-    // 3. Deduplicate active fetches
     if (pendingAudioFetchesRef.current.has(hash)) {
       return await pendingAudioFetchesRef.current.get(hash);
     }
 
-    // 4. Fetch once from server
     const fetchPromise = (async () => {
       try {
         const blob = await fetchAudio(text, index);
@@ -438,7 +541,7 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
           return url;
         }
 
-        // Direct Native Khmer Speech Fallback (100% Guaranteed on Firebase Hosting & Mobile!)
+        // Direct Native Khmer Speech Fallback
         const cleanText = cleanSpeechText(text);
         if (cleanText) {
           if (typeof index === 'number') {
@@ -460,13 +563,10 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
     return await fetchPromise;
   };
 
-  // Audio Play / Pause Logic with In-Memory and LocalStorage Caching
-  // Automatically pre-downloads ONE TIME on message reply, replays directly from cache with zero network requests
   const triggerAudio = async (text, index, autoPlay = false) => {
     const player = audioPlayerRef.current;
     if (!player || !text) return;
 
-    // Toggle current playing audio
     if (activeAudioIndex === index) {
       if (!player.paused) {
         player.pause();
@@ -478,12 +578,9 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
       return;
     }
 
-    if (player) {
-      player.pause();
-    }
+    if (player) player.pause();
 
     const hash = hashText(text);
-
     if (!audioCacheRef.current.has(hash)) {
       setAudioStates((prev) => ({ ...prev, [index]: 'loading' }));
     }
@@ -499,76 +596,99 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
         setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
         setActiveAudioIndex(null);
       };
-      player.onpause = () => {
-        setAudioStates((prev) => ({ ...prev, [index]: 'paused' }));
-      };
-      player.onplaying = () => {
-        setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
+      player.onerror = () => {
+        setAudioStates((prev) => ({ ...prev, [index]: 'error' }));
+        setActiveAudioIndex(null);
       };
 
-      player
-        .play()
-        .then(() => {
-          setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
-        })
-        .catch(() => {
-          // Mobile autoplay blocked without touch event - ready in cache on tap!
-          setActiveAudioIndex(null);
-          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-        });
+      if (autoPlay) {
+        const playPromise = player.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
+            .catch(() => setAudioStates((prev) => ({ ...prev, [index]: 'ready' })));
+        }
+      } else {
+        player.play()
+          .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
+          .catch(() => setAudioStates((prev) => ({ ...prev, [index]: 'ready' })));
+      }
     } else {
       setAudioStates((prev) => ({ ...prev, [index]: 'error' }));
+      setActiveAudioIndex(null);
     }
   };
 
+  const handleCloseSpamModal = () => {
+    setSpamModalOpen(false);
+    const postSpamRoast = `ខំឆាតច្រើនម៉េះអាប្អូន ${username}! កុំ spam អត់ប្រយោជន៍ទេអាអូន មក chill ជាមួយបងវិញមក! 😂🔥 ឃើញ server ដើរលឿនចង់មកសាកល្បង spam ឬ? ទុកម្រាមដៃធ្វើ assignment វិញទៅអាប្អូន!`;
+    const updated = [...messages, { role: 'bot', text: postSpamRoast }];
+    saveCurrentSessionMessages(updated);
+    triggerAudio(postSpamRoast, updated.length - 1, true);
+  };
+
+  const isDark = theme === 'dark';
+
   return (
-    <div className="flex flex-col h-screen max-w-xl mx-auto border-x border-slate-800 shadow-2xl relative bg-[#020617] text-white">
-      {/* Sidebar Drawer */}
+    <div
+      className={`min-h-screen flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 ${
+        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+      }`}
+    >
+      {/* Side Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-72 max-w-full bg-slate-900/95 border-r border-slate-800 z-50 shadow-2xl transform transition-transform duration-300 flex flex-col ${
-          drawerOpen ? 'translate-x-0' : '-translate-x-full'
+        className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+          drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
+        onClick={() => setDrawerOpen(false)}
       >
-        <div className="flex flex-col gap-2 p-4 border-b border-slate-800">
-          <div className="flex items-center justify-between">
-            <span className="text-pink-400 font-bold text-lg flex items-center gap-2">
-              <i className="fas fa-bars"></i> ម៉ឺនុយ
-            </span>
-            <button onClick={() => setDrawerOpen(false)} className="text-white text-xl">
-              <i className="fas fa-times"></i>
+        <div
+          className={`w-72 max-w-[85vw] h-full p-4 transition-transform duration-300 border-r shadow-2xl flex flex-col ${
+            isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+          } ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-700/30">
+            <span className="font-extrabold text-sm text-cyan-400">SETEC Chatbot Hub</span>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="text-slate-400 hover:text-white p-1"
+            >
+              <i className="fas fa-times text-lg"></i>
             </button>
           </div>
-          <button
-            onClick={() => router.push('/')}
-            className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center transition-all"
-          >
-            <i className="fas fa-arrow-left"></i> ត្រឡប់ក្រោយ
-          </button>
-        </div>
 
-        <div className="p-4 flex-1 overflow-y-auto">
-          <div className="mb-3 text-cyan-400 font-bold text-xs flex items-center gap-2">
+          <button
+            onClick={() => {
+              createNewSession();
+              setDrawerOpen(false);
+            }}
+            className="w-full mb-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-2.5 px-4 rounded-xl shadow flex items-center gap-2 justify-center text-xs"
+          >
+            <i className="fas fa-plus"></i> New Chat (ជជែកថ្មី)
+          </button>
+
+          <div className="mb-2 text-cyan-400 font-bold text-xs flex items-center gap-2">
             <i className="fas fa-comments"></i> ប្រវត្តិជជែក
           </div>
 
-          <button
-            onClick={createNewSession}
-            className="w-full mb-3 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center"
-          >
-            <i className="fas fa-plus"></i> New Chat
-          </button>
-
-          <ul className="space-y-2 mb-6">
+          <ul className="flex-1 overflow-y-auto space-y-1.5 mb-4 pr-1">
             {sessions.length === 0 ? (
               <li className="text-slate-400 text-xs">មិនទាន់មានប្រវត្តិ</li>
             ) : (
               sessions.map((session) => (
                 <li
                   key={session.id}
-                  onClick={() => setSelectedSessionModal(session)}
-                  className="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer text-xs font-bold text-pink-400"
+                  onClick={() => {
+                    setSelectedSessionModal(session);
+                    setDrawerOpen(false);
+                  }}
+                  className={`flex items-center gap-2 p-2.5 rounded-xl cursor-pointer text-xs font-bold transition truncate ${
+                    isDark ? 'hover:bg-slate-800 text-pink-400' : 'hover:bg-slate-100 text-pink-600'
+                  }`}
                 >
-                  <i className="fas fa-history"></i> {session.title || 'Chat'}
+                  <i className="fas fa-history text-xs opacity-70"></i>{' '}
+                  <span className="truncate">{session.title || 'Chat'}</span>
                 </li>
               ))
             )}
@@ -576,65 +696,92 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
 
           <Link
             href="/KonPov"
-            className="block w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center mb-2 transition-all"
+            className="block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs mb-2 transition"
           >
-            <i className="fas fa-robot"></i> ទៅកាន់ សុីតិច Chatbot កូនពៅ?
+            <i className="fas fa-robot mr-1"></i> ទៅកាន់ កូនពៅ (ស្ដេចឌឺ)?
           </Link>
 
           <button
             onClick={deleteHistory}
-            className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded shadow flex items-center gap-2 justify-center mt-4"
+            className="w-full bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold py-2 px-4 rounded-xl text-xs transition flex items-center gap-2 justify-center border border-rose-500/30"
           >
-            <i className="fas fa-trash"></i> លុបប្រវត្តិ
+            <i className="fas fa-trash"></i> លុបប្រវត្តិជជែក
           </button>
         </div>
       </div>
 
       {/* Header */}
-      <header className="p-4 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800 flex justify-between items-center sticky top-0 z-10">
-        <button
-          onClick={() => setDrawerOpen(true)}
-          className="mr-3 text-pink-400 text-2xl md:text-xl focus:outline-none"
-        >
-          <i className="fas fa-bars"></i>
-        </button>
-        <div className="flex items-center space-x-3">
+      <header
+        className={`p-3.5 backdrop-blur-xl border-b flex justify-between items-center sticky top-0 z-30 transition-colors ${
+          isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-white/90 border-slate-200 shadow-sm'
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="p-2 text-cyan-400 text-lg hover:bg-cyan-500/10 rounded-xl transition cursor-pointer"
+            title="Menu"
+          >
+            <i className="fas fa-bars"></i>
+          </button>
+
           <div className="relative">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-400 to-cyan-400 p-1 shadow-lg">
-              <img src="/img/icon.jpg" alt="Avatar" className="w-full h-full rounded-full bg-white object-cover" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 p-0.5 shadow-md">
+              <img src="/img/icon.jpg" alt="Avatar" className="w-full h-full rounded-[14px] object-cover" />
             </div>
-            <div className="absolute -top-1 -right-1 bg-pink-500 text-[8px] font-bold px-1 rounded border border-white">
+            <div className="absolute -top-1 -right-1 bg-cyan-500 text-[8px] font-black px-1.5 py-0.2 rounded-full text-white border border-white">
               កូនច្បង
             </div>
           </div>
+
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-bold text-xl text-white tracking-tight">សុីតិច Chatbot កូនច្បង</h1>
-              <span className="mod-badge bg-gradient-to-r from-pink-400 to-cyan-400">ឌឺដង</span>
+              <h1 className={`font-black text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                សុីតិច Chatbot កូនច្បង
+              </h1>
+              <span className="text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-black px-2 py-0.5 rounded-full">
+                ឆ្លាត & ឌឺដង
+              </span>
             </div>
-            <p className="text-[11px] text-pink-300 font-medium tracking-tight">SETEC Meme & ​ត្រូលសិស្សប្អូន</p>
+            <p className="text-[10px] text-cyan-400 font-semibold tracking-tight">
+              SETEC Senior • By Rotana NOB
+            </p>
           </div>
         </div>
-        <div className="flex gap-3 text-slate-400">
-          <i className="fas fa-shield-halved"></i>
-          <i className="fas fa-ellipsis-v"></i>
+
+        {/* Header Right Actions */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
+          <Link
+            href="/"
+            className={`p-2 rounded-xl text-xs transition ${
+              isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-black hover:bg-slate-100'
+            }`}
+            title="ត្រឡប់ទៅទំព័រដើម"
+          >
+            <i className="fas fa-home"></i>
+          </Link>
         </div>
       </header>
 
       {/* Chat Messages */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col chat-area bg-slate-950">
+      <main className="flex-1 overflow-y-auto p-4 space-y-5 flex flex-col chat-area">
         {/* Intro Message */}
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-2.5">
           <img
             src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
             alt="Bot Avatar"
-            className="w-10 h-10 rounded-full border-2 border-pink-300 shadow"
+            className="w-9 h-9 rounded-full border-2 border-cyan-400 shadow"
           />
-          <div className="flex flex-col">
-            <span className="font-bold text-pink-400 text-xs mb-1">Chatbot កូនច្បង</span>
-            <div className="msg-bubble bot-msg p-4 rounded-2xl shadow-lg border border-slate-800">
-              <p className="text-slate-200 font-medium leading-relaxed">
-                សួស្តី! ខ្ញុំគឺ <b>សុីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? សួរមកបងបាញ់ឱ្យកប់ម៉ង... កុំទៅសួរអា Chatbot កូនពៅឲសោះ អាហ្នឹងឈ្លើយណាស់! 😂🔥
+          <div className="flex flex-col max-w-[85%]">
+            <span className="font-bold text-cyan-400 text-xs mb-1">Chatbot កូនច្បង</span>
+            <div
+              className={`p-4 rounded-2xl shadow-md border ${
+                isDark ? 'bg-slate-900/90 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+              }`}
+            >
+              <p className="text-xs sm:text-sm font-medium leading-relaxed">
+                សួស្តីអាប្អូន! បងគឺ <b>សុីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? ឬសុំបង្កើត Meme កំប្លែងៗ? សួរមកបងបាញ់ឱ្យកប់ម៉ង... កុំទៅសួរអា Chatbot កូនពៅឲសោះ អាហ្នឹងឈ្លើយណាស់! 😂🔥
               </p>
             </div>
           </div>
@@ -644,16 +791,26 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
         {messages.map((msg, idx) => {
           if (msg.role === 'user') {
             return (
-              <div key={idx} className="flex flex-col items-end gap-1">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="font-bold text-cyan-500 text-xs">{username}</span>
+              <div key={idx} className="flex flex-col items-end gap-1.5 self-end max-w-[85%]">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="font-bold text-cyan-400 text-xs">{username}</span>
                   <img
                     src={avatar}
                     alt="User Avatar"
-                    className="w-8 h-8 rounded-full border-2 border-cyan-400 shadow object-cover"
+                    className="w-7 h-7 rounded-full border-2 border-cyan-400 shadow object-cover"
                   />
                 </div>
-                <div className="msg-bubble user-msg p-4 rounded-2xl font-medium bg-gradient-to-br from-pink-500 to-fuchsia-500 text-white">
+
+                {msg.image && (
+                  <div
+                    onClick={() => setViewingImage({ url: msg.image, caption: msg.text })}
+                    className="cursor-pointer rounded-2xl overflow-hidden border-2 border-cyan-400/50 shadow-lg max-w-xs hover:opacity-95 transition"
+                  >
+                    <img src={msg.image} alt="User upload" className="max-h-56 w-auto object-cover" />
+                  </div>
+                )}
+
+                <div className="p-3.5 rounded-2xl font-medium shadow-md text-xs sm:text-sm bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-600 text-white">
                   {msg.text}
                 </div>
               </div>
@@ -661,22 +818,52 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
           } else {
             const st = audioStates[idx] || 'idle';
             return (
-              <div key={idx} className="flex items-start gap-3">
+              <div key={idx} className="flex items-start gap-2.5 max-w-[85%]">
                 <img
                   src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
                   alt="Bot Avatar"
-                  className="w-10 h-10 rounded-full border-2 border-pink-300 shadow"
+                  className="w-9 h-9 rounded-full border-2 border-cyan-400 shadow"
                 />
-                <div className="flex flex-col">
-                  <span className="font-bold text-pink-400 text-xs mb-1">Chatbot កូនច្បង</span>
-                  <div className="msg-bubble bot-msg p-4 rounded-2xl">
-                    <p className="text-slate-200 font-medium leading-relaxed">{msg.text}</p>
+                <div className="flex flex-col flex-1 min-w-0">
+                  <span className="font-bold text-cyan-400 text-xs mb-1">Chatbot កូនច្បង</span>
+
+                  {msg.memeImage && (
+                    <div className="mb-2 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl max-w-sm">
+                      <img
+                        src={msg.memeImage}
+                        alt="SETEC Meme"
+                        onClick={() => setViewingImage({ url: msg.memeImage, caption: msg.text })}
+                        className="w-full h-auto object-cover cursor-pointer hover:scale-[1.02] transition-transform"
+                      />
+                      <div className="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+                        <span className="text-[10px] text-amber-300 font-extrabold flex items-center gap-1">
+                          <i className="fas fa-laugh-squint"></i> Pure Viral Meme (1 Free)
+                        </span>
+                        <a
+                          href={msg.memeImage}
+                          download="setec-meme.jpg"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-[10px] transition flex items-center gap-1"
+                        >
+                          <i className="fas fa-download"></i> Save
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  <div
+                    className={`p-3.5 rounded-2xl shadow-md border ${
+                      isDark ? 'bg-slate-900/90 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+                    }`}
+                  >
+                    <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">{msg.text}</p>
 
                     {/* Audio Player Button */}
                     <button
                       onClick={() => triggerAudio(msg.text, idx)}
                       disabled={st === 'loading'}
-                      className="mt-3 bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-lg text-[9px] font-black border border-cyan-500/20 flex items-center gap-2 hover:bg-cyan-500/20 transition"
+                      className="mt-3 bg-cyan-500/10 text-cyan-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-cyan-500/20 flex items-center gap-2 hover:bg-cyan-500/20 transition cursor-pointer"
                     >
                       {st === 'loading' && (
                         <>
@@ -685,7 +872,7 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
                       )}
                       {st === 'playing' && (
                         <>
-                          <i className="fas fa-spinner fa-spin"></i> <span>កំពុងអានជាសំឡេង...</span>
+                          <i className="fas fa-headset animate-pulse text-cyan-400"></i> <span>កំពុងអានជាសំឡេង...</span>
                         </>
                       )}
                       {st === 'paused' && (
@@ -724,29 +911,21 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
         })}
 
         {/* Loading UI */}
-        {isLoading && (
-          <div className="px-6 py-2 bg-slate-900/50 rounded-xl">
-            <div className="flex items-center space-x-3 text-cyan-400">
-              <img
-                src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
-                alt="Bot Avatar"
-                className="w-8 h-8 rounded-full border-2 border-pink-300 shadow"
-              />
-              <div className="flex space-x-1">
-                <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping"></div>
-                <div
-                  className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping"
-                  style={{ animationDelay: '0.2s' }}
-                ></div>
-                <div
-                  className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-ping"
-                  style={{ animationDelay: '0.4s' }}
-                ></div>
-              </div>
-              <span className="text-[10px] font-black uppercase italic tracking-widest">
-                ចាំតិចប្អូន! បងកំពុងរក Meme ឌឺ...
-              </span>
+        {(isLoading || isGeneratingMeme) && (
+          <div className="flex items-center space-x-3 text-cyan-400 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl w-fit">
+            <img
+              src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
+              alt="Bot Avatar"
+              className="w-7 h-7 rounded-full border border-cyan-400"
+            />
+            <div className="flex space-x-1">
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping"></div>
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping [animation-delay:0.2s]"></div>
+              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping [animation-delay:0.4s]"></div>
             </div>
+            <span className="text-[10px] font-black uppercase italic tracking-wider">
+              {isGeneratingMeme ? 'កំពុងបង្កើត Meme សុទ្ធសាធ (Pure Meme)...' : 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...'}
+            </span>
           </div>
         )}
 
@@ -755,13 +934,84 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
 
       <audio ref={audioPlayerRef} className="hidden" />
 
-      {/* Chat Input */}
-      <footer className="p-4 border-t border-slate-800 bg-slate-950">
-        <div className="relative flex items-center gap-3">
+      {/* Hidden File Input for Image Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        onChange={handleImageSelect}
+        className="hidden"
+      />
+
+      {/* Chat Footer Input Area */}
+      <footer
+        className={`p-3.5 border-t transition-colors ${
+          isDark ? 'bg-slate-950/95 border-slate-800' : 'bg-white/95 border-slate-200'
+        }`}
+      >
+        {/* Staged Image Preview Chip */}
+        {selectedImage && (
+          <div className="mb-2 p-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-between max-w-sm animate-fade-in">
+            <div className="flex items-center gap-2 min-w-0">
+              <img
+                src={selectedImage.previewUrl}
+                alt="Selected preview"
+                className="w-10 h-10 object-cover rounded-lg border border-cyan-400 shadow"
+              />
+              <div className="text-[11px] truncate">
+                <span className="font-bold text-cyan-400 block truncate">{selectedImage.name}</span>
+                <span className="text-[9px] text-slate-400">ត្រៀមផ្ញើឱ្យ AI វិភាគ & Troll</span>
+              </div>
+            </div>
+            <button
+              onClick={removeSelectedImage}
+              className="p-1 rounded-full text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
+              title="លុបរូបភាពចេញ"
+            >
+              <i className="fas fa-times text-sm"></i>
+            </button>
+          </div>
+        )}
+
+        {/* Quick Actions Bar */}
+        <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-1 text-[11px]">
+          <button
+            onClick={() => handleRequestMeme()}
+            disabled={isGeneratingMeme || isLoading}
+            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-400/40 text-amber-300 font-extrabold flex items-center gap-1 hover:bg-amber-500/30 transition shrink-0 cursor-pointer"
+          >
+            <span>🎨 សុំ Meme ១ (Free)</span>
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 font-bold flex items-center gap-1 hover:bg-cyan-500/20 transition shrink-0 cursor-pointer"
+          >
+            <i className="fas fa-camera text-xs"></i> <span>ផ្ញើរូបភាព (Vision AI)</span>
+          </button>
+          <span className="text-[10px] text-slate-500 italic shrink-0">#SETEC_Troll #Meme_IT</span>
+        </div>
+
+        {/* Input Bar */}
+        <div className="relative flex items-center gap-2">
+          {/* Camera Button */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition border ${
+              selectedImage
+                ? 'bg-cyan-500 text-white border-cyan-400'
+                : isDark
+                ? 'bg-slate-900 border-slate-700 text-slate-400 hover:text-cyan-400 hover:border-cyan-400'
+                : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-cyan-600'
+            }`}
+            title="Upload Image (AI Vision)"
+          >
+            <i className="fas fa-image text-sm"></i>
+          </button>
+
           <div className="flex-1 relative">
             <input
               type="text"
-              disabled={isLoading}
+              disabled={isLoading || isGeneratingMeme}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
@@ -770,27 +1020,31 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
                   handleChat();
                 }
               }}
-              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 outline-none text-white transition-all text-sm focus:ring-2 focus:ring-cyan-500 placeholder-slate-500"
-              placeholder="សួរមកអាម៉ូយ... កុំឱ្យបង Kick ចេញទាន់!"
+              className={`w-full rounded-xl px-4 py-3 outline-none text-xs sm:text-sm transition-all border ${
+                isDark
+                  ? 'bg-slate-900 border-slate-700 text-white focus:border-cyan-400 placeholder:text-slate-500'
+                  : 'bg-slate-100 border-slate-300 text-slate-900 focus:border-cyan-500 placeholder:text-slate-400'
+              }`}
+              placeholder={
+                selectedImage
+                  ? 'វាយសំណួរ ឬពាក្យបញ្ជាអំពីរូបភាពនេះ...'
+                  : 'សួរមកអាម៉ូយ... កុំឱ្យបង Kick ចេញទាន់!'
+              }
             />
           </div>
+
           <button
             onClick={handleChat}
-            disabled={isLoading || !inputText.trim()}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center transition active:scale-95 shadow-lg ${
-              isLoading || !inputText.trim()
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
-                : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-500/20'
+            disabled={isLoading || isGeneratingMeme || (!inputText.trim() && !selectedImage)}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center transition active:scale-95 shadow-md ${
+              isLoading || (!inputText.trim() && !selectedImage)
+                ? 'bg-slate-800 text-slate-600 cursor-not-allowed opacity-50'
+                : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-cyan-500/20'
             }`}
+            title="Send"
           >
-            <i className="fas fa-paper-plane"></i>
+            <i className="fas fa-paper-plane text-xs"></i>
           </button>
-        </div>
-        <div className="flex justify-around mt-3">
-          <span className="text-[9px] text-slate-600 font-bold">#INTERIOR​ Design</span>
-          <span className="text-[9px] text-slate-600 font-bold">#IT_LIFE</span>
-          <span className="text-[9px] text-slate-600 font-bold">#MIS</span>
-          <span className="text-[9px] text-slate-600 font-bold">#SETEC_LIFE</span>
         </div>
       </footer>
 
@@ -800,54 +1054,41 @@ Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
           onClick={(e) => {
             if (e.target === e.currentTarget) setSelectedSessionModal(null);
           }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
         >
-          <div className="bg-slate-900 rounded-xl shadow-2xl max-w-lg w-full p-6 relative max-h-[90vh] overflow-y-auto border border-slate-700">
+          <div
+            className={`rounded-2xl shadow-2xl max-w-lg w-full p-5 relative max-h-[85vh] overflow-y-auto border ${
+              isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            }`}
+          >
             <button
               onClick={() => setSelectedSessionModal(null)}
-              className="absolute top-2 right-2 text-slate-400 hover:text-pink-400 text-xl"
+              className="absolute top-3 right-3 text-slate-400 hover:text-pink-400 text-lg"
             >
               <i className="fas fa-times"></i>
             </button>
-            <div className="font-bold text-pink-400 text-lg mb-2">{selectedSessionModal.title}</div>
-            <div className="space-y-4">
+            <div className="font-black text-cyan-400 text-base mb-3 pb-2 border-b border-slate-700/30">
+              {selectedSessionModal.title}
+            </div>
+            <div className="space-y-3">
               {selectedSessionModal.messages?.map((msg, i) => (
-                <div key={i}>
-                  {msg.role === 'user' ? (
-                    <div className="flex flex-col items-end gap-1 my-2">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-bold text-cyan-500 text-xs">{username}</span>
-                        <img
-                          src={avatar}
-                          alt="User Avatar"
-                          className="w-8 h-8 rounded-full border-2 border-cyan-400 shadow object-cover"
-                        />
-                      </div>
-                      <div className="msg-bubble user-msg p-4 rounded-2xl font-medium bg-gradient-to-br from-pink-500 to-fuchsia-500 text-white">
-                        {msg.text}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-start gap-3 my-2">
-                      <img
-                        src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
-                        alt="Bot Avatar"
-                        className="w-10 h-10 rounded-full border-2 border-pink-300 shadow"
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-bold text-pink-400 text-xs mb-1">Chatbot កូនច្បង</span>
-                        <div className="msg-bubble bot-msg p-4 rounded-2xl">
-                          <p className="text-slate-200 font-medium leading-relaxed">{msg.text}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                <div key={i} className={`p-2.5 rounded-xl text-xs ${msg.role === 'user' ? 'bg-cyan-500/10 text-cyan-300 ml-6' : 'bg-slate-800/60 mr-6'}`}>
+                  <span className="font-black block text-[10px] mb-1">{msg.role === 'user' ? username : 'កូនច្បង'}</span>
+                  <p>{msg.text}</p>
                 </div>
               ))}
             </div>
           </div>
         </div>
       )}
+
+      {/* Full Image Viewer Modal */}
+      <ImageModal
+        isOpen={!!viewingImage}
+        imageUrl={viewingImage?.url}
+        caption={viewingImage?.caption}
+        onClose={() => setViewingImage(null)}
+      />
 
       {/* Anti-Spam Scary & Funny Alert Modal */}
       <AntiSpamModal
