@@ -1035,6 +1035,7 @@ export default function KonBongPage() {
         accept="image/*"
         onChange={handleImageSelect}
         className="hidden"
+        style={{ display: 'none' }}
       />
 
       {/* Chat Footer Input Area */}

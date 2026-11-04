@@ -109,8 +109,8 @@ export default function Home() {
           : 'bg-gradient-to-br from-sky-100 via-indigo-50 to-pink-50 text-slate-800'
       }`}
     >
-      {/* Instant Funny Haha Background Audio Element (starts at 0.0s) */}
-      <audio ref={bgmRef} src="/audio/funny-bgm.mp3" loop preload="auto" />
+      {/* Instant Funny Haha Background Audio Element */}
+      <audio ref={bgmRef} src="/audio/funny-bgm.mp3" loop preload="none" />
 
       {/* Top Floating Controls: Theme Toggle & Funny BGM */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
@@ -210,6 +210,7 @@ export default function Home() {
                         id="avatar-preview"
                         src={avatar}
                         className="w-20 h-20 rounded-full border-4 border-indigo-400/50 shadow-md object-cover group-hover:scale-105 transition-transform"
+                        style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                         alt="Avatar Preview"
                       />
                       <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-1 rounded-full text-xs shadow">
@@ -224,6 +225,7 @@ export default function Home() {
                       id="avatar-input"
                       accept="image/*"
                       className="hidden"
+                      style={{ display: 'none' }}
                       onChange={handleAvatarChange}
                     />
                   </label>
@@ -501,12 +503,14 @@ export default function Home() {
                 src="/img/DevPic.JPG"
                 alt="Developer 1"
                 className="w-7 h-7 rounded-full border-2 border-indigo-400 object-cover"
+                style={{ width: '28px', height: '28px', objectFit: 'cover' }}
                 title="Rotana NOB"
               />
               <img
                 src="/img/newPic.jpg"
                 alt="Developer 2"
                 className="w-7 h-7 rounded-full border-2 border-pink-400 object-cover"
+                style={{ width: '28px', height: '28px', objectFit: 'cover' }}
                 title="Rotana NOB (Co-Dev)"
               />
             </div>

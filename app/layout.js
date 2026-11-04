@@ -59,21 +59,41 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
+        {/* Anti-FOUC Critical CSS */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              *, *::before, *::after { box-sizing: border-box; }
+              html, body { margin: 0; padding: 0; background-color: #f0f9ff; font-family: 'Kantumruy Pro', system-ui, -apple-system, sans-serif; }
+              .hidden { display: none !important; }
+              input[type="file"].hidden { display: none !important; }
+              .site-logo { position: fixed; top: 12px; left: 12px; width: 90px; height: 90px; z-index: 60; border-radius: 14px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+              .site-logo img { width: 100%; height: 100%; object-fit: cover; }
+              .bottom-logo-container { position: fixed; bottom: 16px; right: 16px; width: 68px; height: 68px; z-index: 60; }
+              img { max-width: 100%; height: auto; }
+            `,
+          }}
+        />
       </head>
       <body className="antialiased selection:bg-indigo-500 selection:text-white">
         <VisitorTracker />
         {children}
-        {/* Service Worker */}
-        <Script id="service-worker-reg" strategy="lazyOnload">
+        {/* Service Worker Cleanup for iOS Safari stability */}
+        <Script id="service-worker-cleanup" strategy="afterInteractive">
           {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                  .then((reg) => {
-                    console.log('PWA ServiceWorker registered with scope:', reg.scope);
-                  })
-                  .catch((err) => console.warn('PWA ServiceWorker registration failed:', err));
-              });
+            if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+              navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (var i = 0; i < registrations.length; i++) {
+                  registrations[i].unregister();
+                }
+              }).catch(function() {});
+              if ('caches' in window) {
+                caches.keys().then(function(keys) {
+                  for (var j = 0; j < keys.length; j++) {
+                    caches.delete(keys[j]);
+                  }
+                }).catch(function() {});
+              }
             }
           `}
         </Script>

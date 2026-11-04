@@ -971,6 +971,7 @@ ${
         accept="image/*"
         onChange={handleImageSelect}
         className="hidden"
+        style={{ display: 'none' }}
       />
 
       {/* Chat Footer Input Area (LOCKED until user has read and agreed) */}
