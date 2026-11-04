@@ -138,19 +138,23 @@ export default function KonPovPage() {
           },
           audio: true,
           bot: 'konpov',
-          username: userNameStr,
-          gender: userGender
+          username: username || 'User',
+          gender: gender || userGender
         })
       });
 
-      if (!response.ok) return null;
+      if (!response.ok) {
+        console.warn('[KonPov] Voice fetch failed with status:', response.status);
+        return null;
+      }
 
       const result = await response.json();
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return null;
 
       return createAudioBlob(inlineData.data, inlineData.mimeType);
-    } catch {
+    } catch (err) {
+      console.error('[KonPov] fetchAudio error:', err);
       return null;
     }
   }
@@ -321,8 +325,9 @@ export default function KonPovPage() {
           setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
         })
         .catch(() => {
-          // Mobile browser (iOS Safari) blocked async autoplay without immediate tap.
-          // Audio is already preloaded and cached! User can click button to play immediately.
+          // Mobile browser (iOS Safari / Android) blocked async autoplay without immediate user tap.
+          // Audio is already preloaded and cached! User can click button to play immediately with 0 latency.
+          setActiveVoiceIndex(null);
           setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
         });
     } else {

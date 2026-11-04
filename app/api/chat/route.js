@@ -54,8 +54,7 @@ const AUDIO_MODELS = [
   'gemini-2.5-flash-preview-tts',
   'gemini-3.8-flash-lite-tts',
   'gemini-3.8-flash-tts',
-  'gemini-3.1-flash-tts-preview',
-  'gemini-2.5-pro-preview-tts'
+  'gemini-3.1-flash-tts-preview'
 ];
 
 async function callModelWithFallback(models, apiKey, payload) {
@@ -249,7 +248,9 @@ export async function POST(req) {
       const audioContents = [{ parts: [{ text: speechText }] }];
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
-        (bot === 'konpov' ? 'Puck' : 'Charon');
+        (bot === 'konpov'
+          ? (gender === 'ប្រុស' ? 'Aoede' : 'Puck')
+          : 'Charon');
       const audioGenConfig = {
         responseModalities: ['AUDIO'],
         speechConfig: {
