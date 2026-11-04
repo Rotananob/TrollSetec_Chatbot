@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -9,6 +9,8 @@ export default function Home() {
   const [username, setUsername] = useState('');
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const bgmRef = useRef(null);
 
   useEffect(() => {
     const savedName = localStorage.getItem('chatbot_username');
@@ -18,6 +20,37 @@ export default function Home() {
       setIsSubmitted(true);
     }
     if (savedAvatar) setAvatar(savedAvatar);
+
+    // Chill background music initialization
+    const bgm = bgmRef.current;
+    if (bgm) {
+      bgm.volume = 0.25;
+      const playPromise = bgm.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsMusicPlaying(true))
+          .catch(() => {
+            // Autoplay blocked by mobile browser until first touch/click
+            setIsMusicPlaying(false);
+          });
+      }
+
+      const startOnInteraction = () => {
+        if (bgm && bgm.paused) {
+          bgm.play().then(() => setIsMusicPlaying(true)).catch(() => {});
+        }
+        window.removeEventListener('click', startOnInteraction);
+        window.removeEventListener('touchstart', startOnInteraction);
+      };
+
+      window.addEventListener('click', startOnInteraction, { once: true });
+      window.addEventListener('touchstart', startOnInteraction, { once: true });
+
+      return () => {
+        window.removeEventListener('click', startOnInteraction);
+        window.removeEventListener('touchstart', startOnInteraction);
+      };
+    }
   }, []);
 
   const handleAvatarChange = (e) => {
@@ -54,6 +87,42 @@ export default function Home() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-sky-100 to-indigo-100 font-['Kantumruy_Pro',sans-serif]">
+      {/* Chill Background Audio Element */}
+      <audio ref={bgmRef} src="/audio/chill-bgm.mp3" loop preload="auto" />
+
+      {/* Floating Chill Music Toggle Button */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            const bgm = bgmRef.current;
+            if (!bgm) return;
+            if (isMusicPlaying) {
+              bgm.pause();
+              setIsMusicPlaying(false);
+            } else {
+              bgm.play().then(() => setIsMusicPlaying(true)).catch(() => {});
+            }
+          }}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-full border shadow-xl backdrop-blur-md transition-all duration-300 text-xs font-bold cursor-pointer select-none ${
+            isMusicPlaying
+              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-400 shadow-indigo-500/30'
+              : 'bg-white/90 text-slate-700 border-slate-300 hover:bg-white shadow-md'
+          }`}
+          title={isMusicPlaying ? 'ចុចដើម្បីបិទភ្លេង Chill' : 'ចុចដើម្បីបើកភ្លេង Chill'}
+        >
+          <i className={`fas ${isMusicPlaying ? 'fa-volume-up text-pink-300' : 'fa-volume-mute text-slate-400'}`}></i>
+          <span>{isMusicPlaying ? 'Chill BGM 🎵' : 'បើកភ្លេង 🎵'}</span>
+          {isMusicPlaying && (
+            <span className="flex items-end gap-0.5 h-3 ml-0.5">
+              <span className="w-1 h-3 bg-pink-300 rounded-full animate-bounce"></span>
+              <span className="w-1 h-2 bg-pink-200 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+              <span className="w-1 h-3 bg-pink-300 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* Site Logo Top Left */}
       <Link href="/" className="site-logo" title="SETEC Chat">
         <div className="logo-glow"></div>

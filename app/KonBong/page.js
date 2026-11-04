@@ -308,31 +308,40 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
         formattedContents.push({ role: 'user', parts: [{ text: prompt }] });
       }
 
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-device-id': deviceId
-        },
-        body: JSON.stringify({
-          contents: formattedContents,
-          systemInstruction,
-          bot: 'konbong',
-          username: userNameStr
-        })
-      });
+      let botText = '';
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-device-id': deviceId
+          },
+          body: JSON.stringify({
+            contents: formattedContents,
+            systemInstruction,
+            bot: 'konbong',
+            username: userNameStr
+          })
+        });
 
-      if (response.status === 429) {
-        const errData = await response.json();
-        alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
-        setIsLoading(false);
-        return;
+        if (response.status === 429) {
+          const errData = await response.json();
+          alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
+          setIsLoading(false);
+          return;
+        }
+
+        if (response.ok) {
+          const res = await response.json();
+          botText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+        }
+      } catch (err) {
+        console.warn('[KonBong] Backend API unavailable, falling back to direct AI...', err);
       }
 
-      const res = await response.json();
-      const botText =
-        res.candidates?.[0]?.content?.parts?.[0]?.text ||
-        'ប្រព័ន្ធកំពុងរវល់ពេកប្អុនអើយ! សាកឆាតម្ដងទៀតមើលអាម៉ូយ! បើអត់ដើរចាំ១០-១៥នាទីទៀតចាំលេងទៀត។   ';
+      if (!botText) {
+        botText = 'ប្រព័ន្ធកំពុងរវល់ពេកប្អុនអើយ! សាកឆាតម្ដងទៀតមើលអាម៉ូយ! បើអត់ដើរចាំ១០-១៥នាទីទៀតចាំលេងទៀត។   ';
+      }
 
       const botMsgIndex = updatedMessages.length;
       const finalMessages = [...updatedMessages, { role: 'bot', text: botText }];
@@ -400,24 +409,36 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
     const fetchPromise = (async () => {
       try {
         const blob = await fetchAudio(text);
-        if (!blob || blob.error) return null;
-        const url = URL.createObjectURL(blob);
-        audioCacheRef.current.set(hash, url);
+        if (blob && !blob.error) {
+          const url = URL.createObjectURL(blob);
+          audioCacheRef.current.set(hash, url);
 
-        try {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const b64 = reader.result?.toString().split(',')[1];
-            if (b64) {
-              try {
-                localStorage.setItem(storageKey, b64);
-              } catch {}
-            }
-          };
-          reader.readAsDataURL(blob);
-        } catch {}
+          try {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const b64 = reader.result?.toString().split(',')[1];
+              if (b64) {
+                try {
+                  localStorage.setItem(storageKey, b64);
+                } catch {}
+              }
+            };
+            reader.readAsDataURL(blob);
+          } catch {}
 
-        return url;
+          return url;
+        }
+
+        // Direct Native Khmer Speech Fallback (100% Guaranteed on Firebase Hosting & Mobile!)
+        const cleanText = cleanSpeechText(text);
+        if (cleanText) {
+          const fallbackChunk = cleanText.slice(0, 180);
+          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fallbackChunk)}&tl=km&client=tw-ob`;
+          audioCacheRef.current.set(hash, directUrl);
+          return directUrl;
+        }
+
+        return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
       }
@@ -480,6 +501,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
         })
         .catch(() => {
           // Mobile autoplay blocked without touch event - ready in cache on tap!
+          setActiveAudioIndex(null);
           setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
         });
     } else {

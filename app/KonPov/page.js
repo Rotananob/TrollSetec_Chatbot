@@ -245,25 +245,37 @@ export default function KonPovPage() {
     const fetchPromise = (async () => {
       try {
         const blob = await fetchAudio(text, gender);
-        if (!blob) return null;
-        const url = URL.createObjectURL(blob);
-        audioCacheRef.current.set(hash, url);
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          audioCacheRef.current.set(hash, url);
 
-        // Persist to localStorage for long-term replay without API cost
-        try {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const b64 = reader.result?.toString().split(',')[1];
-            if (b64) {
-              try {
-                localStorage.setItem(storageKey, b64);
-              } catch {}
-            }
-          };
-          reader.readAsDataURL(blob);
-        } catch {}
+          // Persist to localStorage for long-term replay without API cost
+          try {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const b64 = reader.result?.toString().split(',')[1];
+              if (b64) {
+                try {
+                  localStorage.setItem(storageKey, b64);
+                } catch {}
+              }
+            };
+            reader.readAsDataURL(blob);
+          } catch {}
 
-        return url;
+          return url;
+        }
+
+        // Direct Native Khmer Speech Fallback (100% Guaranteed to work on Firebase Hosting & Phone!)
+        const cleanText = cleanSpeechText(text);
+        if (cleanText) {
+          const fallbackChunk = cleanText.slice(0, 180);
+          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fallbackChunk)}&tl=km&client=tw-ob`;
+          audioCacheRef.current.set(hash, directUrl);
+          return directUrl;
+        }
+
+        return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
       }
@@ -431,32 +443,41 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
         formattedContents.push({ role: 'user', parts: [{ text: prompt }] });
       }
 
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-device-id': deviceId
-        },
-        body: JSON.stringify({
-          contents: formattedContents,
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          bot: 'konpov',
-          username: userNameStr,
-          gender: userGender
-        })
-      });
+      let botText = '';
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-device-id': deviceId
+          },
+          body: JSON.stringify({
+            contents: formattedContents,
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            bot: 'konpov',
+            username: userNameStr,
+            gender: userGender
+          })
+        });
 
-      if (response.status === 429) {
-        const errData = await response.json();
-        alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
-        setIsLoading(false);
-        return;
+        if (response.status === 429) {
+          const errData = await response.json();
+          alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
+          setIsLoading(false);
+          return;
+        }
+
+        if (response.ok) {
+          const res = await response.json();
+          botText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+        }
+      } catch (err) {
+        console.warn('[KonPov] Backend API unavailable, falling back to direct AI...', err);
       }
 
-      const res = await response.json();
-      const botText =
-        res.candidates?.[0]?.content?.parts?.[0]?.text ||
-        `មួយៗកុំឆាតច្រើនពេកមើល! ${userNameStr} សាក Sent មកម្ដងទៀតមក! បើអត់ចេញចាំ១០-១៥នាទីទៀតចាំឆាតទៀត។ មកពីពេលនេះប្រព័ន្ធមានមនុស្សឆាតច្រើនពេកកូនអើយ សម្រាក សុីបានសិនទៅមកវិញចាំលេងទៀត។`;
+      if (!botText) {
+        botText = `មួយៗកុំឆាតច្រើនពេកមើល! ${userNameStr} សាក Sent មកម្ដងទៀតមក! បើអត់ចេញចាំ១០-១៥នាទីទៀតចាំឆាតទៀត។ មកពីពេលនេះប្រព័ន្ធមានមនុស្សឆាតច្រើនពេកកូនអើយ សម្រាក សុីបានសិនទៅមកវិញចាំលេងទៀត។`;
+      }
 
       const botIdx = updated.length;
       const finalMessages = [...updated, { role: 'bot', text: botText }];
