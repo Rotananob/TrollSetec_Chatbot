@@ -80,6 +80,62 @@ async function callModelWithFallback(models, apiKey, payload) {
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
 }
 
+// High-performance fallback Khmer Speech Synthesis for 100% audio uptime on mobile & web
+async function fetchKhmerSpeechFallback(text) {
+  try {
+    if (!text || typeof text !== 'string') return null;
+    const cleanText = text
+      .replace(/[*_#`~[\]()]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!cleanText) return null;
+
+    // Split text into chunks <= 180 chars at natural sentence/phrase boundaries
+    const chunks = [];
+    let remaining = cleanText;
+    while (remaining.length > 0) {
+      if (remaining.length <= 180) {
+        chunks.push(remaining);
+        break;
+      }
+      let splitIdx = -1;
+      const separators = ['។', '?', '!', '\n', ' ', '，', ','];
+      for (const sep of separators) {
+        const idx = remaining.lastIndexOf(sep, 180);
+        if (idx > splitIdx && idx > 30) {
+          splitIdx = idx;
+        }
+      }
+      if (splitIdx === -1) splitIdx = 180;
+      chunks.push(remaining.slice(0, splitIdx + 1).trim());
+      remaining = remaining.slice(splitIdx + 1).trim();
+    }
+
+    const buffers = [];
+    for (const chunk of chunks) {
+      if (!chunk) continue;
+      const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=km&client=tw-ob`;
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+      });
+      if (res.ok) {
+        const buf = await res.arrayBuffer();
+        buffers.push(Buffer.from(buf));
+      }
+    }
+
+    if (buffers.length === 0) return null;
+    const combined = Buffer.concat(buffers);
+    return combined.toString('base64');
+  } catch (err) {
+    console.error('Khmer TTS fallback error:', err);
+    return null;
+  }
+}
+
 // Sanitize response to conceal upstream provider & model names in Network devtools
 function sanitizeResponse(data) {
   if (!data || typeof data !== 'object') return data;
@@ -174,10 +230,39 @@ export async function POST(req) {
         generationConfig: audioGenConfig
       };
       const result = await callModelWithFallback(AUDIO_MODELS, apiKey, requestPayload);
-      if (result.ok) {
+      if (result.ok && result.data?.candidates?.[0]?.content?.parts?.some((p) => p.inlineData?.data)) {
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }
-      return Response.json(sanitizeResponse(result.data) || { error: result.error }, { status: result.status, headers: corsHeaders });
+
+      // Seamless fallback to high-uptime Khmer speech synthesis when AI TTS quota is exhausted
+      const fallbackAudioB64 = await fetchKhmerSpeechFallback(speechText);
+      if (fallbackAudioB64) {
+        return Response.json(
+          {
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      inlineData: {
+                        mimeType: 'audio/mpeg',
+                        data: fallbackAudioB64
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            modelVersion: 'setec-troll-engine-v2-speech'
+          },
+          { status: 200, headers: corsHeaders }
+        );
+      }
+
+      return Response.json(
+        sanitizeResponse(result.data) || { error: result.error || 'Audio generation failed' },
+        { status: result.status, headers: corsHeaders }
+      );
     } else {
       const textContents = contents || [{ parts: [{ text: prompt }] }];
       const formattedSystemInstruction = systemInstruction

@@ -33,6 +33,7 @@ export default function KonPovPage() {
   const [audioStatuses, setAudioStatuses] = useState({});
   const activeAudioUrlRef = useRef(null);
   const audioCacheRef = useRef(new Map());
+  const pendingAudioFetchesRef = useRef(new Map());
   const [activeVoiceIndex, setActiveVoiceIndex] = useState(null);
 
   // PCM to WAV helper
@@ -68,12 +69,24 @@ export default function KonPovPage() {
     const bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
 
+    if (mimeType && (mimeType.includes('mpeg') || mimeType.includes('mp3'))) {
+      return new Blob([bytes], { type: 'audio/mpeg' });
+    }
+
     const isWav =
       (bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70) ||
       (mimeType && mimeType.includes('wav'));
 
     if (isWav) {
       return new Blob([bytes], { type: 'audio/wav' });
+    }
+
+    const isMp3 =
+      (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) ||
+      (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33);
+
+    if (isMp3) {
+      return new Blob([bytes], { type: 'audio/mpeg' });
     }
 
     const pcmBytes = len % 2 === 0 ? bytes : bytes.slice(0, len - 1);
@@ -96,12 +109,15 @@ export default function KonPovPage() {
   }
 
   // Fetch Voice - reads ONLY the clean Khmer bot response (NO prompt commands)
+  // If user selected Male ("ប្រុស"), bot calls Female voice (Aoede) for sweet & charming banter
+  // If user selected Female ("ស្រី"), bot calls Male voice (Puck) for playful Daddy banter
   async function fetchAudio(text, gender) {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const speechText = cleanSpeechText(text);
       if (!speechText) return null;
       const deviceId = getDeviceId();
+      const voiceName = gender === 'ប្រុស' ? 'Aoede' : 'Puck';
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -117,7 +133,7 @@ export default function KonPovPage() {
           generationConfig: {
             responseModalities: ['AUDIO'],
             speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
+              voiceConfig: { prebuiltVoiceConfig: { voiceName } }
             }
           },
           audio: true,
@@ -193,8 +209,70 @@ export default function KonPovPage() {
     return String(hash);
   }
 
+  // Load or fetch audio URL with instant in-memory and persistent LocalStorage caching
+  // Fetches only ONCE from server to prevent rate limits and ensure instant replay
+  const loadAudioUrl = async (text, gender) => {
+    const voiceGenderKey = gender === 'ប្រុស' ? 'female' : 'male';
+    const hash = hashText(text) + '_' + voiceGenderKey;
+    const storageKey = 'konpov_audio_' + hash;
+
+    // 1. Check in-memory audio cache first (instant 0ms replay)
+    if (audioCacheRef.current.has(hash)) {
+      return audioCacheRef.current.get(hash);
+    }
+
+    // 2. Check localStorage cache
+    if (typeof window !== 'undefined') {
+      try {
+        const storedB64 = localStorage.getItem(storageKey);
+        if (storedB64) {
+          const blob = createAudioBlob(storedB64, 'audio/mpeg');
+          const url = URL.createObjectURL(blob);
+          audioCacheRef.current.set(hash, url);
+          return url;
+        }
+      } catch {}
+    }
+
+    // 3. Deduplicate active fetches so multiple clicks/auto-loads share the same promise
+    if (pendingAudioFetchesRef.current.has(hash)) {
+      return await pendingAudioFetchesRef.current.get(hash);
+    }
+
+    // 4. Fetch once from server
+    const fetchPromise = (async () => {
+      try {
+        const blob = await fetchAudio(text, gender);
+        if (!blob) return null;
+        const url = URL.createObjectURL(blob);
+        audioCacheRef.current.set(hash, url);
+
+        // Persist to localStorage for long-term replay without API cost
+        try {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const b64 = reader.result?.toString().split(',')[1];
+            if (b64) {
+              try {
+                localStorage.setItem(storageKey, b64);
+              } catch {}
+            }
+          };
+          reader.readAsDataURL(blob);
+        } catch {}
+
+        return url;
+      } finally {
+        pendingAudioFetchesRef.current.delete(hash);
+      }
+    })();
+
+    pendingAudioFetchesRef.current.set(hash, fetchPromise);
+    return await fetchPromise;
+  };
+
   // Audio Playback with In-Memory and LocalStorage Caching
-  // Fetches once from server, replays directly from cache with zero network calls and zero quota consumption
+  // Automatically pre-downloads ONE TIME on message reply, replays directly from cache with zero network calls
   const triggerAudio = async (text, index, autoPlay = false) => {
     const player = audioPlayerRef.current;
     if (!player || !text) return;
@@ -214,78 +292,19 @@ export default function KonPovPage() {
       player.pause();
     }
 
-    const hash = hashText(text);
-    const storageKey = 'konpov_audio_' + hash;
+    const voiceGenderKey = userGender === 'ប្រុស' ? 'female' : 'male';
+    const hash = hashText(text) + '_' + voiceGenderKey;
 
-    // 1. Check in-memory audio cache first (instant replay without network fetch)
-    let cachedUrl = audioCacheRef.current.get(hash);
-
-    // 2. Check localStorage cache if not in memory
-    if (!cachedUrl && typeof window !== 'undefined') {
-      try {
-        const storedB64 = localStorage.getItem(storageKey);
-        if (storedB64) {
-          const blob = createAudioBlob(storedB64);
-          cachedUrl = URL.createObjectURL(blob);
-          audioCacheRef.current.set(hash, cachedUrl);
-        }
-      } catch {}
+    if (!audioCacheRef.current.has(hash)) {
+      setAudioStatuses((prev) => ({ ...prev, [index]: 'loading' }));
     }
 
-    if (cachedUrl) {
-      player.src = cachedUrl;
+    const audioUrl = await loadAudioUrl(text, userGender);
+
+    if (audioUrl) {
+      player.src = audioUrl;
       player.currentTime = 0;
       setActiveVoiceIndex(index);
-
-      player
-        .play()
-        .then(() => {
-          setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
-        })
-        .catch(() => {
-          setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
-        });
-      return;
-    }
-
-    // 3. Not cached -> fetch from server once
-    setAudioStatuses((prev) => ({ ...prev, [index]: 'loading' }));
-    const blob = await fetchAudio(text, userGender);
-
-    if (blob) {
-      const url = URL.createObjectURL(blob);
-      audioCacheRef.current.set(hash, url);
-
-      // Persist to localStorage for long-term replay without API cost
-      try {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result?.toString().split(',')[1];
-          if (base64data) {
-            try {
-              localStorage.setItem(storageKey, base64data);
-            } catch {}
-          }
-        };
-        reader.readAsDataURL(blob);
-      } catch {}
-
-      player.src = url;
-      player.currentTime = 0;
-      setActiveVoiceIndex(index);
-
-      if (autoPlay) {
-        player
-          .play()
-          .then(() => {
-            setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
-          })
-          .catch(() => {
-            setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
-          });
-      } else {
-        setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
-      }
 
       player.onended = () => {
         setAudioStatuses((prev) => ({ ...prev, [index]: 'ended' }));
@@ -294,6 +313,20 @@ export default function KonPovPage() {
       player.onpause = () => {
         setAudioStatuses((prev) => ({ ...prev, [index]: 'paused' }));
       };
+      player.onplaying = () => {
+        setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
+      };
+
+      player
+        .play()
+        .then(() => {
+          setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
+        })
+        .catch(() => {
+          // Mobile browser (iOS Safari) blocked async autoplay without immediate tap.
+          // Audio is already preloaded and cached! User can click button to play immediately.
+          setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
+        });
     } else {
       setAudioStatuses((prev) => ({ ...prev, [index]: 'error' }));
     }
@@ -626,7 +659,10 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
                       )}
                       {st === 'ready' && (
                         <>
-                          <i className="fas fa-play"></i> <span>ស្តាប់ Daddy បាញ់</span>
+                          <i className="fas fa-play"></i>{' '}
+                          <span>
+                            {userGender === 'ប្រុស' ? 'ស្តាប់សំឡេងនារី (ផ្អែមល្ហែម)' : 'ស្តាប់ Daddy បាញ់'}
+                          </span>
                         </>
                       )}
                       {st === 'error' && <span className="text-red-500">សុំទោស! មិនអាចទាញសំឡេងបានទេ</span>}

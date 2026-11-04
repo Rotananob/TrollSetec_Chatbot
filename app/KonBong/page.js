@@ -26,6 +26,7 @@ export default function KonBongPage() {
   const audioPlayerRef = useRef(null);
   const activeAudioUrlRef = useRef(null);
   const audioCacheRef = useRef(new Map());
+  const pendingAudioFetchesRef = useRef(new Map());
   const [audioStates, setAudioStates] = useState({}); // key: msgIndex -> 'loading'|'ready'|'playing'|'paused'|'ended'|'error'
   const [activeAudioIndex, setActiveAudioIndex] = useState(null);
 
@@ -62,12 +63,24 @@ export default function KonBongPage() {
     const bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
 
+    if (mimeType && (mimeType.includes('mpeg') || mimeType.includes('mp3'))) {
+      return new Blob([bytes], { type: 'audio/mpeg' });
+    }
+
     const isWav =
       (bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70) ||
       (mimeType && mimeType.includes('wav'));
 
     if (isWav) {
       return new Blob([bytes], { type: 'audio/wav' });
+    }
+
+    const isMp3 =
+      (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) ||
+      (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33);
+
+    if (isMp3) {
+      return new Blob([bytes], { type: 'audio/mpeg' });
     }
 
     const pcmBytes = len % 2 === 0 ? bytes : bytes.slice(0, len - 1);
@@ -347,8 +360,68 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
     return String(hash);
   }
 
+  // Load or fetch audio URL with instant in-memory and persistent LocalStorage caching
+  // Fetches only ONCE from server to prevent rate limits and ensure instant replay
+  const loadAudioUrl = async (text) => {
+    const hash = hashText(text);
+    const storageKey = 'konbong_audio_' + hash;
+
+    // 1. Check in-memory audio cache first (instant 0ms replay)
+    if (audioCacheRef.current.has(hash)) {
+      return audioCacheRef.current.get(hash);
+    }
+
+    // 2. Check localStorage cache
+    if (typeof window !== 'undefined') {
+      try {
+        const storedB64 = localStorage.getItem(storageKey);
+        if (storedB64) {
+          const blob = createAudioBlob(storedB64, 'audio/mpeg');
+          const url = URL.createObjectURL(blob);
+          audioCacheRef.current.set(hash, url);
+          return url;
+        }
+      } catch {}
+    }
+
+    // 3. Deduplicate active fetches
+    if (pendingAudioFetchesRef.current.has(hash)) {
+      return await pendingAudioFetchesRef.current.get(hash);
+    }
+
+    // 4. Fetch once from server
+    const fetchPromise = (async () => {
+      try {
+        const blob = await fetchAudio(text);
+        if (!blob || blob.error) return null;
+        const url = URL.createObjectURL(blob);
+        audioCacheRef.current.set(hash, url);
+
+        try {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const b64 = reader.result?.toString().split(',')[1];
+            if (b64) {
+              try {
+                localStorage.setItem(storageKey, b64);
+              } catch {}
+            }
+          };
+          reader.readAsDataURL(blob);
+        } catch {}
+
+        return url;
+      } finally {
+        pendingAudioFetchesRef.current.delete(hash);
+      }
+    })();
+
+    pendingAudioFetchesRef.current.set(hash, fetchPromise);
+    return await fetchPromise;
+  };
+
   // Audio Play / Pause Logic with In-Memory and LocalStorage Caching
-  // Fetches audio once from server; replay button uses cached blob URL directly with zero network requests
+  // Automatically pre-downloads ONE TIME on message reply, replays directly from cache with zero network requests
   const triggerAudio = async (text, index, autoPlay = false) => {
     const player = audioPlayerRef.current;
     if (!player || !text) return;
@@ -365,83 +438,22 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
       return;
     }
 
-    // If starting new audio, stop existing
     if (player) {
       player.pause();
     }
 
     const hash = hashText(text);
-    const storageKey = 'konbong_audio_' + hash;
 
-    // 1. Check in-memory audio cache first (instant replay without network fetch)
-    let cachedUrl = audioCacheRef.current.get(hash);
-
-    // 2. Check localStorage cache if not in memory
-    if (!cachedUrl && typeof window !== 'undefined') {
-      try {
-        const storedB64 = localStorage.getItem(storageKey);
-        if (storedB64) {
-          const blob = createAudioBlob(storedB64);
-          cachedUrl = URL.createObjectURL(blob);
-          audioCacheRef.current.set(hash, cachedUrl);
-        }
-      } catch {}
+    if (!audioCacheRef.current.has(hash)) {
+      setAudioStates((prev) => ({ ...prev, [index]: 'loading' }));
     }
 
-    if (cachedUrl) {
-      player.src = cachedUrl;
+    const audioUrl = await loadAudioUrl(text);
+
+    if (audioUrl) {
+      player.src = audioUrl;
       player.currentTime = 0;
       setActiveAudioIndex(index);
-
-      player
-        .play()
-        .then(() => {
-          setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
-        })
-        .catch(() => {
-          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-        });
-      return;
-    }
-
-    // 3. Not cached -> fetch once from /api/chat
-    setAudioStates((prev) => ({ ...prev, [index]: 'loading' }));
-    const blob = await fetchAudio(text);
-
-    if (blob && !blob.error) {
-      const url = URL.createObjectURL(blob);
-      audioCacheRef.current.set(hash, url);
-
-      // Persist to localStorage
-      try {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64data = reader.result?.toString().split(',')[1];
-          if (base64data) {
-            try {
-              localStorage.setItem(storageKey, base64data);
-            } catch {}
-          }
-        };
-        reader.readAsDataURL(blob);
-      } catch {}
-
-      player.src = url;
-      player.currentTime = 0;
-      setActiveAudioIndex(index);
-
-      if (autoPlay) {
-        player
-          .play()
-          .then(() => {
-            setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
-          })
-          .catch(() => {
-            setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-          });
-      } else {
-        setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-      }
 
       player.onended = () => {
         setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
@@ -450,6 +462,19 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
       player.onpause = () => {
         setAudioStates((prev) => ({ ...prev, [index]: 'paused' }));
       };
+      player.onplaying = () => {
+        setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
+      };
+
+      player
+        .play()
+        .then(() => {
+          setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
+        })
+        .catch(() => {
+          // Mobile autoplay blocked without touch event - ready in cache on tap!
+          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+        });
     } else {
       setAudioStates((prev) => ({ ...prev, [index]: 'error' }));
     }
