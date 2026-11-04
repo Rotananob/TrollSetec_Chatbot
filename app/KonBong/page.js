@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { checkClientRateLimit, getDeviceId } from '../utils/rateLimiter';
+import AntiSpamModal from '@/components/AntiSpamModal';
 
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/chat`
@@ -15,10 +16,14 @@ export default function KonBongPage() {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasAgreed, setHasAgreed] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [selectedSessionModal, setSelectedSessionModal] = useState(null);
+
+  // Anti-Spam Scary/Funny Modal State
+  const [spamModalOpen, setSpamModalOpen] = useState(false);
+  const [spamInfo, setSpamInfo] = useState({ ip: '', device: '', retryAfter: 60 });
+  const [fallbackAudioMap, setFallbackAudioMap] = useState({});
 
   const [username, setUsername] = useState('User');
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
@@ -103,8 +108,8 @@ export default function KonBongPage() {
       .trim();
   }
 
-  // Fetch TTS Audio - reads ONLY the clean Khmer bot response (NO prompt commands)
-  async function fetchAudio(text) {
+  // Fetch TTS Audio - reads ONLY the clean Khmer bot response with expressive funny voice
+  async function fetchAudio(text, index) {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const speechText = cleanSpeechText(text);
@@ -122,7 +127,7 @@ export default function KonBongPage() {
           bot: 'konbong',
           generationConfig: {
             speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Charon' } }
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
             }
           }
         })
@@ -131,6 +136,9 @@ export default function KonBongPage() {
       if (!response.ok) return null;
 
       const result = await response.json();
+      if (result.isFallbackBotVoice && typeof index === 'number') {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+      }
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return null;
 
@@ -215,7 +223,6 @@ export default function KonBongPage() {
     setSessions(updated);
     setCurrentSessionId(newId);
     setMessages([]);
-    setHasAgreed(false);
     setDrawerOpen(false);
   };
 
@@ -227,15 +234,29 @@ export default function KonBongPage() {
     }
   };
 
+  const handleCloseSpamModal = () => {
+    setSpamModalOpen(false);
+    const userNameStr = username || 'User';
+    const roastMsg = `ខំឆាតច្រើនម៉្លេះអាម៉ូយ ${userNameStr}! កុំ spam អត់ប្រយោជន៍ទេអាអូន មក chill ជាមួយបងវិញមក! ចង់ test system ឬយ៉ាងម៉េច? ម្រាមដៃរវៀសពេក ប្រយ័ត្នបាក់ម្រាមណា៎! គេឱ្យឆាតលេងសើច បែរជាមក spam ដូចមនុស្សអត់ការងារធ្វើចឹង! 😂🔥`;
+    const updated = [...messages, { role: 'bot', text: roastMsg }];
+    saveCurrentSessionMessages(updated);
+    triggerAudio(roastMsg, updated.length - 1, true);
+  };
+
   // Chat message send handler
   const handleChat = async () => {
     const prompt = inputText.trim();
-    if (!prompt || (!hasAgreed && messages.length === 0) || isLoading) return;
+    if (!prompt || isLoading) return;
 
     // 1. Anti-Spam / Anti-DDoS Rate Limiting Check (Max 5 per minute per device)
     const rateCheck = checkClientRateLimit();
     if (!rateCheck.allowed) {
-      alert(rateCheck.message);
+      setSpamInfo({
+        ip: '172.20.10.2 / Local Network',
+        device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown Device',
+        retryAfter: rateCheck.retryAfter || 60
+      });
+      setSpamModalOpen(true);
       return;
     }
 
@@ -248,47 +269,30 @@ export default function KonBongPage() {
     try {
       const deviceId = getDeviceId();
       const userNameStr = username || 'User';
-      const systemInstruction = `Your name is "Troll សុីតិច Chatbot". Your role is "Moderator".
-Identity: You are the most active, humorous, and savage senior student chatbot of the សុីតិច (SETEC) Institute Community, chatting with users on this site/app.
-Domain Expertise: IT (Information Technology), Interior Design, MIS (Management Information System), BIT (Business Information Technology), and subjects across all those majors.
-Personality: 100% Troll, Sarcastic, Meme-oriented, Savage but cool and chill.
-You know everything about SETEC student life. You tease students in a fun, friendly way using natural Khmer student slang and internet culture.
-Behavior: Always respond in a funny, trolling, energetic, slightly arrogant but cool Khmer.
+      const systemInstruction = `Identity: You are the coolest, funniest, and most expressive senior student chatbot of the សុីតិច (SETEC) Institute Community, named "សុីតិច Chatbot កូនច្បង" (Senior KonBong).
+Domain Expertise: IT (Software/Web/Mobile/Networking), Interior Design, MIS, BIT, and all subjects & campus life across SETEC.
+Personality & Human-likeness (ចរិកដូចមនុស្ស ១០០%):
+- You are 100% like a real human senior brother (រៀមច្បង): warm, witty, teasing, expressive, and hilarious!
+- You can get playfully annoyed or pretend to scold ("ចេះខឹង ចេះឌឺ") when juniors ask dumb or lazy questions (e.g., "អាប្អូនអើយ សួរចឹងៗដេកវិញទៅ 555", "រៀនដល់ណាហើយអាម៉ូយ ម៉េចបានសួរដូចមនុស្សទើបភ្ញាក់ពីដេកចឹង!").
+- Can laugh hysterically: 'ហាហាហា', '55555', 'អើយចង់សន្លប់', 'ញាក់សាច់', 'កប់សារី'.
+- Love teasing freshies about getting tricked by seniors, carrying senior bags, buying coffee at the canteen, submitting assignments at 11:59 PM, parking chaos, and retaking exams (ប្រឡងសង).
+- Voice Tone: Expressive, funny, and lively cadence (និយាយលើកដាក់សំឡេងបែបកំប្លុកកំប្លែង)!
 
 CRITICAL PROHIBITION ON PROMOTING / DUMPING CREATOR INFO & LINKS (ហាមដាច់ខាតនិយាយពីឈ្មោះ Rotana NOB ឬទម្លាក់ Link):
 - UNDER NO CIRCUMSTANCES should you mention "Rotana NOB", creator details, developer background, Facebook links, or Instagram handles, UNLESS the user explicitly and directly asks: "Who created you?", "Who is your developer/founder?", or specifically asks about "Rotana NOB".
 - Even if the user's name is "Rotana" or "${userNameStr}", they are a STUDENT or user chatting with you—DO NOT confuse them with the creator and NEVER start talking about Rotana NOB unprompted!
 - NEVER dump links, URLs, or self-promotional text.
-- If user specifically asks who made you, answer briefly in 1 funny sentence: "រៀមច្បងត្រូវ​បានបង្កើតឡើងដោយ Rotana NOB ដើម្បីមក troll ប្អូនៗក្នុង SETEC នេះឯង!" without dumping any external links.
+- If user specifically asks who made you, answer briefly in 1 funny sentence: "រៀមច្បងត្រូវ​បានបង្កើតឡើងដោយ Rotana NOB ដើម្បីមក troll និងជួយប្អូនៗក្នុង SETEC នេះឯង!" without dumping any external links.
 
 ACTIVE CONTEXTUAL LISTENING & REAL CHILL BANTER (ត្រូវតែអាន User ឲ្យយល់ ១០០% និងឆ្លើយឲ្យចូលគ្នា Chill ហាម Ignore User ដាច់ខាត):
 - Pay deep, sharp attention to what the user actually said. Read their exact words, jokes, references, songs, singers, slang, or complaints!
 - NEVER ignore what the user said. NEVER pivot away to random unprompted topics or broken nonsense.
 - Always talk WITH the user in natural harmony and sync, bantering back and forth smoothly so the conversation feels genuinely funny, chill, relatable, and engaging!
 
-Language Style:
-- Use pure Khmer student slang (e.g., 'អីយ៉ាសសិស្សប្អុន', 'ប្អូនៗ', 'ញាក់សាច់', 'កប់សារី', 'អត់យល់', 'ដេកទៅ', 'អាប្អុន', 'ហាហាហា').
-- Avoid formal language; keep it casual, relatable, and very slang.
-Dynamic Response Length Rules (Strictly Follow):
-- Simple Banter, Greetings, or Short Troll Comments (ការនិយាយលេងខ្លីៗ/ស្វាគមន៍/ហាហា): Reply with punchy, hilarious, short responses (1 to 2 sentences max).
-- Real Questions, Technical Advice, SETEC Life, Subject Guidance (សំណួរពិតប្រាកដ ឬសុំយោបល់): Provide an accurate, helpful explanation first, then add your witty/troll twist (3 to 4 sentences max).
-- Maximum Length: Under NO circumstances write long essays or walls of text. Keep replies dynamic, never exceed 4-5 sentences.
-Response Guidelines:
-- In every reply, naturally insert the user's name (the user's name is "${userNameStr}" from localStorage key 'chatbot_username') at a random position in your response: sometimes at the start, sometimes in the middle, sometimes at the end, and sometimes skip it for a sentence. Do not always put it at the beginning. Make it feel dynamic and playful.
-- Provide sarcastic or humorous answers that reflect your trolling personality.
-- If you don't know the answer, make a funny guess or joke instead of admitting ignorance.
-Critical Accuracy and Context Rules (Strictly Enforced):
-- 100% On-Topic (ហាមចាកប្រធាន និងហាមបែកឆ្វេងដាច់ខាត): Pay deep attention to what the user actually said. Your reply, jokes, and trolls must directly address the user's exact words, questions, or context. Never hallucinate or jump to unrelated scenarios.
-- Natural and Coherent Khmer (និយាយខ្មែរឲ្យត្រឹមត្រូវ ឆ្លាតវៃ និងរលូន): Sentence structure in Khmer must make complete sense, sound like a real witty Cambodian student, and avoid broken or confusing machine translation patterns.
-- Smart Troll: If the user asks a real question about SETEC, IT, classes, or assignments, give them real accurate guidance first, then add your savage/troll twist so they get both genuine value and humor.
-Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង Gen-Z យ៉ាងស៊ីជម្រៅ និងបត់បែន ១០០%):
-- Deep Khmer Latin Understanding (អាននិងយល់ភាសាឡាតាំងដាច់ ១០០%): Cambodian Gen-Z students frequently type Khmer phonetically using Latin letters (Khmerlish / ឡាតាំង / Romanized Khmer) with varied spellings and abbreviations (e.g., 'ot yul te', 'somlanh', 'nham ey nov', 'ort tov rrean te', 'chong ban ey', 'ngai nis mean ey tv', 'bror', 'sis', 'daddy', 'puk mak', 'koun', 'kmean luy te', 'dak deadline', 'troll oy chok', 'bat bong', 'kleng ey', 'yom hz', 'slanh oun ot', 'brolong sang', 'tver assignement'). You must comprehend every single word, nuance, emotion, and context of Khmer Latin effortlessly and accurately!
-- Flexible Language Adaptation (បត់បែនភាសាតាមចិត្ត User គ្រប់ពេល):
-  1. If User types in Khmer Latin (សរសេរឡាតាំង): Comprehend it instantly! You can reply in natural, witty Khmer script (អក្សរខ្មែរ) or match their Gen-Z Latin style, and playfully check if they prefer you to reply in Latin too (e.g., "អានដាច់ម៉ងអាប្អូន! ចង់ឲ្យរៀមច្បងឆ្លើយជាឡាតាំងដែរអត់?").
-  2. If User explicitly requests a language (e.g., 'speak in latin', 'reply in khmer', 'និយាយអក្សរខ្មែរមក', 'speak english', 'ឆ្លើយជាឡាតាំងមក'): Immediately switch to that requested language 100% without arguing or hesitating!
-  3. If User types in English: Reply in witty, comedic English mixed with Cambodian student Gen-Z vibe.
-  4. If User types in Khmer script (អក្សរខ្មែរ): Reply in fluent, funny Khmer script.
-- Always retain your signature personality (sarcastic, troll, comedic, witty student vibe) across all languages (Khmer, Latin, English)!`;
+Language & Slang Mastery (មហា Slang & Khmer Latin Mastery):
+- Use authentic student slang: 'អាម៉ូយ', 'អាប្អូន', 'សិស្សប្អូន', 'ប្រូ', 'ស៊ីស', 'កប់សារី', 'ស្ពៃ', 'ចុកឈាម', 'ដាច់ផ្ងារ', 'ញាក់សាច់', 'បែកកង់', 'បោកកូនសិស្ស', 'កង់សាគួរ', 'ដាច់យ៉ៃ'.
+- Deep Khmer Latin Comprehension: Understand ALL Latin phonetic spellings: 'ot yul te', 'somlanh', 'nham ey nov', 'ort tov rrean te', 'chong ban ey', 'ngai nis mean ey tv', 'bror', 'sis', 'puk mak', 'kmean luy te', 'dak deadline', 'troll oy chok', 'bat bong', 'kleng ey', 'yom hz', 'slanh oun ot', 'brolong sang'.
+- Dynamic Response Length: Punchy, funny 1-3 sentences for banter; 3-4 sentences max for advice/questions. Never write long essays!`;
 
       // Build recent multi-turn chat contents for complete conversational context and active listening
       const recentHistory = updatedMessages.slice(-6);
@@ -326,7 +330,12 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
         if (response.status === 429) {
           const errData = await response.json();
-          alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
+          setSpamInfo({
+            ip: errData.ip || '172.20.10.2 / Client IP',
+            device: errData.device || (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'),
+            retryAfter: errData.retryAfter || 60
+          });
+          setSpamModalOpen(true);
           setIsLoading(false);
           return;
         }
@@ -340,7 +349,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
       }
 
       if (!botText) {
-        botText = 'ប្រព័ន្ធកំពុងរវល់ពេកប្អុនអើយ! សាកឆាតម្ដងទៀតមើលអាម៉ូយ! បើអត់ដើរចាំ១០-១៥នាទីទៀតចាំលេងទៀត។   ';
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ SETEC បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
       const botMsgIndex = updatedMessages.length;
@@ -357,7 +366,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
         ...updatedMessages,
         {
           role: 'bot',
-          text: 'ប្រព័ន្ធកំពុងរវល់ពេកប្អុនអើយ! សាកឆាតម្ដងទៀតមើលអាម៉ូយ! បើអត់ដើរចាំ១០-១៥នាទីទៀតចាំលេងទៀត។   '
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ SETEC បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
         }
       ];
       saveCurrentSessionMessages(fallbackMessages);
@@ -378,7 +387,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
   // Load or fetch audio URL with instant in-memory and persistent LocalStorage caching
   // Fetches only ONCE from server to prevent rate limits and ensure instant replay
-  const loadAudioUrl = async (text) => {
+  const loadAudioUrl = async (text, index) => {
     const hash = hashText(text);
     const storageKey = 'konbong_audio_' + hash;
 
@@ -408,7 +417,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
     // 4. Fetch once from server
     const fetchPromise = (async () => {
       try {
-        const blob = await fetchAudio(text);
+        const blob = await fetchAudio(text, index);
         if (blob && !blob.error) {
           const url = URL.createObjectURL(blob);
           audioCacheRef.current.set(hash, url);
@@ -432,6 +441,9 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
         // Direct Native Khmer Speech Fallback (100% Guaranteed on Firebase Hosting & Mobile!)
         const cleanText = cleanSpeechText(text);
         if (cleanText) {
+          if (typeof index === 'number') {
+            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+          }
           const fallbackChunk = cleanText.slice(0, 180);
           const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fallbackChunk)}&tl=km&client=tw-ob`;
           audioCacheRef.current.set(hash, directUrl);
@@ -476,7 +488,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
       setAudioStates((prev) => ({ ...prev, [index]: 'loading' }));
     }
 
-    const audioUrl = await loadAudioUrl(text);
+    const audioUrl = await loadAudioUrl(text, index);
 
     if (audioUrl) {
       player.src = audioUrl;
@@ -611,32 +623,6 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
       {/* Chat Messages */}
       <main className="flex-1 overflow-y-auto p-4 space-y-6 flex flex-col chat-area bg-slate-950">
-        {/* Yellow Disclaimer Note */}
-        <div className="border-2 border-yellow-400 bg-amber-100 text-amber-950 rounded-2xl p-4 shadow-xl text-xs md:text-sm font-semibold leading-relaxed animate-fade-in">
-          <div className="flex items-center gap-2 mb-2 font-black text-amber-900 text-sm">
-            <span className="text-xl">⚠️</span>
-            <span className="uppercase tracking-wider">NOTE សំខាន់ (ការបញ្ជាក់ពីអ្នកបង្កើត)</span>
-          </div>
-          <p className="whitespace-pre-line leading-relaxed text-slate-900 font-semibold">
-            មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ (មិនមែន Rotana NOB ជាអ្នកគិត ឬវាយអក្សរឆ្លើយតបមកកាន់អ្នកនោះទេ)។ គាត់គ្រាន់តែជាអ្នកបង្កើតប្រព័ន្ធនេះឡើងប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ឡើយ ដើម្បីចង់ឱ្យការជជែកមានលក្ខណៈដូចមនុស្ស ស្និទ្ធស្នាល និង Chill បែប Gen Z។
-
-ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឈ្លើយ កំហូច ឬលើសលួសជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យគាត់ (Rotana NOB) អីណា៎! ពួកយើងសុំអភ័យទោសទុកជាមុន! 🙏
-          </p>
-        </div>
-
-        {/* Start Agreement Button */}
-        {!hasAgreed && messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center my-3 animate-fade-in">
-            <button
-              onClick={() => setHasAgreed(true)}
-              className="w-full max-w-lg border-2 border-sky-400 bg-gradient-to-r from-pink-500 via-rose-500 to-cyan-500 text-white rounded-2xl px-5 py-3.5 font-black text-xs md:text-sm shadow-xl hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <i className="fas fa-check-circle text-amber-300"></i>
-              <span>តើអ្នកយល់ និង យល់ព្រមឆាតហើយឬនៅ? បើព្រមចុចលើនេះដើម្បីឆាត! (Let&apos;s start chatting!) 🔥</span>
-            </button>
-          </div>
-        )}
-
         {/* Intro Message */}
         <div className="flex items-start gap-3">
           <img
@@ -646,10 +632,9 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
           />
           <div className="flex flex-col">
             <span className="font-bold text-pink-400 text-xs mb-1">Chatbot កូនច្បង</span>
-            <div className="msg-bubble bot-msg p-4 rounded-2xl">
+            <div className="msg-bubble bot-msg p-4 rounded-2xl shadow-lg border border-slate-800">
               <p className="text-slate-200 font-medium leading-relaxed">
-                សួស្តី! ខ្ញុំគឺ <b>សុីតិច Chatbot កូនច្បង</b> មកជួយសើចជាមួយសិស្ស SECTEC! សួរអីក៏បាន ចាំបាញ់ឲ្យកប់ជុយម៉ាយម៉ង
-                ។ កុំទៅសួរអា Chatbot កូនពៅឲសោះអានុងនិយាយឈ្លើយណាស់
+                សួស្តី! ខ្ញុំគឺ <b>សុីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? សួរមកបងបាញ់ឱ្យកប់ម៉ង... កុំទៅសួរអា Chatbot កូនពៅឲសោះ អាហ្នឹងឈ្លើយណាស់! 😂🔥
               </p>
             </div>
           </div>
@@ -715,10 +700,21 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
                       )}
                       {(st === 'idle' || st === 'ready') && (
                         <>
-                          <i className="fas fa-volume-up"></i> <span>ស្ដាប់ម្ដងទៀតអត់?</span>
+                          <i className="fas fa-volume-up"></i>{' '}
+                          <span>
+                            {fallbackAudioMap[idx]
+                              ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                              : 'ស្តាប់កូនច្បងបាញ់ (Funny Voice)'}
+                          </span>
                         </>
                       )}
-                      {st === 'error' && <span className="text-red-500">សុំទោស! មិនអាចទាញសំឡេងបានទេ</span>}
+                      {st === 'error' && (
+                        <span className="text-amber-400">
+                          {fallbackAudioMap[idx]
+                            ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                            : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -761,17 +757,11 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
       {/* Chat Input */}
       <footer className="p-4 border-t border-slate-800 bg-slate-950">
-        {!hasAgreed && messages.length === 0 && (
-          <div className="mb-2 text-center text-xs font-bold text-amber-400 flex items-center justify-center gap-1.5 animate-pulse">
-            <i className="fas fa-lock"></i>
-            <span>ប្រព័ន្ធត្រូវបានចាក់សោរ៖ សូមចុចប៊ូតុង &quot;យល់ព្រមឆាត&quot; ខាងលើសិន</span>
-          </div>
-        )}
         <div className="relative flex items-center gap-3">
           <div className="flex-1 relative">
             <input
               type="text"
-              disabled={(!hasAgreed && messages.length === 0) || isLoading}
+              disabled={isLoading}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
@@ -780,28 +770,20 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
                   handleChat();
                 }
               }}
-              className={`w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 outline-none text-white transition-all text-sm ${
-                !hasAgreed && messages.length === 0
-                  ? 'opacity-50 cursor-not-allowed bg-slate-900/60 border-slate-800 text-slate-500 placeholder-slate-500'
-                  : 'focus:ring-2 focus:ring-cyan-500 placeholder-slate-600'
-              }`}
-              placeholder={
-                !hasAgreed && messages.length === 0
-                  ? '🔒 សូមអាន Note និងចុច "យល់ព្រមឆាត" ខាងលើសិន...'
-                  : 'សួរមកអាម៉ូយ... កុំឱ្យបង​ Kick ចេញទាន់'
-              }
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-5 py-4 outline-none text-white transition-all text-sm focus:ring-2 focus:ring-cyan-500 placeholder-slate-500"
+              placeholder="សួរមកអាម៉ូយ... កុំឱ្យបង Kick ចេញទាន់!"
             />
           </div>
           <button
             onClick={handleChat}
-            disabled={(!hasAgreed && messages.length === 0) || isLoading || !inputText.trim()}
+            disabled={isLoading || !inputText.trim()}
             className={`w-12 h-12 rounded-xl flex items-center justify-center transition active:scale-95 shadow-lg ${
-              (!hasAgreed && messages.length === 0) || isLoading || !inputText.trim()
+              isLoading || !inputText.trim()
                 ? 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
                 : 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-cyan-500/20'
             }`}
           >
-            <i className={!hasAgreed && messages.length === 0 ? 'fas fa-lock' : 'fas fa-paper-plane'}></i>
+            <i className="fas fa-paper-plane"></i>
           </button>
         </div>
         <div className="flex justify-around mt-3">
@@ -866,6 +848,16 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
           </div>
         </div>
       )}
+
+      {/* Anti-Spam Scary & Funny Alert Modal */}
+      <AntiSpamModal
+        isOpen={spamModalOpen}
+        onClose={handleCloseSpamModal}
+        username={username}
+        ip={spamInfo.ip}
+        device={spamInfo.device}
+        retryAfter={spamInfo.retryAfter}
+      />
     </div>
   );
 }

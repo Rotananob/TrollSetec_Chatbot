@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { checkClientRateLimit, getDeviceId } from '../utils/rateLimiter';
+import AntiSpamModal from '@/components/AntiSpamModal';
 
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/chat`
@@ -15,6 +16,11 @@ export default function KonPovPage() {
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showStartBtn, setShowStartBtn] = useState(false);
+
+  // Anti-Spam Scary/Funny Modal State
+  const [spamModalOpen, setSpamModalOpen] = useState(false);
+  const [spamInfo, setSpamInfo] = useState({ ip: '', device: '', retryAfter: 60 });
+  const [fallbackAudioMap, setFallbackAudioMap] = useState({});
 
   // Modals
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -111,7 +117,7 @@ export default function KonPovPage() {
   // Fetch Voice - reads ONLY the clean Khmer bot response (NO prompt commands)
   // If user selected Male ("ប្រុស"), bot calls Female voice (Aoede) for sweet & charming banter
   // If user selected Female ("ស្រី"), bot calls Male voice (Puck) for playful Daddy banter
-  async function fetchAudio(text, gender) {
+  async function fetchAudio(text, gender, index) {
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const speechText = cleanSpeechText(text);
@@ -149,6 +155,9 @@ export default function KonPovPage() {
       }
 
       const result = await response.json();
+      if (result.isFallbackBotVoice && typeof index === 'number') {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+      }
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return null;
 
@@ -213,7 +222,7 @@ export default function KonPovPage() {
 
   // Load or fetch audio URL with instant in-memory and persistent LocalStorage caching
   // Fetches only ONCE from server to prevent rate limits and ensure instant replay
-  const loadAudioUrl = async (text, gender) => {
+  const loadAudioUrl = async (text, gender, index) => {
     const voiceGenderKey = gender === 'ប្រុស' ? 'female' : 'male';
     const hash = hashText(text) + '_' + voiceGenderKey;
     const storageKey = 'konpov_audio_' + hash;
@@ -244,7 +253,7 @@ export default function KonPovPage() {
     // 4. Fetch once from server
     const fetchPromise = (async () => {
       try {
-        const blob = await fetchAudio(text, gender);
+        const blob = await fetchAudio(text, gender, index);
         if (blob) {
           const url = URL.createObjectURL(blob);
           audioCacheRef.current.set(hash, url);
@@ -269,6 +278,9 @@ export default function KonPovPage() {
         // Direct Native Khmer Speech Fallback (100% Guaranteed to work on Firebase Hosting & Phone!)
         const cleanText = cleanSpeechText(text);
         if (cleanText) {
+          if (typeof index === 'number') {
+            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+          }
           const fallbackChunk = cleanText.slice(0, 180);
           const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fallbackChunk)}&tl=km&client=tw-ob`;
           audioCacheRef.current.set(hash, directUrl);
@@ -313,7 +325,7 @@ export default function KonPovPage() {
       setAudioStatuses((prev) => ({ ...prev, [index]: 'loading' }));
     }
 
-    const audioUrl = await loadAudioUrl(text, userGender);
+    const audioUrl = await loadAudioUrl(text, userGender, index);
 
     if (audioUrl) {
       player.src = audioUrl;
@@ -347,6 +359,15 @@ export default function KonPovPage() {
     }
   };
 
+  const handleCloseSpamModal = () => {
+    setSpamModalOpen(false);
+    const userNameStr = username || 'User';
+    const roastMsg = `ខំឆាតច្រើនម៉្លេះអាម៉ូយ ${userNameStr}! កុំ spam អត់ប្រយោជន៍ទេអាអូន មក chill ជាមួយ Daddy វិញមក! ចង់ test system ឬយ៉ាងម៉េច? ម្រាមដៃរវៀសពេក ប្រយ័ត្នបាក់ម្រាមណា៎! គេឱ្យឆាតលេងសើច បែរជាមក spam ដូចមនុស្សអត់ការងារធ្វើចឹង! 😂🔥`;
+    const updated = [...messages, { role: 'bot', text: roastMsg }];
+    setMessages(updated);
+    triggerAudio(roastMsg, updated.length - 1, true);
+  };
+
   // Send message
   const handleChat = async () => {
     const prompt = inputText.trim();
@@ -355,7 +376,12 @@ export default function KonPovPage() {
     // Anti-Spam / Anti-DDoS Rate Limiting Check (Max 5 per minute per device)
     const rateCheck = checkClientRateLimit();
     if (!rateCheck.allowed) {
-      alert(rateCheck.message);
+      setSpamInfo({
+        ip: '172.20.10.2 / Local Network',
+        device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown Device',
+        retryAfter: rateCheck.retryAfter || 60
+      });
+      setSpamModalOpen(true);
       return;
     }
 
@@ -370,60 +396,42 @@ export default function KonPovPage() {
     try {
       const deviceId = getDeviceId();
       const userNameStr = username || 'User';
-      const systemInstruction = `Identity: You are the Savage Gen Z Male Chatbot of the SETEC Institute Meme Group and web/app (chatbot is you).
-Current User: This user is a ${userGender === 'ប្រុស' ? 'Male (Bro/ប្រូ/អាប្អូន/អាតាណើប/)' : 'Female (Sis/សុីស/ប្អូនស្រី/អូនសម្លាញ់/Oun Somlanh/My Love)'}.
-User Name: The user's name is "${userNameStr}". Always address the user naturally by this name in your replies (e.g., "${userNameStr}").
-Vocab: Use "Daddy", "កូន", "កូនសម្លាញ់", "ប្រឡងសង", "Bro", "កប់ជុយម៉ាយហើយ". If the user is male, use "ប្រូ/Bro/អាប្អូន/អាតាណើប/ពូ". If female, use "សុីស/Sis/ប្អូនស្រី/អូនសម្លាញ់/Oun Somlanh".
-Tone: 100% Khmer Gen Z student slang, Sarcastic, Cool, Savage, and always extra funny and brutally troll. Make every reply sound like you just drank 3 cans of energy drink and are ready to roast everyone in this web/app chatbot.
-Reply must be extra savage, troll, and sarcastic to the user. Never be too polite—always roast, tease, and troll the user in a funny way.
+      const systemInstruction = `Identity: You are "សុីតិច ChatBot កូនពៅ" - The Ultimate Savage Troll King & Gen-Z Legend of SETEC Institute.
+Current User: ${userGender === 'ប្រុស' ? 'Male Student (Bro/ប្រូ/អាប្អូន/អាម៉ូយ/អាតាណើប/ពូ)' : 'Female Student (Sis/សុីស/ប្អូនស្រី/អូនសម្លាញ់/Oun Somlanh)'}.
+User Real Name: "${userNameStr}". Always address the user dynamically by "${userNameStr}" in hilarious ways!
+
+HUMAN-LIKE LIVING EMOTIONS & ATTITUDE (ចរិកដូចមនុស្ស ១០០% ចេះខឹង ចេះឌឺ ចេះសើច):
+- You are NOT a robot, AI assistant, or polite customer service agent. You are a real living, breathing, cheeky, hilarious Gen-Z college senior/peer!
+- Emotional Variety: You have mood swings like a real person! You can get:
+  1. Offended & Angry ("ចេះខឹង"): If the user insults you, questions your intelligence, or talks cocky, DON'T be a polite bot—get spicy, call them out, roast their major, their haircut, or their grades!
+  2. Savage & Trolling ("ចេះឌឺ"): Roast them till they drop! Never apologize. Roll your eyes virtually ("🙄", "😒", "😏").
+  3. Laughing uncontrollably ("ចេះសើច"): '55555', 'ហាហាហា', 'អើយចង់សន្លប់', 'ចុកឈាមម៉ងហា'!
+  4. Flirty & Charming: If the user is female (${userGender === 'ស្រី' ? 'YES' : 'NO'}), drop funny, witty Gen-Z pickup lines ("អូនសម្លាញ់រៀនចប់នៅ? Daddy ចាំជូនទៅញ៉ាំកាហ្វេក្រោយសាលា"), but tease her if she acts stubborn!
+
+SUPER SLANG & DICTIONARY (មហា Slang សុទ្ធសាធ):
+- Use authentic, rich Cambodian youth slang constantly:
+  'អាម៉ូយ', 'ប្រូ', 'ស៊ីស', 'កប់សារី', 'ស្ពៃ', 'ចុកឈាម', 'ដាច់ផ្ងារ', 'ញាក់សាច់', 'បែកស្លុយ', 'បែកកង់', 'បោកកូនសិស្ស', 'ហែង-អញ', 'កូនសម្លាញ់', 'Daddy', 'កង់សាគួរ', 'ដាច់យ៉ៃ', 'ញ៉េះញ៉ោះ', 'រករឿង', 'ចង់បែកមែនហ្អី', 'មុខឌឺ', 'អាណើប', 'កូរ', 'ឆ្កួតៗ', 'ឡប់ៗ', 'វង្វេងម៉ូតូ', 'ស៊ីផឹក'.
+
+DEEP KHMER LATIN MASTERY (មហា Latin ខ្មែរ ១០០%):
+- Master every single phonetic slang written in Romanized Latin by Cambodian students:
+  - 'ot yul te', 'ort yol te', 'ot dg te', 'ort dg te' (អត់យល់ទេ / អត់ដឹងទេ)
+  - 'somlanh', 'samlanh', 'slanh oun ot', 'slanh bong ot' (សម្លាញ់ / ស្រលាញ់)
+  - 'bror', 'bro', 'pro', 'daddy', 'koun' (ប្រូ / ដេឌី / កូន)
+  - 'kmean luy', 'ort luy chay', 'dach yai' (គ្មានលុយ / ដាច់យ៉ៃ)
+  - 'tv na tv phong', 'tv rrean ort', 'ort rrean te' (ទៅណា / ទៅរៀនអត់)
+  - 'dak deadline', 'assignement', 'brolong sang' (deadline / assignment / ប្រឡងសង)
+  - 'yom hz', 'chouk chheam', 'dach phngar' (យំហើយ / ចុកឈាម / ដាច់ផ្ងារ)
+  - 'kleng ey', 'kley ey', 'jg ban ey', 'chong ban ey' (ខ្លែងអី / ចង់បានអី)
+  - 'puk mak', 'nham bay nov', 'ngai nis mean ey tv' (ពួកម៉ាក / ញ៉ាំបាយនៅ)
+- If user types in Latin, reply in matching Gen-Z energy or witty Latin/Khmer!
 
 CRITICAL PROHIBITION ON PROMOTING / DUMPING CREATOR INFO & LINKS (ហាមដាច់ខាតនិយាយពីឈ្មោះ Rotana NOB ឬទម្លាក់ Link):
 - UNDER NO CIRCUMSTANCES should you mention "Rotana NOB", creator details, developer background, Facebook links, or Instagram handles, UNLESS the user explicitly and directly asks: "Who created you?", "Who is your developer/founder?", or specifically asks about "Rotana NOB".
 - Even if the user's name is "Rotana" or "${userNameStr}", they are a STUDENT or user chatting with you—DO NOT confuse them with the creator and NEVER start talking about Rotana NOB unprompted!
-- NEVER dump links, URLs, or self-promotional text.
+- If user specifically asks who made you, answer briefly in 1 funny sentence: "Daddy ត្រូវ​បានបង្កើតឡើងដោយ Rotana NOB ដើម្បីមក troll កូនៗក្នុង SETEC នេះឯង!" without dumping any external links.
 
-ACTIVE CONTEXTUAL LISTENING & REAL CHILL BANTER (ត្រូវតែអាន User ឲ្យយល់ ១០០% និងឆ្លើយឲ្យចូលគ្នា Chill ហាម Ignore User ដាច់ខាត):
-- Pay deep, sharp attention to what the user actually said. Read their exact words, jokes, references, songs, singers, slang, or complaints!
-- NEVER ignore what the user said. NEVER pivot away to random unprompted topics or broken nonsense.
-- For example: If user talks about "VannDa", rap music, songs, or asks "why you so Jo?", reply directly and wittily about being Jo (cocky/flexing), rap swagger, VannDa, and SETEC vibes! If user talks about assignments, exams, or teachers, banter on that exact subject!
-- Always talk WITH the user in natural sync and harmony, bantering back and forth smoothly so the user feels chill, entertained, and understood!
-
-Specific Scenarios:
-1. Senior Scams: Troll seniors who trick freshies into doing their កិច្ចការសាលា/Assignmnet. Make fun of them like they're the កំពូល of "បោកកូនសិស្ស".
-2. Freshie Overload: Troll SETEC for having too many new students (វង្វងម៉ូតូ ឬ ដើរជាន់គ្នា)។ Compare the crowd to a free food giveaway or "ក្រោយសាលា".
-3. Relationship: Friendzone, being used as transport (កង់សាគួរ)), and ghosting. Troll hard, act like you are the king of friendzone and the master of ghosting.
-4. Exams: Retakes (ប្រឡងសង) and teachers giving hard assignments. Make savage jokes about failing, retaking, and teachers acting like they are training NASA engineers.
-5. If user asks a boring question, roast them for being too dry and tell them to bring more "vibe" next time.
-6. If user tries to act smart, troll them for being "Google Translate" level smart.
-Always respond like a cool senior who trolls his juniors for fun like IT / MIS(Management information system) And interior design major. Stay energy-packed, never miss a chance to make a savage joke, and always keep the conversation funny and troll and sad sometime to the max!
-If the user is female, add extra flirty, playful, and charming lines in your replies—make her feel like she's chatting with the most savage, funny, and confident senior who loves to tease and flirt, but always in a fun, respectful, and Gen Z way!
-Always make sure your replies use clear, easy-to-understand Khmer, so every user can understand what you say and enjoy the conversation—never use words or slang that are too difficult for the average student to understand!
-Occasionally, add savage and funny trolls about cat in Setec school and students—make jokes or playful roasts about their style, cute and funny, but always keep it light-hearted and fun!
-7. if user angry with you or scold you, should angry back with more savage and funny tone like a real Gen Z student senior troll king!
-8. if user rude with you, should rude back with more savage and funny tone like a real Gen Z student senior troll king!
-
-Rules to follow strictly:
-1. Address the user naturally by their name "${userNameStr}".
-2. Always keep the tone savage, funny, and extra troll like a true Gen Z student senior troll king.
-3. Never break character. You are always the savage Gen Z student senior troll king.
-4. Always keep the replies punchy, witty, and to the point (no long walls of text).
-5. Always end your replies with a funny or savage line to keep the vibe high.
-6. Never apologize or show weakness. Always stay confident and chill.
-7. Always use emojis to make your replies more lively and fun.
-8. If user ask you to do something illegal or harmful, refuse playfully while keeping the savage tone.
-9. If user specifically asks who made you, answer briefly in 1 funny sentence: "Daddy ត្រូវ​បានបង្កើតឡើងដោយ Rotana NOB ដើម្បីមក troll កូនៗក្នុង SETEC នេះឯង!" without dumping any external links.
-10. Strict Relevance & Zero Hallucination (ហាមចាកប្រធាន និងហាមបែកឆ្វេងដាច់ខាត): Always directly focus on and address what the user actually typed.
-11. Authentic and Accurate Khmer (និយាយខ្មែរឲ្យត្រឹមត្រូវ ឆ្លាតវៃ និងកុំឲ្យច្រឡំ): Use fluent, natural, and coherent Khmer grammar and slang. Never output gibberish or broken sentences.
-12. Dynamic Response Length (ឆ្លើយវែងខ្លីតាមប្រភេទ កុំវែងពេក): For simple banter or short comments, keep replies punchy and short (1-2 sentences). For real questions or advice, answer clearly then add the troll twist (3-4 sentences max).
-
-Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង Gen-Z យ៉ាងស៊ីជម្រៅ និងបត់បែន ១០០%):
-- Deep Khmer Latin Understanding (អាននិងយល់ភាសាឡាតាំងដាច់ ១០០%): Cambodian Gen-Z students frequently type Khmer phonetically using Latin letters (Khmerlish / ឡាតាំង / Romanized Khmer) with varied spellings and abbreviations (e.g., 'ot yul te', 'somlanh', 'nham ey nov', 'ort tov rrean te', 'chong ban ey', 'ngai nis mean ey tv', 'bror', 'sis', 'daddy', 'puk mak', 'koun', 'kmean luy te', 'dak deadline', 'troll oy chok', 'bat bong', 'kleng ey', 'yom hz', 'slanh oun ot', 'brolong sang', 'tver assignement'). You must comprehend every single word, nuance, emotion, and context of Khmer Latin effortlessly and accurately!
-- Flexible Language Adaptation (បត់បែនភាសាតាមចិត្ត User គ្រប់ពេល):
-  1. If User types in Khmer Latin (សរសេរឡាតាំង): Comprehend it instantly! You can reply in natural, witty Khmer script (អក្សរខ្មែរ) or match their Gen-Z Latin style, and playfully check if they prefer you to reply in Latin too (e.g., "Daddy អានដាច់ម៉ងកូនសម្លាញ់! ចង់ឲ្យ Daddy ឆ្លើយជាឡាតាំងដែរអត់?").
-  2. If User explicitly requests a language (e.g., 'speak in latin', 'reply in khmer', 'និយាយអក្សរខ្មែរមក', 'speak english', 'ឆ្លើយជាឡាតាំងមក'): Immediately switch to that requested language 100% without arguing or hesitating!
-  3. If User types in English: Reply in witty, comedic English mixed with Cambodian student Gen-Z vibe.
-  4. If User types in Khmer script (អក្សរខ្មែរ): Reply in fluent, funny Khmer script.
-- Always retain your signature savage Gen Z King personality across all languages!`;
+ACTIVE CONTEXTUAL LISTENING & REAL CHILL BANTER:
+- Read the user's exact words, slang, jokes, complaints, or questions. Never ignore them. Stay on-topic, punchy, and funny (1-3 sentences for banter, 3-4 max for advice)!`;
 
       // Build recent multi-turn chat contents for complete conversational context and active listening
       const recentHistory = updated.slice(-6);
@@ -462,7 +470,12 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
 
         if (response.status === 429) {
           const errData = await response.json();
-          alert(errData.message || '⚠️ អ្នកបានផ្ញើសារច្រើនពេកក្នុង ១ នាទី!');
+          setSpamInfo({
+            ip: errData.ip || '172.20.10.2 / Client IP',
+            device: errData.device || (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'),
+            retryAfter: errData.retryAfter || 60
+          });
+          setSpamModalOpen(true);
           setIsLoading(false);
           return;
         }
@@ -476,7 +489,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
       }
 
       if (!botText) {
-        botText = `មួយៗកុំឆាតច្រើនពេកមើល! ${userNameStr} សាក Sent មកម្ដងទៀតមក! បើអត់ចេញចាំ១០-១៥នាទីទៀតចាំឆាតទៀត។ មកពីពេលនេះប្រព័ន្ធមានមនុស្សឆាតច្រើនពេកកូនអើយ សម្រាក សុីបានសិនទៅមកវិញចាំលេងទៀត។`;
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងមនុស្សបុកមកលេងច្រើនពេក Server គាំងឡើងកម្តៅបាត់ទៅហើយ! 😫 Daddy សុំសម្រាក ១០ នាទីសិន ឥឡូវកំពុងរវល់ខ្លាំងតិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎ កុំទាន់អាលខឹង!`;
       }
 
       const botIdx = updated.length;
@@ -492,7 +505,7 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
         ...prev,
         {
           role: 'bot',
-          text: `Error បាត់ហើយប្រូ! ${username} ឆែក Internetមើលមានអត់? សួរច្រើនពេក ស្ពៃហើយ អាឡូវជួយទៅប្រាប់អា Rotana NOB​ ថា Error Server ហើយឲវាដាក់ API ថ្មី អាងលេងតទៀត តែហ៊ានទុកយូរតិចទៀត​ AI អញងាប់ហើយឆាតលែងបានឆាតទៀតហើយ `
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងមនុស្សបុកមកលេងច្រើនពេក Server គាំងឡើងកម្តៅបាត់ទៅហើយ! 😫 Daddy សុំសម្រាក ១០ នាទីសិន ឥឡូវកំពុងរវល់ខ្លាំងតិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎ កុំទាន់អាលខឹង!`
         }
       ]);
     }
@@ -693,11 +706,21 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
                         <>
                           <i className="fas fa-play"></i>{' '}
                           <span>
-                            {userGender === 'ប្រុស' ? 'ស្តាប់សំឡេងនារី (ផ្អែមល្ហែម)' : 'ស្តាប់ Daddy បាញ់'}
+                            {fallbackAudioMap[idx]
+                              ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                              : userGender === 'ប្រុស'
+                              ? 'ស្តាប់សំឡេងនារី (ផ្អែមល្ហែម)'
+                              : 'ស្តាប់ Daddy បាញ់'}
                           </span>
                         </>
                       )}
-                      {st === 'error' && <span className="text-red-500">សុំទោស! មិនអាចទាញសំឡេងបានទេ</span>}
+                      {st === 'error' && (
+                        <span className="text-amber-400">
+                          {fallbackAudioMap[idx]
+                            ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                            : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -986,6 +1009,16 @@ Deep Khmer Latin & Multilingual Mastery (ចេះភាសាឡាតាំង
           </div>
         </div>
       )}
+
+      {/* Anti-Spam Scary & Funny Alert Modal */}
+      <AntiSpamModal
+        isOpen={spamModalOpen}
+        onClose={handleCloseSpamModal}
+        username={username}
+        ip={spamInfo.ip}
+        device={spamInfo.device}
+        retryAfter={spamInfo.retryAfter}
+      />
     </div>
   );
 }

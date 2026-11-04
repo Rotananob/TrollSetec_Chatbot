@@ -169,8 +169,8 @@ export default function Home() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleContinue(e);
                     }}
-                    className="mt-2 px-4 py-2 rounded-xl border border-indigo-200 focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 text-center font-bold bg-indigo-50"
-                    placeholder="បញ្ចូលឈ្មោះអ្នក..."
+                    className="mt-2 px-4 py-2 rounded-xl border border-indigo-200 focus:ring-2 focus:ring-indigo-400 outline-none text-slate-700 text-center font-bold bg-indigo-50 placeholder:text-indigo-300 placeholder:text-xs"
+                    placeholder="ដាក់ឈ្មោះពិតមកកុំលាក់! (ស្រួល AI ហៅចំឈ្មោះ)"
                     maxLength={24}
                     required
                   />

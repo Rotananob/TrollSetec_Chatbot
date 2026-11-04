@@ -193,6 +193,9 @@ export async function POST(req) {
         return Response.json(
           {
             error: 'Too Many Requests',
+            ip: clientIp,
+            device: clientUserAgent,
+            retryAfter: rateResult.retryAfter,
             message: `⚠️ ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីទៀតមុនពេលសាកល្បងម្ដងទៀត ដើម្បីការពារ Server ពីការ Spam។`
           },
           {
@@ -250,7 +253,7 @@ export async function POST(req) {
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
         (bot === 'konpov'
           ? (gender === 'ប្រុស' ? 'Aoede' : 'Puck')
-          : 'Charon');
+          : 'Puck');
       const audioGenConfig = {
         responseModalities: ['AUDIO'],
         speechConfig: {
@@ -275,6 +278,7 @@ export async function POST(req) {
       if (fallbackAudioB64) {
         return Response.json(
           {
+            isFallbackBotVoice: true,
             candidates: [
               {
                 content: {
