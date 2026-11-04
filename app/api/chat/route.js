@@ -5,6 +5,11 @@ import {
   alertSecuritySpam,
   alertSystemError
 } from '../../../lib/telegram';
+import {
+  checkDDoSFirewall,
+  checkChatLimit,
+  getClientIp
+} from '../../../lib/rateLimit';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,38 +19,6 @@ const corsHeaders = {
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: corsHeaders });
-}
-
-// In-memory sliding window rate limiter
-// Max 5 messages per 1 minute (60 seconds) per device/IP
-const rateLimitMap = new Map();
-const WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS = 5;
-
-// Clean up old rate limit entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, history] of rateLimitMap.entries()) {
-    const valid = history.filter((time) => now - time < WINDOW_MS);
-    if (valid.length === 0) {
-      rateLimitMap.delete(key);
-    } else {
-      rateLimitMap.set(key, valid);
-    }
-  }
-}, 5 * 60 * 1000);
-
-function checkRateLimit(key) {
-  const now = Date.now();
-  const history = (rateLimitMap.get(key) || []).filter((time) => now - time < WINDOW_MS);
-  if (history.length >= MAX_REQUESTS) {
-    const oldestTime = history[0];
-    const retryAfter = Math.max(1, Math.ceil((oldestTime + WINDOW_MS - now) / 1000));
-    return { allowed: false, retryAfter };
-  }
-  history.push(now);
-  rateLimitMap.set(key, history);
-  return { allowed: true };
 }
 
 // Active models with automated fallback to guarantee 100% uptime (including vision & audio)
@@ -185,23 +158,35 @@ export async function POST(req) {
   let clientUserAgent = 'Unknown';
 
   try {
-    const forwardedFor = req.headers.get('x-forwarded-for') || '';
-    clientIp = forwardedFor.split(',')[0].trim() || 'unknown-ip';
+    clientIp = getClientIp(req);
     clientUserAgent = req.headers.get('user-agent') || 'Unknown';
+
+    // 0. Anti-DDoS and Burst Flooding Firewall Check
+    const ddosCheck = checkDDoSFirewall(req, 'chat');
+    if (!ddosCheck.allowed) {
+      return Response.json(
+        {
+          error: 'Too Many Requests',
+          message: ddosCheck.message,
+          retryAfter: ddosCheck.retryAfter
+        },
+        {
+          status: 429,
+          headers: { ...corsHeaders, 'Retry-After': String(ddosCheck.retryAfter) }
+        }
+      );
+    }
 
     const body = await req.json();
     const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender } = body;
     reqBot = bot;
     reqUsername = username;
 
-    // 1. Anti-Spam / Anti-DDoS Rate Limiting
-    // Enforces strict maximum 5 chat messages per minute per device/IP
+    // 1. Anti-Spam Rate Limiting (5 messages per minute per user/device)
     // Internal audio synthesis requests do not consume the chat message quota
     if (!audio) {
-      const deviceId = req.headers.get('x-device-id') || req.headers.get('user-agent') || 'default-device';
-      const rateLimitKey = `${clientIp}_${deviceId}`;
-
-      const rateResult = checkRateLimit(rateLimitKey);
+      const deviceId = req.headers.get('x-device-id') || clientUserAgent;
+      const rateResult = checkChatLimit(clientIp, deviceId);
       if (!rateResult.allowed) {
         // High-priority Telegram Security Spam Alert
         const userPrompt = prompt || contents?.[contents.length - 1]?.parts?.[0]?.text || '';

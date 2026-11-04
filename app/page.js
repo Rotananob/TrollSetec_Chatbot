@@ -10,6 +10,7 @@ export default function Home() {
   const [username, setUsername] = useState('');
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [hasCheckedStorage, setHasCheckedStorage] = useState(false);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [theme, setTheme] = useState('light');
   const bgmRef = useRef(null);
@@ -20,11 +21,12 @@ export default function Home() {
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
     setTheme(savedTheme);
 
-    if (savedName) {
-      setUsername(savedName);
+    if (savedName && savedName.trim()) {
+      setUsername(savedName.trim());
       setIsSubmitted(true);
     }
     if (savedAvatar) setAvatar(savedAvatar);
+    setHasCheckedStorage(true);
 
     // Instant Funny Haha background music initialization (starts at 0.0s)
     const bgm = bgmRef.current;
@@ -250,7 +252,14 @@ export default function Home() {
             វេទិកា Troll & Chat AI សិស្ស SETEC ដ៏ពេញនិយម
           </p>
 
-          {!isSubmitted ? (
+          {!hasCheckedStorage ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-3">
+              <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                កំពុងត្រួតពិនិត្យគណនី...
+              </p>
+            </div>
+          ) : !isSubmitted ? (
             <>
               <div className="mb-5">
                 <div className="flex flex-col items-center gap-3">

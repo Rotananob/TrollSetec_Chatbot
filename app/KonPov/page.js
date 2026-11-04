@@ -182,9 +182,19 @@ export default function KonPovPage() {
       localStorage.getItem('chatbot_avatar') ||
       'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
+    const savedGender = localStorage.getItem('chatbot_gender') || '';
+    const savedAgreed = localStorage.getItem('chatbot_agreed_konpov') === 'true';
+
     setUsername(savedName);
     setAvatar(savedAvatar);
     setTheme(savedTheme);
+
+    if (savedGender) {
+      setUserGender(savedGender);
+    }
+    if (savedAgreed && savedGender) {
+      setHasAgreed(true);
+    }
   }, []);
 
   const handleToggleTheme = () => {
@@ -200,11 +210,13 @@ export default function KonPovPage() {
   // Gender selection
   const handleSelectGender = (gender) => {
     setUserGender(gender);
+    localStorage.setItem('chatbot_gender', gender);
   };
 
   // User explicitly clicks "Agree & Start Chat"
   const handleAgreeAndStartChat = () => {
     setHasAgreed(true);
+    localStorage.setItem('chatbot_agreed_konpov', 'true');
     const introMsg =
       userGender === 'ប្រុស'
         ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`

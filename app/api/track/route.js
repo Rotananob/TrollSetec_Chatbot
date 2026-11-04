@@ -6,6 +6,11 @@ import {
   alertDailyVisitorReport,
   getCambodiaDayKey
 } from '../../../lib/telegram';
+import {
+  checkDDoSFirewall,
+  checkTrackLimit,
+  getClientIp
+} from '../../../lib/rateLimit';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -70,14 +75,29 @@ async function checkDayRollover() {
 
 export async function POST(req) {
   try {
+    const ip = getClientIp(req);
+    const userAgent = req.headers.get('user-agent') || 'Unknown';
+
+    // 0. Anti-DDoS and Burst Flooding Firewall
+    const ddosCheck = checkDDoSFirewall(req, 'track');
+    if (!ddosCheck.allowed) {
+      return Response.json(
+        { counted: false, reason: 'rate_limited' },
+        { status: 429, headers: corsHeaders }
+      );
+    }
+
+    if (!checkTrackLimit(ip).allowed) {
+      return Response.json(
+        { counted: false, reason: 'track_rate_limit' },
+        { status: 429, headers: corsHeaders }
+      );
+    }
+
     await checkDayRollover();
 
     const body = await req.json().catch(() => ({}));
     const { deviceId, pathname, screen, referrer, username } = body;
-
-    const forwardedFor = req.headers.get('x-forwarded-for') || '';
-    const ip = forwardedFor.split(',')[0].trim() || 'unknown-ip';
-    const userAgent = req.headers.get('user-agent') || 'Unknown';
 
     const sessionKey = `${ip}_${deviceId || 'anon'}`;
     const now = Date.now();
