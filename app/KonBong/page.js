@@ -7,6 +7,7 @@ import { checkClientRateLimit, getDeviceId } from '../utils/rateLimiter';
 import AntiSpamModal from '@/components/AntiSpamModal';
 import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
+import MemePromptModal from '@/components/MemePromptModal';
 
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/chat`
@@ -41,6 +42,7 @@ export default function KonBongPage() {
 
   // Meme Generation State
   const [isGeneratingMeme, setIsGeneratingMeme] = useState(false);
+  const [showMemeModal, setShowMemeModal] = useState(false);
 
   const [username, setUsername] = useState('User');
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
@@ -303,9 +305,14 @@ export default function KonBongPage() {
       return;
     }
 
-    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស ស៊ីតិច ជិតប្រឡង ឬ Crush មិនតប') || 'SETEC student life and funny exam moment';
-    if (!idea) return;
+    if (customIdea && typeof customIdea === 'string' && customIdea.trim()) {
+      handleExecuteMeme(customIdea.trim());
+    } else {
+      setShowMemeModal(true);
+    }
+  };
 
+  const handleExecuteMeme = async (idea) => {
     setIsGeneratingMeme(true);
     const userMsg = { role: 'user', text: `សុំបង្កើតរូបភាព Meme៖ "${idea}"` };
     const updatedWithUser = [...messages, userMsg];
@@ -1178,6 +1185,19 @@ export default function KonBongPage() {
           </div>
         </div>
       )}
+
+      {/* Custom Meme Prompt Modal */}
+      <MemePromptModal
+        isOpen={showMemeModal}
+        onClose={() => setShowMemeModal(false)}
+        onSubmit={(customIdea) => {
+          setShowMemeModal(false);
+          handleExecuteMeme(customIdea);
+        }}
+        botPersona="រៀមច្បង"
+        isDark={isDark}
+        isGenerating={isGeneratingMeme}
+      />
 
       {/* Full Image Viewer Modal */}
       <ImageModal

@@ -7,6 +7,7 @@ import { checkClientRateLimit, getDeviceId } from '../utils/rateLimiter';
 import AntiSpamModal from '@/components/AntiSpamModal';
 import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
+import MemePromptModal from '@/components/MemePromptModal';
 
 const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
   ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/chat`
@@ -39,6 +40,7 @@ export default function KonPovPage() {
 
   // Meme Generation State
   const [isGeneratingMeme, setIsGeneratingMeme] = useState(false);
+  const [showMemeModal, setShowMemeModal] = useState(false);
 
   // Sessions and History Modals
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -435,9 +437,14 @@ export default function KonPovPage() {
       return;
     }
 
-    const idea = customIdea.trim() || prompt(`តើឯងចង់ឱ្យ ${botSelf} បង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស ស៊ីតិច ជិតប្រឡង ឬ Crush មិនតប`) || 'funny student failing exam funny reaction';
-    if (!idea) return;
+    if (customIdea && typeof customIdea === 'string' && customIdea.trim()) {
+      handleExecuteMeme(customIdea.trim());
+    } else {
+      setShowMemeModal(true);
+    }
+  };
 
+  const handleExecuteMeme = async (idea) => {
     setIsGeneratingMeme(true);
     const userMsg = { role: 'user', text: `សុំបង្កើតរូបភាព Meme៖ "${idea}"` };
     const updatedWithUser = [...messages, userMsg];
@@ -1109,6 +1116,19 @@ ${
           </button>
         </div>
       </footer>
+
+      {/* Custom Meme Prompt Modal */}
+      <MemePromptModal
+        isOpen={showMemeModal}
+        onClose={() => setShowMemeModal(false)}
+        onSubmit={(customIdea) => {
+          setShowMemeModal(false);
+          handleExecuteMeme(customIdea);
+        }}
+        botPersona={userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'}
+        isDark={isDark}
+        isGenerating={isGeneratingMeme}
+      />
 
       {/* Full Image Viewer Modal */}
       <ImageModal
