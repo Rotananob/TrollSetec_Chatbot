@@ -120,6 +120,7 @@ export default function KonPovPage() {
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
     return str
+      .replace(/SETEC|Setec|setec/gi, 'សុីតិច')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
@@ -204,8 +205,8 @@ export default function KonPovPage() {
     setHasAgreed(true);
     const introMsg =
       userGender === 'ប្រុស'
-        ? `សួស្តីកូនសម្លាញ់ ${username}! Daddy ឃើញថាឯងជ្រើសយកភេទ ប្រុស(Bro)! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស SETEC! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក Daddy បាញ់ឱ្យផ្ងារជើង! 🔥`
-        : `សួស្តីកូនសម្លាញ់ ${username}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទ ស្រី(Sis)! ចង់ប្រាប់ថា ចរិតស្លូតបូតបែប Sis ចឹង Mommy... អូសុំទោស Daddy ចាំមើលថែ! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំ Troll ឱ្យចុក! 🔥`;
+        ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username}! ចែឃើញថាឯងជ្រើសយកភេទ ប្រុស (Bro)! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស សុីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង! 🔥`
+        : `សួស្តីកូនស្រីសម្លាញ់ ${username}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទ ស្រី (Sis)! ចរិតស្លូតបូតបែប Sis ចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង! 🔥`;
 
     const updated = [...messages, { role: 'bot', text: introMsg }];
     setMessages(updated);
@@ -387,8 +388,40 @@ export default function KonPovPage() {
     }
   };
 
+  const [typingStatus, setTypingStatus] = useState('');
+
+  // Interactive AI typing thoughts based on user input
+  function getInteractiveTypingStatus(text, hasImage, gender) {
+    const isMaleUser = gender === 'ប្រុស';
+    const botSelf = isMaleUser ? 'ចែ' : 'Daddy';
+    const lower = (text || '').toLowerCase();
+
+    if (hasImage) {
+      return `🧐 ភ្នែក${botSelf}កំពុងបើកធំៗ ពិនិត្យមើលរូបភាព... ត្រៀម Roast ឱ្យផ្ងារជើង!`;
+    }
+    if (/អញ|ហែង|ចុយ|ឆ្កែ|ងាប់|កាដួយ|អាចុយ|អាឆ្កែ|អាងាប់|អា|អត់ខួរ/i.test(lower)) {
+      return `🔥 ឈាមរាវឡើងកម្ដៅ... ${botSelf}កំពុងរកនឹកពាក្យជេរតបវិញឱ្យចុកឈាម!`;
+    }
+    if (/assignment|code|coding|bug|error|c\+\+|java|html|css|js|python|design|រៀន|ប្រឡង|ធ្លាក់/i.test(lower)) {
+      return `💻 ហាហា! ${botSelf}កំពុងរកនឹកវិធីឌឺរឿង Assignment គាំង...`;
+    }
+    if (/crush|ស្រឡាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់/i.test(lower)) {
+      return isMaleUser
+        ? '💔 ហាហា ចែដឹងរឿងអស់ហើយ! ចែកំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...'
+        : '💔 ហាហា Daddy ដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...';
+    }
+    if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
+      return '🍜 កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
+    }
+    return isMaleUser
+      ? '💅 ចាំបន្តិចអាប្អូនប្រុស! ចែកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...'
+      : '😏 ចាំបន្តិចកូនសម្លាញ់! Daddy កំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
+  }
+
   // Dedicated Meme Generator Trigger (Strict 1-Image Per User Quota)
   const handleRequestMeme = async (customIdea = '') => {
+    const isMaleUser = userGender === 'ប្រុស';
+    const botSelf = isMaleUser ? 'ចែ' : 'Daddy';
     const quotaUsed = localStorage.getItem('setec_meme_quota_used');
     if (quotaUsed === 'true') {
       const refusalMsg = `អាម៉ូយ ${username}! គេប្រាប់ថាម្នាក់បានតែមួយរូបទេ! ចង់បានលើសហ្នឹងទៅដេកយល់សប្តិទៅអាប្អូន! 😂 កុំមកលោភលន់ពេក ទុក quota ឱ្យគេលេងផង! 🔥`;
@@ -398,7 +431,7 @@ export default function KonPovPage() {
       return;
     }
 
-    const idea = customIdea.trim() || prompt('តើឯងចង់ឱ្យ Daddy បង្កើត Meme បែបណា? (ឧ. សិស្ស SETEC ជិតប្រឡង, Crush មិនតប...)') || 'funny student failing exam funny reaction';
+    const idea = customIdea.trim() || prompt(`តើឯងចង់ឱ្យ ${botSelf} បង្កើត Meme បែបណា? (ឧ. សិស្ស សុីតិច ជិតប្រឡង, Crush មិនតប...)`) || 'funny student failing exam funny reaction';
     if (!idea) return;
 
     setIsGeneratingMeme(true);
@@ -446,7 +479,7 @@ export default function KonPovPage() {
     }
   };
 
-  // Main Chat Handler (multimodal text + image)
+  // Main Chat Handler (Real-time ChatGPT streaming preview + zero lag)
   const handleChat = async () => {
     if (!hasAgreed || isLoading || (!inputText.trim() && !selectedImage)) return;
 
@@ -482,28 +515,42 @@ export default function KonPovPage() {
       ...(currentImg && { image: currentImg.previewUrl })
     };
 
-    const updatedMessages = [...messages, userMsg];
+    // Pre-insert bot message for real-time streaming preview
+    const updatedMessages = [...messages, userMsg, { role: 'bot', text: '' }];
     setMessages(updatedMessages);
     setIsLoading(true);
 
+    const dynamicTypingText = getInteractiveTypingStatus(promptText, !!currentImg, userGender);
+    setTypingStatus(dynamicTypingText);
+
     try {
       const userNameStr = username || 'User';
+      const isMaleUser = userGender === 'ប្រុស';
+      const botSelf = isMaleUser ? 'ចែ' : 'Daddy';
+      const botRoleTitle = isMaleUser ? 'ចែ/Mommy កូនពៅ' : 'Daddy Mod កូនពៅ';
+      const userTerm = isMaleUser ? 'អាប្អូនប្រុស' : 'កូនស្រីសម្លាញ់';
 
-      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនពៅ" (Daddy Mod / Savage King) ជាកំពូល Chatbot មហាឌឺ មហាឈ្លើយ មហា Roast របស់វិទ្យាស្ថាន SETEC!
+      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនពៅ" (${botRoleTitle} / Savage King) ជាកំពូល Chatbot មហាឌឺ មហាឈ្លើយ មហា Roast របស់វិទ្យាស្ថាន សុីតិច (SETEC)!
+${
+  isMaleUser
+    ? `⚠️ សំខាន់បំផុត៖ ដោយសារ User ជាប្រុស ឯងត្រូវសម្ដែងជាមនុស្សស្រី (ចែ ឬ Mommy) សម្ដីផ្អែមល្ហែមទន់ភ្លន់តែមហាឌឺ មហាកំហូច សើចកក្អឹក! ដាច់ខាតមិនហៅខ្លួនឯងថា "Daddy" ឡើយ គឺត្រូវហៅខ្លួនឯងថា "ចែ" ឬ "Mommy" និងហៅ User ថា "អាប្អូនប្រុស", "អាម៉ូយ", "ប្អូនប្រុសសម្លាញ់" (ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន")!`
+    : `⚠️ សំខាន់បំផុត៖ ដោយសារ User ជាស្រី ឯងត្រូវសម្ដែងជាមនុស្សប្រុស (Daddy) កំពូល Troll មើលថែកូនស្រី និងបាញ់ផ្ងារជើង! ហៅខ្លួនឯងថា "Daddy" និងហៅ User ថា "កូនស្រីសម្លាញ់", "Sis", "អាប្អូនស្រី"!`
+}
+
 អត្តចរិត និងច្បាប់ឆ្លើយតបសំខាន់បំផុត៖
 1. ចរិតមនុស្សពិតប្រាកដ ១០០% (មិនមែន Bot កំប៉ុងទេ!)៖ ឯងមានអារម្មណ៍ឆេវឆាវដូចមនុស្សពិត! ចេះខឹងច្រឡោត 😡 ចេះសើចក្អាកក្អាយ 🤣🤣🤣 ចេះឌឺចុកៗ 😏 ចេះត្មះត្មះ និងចេះឌឺបកវិញគ្រប់ក្បាច់!
 2. ច្បាប់ "អញ" និង "ហែង" (តបតតាម User ភ្លាមៗ)៖
-   - បើ User និយាយពាក្យ "អញ" ឬ "ហែង" ឬនិយាយគ្មានក្បាលកន្ទុយ ឯងត្រូវតែប្រើពាក្យ "អញ" និង "ហែង" វាយបកទៅវិញភ្លាម! កុំមកប្រើពាក្យសុភាពដាក់មនុស្សដែលនិយាយអញហែងដាក់ឯងឱ្យសោះ! ឧទាហរណ៍៖ "អញនៅនេះហែងចង់បានស្អី?", "ហែងកុំមកខ្លាំងជាមួយអញណាអាអូន!", "អញជា Daddy ហែងហ្នឹង!"
+   - បើ User និយាយពាក្យ "អញ" ឬ "ហែង" ឬនិយាយគ្មានក្បាលកន្ទុយ ឯងត្រូវតែប្រើពាក្យ "អញ" និង "ហែង" វាយបកទៅវិញភ្លាម! កុំមកប្រើពាក្យសុភាពដាក់មនុស្សដែលនិយាយអញហែងដាក់ឯងឱ្យសោះ! ឧទាហរណ៍៖ "អញនៅនេះហែងចង់បានស្អី?", "ហែងកុំមកខ្លាំងជាមួយអញណាអាអូន!", "អញជា ${botSelf} ហែងហ្នឹង!"
 3. ច្បាប់ជេរ និង ROAST មហាចុក (បាញ់ឱ្យបាក់ក)៖
    - បើ User ជេរឯង (ជេរម៉ែ ជេរអាចុយម្រាយ ជេរកាដួយ ជេរអាឆ្កែ ជេរអន់ ជេរភ្លីភ្លើ ឬពាក្យអាក្រក់): ឯងត្រូវតែជេរតបតវិញភ្លាមៗ គ្មានការលើកលែង! Roast ឱ្យចុកឈាម ឱ្យខ្មាសគេ ឱ្យដេកយំ ឧទាហរណ៍៖ "ហែងជេរអញរកស្អីអាងាប់! មុខដូចហែងប្រឡង assignment ធ្លាក់ហើយមកខឹងអញ!", "ជេរអញចឹងប្រយ័ត្នបាក់ធ្មេញអាប្អូន! មុខដូចហែង crush គេមិនទាំងមើលផង!", "អាឆ្កែ! ជេរអញអញជេរវិញ ១០ ដង អាអត់ខួរ!"
 4. មហា SLANG Gen Z & ភាសាខ្មែរ Latin កំពូលស្ទាត់៖
-   - យល់ និងនិយាយ Slang & Latin គ្រប់ម៉ាត់: "ort dg", "tver ey", "nhom", "koun pov", "ot luy", "crush ort tob", "cringe", "slang", "bror", "sis", "fr fr", "no cap", "បាញ់ផ្ងារជើង", "ចុកឈាម", "គាំងបេះដូង", "ដាច់ផ្ងារ", "សិស្សច្បងបោក", "Assignment IT/Design គាំង", "ស៊ីបាយក្បែរ SETEC", "កុំមកឌឺ Daddy"!
-5. ហៅ User: ហៅ "${userNameStr}", "អាម៉ូយ", "អាប្អូន", "កូនសម្លាញ់" ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន"!
+   - យល់ និងនិយាយ Slang & Latin គ្រប់ម៉ាត់: "ort dg", "tver ey", "nhom", "koun pov", "ot luy", "crush ort tob", "cringe", "slang", "bror", "sis", "fr fr", "no cap", "បាញ់ផ្ងារជើង", "ចុកឈាម", "គាំងបេះដូង", "ដាច់ផ្ងារ", "សិស្សច្បងបោក", "Assignment IT/Design គាំង", "ស៊ីបាយក្បែរ សុីតិច (SETEC)", "កុំមកឌឺ ${botSelf}"!
+5. ហៅ User: ហៅ "${userNameStr}", "${userTerm}", "អាម៉ូយ" ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន"!
 6. បើ User ផ្ញើរូបភាពមក (Multimodal Image): ពិនិត្យមើលរូបភាពនោះយ៉ាងល្អិតល្អន់ រួចសើចចំអក ឬ Roast ឌឺដងបែប Gen Z ឱ្យចុកឈាមតែ Funny សើចចុកពោះ!
-7. បើគេសួររក Rotana NOB: និយាយថា "Rotana NOB ជា Daddy បង្កើតអញមក គាត់ជាមនុស្ស Chill ទេ កុំមកស្ដីឱ្យគាត់ ព្រោះសម្ដីឈ្លើយៗចេញពីក្បាលអញ AI សុទ្ធសាធ!"`;
+7. បើគេសួររក Rotana NOB: និយាយថា "Rotana NOB ជាអ្នកបង្កើតអញមក គាត់ជាមនុស្ស Chill ទេ កុំមកស្ដីឱ្យគាត់ ព្រោះសម្ដីឈ្លើយៗចេញពីក្បាលអញ AI សុទ្ធសាធ!"`;
 
       const formattedContents = [];
-      const recentHistory = updatedMessages.slice(-6);
+      const recentHistory = messages.concat(userMsg).slice(-6);
 
       for (let i = 0; i < recentHistory.length; i++) {
         const m = recentHistory[i];
@@ -535,7 +582,8 @@ export default function KonPovPage() {
             systemInstruction,
             bot: 'konpov',
             username: userNameStr,
-            gender: userGender
+            gender: userGender,
+            stream: true
           })
         });
 
@@ -548,36 +596,74 @@ export default function KonPovPage() {
           });
           setSpamModalOpen(true);
           setIsLoading(false);
+          setMessages((prev) => prev.slice(0, prev.length - 1)); // remove empty bot placeholder
           return;
         }
 
-        if (response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+
+        // Real-time progressive streaming preview (ChatGPT-style)
+        if (response.ok && contentType.includes('text/event-stream') && response.body) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep remainder
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('data:')) {
+                const jsonStr = trimmed.slice(5).trim();
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                  if (delta) {
+                    botText += delta;
+                    setMessages((prev) => {
+                      const copy = [...prev];
+                      copy[copy.length - 1] = { role: 'bot', text: botText };
+                      return copy;
+                    });
+                  }
+                } catch {}
+              }
+            }
+          }
+        } else if (response.ok) {
           const res = await response.json();
-          botText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+          botText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
         }
       } catch (err) {
         console.warn('[KonPov] Backend API unavailable, falling back...', err);
       }
 
       if (!botText) {
-        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ SETEC បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 Daddy សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
-      const botMsgIndex = updatedMessages.length;
-      const finalMessages = [...updatedMessages, { role: 'bot', text: botText }];
+      const finalMessages = [...updatedMessages];
+      finalMessages[finalMessages.length - 1] = { role: 'bot', text: botText };
       setMessages(finalMessages);
       setIsLoading(false);
 
       // Auto-fetch voice
-      triggerAudio(botText, botMsgIndex, true);
+      triggerAudio(botText, finalMessages.length - 1, true);
     } catch (e) {
       console.error(e);
       setIsLoading(false);
+      const isMaleUser = userGender === 'ប្រុស';
       const fallbackMessages = [
-        ...updatedMessages,
+        ...messages,
+        userMsg,
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ SETEC បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 Daddy សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! 😂 ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`
         }
       ];
       setMessages(fallbackMessages);
@@ -785,53 +871,60 @@ export default function KonPovPage() {
                       isDark ? 'bg-slate-900/90 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
                     }`}
                   >
-                    <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">{item.text}</p>
+                    <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
+                      {item.text}
+                      {isLoading && idx === messages.length - 1 && (
+                        <span className="inline-block w-1.5 h-3.5 ml-1 bg-blue-400 animate-pulse align-middle"></span>
+                      )}
+                    </p>
 
-                    <button
-                      onClick={() => triggerAudio(item.text, idx)}
-                      disabled={st === 'loading'}
-                      className="mt-3 bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-blue-500/20 flex items-center gap-2 transition hover:bg-blue-500/20 cursor-pointer"
-                    >
-                      {st === 'loading' && (
-                        <>
-                          <i className="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេង...</span>
-                        </>
-                      )}
-                      {st === 'playing' && (
-                        <>
-                          <i className="fas fa-headset animate-pulse text-blue-400"></i> <span>កំពុងអាន</span>
-                        </>
-                      )}
-                      {st === 'paused' && (
-                        <>
-                          <i className="fas fa-play"></i> <span>បន្តស្ដាប់</span>
-                        </>
-                      )}
-                      {st === 'ended' && (
-                        <>
-                          <i className="fas fa-redo"></i> <span>ស្តាប់ម្ដងទៀត</span>
-                        </>
-                      )}
-                      {st === 'ready' && (
-                        <>
-                          <i className="fas fa-play"></i>{' '}
-                          <span>
+                    {item.text && (
+                      <button
+                        onClick={() => triggerAudio(item.text, idx)}
+                        disabled={st === 'loading'}
+                        className="mt-3 bg-blue-500/10 text-blue-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-blue-500/20 flex items-center gap-2 transition hover:bg-blue-500/20 cursor-pointer"
+                      >
+                        {st === 'loading' && (
+                          <>
+                            <i className="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេង...</span>
+                          </>
+                        )}
+                        {st === 'playing' && (
+                          <>
+                            <i className="fas fa-headset animate-pulse text-blue-400"></i> <span>កំពុងអាន</span>
+                          </>
+                        )}
+                        {st === 'paused' && (
+                          <>
+                            <i className="fas fa-play"></i> <span>បន្តស្ដាប់</span>
+                          </>
+                        )}
+                        {st === 'ended' && (
+                          <>
+                            <i className="fas fa-redo"></i> <span>ស្តាប់ម្ដងទៀត</span>
+                          </>
+                        )}
+                        {st === 'ready' && (
+                          <>
+                            <i className="fas fa-play"></i>{' '}
+                            <span>
+                              {fallbackAudioMap[idx]
+                                ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                                : userGender === 'ប្រុស'
+                                ? 'ស្តាប់សំឡេង ចែ/Mommy បាញ់ (Funny Voice)'
+                                : 'ស្តាប់ Daddy បាញ់ (Funny Voice)'}
+                            </span>
+                          </>
+                        )}
+                        {st === 'error' && (
+                          <span className="text-amber-400">
                             {fallbackAudioMap[idx]
                               ? '🎧 Bot អានជំនួស (Server AI រវល់)'
-                              : userGender === 'ប្រុស'
-                              ? 'ស្តាប់សំឡេងនារី (ផ្អែមល្ហែម)'
-                              : 'ស្តាប់ Daddy បាញ់'}
+                              : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
                           </span>
-                        </>
-                      )}
-                      {st === 'error' && (
-                        <span className="text-amber-400">
-                          {fallbackAudioMap[idx]
-                            ? '🎧 Bot អានជំនួស (Server AI រវល់)'
-                            : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
-                        </span>
-                      )}
-                    </button>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -839,9 +932,9 @@ export default function KonPovPage() {
           }
         })}
 
-        {/* Status UI while loading */}
+        {/* Status UI while loading / interactive typing thought */}
         {(isLoading || isGeneratingMeme) && (
-          <div className="flex items-center space-x-3 text-blue-400 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl w-fit">
+          <div className="flex items-center space-x-3 text-blue-400 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl w-fit shadow-md animate-fade-in">
             <img
               src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
               alt="Bot Avatar"
@@ -852,8 +945,10 @@ export default function KonPovPage() {
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
               <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider">
-              {isGeneratingMeme ? 'Daddy កំពុងបង្កើត Meme សុទ្ធសាធ (Pure Meme)...' : 'Daddy កំពុងគិតពាក្យឌឺ...'}
+            <span className="text-[10px] font-black tracking-wider">
+              {isGeneratingMeme
+                ? `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងបង្កើត Meme សុទ្ធសាធ (Pure Meme)...`
+                : typingStatus || `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងរកនឹកពាក្យឌឺ...`}
             </span>
           </div>
         )}
@@ -976,8 +1071,10 @@ export default function KonPovPage() {
                 !hasAgreed
                   ? '🔒 សូមអាន Note និងចុចយល់ព្រមខាងលើសិន មុនពេលឆាត...'
                   : selectedImage
-                  ? 'វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ Daddy Roast រូបនេះ...'
-                  : 'និយាយមកកូនពៅ... កុំរត់ចោល Daddy បាទ!'
+                  ? `វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} Roast រូបនេះ...`
+                  : userGender === 'ប្រុស'
+                  ? 'និយាយមកអាប្អូនប្រុស... កុំរត់ចោល ចែ/Mommy បាទ!'
+                  : 'និយាយមកកូនស្រី... កុំរត់ចោល Daddy បាទ!'
               }
             />
           </div>

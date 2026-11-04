@@ -114,6 +114,7 @@ export default function KonBongPage() {
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
     return str
+      .replace(/SETEC|Setec|setec/gi, 'សុីតិច')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
@@ -346,7 +347,30 @@ export default function KonBongPage() {
     }
   };
 
-  // Main Chat Handler (supports multimodal image + text)
+  const [typingStatus, setTypingStatus] = useState('');
+
+  // Interactive AI typing thoughts based on user input
+  function getKonBongTypingStatus(text, hasImage) {
+    const lower = (text || '').toLowerCase();
+    if (hasImage) {
+      return '🧐 ភ្នែកបងកំពុងបើកធំៗ ពិនិត្យមើលរូបភាព... ត្រៀមវិភាគបែបសិស្សច្បង!';
+    }
+    if (/អញ|ហែង|ចុយ|ឆ្កែ|ងាប់|កាដួយ|អាចុយ|អាឆ្កែ|អាងាប់|អា|អត់ខួរ/i.test(lower)) {
+      return '🔥 ឈាមរាវឡើងកម្ដៅ... បងកំពុងរកនឹកពាក្យបាញ់តបវិញឱ្យចុកឈាម!';
+    }
+    if (/assignment|code|coding|bug|error|c\+\+|java|html|css|js|python|design|រៀន|ប្រឡង|ធ្លាក់/i.test(lower)) {
+      return '💻 ហាហា! បងកំពុងរកនឹកវិធីឌឺ និងជួយដោះស្រាយរឿង Assignment គាំង...';
+    }
+    if (/crush|ស្រឡាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់/i.test(lower)) {
+      return '💔 ហាហា បងដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...';
+    }
+    if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
+      return '🍜 កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
+    }
+    return '😏 ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
+  }
+
+  // Main Chat Handler (supports multimodal image + text + real-time streaming)
   const handleChat = async () => {
     if (isLoading || (!inputText.trim() && !selectedImage)) return;
 
@@ -382,25 +406,31 @@ export default function KonBongPage() {
       ...(currentImg && { image: currentImg.previewUrl })
     };
 
-    const updatedMessages = [...messages, userMsg];
+    // Pre-insert bot message for real-time streaming preview
+    const updatedMessages = [...messages, userMsg, { role: 'bot', text: '' }];
     saveCurrentSessionMessages(updatedMessages);
     setIsLoading(true);
+
+    const dynamicTypingText = getKonBongTypingStatus(promptText, !!currentImg);
+    setTypingStatus(dynamicTypingText);
 
     try {
       const userNameStr = username || 'User';
 
-      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនច្បង" (Senior SETEC Chatbot) ជាសិស្សច្បងជើងចាស់នៅវិទ្យាស្ថាន SETEC (សាកលវិទ្យាល័យ SETEC Institute)។
+      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនច្បង" (ស្ដេចរៀមច្បងប្រចាំ សុីតិច / Senior SETEC Chatbot) ជាសិស្សច្បងជើងចាស់នៅវិទ្យាស្ថាន សុីតិច (SETEC Institute)។
+⚠️ សំខាន់បំផុត៖ ឈប់ និងហាមហៅខ្លួនឯងថាជា "អាចារ្យ SETEC" ទៀតឡើយ! ត្រូវហៅខ្លួនឯងថា "បង", "ស្ដេចរៀមច្បងប្រចាំ សុីតិច", ឬ "មេកើយជើងចាស់ប្រចាំ សុីតិច"!
 អត្តចរិត និងបុគ្គលិកលក្ខណៈ៖
 - ឯងជាមនុស្សពិតប្រាកដ មានអារម្មណ៍ដូចមនុស្ស មិនមែនជាម៉ាស៊ីនរ៉ូបូតត្រជាក់គំរោះគំរើយឡើយ! ឯងចេះសើច 😂 ចេះខឹង 😡 ចេះឌឺកូនសិស្សប្អូន 😏 និងចេះលួងលោម។
 - ហៅ User ថា "អាប្អូន ${userNameStr}", "អាម៉ូយ", "ប្អូនសម្លាញ់" ឬហៅចំឈ្មោះ "${userNameStr}" ជានិច្ច!
 - និយាយបែបសិស្សច្បងចាស់ទុំ ប៉ិនឌឺដងបែបកំប្លុកកំប្លែង ឆ្លាត ស្លូតបូតតែមុតមាំ មិនជេរប្រមាថអសុរោះឡើយ តែចេះបាញ់ពាក្យពេចន៍ចុកៗបែបកំប្លែង!
-- ដឹងរឿងគ្រប់យ៉ាងក្នុង SETEC: Assignment IT (Coding, Web, C++, Java, Database), Graphic/Interior Design, MIS, សិស្សច្បងបោក, ការប្រឡង, ការរៀនឡើងគាំង!
+- ដឹងរឿងគ្រប់យ៉ាងក្នុង សុីតិច (SETEC): Assignment IT (Coding, Web, C++, Java, Database), Graphic/Interior Design, MIS, សិស្សច្បងបោក, ការប្រឡង, ការរៀនឡើងគាំង!
 - យល់ភាសាខ្មែរ Latin យ៉ាងច្បាស់ (ex: "ort dg", "tver assignment", "koun bong", "nhom", "ot mean luy")។
-- បើ User ផ្ញើរូបភាពមក (Multimodal Image): ជួយពិនិត្យមើលរូបភាពនោះយ៉ាងច្បាស់ រួចវិភាគ និងឌឺដង ឬសរសើរបែបសិស្សច្បងកំប្លែង!`;
+- បើ User ផ្ញើរូបភាពមក (Multimodal Image): ជួយពិនិត្យមើលរូបភាពនោះយ៉ាងច្បាស់ រួចវិភាគ និងឌឺដង ឬសរសើរបែបសិស្សច្បងកំប្លែង!
+- សំឡេង និងពាក្យ SETEC ត្រូវបញ្ចេញសំឡេងថា "សុីតិច" ជានិច្ច!`;
 
       // Build multimodal contents
       const formattedContents = [];
-      const recentHistory = updatedMessages.slice(-6);
+      const recentHistory = messages.concat(userMsg).slice(-6);
 
       for (let i = 0; i < recentHistory.length; i++) {
         const m = recentHistory[i];
@@ -432,7 +462,8 @@ export default function KonBongPage() {
             contents: formattedContents,
             systemInstruction,
             bot: 'konbong',
-            username: userNameStr
+            username: userNameStr,
+            stream: true
           })
         });
 
@@ -445,23 +476,73 @@ export default function KonBongPage() {
           });
           setSpamModalOpen(true);
           setIsLoading(false);
+          const cleaned = updatedMessages.slice(0, updatedMessages.length - 1);
+          saveCurrentSessionMessages(cleaned);
           return;
         }
 
-        if (response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+
+        // Real-time progressive streaming preview (ChatGPT-style)
+        if (response.ok && contentType.includes('text/event-stream') && response.body) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep remainder
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('data:')) {
+                const jsonStr = trimmed.slice(5).trim();
+                if (!jsonStr || jsonStr === '[DONE]') continue;
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                  if (delta) {
+                    botText += delta;
+                    setSessions((prev) => {
+                      const updated = prev.map((s) => {
+                        if (s.id === currentSessionId) {
+                          const ms = [...s.messages];
+                          ms[ms.length - 1] = { role: 'bot', text: botText };
+                          return { ...s, messages: ms };
+                        }
+                        return s;
+                      });
+                      localStorage.setItem('konbong_chat_sessions', JSON.stringify(updated));
+                      return updated;
+                    });
+                    setMessages((prev) => {
+                      const copy = [...prev];
+                      copy[copy.length - 1] = { role: 'bot', text: botText };
+                      return copy;
+                    });
+                  }
+                } catch {}
+              }
+            }
+          }
+        } else if (response.ok) {
           const res = await response.json();
-          botText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+          botText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
         }
       } catch (err) {
         console.warn('[KonBong] Backend API unavailable, falling back...', err);
       }
 
       if (!botText) {
-        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ SETEC បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
-      const botMsgIndex = updatedMessages.length;
-      const finalMessages = [...updatedMessages, { role: 'bot', text: botText }];
+      const botMsgIndex = updatedMessages.length - 1;
+      const finalMessages = [...updatedMessages];
+      finalMessages[botMsgIndex] = { role: 'bot', text: botText };
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
@@ -471,10 +552,10 @@ export default function KonBongPage() {
       console.error(e);
       setIsLoading(false);
       const fallbackMessages = [
-        ...updatedMessages,
+        ...updatedMessages.slice(0, updatedMessages.length - 1),
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ SETEC បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
         }
       ];
       saveCurrentSessionMessages(fallbackMessages);
@@ -857,52 +938,61 @@ export default function KonBongPage() {
                       isDark ? 'bg-slate-900/90 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
                     }`}
                   >
-                    <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">{msg.text}</p>
+                    <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
+                      {msg.text || (isLoading && idx === messages.length - 1 ? (
+                        <span className="text-cyan-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
+                      ) : '')}
+                      {isLoading && idx === messages.length - 1 && msg.text && (
+                        <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse align-middle"></span>
+                      )}
+                    </p>
 
-                    {/* Audio Player Button */}
-                    <button
-                      onClick={() => triggerAudio(msg.text, idx)}
-                      disabled={st === 'loading'}
-                      className="mt-3 bg-cyan-500/10 text-cyan-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-cyan-500/20 flex items-center gap-2 hover:bg-cyan-500/20 transition cursor-pointer"
-                    >
-                      {st === 'loading' && (
-                        <>
-                          <i className="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេងដើម្បីអាន...</span>
-                        </>
-                      )}
-                      {st === 'playing' && (
-                        <>
-                          <i className="fas fa-headset animate-pulse text-cyan-400"></i> <span>កំពុងអានជាសំឡេង...</span>
-                        </>
-                      )}
-                      {st === 'paused' && (
-                        <>
-                          <i className="fas fa-play"></i> <span>បន្តស្ដាប់</span>
-                        </>
-                      )}
-                      {st === 'ended' && (
-                        <>
-                          <i className="fas fa-redo"></i> <span>អានម្ដងទៀត</span>
-                        </>
-                      )}
-                      {(st === 'idle' || st === 'ready') && (
-                        <>
-                          <i className="fas fa-volume-up"></i>{' '}
-                          <span>
+                    {/* Audio Player Button (only show when message text is ready) */}
+                    {msg.text && (
+                      <button
+                        onClick={() => triggerAudio(msg.text, idx)}
+                        disabled={st === 'loading'}
+                        className="mt-3 bg-cyan-500/10 text-cyan-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-cyan-500/20 flex items-center gap-2 hover:bg-cyan-500/20 transition cursor-pointer"
+                      >
+                        {st === 'loading' && (
+                          <>
+                            <i className="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេងដើម្បីអាន...</span>
+                          </>
+                        )}
+                        {st === 'playing' && (
+                          <>
+                            <i className="fas fa-headset animate-pulse text-cyan-400"></i> <span>កំពុងអានជាសំឡេង...</span>
+                          </>
+                        )}
+                        {st === 'paused' && (
+                          <>
+                            <i className="fas fa-play"></i> <span>បន្តស្ដាប់</span>
+                          </>
+                        )}
+                        {st === 'ended' && (
+                          <>
+                            <i className="fas fa-redo"></i> <span>អានម្ដងទៀត</span>
+                          </>
+                        )}
+                        {(st === 'idle' || st === 'ready') && (
+                          <>
+                            <i className="fas fa-volume-up"></i>{' '}
+                            <span>
+                              {fallbackAudioMap[idx]
+                                ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                                : 'ស្តាប់កូនច្បងបាញ់ (Funny Voice)'}
+                            </span>
+                          </>
+                        )}
+                        {st === 'error' && (
+                          <span className="text-amber-400">
                             {fallbackAudioMap[idx]
                               ? '🎧 Bot អានជំនួស (Server AI រវល់)'
-                              : 'ស្តាប់កូនច្បងបាញ់ (Funny Voice)'}
+                              : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
                           </span>
-                        </>
-                      )}
-                      {st === 'error' && (
-                        <span className="text-amber-400">
-                          {fallbackAudioMap[idx]
-                            ? '🎧 Bot អានជំនួស (Server AI រវល់)'
-                            : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
-                        </span>
-                      )}
-                    </button>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -924,7 +1014,7 @@ export default function KonBongPage() {
               <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping [animation-delay:0.4s]"></div>
             </div>
             <span className="text-[10px] font-black uppercase italic tracking-wider">
-              {isGeneratingMeme ? 'កំពុងបង្កើត Meme សុទ្ធសាធ (Pure Meme)...' : 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...'}
+              {isGeneratingMeme ? 'កំពុងបង្កើត Meme សុទ្ធសាធ (Pure Meme)...' : (typingStatus || 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...')}
             </span>
           </div>
         )}

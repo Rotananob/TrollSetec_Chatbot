@@ -92,6 +92,26 @@ async function callModelWithFallback(models, apiKey, payload) {
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
 }
 
+// Fast streaming with SSE fallback for real-time ChatGPT-like preview
+async function callStreamingModelWithFallback(models, apiKey, payload) {
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok && res.body) {
+        return { ok: true, stream: res.body };
+      }
+    } catch (err) {
+      console.warn(`[Stream] Fallback from ${model}:`, err.message);
+    }
+  }
+  return { ok: false };
+}
+
 // High-performance fallback Khmer Speech Synthesis for 100% audio uptime on mobile & web
 async function fetchKhmerSpeechFallback(text) {
   try {
@@ -339,13 +359,42 @@ export async function POST(req) {
         contents: textContents,
         ...(formattedSystemInstruction && { systemInstruction: formattedSystemInstruction })
       };
+      // Determine user prompt text for alert logging
+      const lastPart = textContents?.[textContents.length - 1]?.parts || [];
+      const hasImg = lastPart.some((p) => p.inlineData);
+      const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
+      const userPrompt = (hasImg ? '🖼️ [រូបភាព] ' : '') + textFound;
+
+      // Real-time ChatGPT-like Streaming Mode (SSE)
+      if (body.stream) {
+        const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
+        if (streamResult.ok) {
+          alertChatActivity({
+            username: username || 'Unknown',
+            gender,
+            bot,
+            ip: clientIp,
+            userAgent: clientUserAgent,
+            prompt: userPrompt,
+            isError: false
+          }).catch((e) => console.error('[Telegram] Chat alert error:', e));
+
+          return new Response(streamResult.stream, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive',
+              'X-Accel-Buffering': 'no'
+            }
+          });
+        }
+      }
+
+      // Standard Non-streaming Response
       const result = await callModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
       if (result.ok) {
-        // Send real-time chat alert to Telegram
-        const lastPart = textContents?.[textContents.length - 1]?.parts || [];
-        const hasImg = lastPart.some((p) => p.inlineData);
-        const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
-        const userPrompt = (hasImg ? '🖼️ [រូបភាព] ' : '') + textFound;
         alertChatActivity({
           username: username || 'Unknown',
           gender,

@@ -490,7 +490,7 @@ export default function Home() {
                 title="Rotana NOB"
               />
               <img
-                src="/img/DevPic1.JPG"
+                src="/img/newPic.jpg"
                 alt="Developer 2"
                 className="w-7 h-7 rounded-full border-2 border-pink-400 object-cover"
                 title="Rotana NOB (Co-Dev)"
