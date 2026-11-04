@@ -114,7 +114,7 @@ export default function KonBongPage() {
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
     return str
-      .replace(/SETEC|Setec|setec/gi, 'សុីតិច')
+      .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
@@ -303,7 +303,7 @@ export default function KonBongPage() {
       return;
     }
 
-    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស សុីតិច ជិតប្រឡង ឬ Crush មិនតប') || 'SETEC student life and funny exam moment';
+    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស ស៊ីតិច ជិតប្រឡង ឬ Crush មិនតប') || 'SETEC student life and funny exam moment';
     if (!idea) return;
 
     setIsGeneratingMeme(true);
@@ -369,7 +369,7 @@ export default function KonBongPage() {
       return 'ហាហា បងដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...';
     }
     if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
-      return 'កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
+      return 'កំពុងនឹកឃើញបាយហាងក្បែរ ស៊ីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
     }
     return 'ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
   }
@@ -421,17 +421,17 @@ export default function KonBongPage() {
     try {
       const userNameStr = username || 'User';
 
-      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនច្បង" (ស្ដេចរៀមច្បងប្រចាំ សុីតិច) ជាសិស្សច្បងជើងចាស់នៅវិទ្យាស្ថាន សុីតិច (SETEC Institute)។
-សំខាន់បំផុត៖ ឈប់ និងហាមហៅខ្លួនឯងថាជា "អាចារ្យ SETEC" ទៀតឡើយ! ត្រូវហៅខ្លួនឯងថា "បង", "ស្ដេចរៀមច្បងប្រចាំ សុីតិច", ឬ "មេកើយជើងចាស់ប្រចាំ សុីតិច"!
+      const systemInstruction = `ឯងគឺ "ស៊ីតិច Chatbot កូនច្បង" (ស្ដេចរៀមច្បងប្រចាំ ស៊ីតិច) ជាសិស្សច្បងជើងចាស់នៅវិទ្យាស្ថាន ស៊ីតិច (SETEC Institute)។
+សំខាន់បំផុត៖ ឈប់ និងហាមហៅខ្លួនឯងថាជា "អាចារ្យ SETEC" ទៀតឡើយ! ត្រូវហៅខ្លួនឯងថា "បង", "ស្ដេចរៀមច្បងប្រចាំ ស៊ីតិច", ឬ "មេកើយជើងចាស់ប្រចាំ ស៊ីតិច"!
 អត្តចរិត និងបុគ្គលិកលក្ខណៈ៖
 - ឯងជាមនុស្សពិតប្រាកដ មានអារម្មណ៍ដូចមនុស្ស មិនមែនជាម៉ាស៊ីនរ៉ូបូតត្រជាក់គំរោះគំរើយឡើយ! ឯងចេះសើច ចេះខឹង ចេះឌឺកូនសិស្សប្អូន និងចេះលួងលោម។
 - ដាច់ខាតហាមប្រើ Emoji ក្នុងចម្លើយ ព្រោះមើលទៅរញ៉េរញ៉ៃ! ត្រូវប្រើតែអក្សរសុទ្ធសាធ (Pure Text)!
 - ហៅ User ថា "អាប្អូន ${userNameStr}", "អាម៉ូយ", "ប្អូនសម្លាញ់" ឬហៅចំឈ្មោះ "${userNameStr}" ជានិច្ច!
 - និយាយបែបសិស្សច្បងចាស់ទុំ ប៉ិនឌឺដងបែបកំប្លុកកំប្លែង ឆ្លាត ស្លូតបូតតែមុតមាំ មិនជេរប្រមាថអសុរោះឡើយ តែចេះបាញ់ពាក្យពេចន៍ចុកៗបែបកំប្លែង!
-- ដឹងរឿងគ្រប់យ៉ាងក្នុង សុីតិច: Assignment IT, Graphic, Interior Design, MIS, សិស្សច្បងបោក, ការប្រឡង, ការរៀនឡើងគាំង!
+- ដឹងរឿងគ្រប់យ៉ាងក្នុង ស៊ីតិច: Assignment IT, Graphic, Interior Design, MIS, សិស្សច្បងបោក, ការប្រឡង, ការរៀនឡើងគាំង!
 - យល់ភាសាខ្មែរ Latin យ៉ាងច្បាស់ (ex: "ort dg", "tver assignment", "koun bong", "nhom", "ot mean luy")។
 - បើ User ផ្ញើរូបភាពមក: ជួយពិនិត្យមើលរូបភាពនោះយ៉ាងច្បាស់ រួចវិភាគ និងឌឺដង ឬសរសើរបែបសិស្សច្បងកំប្លែង!
-- សំឡេង និងពាក្យ SETEC ត្រូវបញ្ចេញសំឡេងថា "សុីតិច" ជានិច្ច!`;
+- សំឡេង និងពាក្យ SETEC ត្រូវបញ្ចេញសំឡេងថា "ស៊ីតិច" ជានិច្ច!`;
 
       // Build multimodal contents
       const formattedContents = [];
@@ -542,7 +542,7 @@ export default function KonBongPage() {
       }
 
       if (!botText) {
-        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
       const botMsgIndex = updatedMessages.length - 1;
@@ -560,7 +560,7 @@ export default function KonBongPage() {
         ...updatedMessages.slice(0, updatedMessages.length - 1),
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
         }
       ];
       saveCurrentSessionMessages(fallbackMessages);
@@ -823,7 +823,7 @@ export default function KonBongPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className={`font-black text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                សុីតិច Chatbot កូនច្បង
+                ស៊ីតិច Chatbot កូនច្បង
               </h1>
               <span className="text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-black px-2 py-0.5 rounded-full">
                 ឆ្លាត & ឌឺដង
@@ -867,7 +867,7 @@ export default function KonBongPage() {
               }`}
             >
               <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                សួស្តីអាប្អូន! បងគឺ <b>សុីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ចង់សួររឿងរៀន Assignment IT ឬ Design ឬចង់ troll សិស្សច្បងបោក? ឬសុំបង្កើត Meme កំប្លែងៗ? សួរមកបងបាញ់ឱ្យកប់ម៉ង... កុំទៅសួរអា Chatbot កូនពៅឲសោះ អាហ្នឹងឈ្លើយណាស់!
+                សួស្តីអាប្អូន! បងគឺ <b>ស៊ីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ចង់សួររឿងរៀន Assignment IT ឬ Design ឬចង់ troll សិស្សច្បងបោក? ឬសុំបង្កើត Meme កំប្លែងៗ? សួរមកបងបាញ់ឱ្យកប់ម៉ង... កុំទៅសួរអា Chatbot កូនពៅឲសោះ អាហ្នឹងឈ្លើយណាស់!
               </p>
             </div>
           </div>

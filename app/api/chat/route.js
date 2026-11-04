@@ -50,16 +50,15 @@ function checkRateLimit(key) {
 
 // Active models with automated fallback to guarantee 100% uptime (including vision & audio)
 const TEXT_MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-exp',
-  'gemini-1.5-flash',
-  'gemini-1.5-flash-8b',
+  'gemini-2.5-flash',
+  'gemini-3.8-flash',
+  'gemini-2.5-flash-lite',
   'gemini-flash-latest'
 ];
 const AUDIO_MODELS = [
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-exp',
-  'gemini-1.5-flash'
+  'gemini-2.5-flash-preview-tts',
+  'gemini-3.8-flash-tts',
+  'gemini-3.8-flash-lite-tts'
 ];
 
 async function callModelWithFallback(models, apiKey, payload) {

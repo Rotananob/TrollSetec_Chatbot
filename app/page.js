@@ -466,7 +466,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-sm text-cyan-400 flex items-center gap-1.5">
-                        <span>សុីតិច Chatbot កូនច្បង</span>
+                        <span>ស៊ីតិច Chatbot កូនច្បង</span>
                         <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full">ឆ្លាត & ស្លូត</span>
                       </div>
                       <div className={`text-xs mt-1 leading-snug line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -502,7 +502,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-sm text-indigo-400 flex items-center gap-1.5">
-                        <span>សុីតិច Chatbot កូនពៅ</span>
+                        <span>ស៊ីតិច Chatbot កូនពៅ</span>
                         <span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
                           <span>ស្ដេចឌឺ</span>
                           <i className="fas fa-fire text-amber-400 text-[10px]"></i>

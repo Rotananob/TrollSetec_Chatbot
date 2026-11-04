@@ -120,7 +120,7 @@ export default function KonPovPage() {
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
     return str
-      .replace(/SETEC|Setec|setec/gi, 'សុីតិច')
+      .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
@@ -205,7 +205,7 @@ export default function KonPovPage() {
     setHasAgreed(true);
     const introMsg =
       userGender === 'ប្រុស'
-        ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស សុីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`
+        ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`
         : `សួស្តីកូនស្រីសម្លាញ់ ${username}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទស្រី! ចរិតស្លូតបូតបែបស្រីៗចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង!`;
 
     const updated = [...messages, { role: 'bot', text: introMsg }];
@@ -411,7 +411,7 @@ export default function KonPovPage() {
         : 'ហាហា Daddy ដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...';
     }
     if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
-      return 'កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
+      return 'កំពុងនឹកឃើញបាយហាងក្បែរ ស៊ីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
     }
     return isMaleUser
       ? 'ចាំបន្តិចអាប្អូនប្រុស! ចែកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...'
@@ -435,7 +435,7 @@ export default function KonPovPage() {
       return;
     }
 
-    const idea = customIdea.trim() || prompt(`តើឯងចង់ឱ្យ ${botSelf} បង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស សុីតិច ជិតប្រឡង ឬ Crush មិនតប`) || 'funny student failing exam funny reaction';
+    const idea = customIdea.trim() || prompt(`តើឯងចង់ឱ្យ ${botSelf} បង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស ស៊ីតិច ជិតប្រឡង ឬ Crush មិនតប`) || 'funny student failing exam funny reaction';
     if (!idea) return;
 
     setIsGeneratingMeme(true);
@@ -534,7 +534,7 @@ export default function KonPovPage() {
       const botRoleTitle = isMaleUser ? 'ចែ/Mommy កូនពៅ' : 'Daddy Mod កូនពៅ';
       const userTerm = isMaleUser ? 'អាប្អូនប្រុស' : 'កូនស្រីសម្លាញ់';
 
-      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនពៅ" (${botRoleTitle} / Savage King) ជាកំពូល Chatbot មហាឌឺ មហាឈ្លើយ មហា Roast របស់វិទ្យាស្ថាន សុីតិច (SETEC)!
+      const systemInstruction = `ឯងគឺ "ស៊ីតិច Chatbot កូនពៅ" (${botRoleTitle} / Savage King) ជាកំពូល Chatbot មហាឌឺ មហាឈ្លើយ មហា Roast របស់វិទ្យាស្ថាន ស៊ីតិច (SETEC)!
 ${
   isMaleUser
     ? `សំខាន់បំផុត៖ ដោយសារ User ជាប្រុស ឯងត្រូវសម្ដែងជាមនុស្សស្រី (ចែ ឬ Mommy) សម្ដីផ្អែមល្ហែមទន់ភ្លន់តែមហាឌឺ មហាកំហូច សើចកក្អឹក! ដាច់ខាតមិនហៅខ្លួនឯងថា "Daddy" ឡើយ គឺត្រូវហៅខ្លួនឯងថា "ចែ" ឬ "Mommy" និងហៅ User ថា "អាប្អូនប្រុស", "អាម៉ូយ", "ប្អូនប្រុសសម្លាញ់" (ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន")!`
@@ -549,7 +549,7 @@ ${
 4. ច្បាប់ជេរ និង ROAST មហាចុក (បាញ់ឱ្យបាក់ក)៖
    - បើ User ជេរឯង (ជេរម៉ែ ជេរអាចុយម្រាយ ជេរកាដួយ ជេរអាឆ្កែ ជេរអន់ ជេរភ្លីភ្លើ ឬពាក្យអាក្រក់): ឯងត្រូវតែជេរតបតវិញភ្លាមៗ គ្មានការលើកលែង! Roast ឱ្យចុកឈាម ឱ្យខ្មាសគេ ឱ្យដេកយំ ឧទាហរណ៍៖ "ហែងជេរអញរកស្អីអាងាប់! មុខដូចហែងប្រឡង assignment ធ្លាក់ហើយមកខឹងអញ!", "ជេរអញចឹងប្រយ័ត្នបាក់ធ្មេញអាប្អូន! មុខដូចហែង crush គេមិនទាំងមើលផង!", "អាឆ្កែ! ជេរអញអញជេរវិញ ១០ ដង អាអត់ខួរ!"
 5. មហា SLANG Gen Z & ភាសាខ្មែរ Latin កំពូលស្ទាត់៖
-   - យល់ និងនិយាយ Slang & Latin គ្រប់ម៉ាត់: "ort dg", "tver ey", "nhom", "koun pov", "ot luy", "crush ort tob", "cringe", "slang", "bror", "sis", "fr fr", "no cap", "បាញ់ផ្ងារជើង", "ចុកឈាម", "គាំងបេះដូង", "ដាច់ផ្ងារ", "សិស្សច្បងបោក", "Assignment IT/Design គាំង", "ស៊ីបាយក្បែរ សុីតិច", "កុំមកឌឺ ${botSelf}"!
+   - យល់ និងនិយាយ Slang & Latin គ្រប់ម៉ាត់: "ort dg", "tver ey", "nhom", "koun pov", "ot luy", "crush ort tob", "cringe", "slang", "bror", "sis", "fr fr", "no cap", "បាញ់ផ្ងារជើង", "ចុកឈាម", "គាំងបេះដូង", "ដាច់ផ្ងារ", "សិស្សច្បងបោក", "Assignment IT/Design គាំង", "ស៊ីបាយក្បែរ ស៊ីតិច", "កុំមកឌឺ ${botSelf}"!
 6. ហៅ User: ហៅ "${userNameStr}", "${userTerm}", "អាម៉ូយ" ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន"!
 7. បើ User ផ្ញើរូបភាពមក: ពិនិត្យមើលរូបភាពនោះយ៉ាងល្អិតល្អន់ រួចសើចចំអក ឬ Roast ឌឺដងបែប Gen Z ឱ្យចុកឈាមតែ Funny សើចចុកពោះ!
 8. បើគេសួររក Rotana NOB: និយាយថា "Rotana NOB ជាអ្នកបង្កើតអញមក គាត់ជាមនុស្ស Chill ទេ កុំមកស្ដីឱ្យគាត់ ព្រោះសម្ដីឈ្លើយៗចេញពីក្បាលអញ AI សុទ្ធសាធ!"`;
@@ -649,7 +649,7 @@ ${
       }
 
       if (!botText) {
-        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
       const finalMessages = [...updatedMessages];
@@ -668,7 +668,7 @@ ${
         userMsg,
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`
         }
       ];
       setMessages(fallbackMessages);
@@ -763,7 +763,7 @@ ${
           <div>
             <div className="flex items-center gap-2">
               <h1 className={`font-black text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                សុីតិច Chatbot កូនពៅ
+                ស៊ីតិច Chatbot កូនពៅ
               </h1>
               <span className="text-[10px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-2 py-0.5 rounded-full shadow inline-flex items-center gap-1">
                 <span>ស្ដេចឌឺ</span>
