@@ -115,7 +115,7 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 font-['Kantumruy_Pro',sans-serif] flex items-center justify-center p-4 relative overflow-x-hidden ${
+      className={`min-h-screen transition-colors duration-300 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 pt-14 pb-32 sm:py-8 relative overflow-x-hidden ${
         isDark
           ? 'bg-slate-950 text-slate-100'
           : 'bg-gradient-to-br from-sky-100 via-indigo-50 to-pink-50 text-slate-800'
@@ -228,9 +228,9 @@ export default function Home() {
       </Link>
 
       {/* Main Popup Modal Card */}
-      <div className="w-full max-w-md pt-16 pb-16 sm:py-8 z-20">
+      <div className="w-full max-w-md my-auto z-20">
         <div
-          className={`rounded-3xl shadow-2xl p-6 sm:p-8 text-center relative max-h-[92vh] overflow-y-auto border transition-all duration-300 ${
+          className={`rounded-3xl shadow-2xl p-5 sm:p-8 text-center relative border transition-all duration-300 ${
             isDark
               ? 'bg-slate-900/95 border-slate-800 text-white shadow-indigo-950/40'
               : 'bg-white/95 border-indigo-100 text-slate-800 shadow-indigo-200/50'
@@ -600,25 +600,29 @@ export default function Home() {
                 <i className="fab fa-telegram"></i>
               </a>
             </div>
-            <div className="flex gap-2 justify-center mb-1 mt-3">
-              <img
-                src="/img/DevPic.JPG"
-                alt="Developer 1"
-                width="28"
-                height="28"
-                className="w-7 h-7 rounded-full border-2 border-indigo-400 object-cover"
-                style={{ width: '28px', height: '28px', objectFit: 'cover' }}
-                title="Rotana NOB"
-              />
-              <img
-                src="/img/newPic.jpg"
-                alt="Developer 2"
-                width="28"
-                height="28"
-                className="w-7 h-7 rounded-full border-2 border-pink-400 object-cover"
-                style={{ width: '28px', height: '28px', objectFit: 'cover' }}
-                title="Rotana NOB Co-Dev"
-              />
+            <div className="flex gap-3 justify-center mb-1 mt-3 items-center">
+              <div className="flex flex-col items-center">
+                <img
+                  src="/img/DevPic.JPG"
+                  alt="Rotana NOB"
+                  width="36"
+                  height="36"
+                  className="w-9 h-9 rounded-full border-2 border-indigo-400 object-cover shadow hover:scale-110 transition-transform"
+                  style={{ width: '36px', height: '36px', objectFit: 'cover' }}
+                  title="Rotana NOB"
+                />
+              </div>
+              <div className="flex flex-col items-center">
+                <img
+                  src="/img/newPic.jpg"
+                  alt="Rotana NOB Co-Dev"
+                  width="36"
+                  height="36"
+                  className="w-9 h-9 rounded-full border-2 border-pink-400 object-cover shadow hover:scale-110 transition-transform"
+                  style={{ width: '36px', height: '36px', objectFit: 'cover' }}
+                  title="Rotana NOB Co-Dev"
+                />
+              </div>
             </div>
           </div>
         </div>
