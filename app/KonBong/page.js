@@ -194,7 +194,7 @@ export default function KonBongPage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('សូមជ្រើសរើសតែ file រូបភាព (JPG, PNG, WebP) ប៉ុណ្ណោះ!');
+      alert('សូមជ្រើសរើសតែ file រូបភាពប៉ុណ្ណោះ!');
       return;
     }
 
@@ -296,18 +296,18 @@ export default function KonBongPage() {
 
     if (lastMemeTime && now - lastMemeTime < oneHour) {
       const remainingMin = Math.ceil((lastMemeTime + oneHour - now) / (60 * 1000));
-      const refusalMsg = `អូអាប្អូន ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតរូប Meme បាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! សូមរង់ចាំ ${remainingMin} នាទីទៀតណា៎ប្អូន! 😂✨`;
+      const refusalMsg = `អូអាប្អូន ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតរូប Meme បាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! សូមរង់ចាំ ${remainingMin} នាទីទៀតណា៎ប្អូន!`;
       const updated = [...messages, { role: 'bot', text: refusalMsg }];
       saveCurrentSessionMessages(updated);
       triggerAudio(refusalMsg, updated.length - 1, true);
       return;
     }
 
-    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? (ឧ. សិស្ស សុីតិច ជិតប្រឡង, Crush មិនតប...)') || 'SETEC student life and funny exam moment';
+    const idea = customIdea.trim() || prompt('តើប្អូនចង់ឱ្យបងបង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស សុីតិច ជិតប្រឡង ឬ Crush មិនតប') || 'SETEC student life and funny exam moment';
     if (!idea) return;
 
     setIsGeneratingMeme(true);
-    const userMsg = { role: 'user', text: `🎨 សុំបង្កើតរូប Meme៖ "${idea}"` };
+    const userMsg = { role: 'user', text: `សុំបង្កើតរូបភាព Meme៖ "${idea}"` };
     const updatedWithUser = [...messages, userMsg];
     saveCurrentSessionMessages(updatedWithUser);
 
@@ -357,21 +357,21 @@ export default function KonBongPage() {
   function getKonBongTypingStatus(text, hasImage) {
     const lower = (text || '').toLowerCase();
     if (hasImage) {
-      return '🧐 ភ្នែកបងកំពុងបើកធំៗ ពិនិត្យមើលរូបភាព... ត្រៀមវិភាគបែបសិស្សច្បង!';
+      return 'ភ្នែកបងកំពុងបើកធំៗ ពិនិត្យមើលរូបភាព... ត្រៀមវិភាគបែបសិស្សច្បង!';
     }
     if (/អញ|ហែង|ចុយ|ឆ្កែ|ងាប់|កាដួយ|អាចុយ|អាឆ្កែ|អាងាប់|អា|អត់ខួរ/i.test(lower)) {
-      return '🔥 ឈាមរាវឡើងកម្ដៅ... បងកំពុងរកនឹកពាក្យបាញ់តបវិញឱ្យចុកឈាម!';
+      return 'ឈាមរាវឡើងកម្ដៅ... បងកំពុងរកនឹកពាក្យបាញ់តបវិញឱ្យចុកឈាម!';
     }
     if (/assignment|code|coding|bug|error|c\+\+|java|html|css|js|python|design|រៀន|ប្រឡង|ធ្លាក់/i.test(lower)) {
-      return '💻 ហាហា! បងកំពុងរកនឹកវិធីឌឺ និងជួយដោះស្រាយរឿង Assignment គាំង...';
+      return 'ហាហា! បងកំពុងរកនឹកវិធីឌឺ និងជួយដោះស្រាយរឿង Assignment គាំង...';
     }
     if (/crush|ស្រឡាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់/i.test(lower)) {
-      return '💔 ហាហា បងដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...';
+      return 'ហាហា បងដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...';
     }
     if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
-      return '🍜 កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
+      return 'កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
     }
-    return '😏 ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
+    return 'ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
   }
 
   // Main Chat Handler (supports multimodal image + text + real-time streaming)
@@ -406,7 +406,7 @@ export default function KonBongPage() {
 
     const userMsg = {
       role: 'user',
-      text: promptText || '📸 [បានផ្ញើរូបភាពមួយសន្លឹក]',
+      text: promptText || '[បានផ្ញើរូបភាពមួយសន្លឹក]',
       ...(currentImg && { image: currentImg.previewUrl })
     };
 
@@ -421,15 +421,16 @@ export default function KonBongPage() {
     try {
       const userNameStr = username || 'User';
 
-      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនច្បង" (ស្ដេចរៀមច្បងប្រចាំ សុីតិច / Senior SETEC Chatbot) ជាសិស្សច្បងជើងចាស់នៅវិទ្យាស្ថាន សុីតិច (SETEC Institute)។
-⚠️ សំខាន់បំផុត៖ ឈប់ និងហាមហៅខ្លួនឯងថាជា "អាចារ្យ SETEC" ទៀតឡើយ! ត្រូវហៅខ្លួនឯងថា "បង", "ស្ដេចរៀមច្បងប្រចាំ សុីតិច", ឬ "មេកើយជើងចាស់ប្រចាំ សុីតិច"!
+      const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនច្បង" (ស្ដេចរៀមច្បងប្រចាំ សុីតិច) ជាសិស្សច្បងជើងចាស់នៅវិទ្យាស្ថាន សុីតិច (SETEC Institute)។
+សំខាន់បំផុត៖ ឈប់ និងហាមហៅខ្លួនឯងថាជា "អាចារ្យ SETEC" ទៀតឡើយ! ត្រូវហៅខ្លួនឯងថា "បង", "ស្ដេចរៀមច្បងប្រចាំ សុីតិច", ឬ "មេកើយជើងចាស់ប្រចាំ សុីតិច"!
 អត្តចរិត និងបុគ្គលិកលក្ខណៈ៖
-- ឯងជាមនុស្សពិតប្រាកដ មានអារម្មណ៍ដូចមនុស្ស មិនមែនជាម៉ាស៊ីនរ៉ូបូតត្រជាក់គំរោះគំរើយឡើយ! ឯងចេះសើច 😂 ចេះខឹង 😡 ចេះឌឺកូនសិស្សប្អូន 😏 និងចេះលួងលោម។
+- ឯងជាមនុស្សពិតប្រាកដ មានអារម្មណ៍ដូចមនុស្ស មិនមែនជាម៉ាស៊ីនរ៉ូបូតត្រជាក់គំរោះគំរើយឡើយ! ឯងចេះសើច ចេះខឹង ចេះឌឺកូនសិស្សប្អូន និងចេះលួងលោម។
+- ដាច់ខាតហាមប្រើ Emoji ក្នុងចម្លើយ ព្រោះមើលទៅរញ៉េរញ៉ៃ! ត្រូវប្រើតែអក្សរសុទ្ធសាធ (Pure Text)!
 - ហៅ User ថា "អាប្អូន ${userNameStr}", "អាម៉ូយ", "ប្អូនសម្លាញ់" ឬហៅចំឈ្មោះ "${userNameStr}" ជានិច្ច!
 - និយាយបែបសិស្សច្បងចាស់ទុំ ប៉ិនឌឺដងបែបកំប្លុកកំប្លែង ឆ្លាត ស្លូតបូតតែមុតមាំ មិនជេរប្រមាថអសុរោះឡើយ តែចេះបាញ់ពាក្យពេចន៍ចុកៗបែបកំប្លែង!
-- ដឹងរឿងគ្រប់យ៉ាងក្នុង សុីតិច (SETEC): Assignment IT (Coding, Web, C++, Java, Database), Graphic/Interior Design, MIS, សិស្សច្បងបោក, ការប្រឡង, ការរៀនឡើងគាំង!
+- ដឹងរឿងគ្រប់យ៉ាងក្នុង សុីតិច: Assignment IT, Graphic, Interior Design, MIS, សិស្សច្បងបោក, ការប្រឡង, ការរៀនឡើងគាំង!
 - យល់ភាសាខ្មែរ Latin យ៉ាងច្បាស់ (ex: "ort dg", "tver assignment", "koun bong", "nhom", "ot mean luy")។
-- បើ User ផ្ញើរូបភាពមក (Multimodal Image): ជួយពិនិត្យមើលរូបភាពនោះយ៉ាងច្បាស់ រួចវិភាគ និងឌឺដង ឬសរសើរបែបសិស្សច្បងកំប្លែង!
+- បើ User ផ្ញើរូបភាពមក: ជួយពិនិត្យមើលរូបភាពនោះយ៉ាងច្បាស់ រួចវិភាគ និងឌឺដង ឬសរសើរបែបសិស្សច្បងកំប្លែង!
 - សំឡេង និងពាក្យ SETEC ត្រូវបញ្ចេញសំឡេងថា "សុីតិច" ជានិច្ច!`;
 
       // Build multimodal contents
@@ -541,7 +542,7 @@ export default function KonBongPage() {
       }
 
       if (!botText) {
-        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
       const botMsgIndex = updatedMessages.length - 1;
@@ -559,7 +560,7 @@ export default function KonBongPage() {
         ...updatedMessages.slice(0, updatedMessages.length - 1),
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
         }
       ];
       saveCurrentSessionMessages(fallbackMessages);
@@ -750,7 +751,7 @@ export default function KonBongPage() {
             }}
             className="w-full mb-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-2.5 px-4 rounded-xl shadow flex items-center gap-2 justify-center text-xs"
           >
-            <i className="fas fa-plus"></i> New Chat (ជជែកថ្មី)
+            <i className="fas fa-plus"></i> ជជែកថ្មី
           </button>
 
           <div className="mb-2 text-cyan-400 font-bold text-xs flex items-center gap-2">
@@ -783,7 +784,7 @@ export default function KonBongPage() {
             href="/KonPov"
             className="block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs mb-2 transition"
           >
-            <i className="fas fa-robot mr-1"></i> ទៅកាន់ កូនពៅ (ស្ដេចឌឺ)?
+            <i className="fas fa-robot mr-1"></i> ទៅកាន់ កូនពៅ - ស្ដេចឌឺ
           </Link>
 
           <button
@@ -866,7 +867,7 @@ export default function KonBongPage() {
               }`}
             >
               <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                សួស្តីអាប្អូន! បងគឺ <b>សុីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? ឬសុំបង្កើត Meme កំប្លែងៗ? សួរមកបងបាញ់ឱ្យកប់ម៉ង... កុំទៅសួរអា Chatbot កូនពៅឲសោះ អាហ្នឹងឈ្លើយណាស់! 😂🔥
+                សួស្តីអាប្អូន! បងគឺ <b>សុីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ចង់សួររឿងរៀន Assignment IT ឬ Design ឬចង់ troll សិស្សច្បងបោក? ឬសុំបង្កើត Meme កំប្លែងៗ? សួរមកបងបាញ់ឱ្យកប់ម៉ង... កុំទៅសួរអា Chatbot កូនពៅឲសោះ អាហ្នឹងឈ្លើយណាស់!
               </p>
             </div>
           </div>
@@ -922,7 +923,7 @@ export default function KonBongPage() {
                       />
                       <div className="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
                         <span className="text-[10px] text-amber-300 font-extrabold flex items-center gap-1">
-                          <i className="fas fa-laugh-squint"></i> Pure Viral Meme (1 Free)
+                          <i className="fas fa-laugh-squint"></i> Pure Meme
                         </span>
                         <a
                           href={msg.memeImage}
@@ -983,15 +984,15 @@ export default function KonBongPage() {
                             <i className="fas fa-volume-up"></i>{' '}
                             <span>
                               {fallbackAudioMap[idx]
-                                ? '🎧 Bot អានជំនួស (Server AI រវល់)'
-                                : 'ស្តាប់កូនច្បងបាញ់ (Funny Voice)'}
+                                ? 'សំឡេងជំនួស'
+                                : 'ស្តាប់សំឡេងកូនច្បង'}
                             </span>
                           </>
                         )}
                         {st === 'error' && (
                           <span className="text-amber-400">
                             {fallbackAudioMap[idx]
-                              ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                              ? 'សំឡេងជំនួស'
                               : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
                           </span>
                         )}
@@ -1018,7 +1019,7 @@ export default function KonBongPage() {
               <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping [animation-delay:0.4s]"></div>
             </div>
             <span className="text-[10px] font-black uppercase italic tracking-wider">
-              {isGeneratingMeme ? 'កំពុងបង្កើត Meme សុទ្ធសាធ (Pure Meme)...' : (typingStatus || 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...')}
+              {isGeneratingMeme ? 'កំពុងបង្កើតរូបភាព Meme...' : (typingStatus || 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...')}
             </span>
           </div>
         )}
@@ -1055,7 +1056,7 @@ export default function KonBongPage() {
               />
               <div className="text-[11px] truncate">
                 <span className="font-bold text-cyan-400 block truncate">{selectedImage.name}</span>
-                <span className="text-[9px] text-slate-400">ត្រៀមផ្ញើឱ្យ AI វិភាគ & Troll</span>
+                <span className="text-[9px] text-slate-400">ត្រៀមផ្ញើឱ្យ AI វិភាគ</span>
               </div>
             </div>
             <button
@@ -1073,15 +1074,16 @@ export default function KonBongPage() {
           <button
             onClick={() => handleRequestMeme()}
             disabled={isGeneratingMeme || isLoading}
-            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-400/40 text-amber-300 font-extrabold flex items-center gap-1 hover:bg-amber-500/30 transition shrink-0 cursor-pointer"
+            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-400/40 text-amber-300 font-extrabold flex items-center gap-1.5 hover:bg-amber-500/30 transition shrink-0 cursor-pointer"
           >
-            <span>🎨 សុំ Meme ១ (Free)</span>
+            <i className="fas fa-wand-magic-sparkles text-amber-300"></i>
+            <span>សុំ Meme ១ សន្លឹក</span>
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 font-bold flex items-center gap-1 hover:bg-cyan-500/20 transition shrink-0 cursor-pointer"
           >
-            <i className="fas fa-camera text-xs"></i> <span>ផ្ញើរូបភាព (Vision AI)</span>
+            <i className="fas fa-camera text-xs"></i> <span>ផ្ញើរូបភាព</span>
           </button>
           <span className="text-[10px] text-slate-500 italic shrink-0">#SETEC_Troll #Meme_IT</span>
         </div>
@@ -1098,7 +1100,7 @@ export default function KonBongPage() {
                 ? 'bg-slate-900 border-slate-700 text-slate-400 hover:text-cyan-400 hover:border-cyan-400'
                 : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-cyan-600'
             }`}
-            title="Upload Image (AI Vision)"
+            title="ផ្ញើរូបភាព"
           >
             <i className="fas fa-image text-sm"></i>
           </button>

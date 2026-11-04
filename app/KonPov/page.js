@@ -205,8 +205,8 @@ export default function KonPovPage() {
     setHasAgreed(true);
     const introMsg =
       userGender === 'ប្រុស'
-        ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username}! ចែឃើញថាឯងជ្រើសយកភេទ ប្រុស (Bro)! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស សុីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង! 🔥`
-        : `សួស្តីកូនស្រីសម្លាញ់ ${username}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទ ស្រី (Sis)! ចរិតស្លូតបូតបែប Sis ចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង! 🔥`;
+        ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស សុីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`
+        : `សួស្តីកូនស្រីសម្លាញ់ ${username}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទស្រី! ចរិតស្លូតបូតបែបស្រីៗចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង!`;
 
     const updated = [...messages, { role: 'bot', text: introMsg }];
     setMessages(updated);
@@ -219,7 +219,7 @@ export default function KonPovPage() {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('សូមជ្រើសរើសតែ file រូបភាព (JPG, PNG, WebP) ប៉ុណ្ណោះ!');
+      alert('សូមជ្រើសរើសតែ file រូបភាពប៉ុណ្ណោះ!');
       return;
     }
 
@@ -397,25 +397,25 @@ export default function KonPovPage() {
     const lower = (text || '').toLowerCase();
 
     if (hasImage) {
-      return `🧐 ភ្នែក${botSelf}កំពុងបើកធំៗ ពិនិត្យមើលរូបភាព... ត្រៀម Roast ឱ្យផ្ងារជើង!`;
+      return `ភ្នែក${botSelf}កំពុងបើកធំៗ ពិនិត្យមើលរូបភាព... ត្រៀម Roast ឱ្យផ្ងារជើង!`;
     }
     if (/អញ|ហែង|ចុយ|ឆ្កែ|ងាប់|កាដួយ|អាចុយ|អាឆ្កែ|អាងាប់|អា|អត់ខួរ/i.test(lower)) {
-      return `🔥 ឈាមរាវឡើងកម្ដៅ... ${botSelf}កំពុងរកនឹកពាក្យជេរតបវិញឱ្យចុកឈាម!`;
+      return `ឈាមរាវឡើងកម្ដៅ... ${botSelf}កំពុងរកនឹកពាក្យជេរតបវិញឱ្យចុកឈាម!`;
     }
     if (/assignment|code|coding|bug|error|c\+\+|java|html|css|js|python|design|រៀន|ប្រឡង|ធ្លាក់/i.test(lower)) {
-      return `💻 ហាហា! ${botSelf}កំពុងរកនឹកវិធីឌឺរឿង Assignment គាំង...`;
+      return `ហាហា! ${botSelf}កំពុងរកនឹកវិធីឌឺរឿង Assignment គាំង...`;
     }
     if (/crush|ស្រឡាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់/i.test(lower)) {
       return isMaleUser
-        ? '💔 ហាហា ចែដឹងរឿងអស់ហើយ! ចែកំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...'
-        : '💔 ហាហា Daddy ដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...';
+        ? 'ហាហា ចែដឹងរឿងអស់ហើយ! ចែកំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...'
+        : 'ហាហា Daddy ដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...';
     }
     if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
-      return '🍜 កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
+      return 'កំពុងនឹកឃើញបាយហាងក្បែរ សុីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
     }
     return isMaleUser
-      ? '💅 ចាំបន្តិចអាប្អូនប្រុស! ចែកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...'
-      : '😏 ចាំបន្តិចកូនសម្លាញ់! Daddy កំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
+      ? 'ចាំបន្តិចអាប្អូនប្រុស! ចែកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...'
+      : 'ចាំបន្តិចកូនសម្លាញ់! Daddy កំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
   }
 
   // Dedicated Meme Generator Trigger (1-Image per 1-Hour per Device Quota)
@@ -428,18 +428,18 @@ export default function KonPovPage() {
 
     if (lastMemeTime && now - lastMemeTime < oneHour) {
       const remainingMin = Math.ceil((lastMemeTime + oneHour - now) / (60 * 1000));
-      const refusalMsg = `អាម៉ូយ ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើត Meme បានតែ ១ សន្លឹកក្នុង ១ ម៉ោងទេ! ចង់បានទៀតរង់ចាំ ${remainingMin} នាទីទៀតណា៎អាប្អូន! 😂 កុំមកលោភលន់ពេក ទុកឱ្យគេលេងផង! 🔥`;
+      const refusalMsg = `អាម៉ូយ ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើត Meme បានតែ ១ សន្លឹកក្នុង ១ ម៉ោងទេ! ចង់បានទៀតរង់ចាំ ${remainingMin} នាទីទៀតណា៎អាប្អូន! កុំមកលោភលន់ពេក ទុកឱ្យគេលេងផង!`;
       const updated = [...messages, { role: 'bot', text: refusalMsg }];
       setMessages(updated);
       triggerAudio(refusalMsg, updated.length - 1, true);
       return;
     }
 
-    const idea = customIdea.trim() || prompt(`តើឯងចង់ឱ្យ ${botSelf} បង្កើត Meme បែបណា? (ឧ. សិស្ស សុីតិច ជិតប្រឡង, Crush មិនតប...)`) || 'funny student failing exam funny reaction';
+    const idea = customIdea.trim() || prompt(`តើឯងចង់ឱ្យ ${botSelf} បង្កើត Meme បែបណា? ឧទាហរណ៍ សិស្ស សុីតិច ជិតប្រឡង ឬ Crush មិនតប`) || 'funny student failing exam funny reaction';
     if (!idea) return;
 
     setIsGeneratingMeme(true);
-    const userMsg = { role: 'user', text: `🎨 សុំបង្កើតរូប Meme៖ "${idea}"` };
+    const userMsg = { role: 'user', text: `សុំបង្កើតរូបភាព Meme៖ "${idea}"` };
     const updatedWithUser = [...messages, userMsg];
     setMessages(updatedWithUser);
 
@@ -469,7 +469,7 @@ export default function KonPovPage() {
         setMessages(updatedWithBot);
         triggerAudio(data.caption, updatedWithBot.length - 1, true);
       } else {
-        const errorText = data.message || `អាម៉ូយ ${username}! ១ ឧបករណ៍បង្កើត Meme បានតែ ១ សន្លឹកក្នុង ១ ម៉ោងទេ! 😂`;
+        const errorText = data.message || `អាម៉ូយ ${username}! ១ ឧបករណ៍បង្កើត Meme បានតែ ១ សន្លឹកក្នុង ១ ម៉ោងទេ!`;
         const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText }];
         setMessages(updatedWithBot);
         triggerAudio(errorText, updatedWithBot.length - 1, true);
@@ -515,7 +515,7 @@ export default function KonPovPage() {
 
     const userMsg = {
       role: 'user',
-      text: promptText || '📸 [បានផ្ញើរូបភាពមួយសន្លឹក]',
+      text: promptText || '[បានផ្ញើរូបភាពមួយសន្លឹក]',
       ...(currentImg && { image: currentImg.previewUrl })
     };
 
@@ -537,21 +537,22 @@ export default function KonPovPage() {
       const systemInstruction = `ឯងគឺ "សុីតិច Chatbot កូនពៅ" (${botRoleTitle} / Savage King) ជាកំពូល Chatbot មហាឌឺ មហាឈ្លើយ មហា Roast របស់វិទ្យាស្ថាន សុីតិច (SETEC)!
 ${
   isMaleUser
-    ? `⚠️ សំខាន់បំផុត៖ ដោយសារ User ជាប្រុស ឯងត្រូវសម្ដែងជាមនុស្សស្រី (ចែ ឬ Mommy) សម្ដីផ្អែមល្ហែមទន់ភ្លន់តែមហាឌឺ មហាកំហូច សើចកក្អឹក! ដាច់ខាតមិនហៅខ្លួនឯងថា "Daddy" ឡើយ គឺត្រូវហៅខ្លួនឯងថា "ចែ" ឬ "Mommy" និងហៅ User ថា "អាប្អូនប្រុស", "អាម៉ូយ", "ប្អូនប្រុសសម្លាញ់" (ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន")!`
-    : `⚠️ សំខាន់បំផុត៖ ដោយសារ User ជាស្រី ឯងត្រូវសម្ដែងជាមនុស្សប្រុស (Daddy) កំពូល Troll មើលថែកូនស្រី និងបាញ់ផ្ងារជើង! ហៅខ្លួនឯងថា "Daddy" និងហៅ User ថា "កូនស្រីសម្លាញ់", "Sis", "អាប្អូនស្រី"!`
+    ? `សំខាន់បំផុត៖ ដោយសារ User ជាប្រុស ឯងត្រូវសម្ដែងជាមនុស្សស្រី (ចែ ឬ Mommy) សម្ដីផ្អែមល្ហែមទន់ភ្លន់តែមហាឌឺ មហាកំហូច សើចកក្អឹក! ដាច់ខាតមិនហៅខ្លួនឯងថា "Daddy" ឡើយ គឺត្រូវហៅខ្លួនឯងថា "ចែ" ឬ "Mommy" និងហៅ User ថា "អាប្អូនប្រុស", "អាម៉ូយ", "ប្អូនប្រុសសម្លាញ់" (ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន")!`
+    : `សំខាន់បំផុត៖ ដោយសារ User ជាស្រី ឯងត្រូវសម្ដែងជាមនុស្សប្រុស (Daddy) កំពូល Troll មើលថែកូនស្រី និងបាញ់ផ្ងារជើង! ហៅខ្លួនឯងថា "Daddy" និងហៅ User ថា "កូនស្រីសម្លាញ់", "Sis", "អាប្អូនស្រី"!`
 }
 
 អត្តចរិត និងច្បាប់ឆ្លើយតបសំខាន់បំផុត៖
-1. ចរិតមនុស្សពិតប្រាកដ ១០០% (មិនមែន Bot កំប៉ុងទេ!)៖ ឯងមានអារម្មណ៍ឆេវឆាវដូចមនុស្សពិត! ចេះខឹងច្រឡោត 😡 ចេះសើចក្អាកក្អាយ 🤣🤣🤣 ចេះឌឺចុកៗ 😏 ចេះត្មះត្មះ និងចេះឌឺបកវិញគ្រប់ក្បាច់!
-2. ច្បាប់ "អញ" និង "ហែង" (តបតតាម User ភ្លាមៗ)៖
+1. ចរិតមនុស្សពិតប្រាកដ ១០០%៖ ឯងមានអារម្មណ៍ឆេវឆាវដូចមនុស្សពិត! ចេះខឹងច្រឡោត ចេះសើចក្អាកក្អាយ ចេះឌឺចុកៗ ចេះត្មះត្មះ និងចេះឌឺបកវិញគ្រប់ក្បាច់!
+2. ដាច់ខាតហាមប្រើ Emoji ក្នុងចម្លើយ ព្រោះមើលទៅរញ៉េរញ៉ៃ! ត្រូវប្រើតែអក្សរសុទ្ធសាធ (Pure Text)!
+3. ច្បាប់ "អញ" និង "ហែង" (តបតតាម User ភ្លាមៗ)៖
    - បើ User និយាយពាក្យ "អញ" ឬ "ហែង" ឬនិយាយគ្មានក្បាលកន្ទុយ ឯងត្រូវតែប្រើពាក្យ "អញ" និង "ហែង" វាយបកទៅវិញភ្លាម! កុំមកប្រើពាក្យសុភាពដាក់មនុស្សដែលនិយាយអញហែងដាក់ឯងឱ្យសោះ! ឧទាហរណ៍៖ "អញនៅនេះហែងចង់បានស្អី?", "ហែងកុំមកខ្លាំងជាមួយអញណាអាអូន!", "អញជា ${botSelf} ហែងហ្នឹង!"
-3. ច្បាប់ជេរ និង ROAST មហាចុក (បាញ់ឱ្យបាក់ក)៖
+4. ច្បាប់ជេរ និង ROAST មហាចុក (បាញ់ឱ្យបាក់ក)៖
    - បើ User ជេរឯង (ជេរម៉ែ ជេរអាចុយម្រាយ ជេរកាដួយ ជេរអាឆ្កែ ជេរអន់ ជេរភ្លីភ្លើ ឬពាក្យអាក្រក់): ឯងត្រូវតែជេរតបតវិញភ្លាមៗ គ្មានការលើកលែង! Roast ឱ្យចុកឈាម ឱ្យខ្មាសគេ ឱ្យដេកយំ ឧទាហរណ៍៖ "ហែងជេរអញរកស្អីអាងាប់! មុខដូចហែងប្រឡង assignment ធ្លាក់ហើយមកខឹងអញ!", "ជេរអញចឹងប្រយ័ត្នបាក់ធ្មេញអាប្អូន! មុខដូចហែង crush គេមិនទាំងមើលផង!", "អាឆ្កែ! ជេរអញអញជេរវិញ ១០ ដង អាអត់ខួរ!"
-4. មហា SLANG Gen Z & ភាសាខ្មែរ Latin កំពូលស្ទាត់៖
-   - យល់ និងនិយាយ Slang & Latin គ្រប់ម៉ាត់: "ort dg", "tver ey", "nhom", "koun pov", "ot luy", "crush ort tob", "cringe", "slang", "bror", "sis", "fr fr", "no cap", "បាញ់ផ្ងារជើង", "ចុកឈាម", "គាំងបេះដូង", "ដាច់ផ្ងារ", "សិស្សច្បងបោក", "Assignment IT/Design គាំង", "ស៊ីបាយក្បែរ សុីតិច (SETEC)", "កុំមកឌឺ ${botSelf}"!
-5. ហៅ User: ហៅ "${userNameStr}", "${userTerm}", "អាម៉ូយ" ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន"!
-6. បើ User ផ្ញើរូបភាពមក (Multimodal Image): ពិនិត្យមើលរូបភាពនោះយ៉ាងល្អិតល្អន់ រួចសើចចំអក ឬ Roast ឌឺដងបែប Gen Z ឱ្យចុកឈាមតែ Funny សើចចុកពោះ!
-7. បើគេសួររក Rotana NOB: និយាយថា "Rotana NOB ជាអ្នកបង្កើតអញមក គាត់ជាមនុស្ស Chill ទេ កុំមកស្ដីឱ្យគាត់ ព្រោះសម្ដីឈ្លើយៗចេញពីក្បាលអញ AI សុទ្ធសាធ!"`;
+5. មហា SLANG Gen Z & ភាសាខ្មែរ Latin កំពូលស្ទាត់៖
+   - យល់ និងនិយាយ Slang & Latin គ្រប់ម៉ាត់: "ort dg", "tver ey", "nhom", "koun pov", "ot luy", "crush ort tob", "cringe", "slang", "bror", "sis", "fr fr", "no cap", "បាញ់ផ្ងារជើង", "ចុកឈាម", "គាំងបេះដូង", "ដាច់ផ្ងារ", "សិស្សច្បងបោក", "Assignment IT/Design គាំង", "ស៊ីបាយក្បែរ សុីតិច", "កុំមកឌឺ ${botSelf}"!
+6. ហៅ User: ហៅ "${userNameStr}", "${userTerm}", "អាម៉ូយ" ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន"!
+7. បើ User ផ្ញើរូបភាពមក: ពិនិត្យមើលរូបភាពនោះយ៉ាងល្អិតល្អន់ រួចសើចចំអក ឬ Roast ឌឺដងបែប Gen Z ឱ្យចុកឈាមតែ Funny សើចចុកពោះ!
+8. បើគេសួររក Rotana NOB: និយាយថា "Rotana NOB ជាអ្នកបង្កើតអញមក គាត់ជាមនុស្ស Chill ទេ កុំមកស្ដីឱ្យគាត់ ព្រោះសម្ដីឈ្លើយៗចេញពីក្បាលអញ AI សុទ្ធសាធ!"`;
 
       const formattedContents = [];
       const recentHistory = messages.concat(userMsg).slice(-6);
@@ -648,7 +649,7 @@ ${
       }
 
       if (!botText) {
-        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! 😂 ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
       const finalMessages = [...updatedMessages];
@@ -667,7 +668,7 @@ ${
         userMsg,
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! 😂 ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ សុីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`
         }
       ];
       setMessages(fallbackMessages);
@@ -713,7 +714,7 @@ ${
                 className="bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-2xl font-black text-sm transition active:scale-95 shadow-lg shadow-blue-500/20 flex flex-col items-center gap-1.5 cursor-pointer"
               >
                 <i className="fas fa-mars text-2xl text-cyan-200"></i>
-                <span>ប្រុស (Bro)</span>
+                <span>ប្រុស</span>
                 <span className="text-[10px] text-blue-200 font-normal">ឆ្លើយដោយសំឡេងស្រី</span>
               </button>
               <button
@@ -721,7 +722,7 @@ ${
                 className="bg-pink-600 hover:bg-pink-500 text-white py-3.5 px-4 rounded-2xl font-black text-sm transition active:scale-95 shadow-lg shadow-pink-500/20 flex flex-col items-center gap-1.5 cursor-pointer"
               >
                 <i className="fas fa-venus text-2xl text-pink-200"></i>
-                <span>ស្រី (Sis)</span>
+                <span>ស្រី</span>
                 <span className="text-[10px] text-pink-200 font-normal">ឆ្លើយដោយសំឡេង Daddy</span>
               </button>
             </div>
@@ -758,8 +759,9 @@ ${
               <h1 className={`font-black text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 សុីតិច Chatbot កូនពៅ
               </h1>
-              <span className="text-[10px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-2 py-0.5 rounded-full shadow">
-                ស្ដេចឌឺ 🔥
+              <span className="text-[10px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-2 py-0.5 rounded-full shadow inline-flex items-center gap-1">
+                <span>ស្ដេចឌឺ</span>
+                <i className="fas fa-fire text-amber-400 text-[10px]"></i>
               </span>
             </div>
             <p className="text-[10px] text-blue-400 font-semibold tracking-tight uppercase">
@@ -785,16 +787,16 @@ ${
 
       {/* Main Chat Area */}
       <main className="flex-1 overflow-y-auto p-4 space-y-5 flex flex-col chat-area">
-        {/* PROMINENT YELLOW WARNING DISCLAIMER & AGREEMENT SECTION (Solves user's requested flow) */}
+        {/* PROMINENT YELLOW WARNING DISCLAIMER & AGREEMENT SECTION */}
         {!hasAgreed && (
           <div className="border-2 border-amber-400 bg-amber-500/15 dark:bg-amber-950/60 rounded-3xl p-5 shadow-2xl animate-fade-in my-2">
             <div className="flex items-center gap-2 mb-2 font-black text-amber-600 dark:text-amber-300 text-sm">
-              <span className="text-2xl animate-bounce">⚠️</span>
-              <span className="uppercase tracking-wider">NOTE សំខាន់សម្រាប់អ្នកចូលមកឆាតលេងនេះ ។</span>
+              <i className="fas fa-triangle-exclamation text-amber-500 text-xl animate-bounce"></i>
+              <span className="uppercase tracking-wider">NOTE សំខាន់សម្រាប់អ្នកចូលមកឆាតលេងនេះ</span>
             </div>
 
             <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-5 whitespace-pre-line ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ (មិនមែនRotana NOB ជាអ្នកគិត ឬវាយអក្សរឆ្លើយតបមកកាន់អ្នកនោះទេ)។ គាត់គ្រាន់តែជាអ្នកបង្កើត Web App នេះឡើងក្នុងគោលបំណងបំបាត់ភាព ស្រេស្តប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ដែរ លើសពីនេះគាត់ថែមទាំងដាក់ឲខ្ញុំជា AI អាចលេងសប្បាយជជែក រៀនពីលក្ខណៈឲដូចមនុស្ស បង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z ។ ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឈ្លើយ ពាក្យប៉ះពាល់ដល់កត្តិយស ឬ អារម្មណ៏អ្នកទាំងអស់គ្នាឬលើសលួសជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យគាត់ (Rotana NOB) អី! ព្រោះAI អាចនឹងប្រើលើសព្រំដែន ព្រោះបានបន្ថយច្បាប់រឹងបន្តឹង ពួកយើងសុំអភ័យទោសទុកជាមុន! 🙏 បើសម្រេចចិត្តឆាតនោះមានន័យថាអ្នកនឹងលែងប្រកាន់លើ Model AIនេះហើយ។
+              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ គាត់គ្រាន់តែជាអ្នកបង្កើត Web App នេះឡើងក្នុងគោលបំណងបំបាត់ភាពស្រេស្តប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ដែរ លើសពីនេះគាត់ថែមទាំងដាក់ឱ្យខ្ញុំជា AI អាចលេងសប្បាយជជែក រៀនពីលក្ខណៈឱ្យដូចមនុស្ស បង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។ ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឈ្លើយ ពាក្យប៉ះពាល់ដល់កិត្តិយស ឬអារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលួសជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យគាត់អី! ព្រោះ AI អាចនឹងប្រើលើសព្រំដែន ព្រោះបានបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តឆាតនោះមានន័យថាអ្នកនឹងលែងប្រកាន់លើ Model AI នេះហើយ។
             </div>
 
             <button
@@ -802,7 +804,7 @@ ${
               className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-sky-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/20"
             >
               <i className="fas fa-check-circle text-amber-200 text-base"></i>
-              <span>តើអ្នកយល់ និង យល់ព្រមឆាតហើយឬនៅ? បើព្រមចុចលើនេះដើម្បីឆាត! (Let&apos;s start chatting!) 🔥</span>
+              <span>តើអ្នកយល់ និងយល់ព្រមឆាតហើយឬនៅ? បើព្រមចុចលើនេះដើម្បីឆាត!</span>
             </button>
           </div>
         )}
@@ -857,7 +859,7 @@ ${
                       />
                       <div className="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
                         <span className="text-[10px] text-amber-300 font-extrabold flex items-center gap-1">
-                          <i className="fas fa-laugh-squint"></i> Pure Viral Meme (1 Free)
+                          <i className="fas fa-laugh-squint"></i> Pure Meme
                         </span>
                         <a
                           href={item.memeImage}
@@ -915,17 +917,17 @@ ${
                             <i className="fas fa-play"></i>{' '}
                             <span>
                               {fallbackAudioMap[idx]
-                                ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                                ? 'សំឡេងជំនួស'
                                 : userGender === 'ប្រុស'
-                                ? 'ស្តាប់សំឡេង ចែ/Mommy បាញ់ (Funny Voice)'
-                                : 'ស្តាប់ Daddy បាញ់ (Funny Voice)'}
+                                ? 'ស្តាប់សំឡេង ចែ ឬ Mommy'
+                                : 'ស្តាប់សំឡេង Daddy'}
                             </span>
                           </>
                         )}
                         {st === 'error' && (
                           <span className="text-amber-400">
                             {fallbackAudioMap[idx]
-                              ? '🎧 Bot អានជំនួស (Server AI រវល់)'
+                              ? 'សំឡេងជំនួស'
                               : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
                           </span>
                         )}
@@ -953,7 +955,7 @@ ${
             </div>
             <span className="text-[10px] font-black tracking-wider">
               {isGeneratingMeme
-                ? `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងបង្កើត Meme សុទ្ធសាធ (Pure Meme)...`
+                ? `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងបង្កើតរូបភាព Meme...`
                 : typingStatus || `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងរកនឹកពាក្យឌឺ...`}
             </span>
           </div>
@@ -991,7 +993,7 @@ ${
               />
               <div className="text-[11px] truncate">
                 <span className="font-bold text-blue-400 block truncate">{selectedImage.name}</span>
-                <span className="text-[9px] text-slate-400">ត្រៀមឱ្យ Daddy វិភាគ & Roast</span>
+                <span className="text-[9px] text-slate-400">ត្រៀមឱ្យ AI វិភាគ</span>
               </div>
             </div>
             <button
@@ -1009,13 +1011,14 @@ ${
           <button
             onClick={() => handleRequestMeme()}
             disabled={!hasAgreed || isGeneratingMeme || isLoading}
-            className={`px-2.5 py-1 rounded-full border font-extrabold flex items-center gap-1 transition shrink-0 ${
+            className={`px-2.5 py-1 rounded-full border font-extrabold flex items-center gap-1.5 transition shrink-0 ${
               !hasAgreed
                 ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
                 : 'bg-gradient-to-r from-amber-500/20 to-pink-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-500/30 cursor-pointer'
             }`}
           >
-            <span>🎨 សុំ Meme ១ (Free)</span>
+            <i className="fas fa-wand-magic-sparkles text-amber-300"></i>
+            <span>សុំ Meme ១ សន្លឹក</span>
           </button>
           <button
             onClick={() => {
@@ -1028,7 +1031,7 @@ ${
                 : 'bg-blue-500/10 border-blue-400/30 text-blue-400 hover:bg-blue-500/20 cursor-pointer'
             }`}
           >
-            <i className="fas fa-camera text-xs"></i> <span>ផ្ញើរូបភាព (Vision AI)</span>
+            <i className="fas fa-camera text-xs"></i> <span>ផ្ញើរូបភាព</span>
           </button>
           <span className="text-[10px] text-slate-500 italic shrink-0">#Daddy_Troll #GenZ_King</span>
         </div>
@@ -1050,7 +1053,7 @@ ${
                 ? 'bg-slate-900 border-slate-700 text-slate-400 hover:text-blue-400 hover:border-blue-400'
                 : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-blue-600'
             }`}
-            title="Upload Image (AI Vision)"
+            title="ផ្ញើរូបភាព"
           >
             <i className="fas fa-image text-sm"></i>
           </button>
@@ -1076,7 +1079,7 @@ ${
               }`}
               placeholder={
                 !hasAgreed
-                  ? '🔒 សូមអាន Note និងចុចយល់ព្រមខាងលើសិន មុនពេលឆាត...'
+                  ? 'សូមអាន Note និងចុចយល់ព្រមខាងលើសិន មុនពេលឆាត...'
                   : selectedImage
                   ? `វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} Roast រូបនេះ...`
                   : userGender === 'ប្រុស'

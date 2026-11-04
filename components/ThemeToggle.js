@@ -12,7 +12,7 @@ export default function ThemeToggle({ theme = 'light', onToggle, className = '' 
           ? 'bg-slate-900/90 text-amber-300 border-slate-700 hover:border-amber-400/50 hover:bg-slate-800'
           : 'bg-white/95 text-indigo-700 border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/80 shadow-indigo-100'
       } ${className}`}
-      title={isDark ? 'ប្ដូរទៅ Light Mode (ភ្លឺ)' : 'ប្ដូរទៅ Dark Mode (ងងឹត)'}
+      title={isDark ? 'ប្ដូរទៅ Light Mode' : 'ប្ដូរទៅ Dark Mode'}
       aria-label="Toggle Dark/Light Mode"
     >
       {isDark ? (

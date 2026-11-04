@@ -135,10 +135,11 @@ export default function Home() {
               ? 'bg-slate-900/90 text-slate-400 border-slate-700 hover:text-white'
               : 'bg-white/95 text-slate-600 border-slate-300 hover:text-slate-900'
           }`}
-          title={isMusicPlaying ? 'ចុចដើម្បីបិទភ្លេងកំប្លែង Funny BGM' : 'ចុចដើម្បីបើកភ្លេងកំប្លែង Funny BGM'}
+          title={isMusicPlaying ? 'ចុចដើម្បីបិទភ្លេងកំប្លែង' : 'ចុចដើម្បីបើកភ្លេងកំប្លែង'}
         >
           <i className={`fas ${isMusicPlaying ? 'fa-volume-up text-amber-300' : 'fa-volume-mute text-slate-400'}`}></i>
-          <span className="text-[11px] font-extrabold">{isMusicPlaying ? 'Funny Haha 🎵' : 'ភ្លេងកំប្លែង 🎵'}</span>
+          <span className="text-[11px] font-extrabold">{isMusicPlaying ? 'Funny BGM' : 'ភ្លេងកំប្លែង'}</span>
+          <i className="fas fa-music text-[10px] ml-0.5 opacity-80"></i>
           {isMusicPlaying && (
             <span className="flex items-end gap-0.5 h-3 ml-0.5">
               <span className="w-1 h-3 bg-amber-300 rounded-full animate-bounce"></span>
@@ -173,7 +174,7 @@ export default function Home() {
       </Link>
 
       {/* Main Popup Modal Card */}
-      <div className="w-full max-w-md my-8 z-20">
+      <div className="w-full max-w-md mt-16 mb-8 sm:my-8 z-20">
         <div
           className={`rounded-3xl shadow-2xl p-6 sm:p-8 text-center relative max-h-[92vh] overflow-y-auto border transition-all duration-300 ${
             isDark
@@ -218,7 +219,7 @@ export default function Home() {
                       </div>
                     </div>
                     <span className="text-[11px] text-indigo-400 mt-1 font-bold group-hover:underline">
-                      ដាក់/ប្ដូរ រូបភាព Profile
+                      ដាក់ ឬប្ដូររូប Profile
                     </span>
                     <input
                       type="file"
@@ -232,7 +233,7 @@ export default function Home() {
 
                   <div className="w-full">
                     <label className={`block text-xs font-bold mb-1 text-left ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                      ឈ្មោះរបស់អ្នក (បញ្ជាក់ឈ្មោះពិត)៖
+                      ឈ្មោះពិតរបស់អ្នក៖
                     </label>
                     <input
                       id="username-input"
@@ -247,7 +248,7 @@ export default function Home() {
                           ? 'bg-slate-950 border-slate-700 text-white focus:border-indigo-400 placeholder:text-slate-500'
                           : 'bg-indigo-50/70 border-indigo-200 text-slate-800 focus:border-indigo-500 placeholder:text-indigo-400/70'
                       }`}
-                      placeholder="ដាក់ឈ្មោះពិតមកកុំលាក់! (ស្រួល AI ហៅចំឈ្មោះ)"
+                      placeholder="សូមបញ្ចូលឈ្មោះពិតរបស់អ្នក"
                       maxLength={24}
                       required
                     />
@@ -257,9 +258,10 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleContinue}
-                  className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold text-base shadow-lg shadow-indigo-500/30 hover:scale-[1.02] active:scale-95 transition cursor-pointer"
+                  className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold text-base shadow-lg shadow-indigo-500/30 hover:scale-[1.02] active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
                 >
-                  ចូលឆាតឥឡូវនេះ (Continue) 🚀
+                  <span>ចូលឆាតឥឡូវនេះ</span>
+                  <i className="fas fa-arrow-right text-sm"></i>
                 </button>
               </div>
 
@@ -313,7 +315,7 @@ export default function Home() {
                       }`}
                     >
                       <i className="fas fa-laptop-code text-blue-500 text-sm mb-0.5"></i>
-                      <span className="truncate">NRI Studio (IDE)</span>
+                      <span className="truncate">NRI Studio IDE</span>
                     </a>
                     <div
                       className={`flex flex-col items-center p-1.5 rounded-xl border text-[10px] font-semibold ${
@@ -446,7 +448,10 @@ export default function Home() {
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-sm text-indigo-400 flex items-center gap-1.5">
                         <span>សុីតិច Chatbot កូនពៅ</span>
-                        <span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full">ស្ដេចឌឺ 🔥</span>
+                        <span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                          <span>ស្ដេចឌឺ</span>
+                          <i className="fas fa-fire text-amber-400 text-[10px]"></i>
+                        </span>
                       </div>
                       <div className={`text-xs mt-1 leading-snug line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                         ចរិកមហាឈ្លើយ ស្ដេច Troll បាញ់សិស្ស SETEC ផ្ងារជើង និយាយកំបុតៗបែប Gen Z, Savage!
@@ -462,7 +467,7 @@ export default function Home() {
                 onClick={handleBackToForm}
                 className="mt-5 mx-auto px-5 py-2 rounded-full border border-pink-400/50 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:bg-pink-500/30 text-pink-400 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
               >
-                <i className="fas fa-arrow-left"></i> <span>ត្រឡប់ក្រោយ / ប្ដូរឈ្មោះ</span>
+                <i className="fas fa-arrow-left"></i> <span>ត្រឡប់ក្រោយ ឬប្ដូរឈ្មោះ</span>
               </button>
             </>
           )}
@@ -511,7 +516,7 @@ export default function Home() {
                 alt="Developer 2"
                 className="w-7 h-7 rounded-full border-2 border-pink-400 object-cover"
                 style={{ width: '28px', height: '28px', objectFit: 'cover' }}
-                title="Rotana NOB (Co-Dev)"
+                title="Rotana NOB Co-Dev"
               />
             </div>
           </div>

@@ -41,7 +41,7 @@ export default function ImageModal({ isOpen, imageUrl, caption, onClose }) {
             rel="noreferrer"
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg transition"
           >
-            <i className="fas fa-download"></i> <span>ទាញយករូបភាព (Download)</span>
+            <i className="fas fa-download"></i> <span>ទាញយករូបភាព</span>
           </a>
           <button
             onClick={onClose}

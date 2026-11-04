@@ -33,12 +33,12 @@ export default function AntiSpamModal({ isOpen, onClose, username, ip, device, r
         </div>
 
         <h3 className="text-lg md:text-xl font-black text-red-400 mb-1 tracking-wide flex items-center justify-center gap-2">
-          <span>🚨</span>
+          <i className="fas fa-triangle-exclamation text-red-500"></i>
           <span>SYSTEM SECURITY ALERT</span>
-          <span>🚨</span>
+          <i className="fas fa-triangle-exclamation text-red-500"></i>
         </h3>
         <p className="text-xs text-red-300 font-semibold mb-4">
-          ប្រព័ន្ធបានចាប់បាននូវការព្យាយាមឆាតលើសពី ៥ ដងក្នុង ១ នាទី (Spam Detected)!
+          ប្រព័ន្ធបានចាប់បាននូវការព្យាយាមឆាតលើសពី ៥ ដងក្នុង ១ នាទី!
         </p>
 
         {/* Captured User Info Box */}
@@ -50,21 +50,21 @@ export default function AntiSpamModal({ isOpen, onClose, username, ip, device, r
               CAPTURED
             </span>
           </div>
-          <div className="truncate">
-            <span className="text-slate-400 font-sans">👤 ឈ្មោះ User:</span>{' '}
-            <span className="text-yellow-300 font-bold font-sans">{username || 'Unknown'}</span>
+          <div className="truncate flex items-center">
+            <span className="text-slate-400 font-sans flex items-center"><i className="fas fa-user text-slate-400 mr-1.5"></i>ឈ្មោះ User:</span>{' '}
+            <span className="text-yellow-300 font-bold font-sans ml-1.5">{username || 'Unknown'}</span>
           </div>
-          <div className="truncate">
-            <span className="text-slate-400 font-sans">🌐 IP Address:</span>{' '}
-            <span className="text-cyan-300">{ip || '172.20.10.2 / Encrypted'}</span>
+          <div className="truncate flex items-center">
+            <span className="text-slate-400 font-sans flex items-center"><i className="fas fa-globe text-slate-400 mr-1.5"></i>IP Address:</span>{' '}
+            <span className="text-cyan-300 ml-1.5">{ip || '172.20.10.2 / Encrypted'}</span>
           </div>
-          <div className="truncate">
-            <span className="text-slate-400 font-sans">📱 ឧបករណ៍ Device:</span>{' '}
-            <span className="text-slate-300 text-[10px]">{device || 'Mobile Device / Hotspot'}</span>
+          <div className="truncate flex items-center">
+            <span className="text-slate-400 font-sans flex items-center"><i className="fas fa-mobile-screen text-slate-400 mr-1.5"></i>ឧបករណ៍ Device:</span>{' '}
+            <span className="text-slate-300 text-[10px] ml-1.5">{device || 'Mobile Device / Hotspot'}</span>
           </div>
-          <div className="truncate">
-            <span className="text-slate-400 font-sans">🕒 ស្ថានភាព:</span>{' '}
-            <span className="text-amber-400 font-bold">COOLDOWN_ACTIVE (5 msg/min limit)</span>
+          <div className="truncate flex items-center">
+            <span className="text-slate-400 font-sans flex items-center"><i className="fas fa-clock text-slate-400 mr-1.5"></i>ស្ថានភាព:</span>{' '}
+            <span className="text-amber-400 font-bold ml-1.5">COOLDOWN ACTIVE - ៥ សារក្នុង ១ នាទី</span>
           </div>
         </div>
 
@@ -75,15 +75,17 @@ export default function AntiSpamModal({ isOpen, onClose, username, ip, device, r
             <span>កុំទាន់អាលភ័យពេកអាអូន!</span>
           </p>
           <p className="text-[11px] leading-relaxed text-slate-300">
-            ព្រោះ <strong className="text-white font-bold">ROTANA NOB</strong> គាត់ជាមនុស្ស <strong>CHILL</strong> ទេ គាត់មិនចេះខឹងអីផ្តេសផ្តាសឡើយ ហើយ SYSTEM ក៏មិនបាន <strong className="text-red-400">ALERT TO TELEGRAM</strong> គាត់ដែរ... <span className="text-amber-300 italic">(ឬមួយក៏ Alert រួចបាត់ហើយ? 👀🤫😂)</span>
+            ព្រោះ <strong className="text-white font-bold">ROTANA NOB</strong> គាត់ជាមនុស្ស <strong>CHILL</strong> ទេ គាត់មិនចេះខឹងអីផ្តេសផ្តាសឡើយ ហើយ SYSTEM ក៏មិនបាន <strong className="text-red-400">ALERT TO TELEGRAM</strong> គាត់ដែរ... <span className="text-amber-300 italic">ឬមួយក៏ Alert រួចបាត់ហើយ?</span>
           </p>
         </div>
 
         {/* Real-time Countdown Timer */}
         <div className="mb-5 flex flex-col items-center justify-center">
           <span className="text-[11px] text-slate-400 font-sans mb-1">សូមរង់ចាំឱ្យប្រព័ន្ធចុះត្រជាក់សិន៖</span>
-          <div className="text-2xl font-black text-amber-400 font-mono tracking-wider bg-slate-900 border border-slate-700 px-5 py-1.5 rounded-xl shadow-inner">
-            ⏳ {secondsLeft} <span className="text-xs text-slate-400 font-sans">វិនាទី (s)</span>
+          <div className="text-2xl font-black text-amber-400 font-mono tracking-wider bg-slate-900 border border-slate-700 px-5 py-1.5 rounded-xl shadow-inner flex items-center gap-2">
+            <i className="fas fa-hourglass-half text-amber-400 text-xl"></i>
+            <span>{secondsLeft}</span>
+            <span className="text-xs text-slate-400 font-sans">វិនាទី</span>
           </div>
         </div>
 
@@ -93,7 +95,7 @@ export default function AntiSpamModal({ isOpen, onClose, username, ip, device, r
           className="w-full bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-black py-3 px-4 rounded-xl shadow-lg shadow-red-600/30 transition-all active:scale-95 text-xs md:text-sm flex items-center justify-center gap-2 cursor-pointer"
         >
           <i className="fas fa-times-circle"></i>
-          <span>បិទផ្ទាំងនេះ (ខ្ញុំឈប់ Spam ហើយ 😭🙏)</span>
+          <span>បិទផ្ទាំងនេះ - ខ្ញុំឈប់ Spam ហើយ</span>
         </button>
       </div>
     </div>
