@@ -24,13 +24,13 @@ export async function OPTIONS() {
 // Active ultra-fast models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
   'gemini-3.1-flash-lite',
-  'gemini-3.1-flash-lite-preview',
-  'gemini-3.5-flash-lite',
-  'gemini-3.5-flash'
+  'gemini-flash-lite-latest',
+  'gemini-3-flash-preview',
+  'gemini-3.1-flash-lite-preview'
 ];
 const AUDIO_MODELS = [
-  'gemini-3.8-flash-tts',
-  'gemini-3.1-flash-tts-preview'
+  'gemini-2.5-flash-preview-tts',
+  'gemini-2.5-pro-preview-tts'
 ];
 
 async function callModelWithFallback(models, apiKey, payload, timeoutMs = 8000) {

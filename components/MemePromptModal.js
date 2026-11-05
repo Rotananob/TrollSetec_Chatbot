@@ -146,7 +146,7 @@ export default function MemePromptModal({
               : 'bg-amber-50 border-amber-200 text-amber-800'
           }`}>
             <i className="fas fa-clock text-amber-500 text-xs shrink-0"></i>
-            <span>កំណត់ ១ ឧបករណ៍អាចបង្កើតបាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង</span>
+            <span>កំណត់ ១ ឧបករណ៍អាចបង្កើតបាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង</span>
           </div>
 
           {/* Action Buttons */}

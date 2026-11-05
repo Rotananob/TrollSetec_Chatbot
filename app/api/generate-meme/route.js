@@ -38,7 +38,7 @@ export async function POST(req) {
     const body = await req.json();
     const { prompt, bot = 'konpov', username = 'User' } = body;
 
-    // 1. Strict 1-image per 1-hour per device quota check
+    // 1. Strict 5-images per 1-hour per device quota check
     const quotaResult = checkMemeQuota(clientIp, deviceId);
     if (!quotaResult.allowed) {
       return Response.json(
@@ -48,8 +48,8 @@ export async function POST(req) {
           remainingMinutes: quotaResult.remainingMinutes,
           message:
             bot === 'konpov'
-              ? `អាម៉ូយ ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើត Meme បានតែ ១ សន្លឹកក្នុង ១ ម៉ោងប៉ុណ្ណោះ! សូមរង់ចាំ ${quotaResult.remainingMinutes} នាទីទៀតណា៎!`
-              : `អូអាប្អូន ${username}! ១ ឧបករណ៍អាចបង្កើតរូប Meme បាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! សូមរង់ចាំ ${quotaResult.remainingMinutes} នាទីទៀតណា៎ប្អូន!`
+              ? `អាម៉ូយ ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើត Meme បាន ៥ សន្លឹកក្នុង ១ ម៉ោង! ពេលនេះឯងបានបង្កើតគ្រប់ ៥ សន្លឹកហើយ សូមរង់ចាំ ${quotaResult.remainingMinutes} នាទីទៀតណា៎!`
+              : `អូអាប្អូន ${username}! ១ ឧបករណ៍អាចបង្កើតរូប Meme បាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! ពេលនេះប្អូនបានបង្កើតគ្រប់ ៥ សន្លឹកហើយ សូមរង់ចាំ ${quotaResult.remainingMinutes} នាទីទៀតណា៎ប្អូន!`
         },
         { status: 429, headers: corsHeaders }
       );
@@ -111,8 +111,8 @@ export async function POST(req) {
 
     const funnyCaption =
       bot === 'konpov'
-        ? `ហាហា! រូប Meme តាមបញ្ជាឯងចេញមកហើយអាម៉ូយ ${username}! មើលមុខក្នុងរូបទៅដូចឯងពេលប្រឡងបាក់ឌុបចឹង! ចាំ ១ ម៉ោងទៀតចាំមក generate រូបថ្មីទៀតណា៎!`
-        : `រូបភាព Meme តាមការចង់បានរបស់ប្អូន ${username} ត្រូវបានបង្កើតរួចរាល់ហើយ! សង្ឃឹមថាប្អូននឹងចូលចិត្ត! បញ្ជាក់៖ ១ ម៉ោងទៀតទើបប្អូនអាចបង្កើតរូបថ្មីបានម្ដងទៀតណា៎!`;
+        ? `ហាហា! រូប Meme តាមបញ្ជាឯងចេញមកហើយអាម៉ូយ ${username}! មើលមុខក្នុងរូបទៅដូចឯងពេលប្រឡងបាក់ឌុបចឹង! ក្នុង ១ ម៉ោងឯងអាចបង្កើតបានរហូតដល់ ៥ សន្លឹកឯណោះណា៎!`
+        : `រូបភាព Meme តាមការចង់បានរបស់ប្អូន ${username} ត្រូវបានបង្កើតរួចរាល់ហើយ! សង្ឃឹមថាប្អូននឹងចូលចិត្ត! បញ្ជាក់៖ ១ ឧបករណ៍អាចបង្កើតបានរហូតដល់ ៥ សន្លឹកក្នុង ១ ម៉ោងណា៎!`;
 
     // Alert Telegram of meme generation -> Topic: MEME
     alertMemeCreation({

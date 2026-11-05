@@ -5,6 +5,7 @@ import {
   alertNewVisitor,
   alertDailyVisitorReport,
   alertPwaInstall,
+  alertUserReportedIssue,
   getCambodiaDayKey
 } from '../../../lib/telegram';
 import {
@@ -112,6 +113,22 @@ export async function POST(req) {
 
       return Response.json(
         { success: true, alerted: true, message: 'PWA install recorded and alerted to Telegram' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Handle User Issue Report directly to Rotana NOB
+    if (type === 'user_report_issue' || action === 'user_report_issue') {
+      await alertUserReportedIssue({
+        username,
+        issue: body.issue || body.message || 'បញ្ហាទូទៅលើ Chatbot',
+        bot: body.bot || 'System',
+        ip,
+        userAgent
+      }).catch((e) => console.error('[Report] User issue alert error:', e));
+
+      return Response.json(
+        { success: true, message: 'Issue reported to Rotana NOB successfully' },
         { status: 200, headers: corsHeaders }
       );
     }

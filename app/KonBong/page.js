@@ -8,6 +8,7 @@ import AntiSpamModal from '@/components/AntiSpamModal';
 import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
+import ErrorReportModal from '@/components/ErrorReportModal';
 import { getApiEndpoint } from '../utils/apiConfig';
 import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage';
 
@@ -29,6 +30,10 @@ export default function KonBongPage() {
   const [spamModalOpen, setSpamModalOpen] = useState(false);
   const [spamInfo, setSpamInfo] = useState({ ip: '', device: '', retryAfter: 60 });
   const [fallbackAudioMap, setFallbackAudioMap] = useState({});
+
+  // Error Report to Rotana NOB Modal State
+  const [errorReportModalOpen, setErrorReportModalOpen] = useState(false);
+  const [errorReportInitialText, setErrorReportInitialText] = useState('');
 
   // ToDo / Queued Prompt State (allows typing and queuing while AI is thinking)
   const [queuedPrompt, setQueuedPrompt] = useState(null); // { text, image }
@@ -305,16 +310,22 @@ export default function KonBongPage() {
     }
   };
 
-  // Dedicated Meme Generator Trigger (1-Image per 1-Hour per Device Quota)
+  // Dedicated Meme Generator Trigger (5-Images per 1-Hour per Device Quota)
   const handleRequestMeme = async (customIdea = '') => {
-    const lastMemeTime = parseInt(localStorage.getItem('setec_meme_last_time') || '0', 10);
+    let history = [];
+    try {
+      const raw = localStorage.getItem('setec_meme_history');
+      if (raw) history = JSON.parse(raw);
+    } catch {}
     const now = Date.now();
     const oneHour = 60 * 60 * 1000;
+    history = (Array.isArray(history) ? history : []).filter((t) => now - t < oneHour);
 
-    if (lastMemeTime && now - lastMemeTime < oneHour) {
-      const remainingMin = Math.ceil((lastMemeTime + oneHour - now) / (60 * 1000));
-      const refusalMsg = `អូអាប្អូន ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតរូប Meme បាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! សូមរង់ចាំ ${remainingMin} នាទីទៀតណា៎ប្អូន!`;
-      const updated = [...messages, { role: 'bot', text: refusalMsg }];
+    if (history.length >= 5) {
+      const oldest = history[0];
+      const remainingMin = Math.max(1, Math.ceil((oldest + oneHour - now) / (60 * 1000)));
+      const refusalMsg = `អូអាប្អូន ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតរូប Meme បាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! ពេលនេះប្អូនបានបង្កើតគ្រប់ ៥ សន្លឹកហើយ សូមរង់ចាំ ${remainingMin} នាទីទៀតណា៎ប្អូន!`;
+      const updated = [...messages, { role: 'bot', text: refusalMsg, isError: true }];
       saveCurrentSessionMessages(updated);
       triggerAudio(refusalMsg, updated.length - 1, true);
       return;
@@ -349,7 +360,16 @@ export default function KonBongPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
-        localStorage.setItem('setec_meme_last_time', String(Date.now()));
+        let history = [];
+        try {
+          const raw = localStorage.getItem('setec_meme_history');
+          if (raw) history = JSON.parse(raw);
+        } catch {}
+        const now = Date.now();
+        history = (Array.isArray(history) ? history : []).filter((t) => now - t < 60 * 60 * 1000);
+        history.push(now);
+        localStorage.setItem('setec_meme_history', JSON.stringify(history));
+
         const botMemeMsg = {
           role: 'bot',
           text: data.caption,
@@ -359,14 +379,14 @@ export default function KonBongPage() {
         saveCurrentSessionMessages(updatedWithBot);
         triggerAudio(data.caption, updatedWithBot.length - 1, true);
       } else {
-        const errorText = data.message || `អូអាប្អូន ${username}! ១ ឧបករណ៍បង្កើតរូប Meme បាន ១ សន្លឹកក្នុងរយៈពេល ១ ម៉ោងណា៎ប្អូន!`;
-        const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText }];
+        const errorText = data.message || `អូអាប្អូន ${username}! ១ ឧបករណ៍បង្កើតរូប Meme បាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោងណា៎ប្អូន!`;
+        const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
         saveCurrentSessionMessages(updatedWithBot);
         triggerAudio(errorText, updatedWithBot.length - 1, true);
       }
     } catch {
       const errorText = `${username} អើយ! ប្រព័ន្ធបង្កើតរូប Meme កំពុងរវល់ខ្លាំងពេក សាកល្បងម្ដងទៀតនៅពេលក្រោយណា៎!`;
-      const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText }];
+      const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
       saveCurrentSessionMessages(updatedWithBot);
     } finally {
       setIsGeneratingMeme(false);
@@ -589,13 +609,14 @@ export default function KonBongPage() {
         console.warn('[KonBong] Backend API unavailable, falling back...', err);
       }
 
+      const isErrorResponse = !botText || !botText.trim();
       if (!botText || !botText.trim()) {
         botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
       const botMsgIndex = updatedMessages.length - 1;
       const finalMessages = [...updatedMessages];
-      finalMessages[botMsgIndex] = { role: 'bot', text: botText };
+      finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse };
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
@@ -618,7 +639,8 @@ export default function KonBongPage() {
         ...updatedMessages.slice(0, updatedMessages.length - 1),
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`
+          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`,
+          isError: true
         }
       ];
       saveCurrentSessionMessages(fallbackMessages);
@@ -1129,6 +1151,9 @@ export default function KonBongPage() {
               </div>
             );
           } else {
+            if (!msg.text && !msg.memeImage && !(isLoading && idx === messages.length - 1)) {
+              return null;
+            }
             const st = audioStates[idx] || 'idle';
             return (
               <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
@@ -1268,6 +1293,45 @@ export default function KonBongPage() {
                         )}
                       </button>
                     )}
+
+                    {/* Error Action Buttons (Only shown when error occurs or Server busy) */}
+                    {(msg.isError || (msg.text && (msg.text.includes('គាំង Server') || msg.text.includes('Server គាំង') || msg.text.includes('Server កំពុងរវល់')))) && (
+                      <div className="mt-3 pt-2.5 border-t border-rose-500/25 flex flex-wrap items-center gap-1.5 animate-fade-in">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setErrorReportInitialText(msg.text);
+                            setErrorReportModalOpen(true);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-black text-[11px] shadow-sm flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
+                        >
+                          <i className="fas fa-triangle-exclamation text-amber-300"></i>
+                          <span>Send Alert ទៅ Rotana NOB</span>
+                        </button>
+
+                        <a
+                          href="https://web.facebook.com/TheRotanaNob"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                          title="ឆាតទៅកាន់ Facebook ផ្ទាល់របស់ Rotana NOB"
+                        >
+                          <i className="fab fa-facebook-square text-blue-400"></i>
+                          <span>FB Rotana NOB</span>
+                        </a>
+
+                        <a
+                          href="https://t.me/NobRotana"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1.5 rounded-xl bg-cyan-600/15 hover:bg-cyan-600/25 border border-cyan-500/30 text-cyan-400 font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                          title="ឆាតទៅកាន់ Telegram ផ្ទាល់របស់ Rotana NOB"
+                        >
+                          <i className="fab fa-telegram text-cyan-400"></i>
+                          <span>Telegram Rotana NOB</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1364,7 +1428,7 @@ export default function KonBongPage() {
             className="px-3 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 text-amber-500 dark:text-amber-300 font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
           >
             <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
-            <span>សុំ Meme មួយសន្លឹក</span>
+            <span>សុំ Meme ៥ សន្លឹក</span>
           </button>
 
           <button
@@ -1551,6 +1615,16 @@ export default function KonBongPage() {
         ip={spamInfo.ip}
         device={spamInfo.device}
         retryAfter={spamInfo.retryAfter}
+      />
+
+      {/* Error Reporting Modal to Rotana NOB */}
+      <ErrorReportModal
+        isOpen={errorReportModalOpen}
+        onClose={() => setErrorReportModalOpen(false)}
+        defaultUsername={username}
+        bot="konbong"
+        initialIssue={errorReportInitialText}
+        isDark={isDark}
       />
     </div>
   );
