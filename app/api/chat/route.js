@@ -26,36 +26,79 @@ const TEXT_MODELS = [
   'gemini-3.1-flash-lite',
   'gemini-3-flash-preview',
   'gemini-3.1-flash-lite-preview',
-  'gemini-flash-lite-latest'
+  'gemini-flash-lite-latest',
+  'gemini-3.8-flash'
 ];
 const AUDIO_MODELS = [
   'gemini-2.5-flash-preview-tts',
   'gemini-2.5-pro-preview-tts'
 ];
 
-async function callModelWithFallback(models, apiKey, payload, timeoutMs = 8000) {
+export function getApiKeyPool(bot) {
+  const pool = [];
+
+  // 1. Primary dedicated key for the requested bot
+  if (bot === 'konpov' && process.env.GEMINI_API_KEY_KONPOV) {
+    pool.push(process.env.GEMINI_API_KEY_KONPOV);
+  } else if (bot === 'konbong' && process.env.GEMINI_API_KEY_KONBONG) {
+    pool.push(process.env.GEMINI_API_KEY_KONBONG);
+  }
+
+  // 2. Main default key
+  if (process.env.GEMINI_API_KEY) {
+    pool.push(process.env.GEMINI_API_KEY);
+  }
+
+  // 3. User reserve keys (Production 100% failover)
+  if (process.env.GEMINI_API_KEY_RESERVE) {
+    pool.push(process.env.GEMINI_API_KEY_RESERVE);
+  }
+  if (process.env.GEMINI_API_KEY_RESERVE_ONE) {
+    pool.push(process.env.GEMINI_API_KEY_RESERVE_ONE);
+  }
+  if (process.env.GEMINI_API_KEY_RESERVE_TWO) {
+    pool.push(process.env.GEMINI_API_KEY_RESERVE_TWO);
+  }
+
+  // 4. Cross-bot key failover
+  if (bot === 'konpov' && process.env.GEMINI_API_KEY_KONBONG) {
+    pool.push(process.env.GEMINI_API_KEY_KONBONG);
+  } else if (bot === 'konbong' && process.env.GEMINI_API_KEY_KONPOV) {
+    pool.push(process.env.GEMINI_API_KEY_KONPOV);
+  }
+
+  return Array.from(new Set(pool.filter(Boolean)));
+}
+
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8000) {
+  const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   let lastError = null;
   let lastData = null;
   let lastStatus = 500;
 
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(timeoutMs)
-      });
+  for (const key of keys) {
+    if (!key) continue;
+    for (const model of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(timeoutMs)
+        });
 
-      const data = await res.json();
-      if (res.ok) {
-        return { ok: true, data, status: res.status };
+        const data = await res.json();
+        if (res.ok) {
+          return { ok: true, data, status: res.status };
+        }
+        lastStatus = res.status;
+        lastData = data;
+        console.warn(`[Model Fallback] ${model} with key (${key.slice(0, 10)}...) status ${res.status}`);
+      } catch (err) {
+        lastError = err;
+        console.warn(`[Model Fallback] ${model} with key (${key.slice(0, 10)}...) error:`, err.message);
       }
-      lastStatus = res.status;
-      lastData = data;
-    } catch (err) {
-      lastError = err;
     }
   }
 
@@ -63,21 +106,27 @@ async function callModelWithFallback(models, apiKey, payload, timeoutMs = 8000) 
 }
 
 // Fast streaming with SSE fallback for real-time ChatGPT-like preview
-async function callStreamingModelWithFallback(models, apiKey, payload, timeoutMs = 8000) {
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(timeoutMs)
-      });
-      if (res.ok && res.body) {
-        return { ok: true, stream: res.body };
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 8000) {
+  const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
+
+  for (const key of keys) {
+    if (!key) continue;
+    for (const model of models) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${key}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(timeoutMs)
+        });
+        if (res.ok && res.body) {
+          return { ok: true, stream: res.body };
+        }
+        console.warn(`[Stream Fallback] ${model} with key (${key.slice(0, 10)}...) status ${res.status}`);
+      } catch (err) {
+        console.warn(`[Stream Fallback] from ${model}:`, err.message);
       }
-    } catch (err) {
-      console.warn(`[Stream] Fallback from ${model}:`, err.message);
     }
   }
   return { ok: false };
@@ -212,27 +261,17 @@ export async function POST(req) {
       }
     }
 
-    // 2. Select API Key according to the Bot (KonPov vs KonBong)
-    let apiKey = process.env.GEMINI_API_KEY;
-    if (bot === 'konpov' && process.env.GEMINI_API_KEY_KONPOV) {
-      apiKey = process.env.GEMINI_API_KEY_KONPOV;
-    } else if (bot === 'konbong' && process.env.GEMINI_API_KEY_KONBONG) {
-      apiKey = process.env.GEMINI_API_KEY_KONBONG;
-    } else {
-      apiKey =
-        process.env.GEMINI_API_KEY_KONBONG ||
-        process.env.GEMINI_API_KEY_KONPOV ||
-        process.env.GEMINI_API_KEY;
-    }
+    // 2. Select API Key Pool according to the Bot (KonPov vs KonBong + Reserves)
+    const apiKeys = getApiKeyPool(bot);
 
-    if (!apiKey) {
+    if (apiKeys.length === 0) {
       alertSystemError({
         type: 'Missing API Key Config',
         username,
         bot,
         ip: clientIp,
         userAgent: clientUserAgent,
-        errorMessage: 'AI engine key is not configured in server environment'
+        errorMessage: 'AI engine keys are not configured in server environment'
       }).catch((e) => console.error('[Telegram] API key error alert:', e));
 
       return Response.json(
@@ -275,7 +314,7 @@ export async function POST(req) {
         contents: audioContents,
         generationConfig: audioGenConfig
       };
-      const result = await callModelWithFallback(AUDIO_MODELS, apiKey, requestPayload, 3500);
+      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 3500);
       if (result.ok && result.data?.candidates?.[0]?.content?.parts?.some((p) => p.inlineData?.data)) {
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }
@@ -349,7 +388,7 @@ export async function POST(req) {
 
       // Real-time ChatGPT-like Streaming Mode (SSE)
       if (body.stream) {
-        const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
+        const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
         if (streamResult.ok) {
           alertChatActivity({
             username: username || 'Unknown',
@@ -375,7 +414,7 @@ export async function POST(req) {
       }
 
       // Standard Non-streaming Response
-      const result = await callModelWithFallback(TEXT_MODELS, apiKey, requestPayload);
+      const result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
       if (result.ok) {
         alertChatActivity({
           username: username || 'Unknown',

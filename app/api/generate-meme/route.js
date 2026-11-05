@@ -66,17 +66,23 @@ export async function POST(req) {
     let imageUrl = null;
     let engineUsed = 'Pollinations Flux';
 
-    const apiKey =
-      (bot === 'konpov' ? process.env.GEMINI_API_KEY_KONPOV : process.env.GEMINI_API_KEY_KONBONG) ||
-      process.env.GEMINI_API_KEY;
+    const candidateKeys = Array.from(new Set([
+      (bot === 'konpov' ? process.env.GEMINI_API_KEY_KONPOV : process.env.GEMINI_API_KEY_KONBONG),
+      process.env.GEMINI_API_KEY,
+      process.env.GEMINI_API_KEY_RESERVE,
+      process.env.GEMINI_API_KEY_RESERVE_ONE,
+      process.env.GEMINI_API_KEY_RESERVE_TWO,
+      (bot === 'konpov' ? process.env.GEMINI_API_KEY_KONBONG : process.env.GEMINI_API_KEY_KONPOV)
+    ].filter(Boolean)));
 
-    // 2. Primary Engine: Gemini Nano Banana 2.1 (Google GenAI 2026 Image Generation)
-    if (apiKey) {
+    // 2. Primary Engine: Gemini Nano Banana 2.1 (Google GenAI 2026 Image Generation with Multi-Key Failover)
+    for (const key of candidateKeys) {
+      if (imageUrl) break;
       try {
         const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
           method: 'POST',
           headers: {
-            'x-goog-api-key': apiKey,
+            'x-goog-api-key': key,
             'Content-Type': 'application/json',
             'Api-Revision': '2026-05-20'
           },
@@ -92,13 +98,11 @@ export async function POST(req) {
             const mime = geminiData.output_image.mime_type || 'image/png';
             imageUrl = `data:${mime};base64,${geminiData.output_image.data}`;
             engineUsed = 'Gemini Nano Banana 2.1';
+            break;
           }
-        } else {
-          const errText = await geminiRes.text();
-          console.warn('[Gemini Nano Banana 2.1] Fallback due to:', geminiRes.status, errText.slice(0, 100));
         }
       } catch (err) {
-        console.warn('[Gemini Nano Banana 2.1] Fetch error, falling back:', err.message);
+        console.warn('[Gemini Nano Banana 2.1] Key fallback:', err.message);
       }
     }
 
