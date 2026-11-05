@@ -1,0 +1,243 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
+const CATEGORIES = [
+  { id: 'cats', label: '🐱 ឆ្មាប្រចាំស៊ីតិច (Campus Cats)' },
+  { id: 'assignment', label: '📚 Assignment & Re-Exam' },
+  { id: 'funny', label: '😹 រឿងកំប្លែង & សិស្សច្បង' },
+  { id: 'slang', label: '🔥 Slang & ពាក្យឌឺប្រចាំស៊ីតិច' },
+  { id: 'campus_life', label: '🏫 ជីវិតក្នុងវិទ្យាស្ថាន ស៊ីតិច' },
+  { id: 'other', label: '✨ រឿងរ៉ាវផ្សេងៗ (Other Lore)' }
+];
+
+export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot = 'General' }) {
+  const [username, setUsername] = useState('');
+  const [category, setCategory] = useState(CATEGORIES[0].label);
+  const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem('troll_username') || '';
+      if (savedUser) setUsername(savedUser);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!content.trim()) {
+      setErrorMessage('សូមសរសេររឿងរ៉ាវ ឬចំណេះដឹងបន្តិចសិន មុននឹងចុចបញ្ជូន!');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage('');
+
+    try {
+      const res = await fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'ai_lore_contribution',
+          username: username.trim() || 'Anonymous SETECer',
+          category,
+          content: content.trim(),
+          bot: defaultBot
+        })
+      });
+
+      if (res.ok) {
+        setIsSuccess(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setErrorMessage(data.message || 'មានបញ្ហាបន្តិចបន្តួច សូមព្យាយាមម្ដងទៀត!');
+      }
+    } catch {
+      setErrorMessage('មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ សូមពិនិត្យអ៊ីនធឺណិត!');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setContent('');
+    setIsSuccess(false);
+    setErrorMessage('');
+    onClose();
+  };
+
+  const handleWriteAnother = () => {
+    setContent('');
+    setIsSuccess(false);
+    setErrorMessage('');
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div
+        className="w-full max-w-lg rounded-3xl bg-slate-900 border border-indigo-500/30 text-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-slate-800 bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-xl shadow-inner">
+              🧠
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-indigo-200">
+                ចូលរួមអភិវឌ្ឍន៍ AI ស៊ីតិច (Lore & Training)
+              </h3>
+              <p className="text-[10.5px] text-slate-400">
+                ចែករំលែករឿងរ៉ាវក្នុងស៊ីតិច ដើម្បីឱ្យ Rotana NOB បង្រៀន AI បន្ថែម
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleReset}
+            className="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+          >
+            <i className="fas fa-times text-sm"></i>
+          </button>
+        </div>
+
+        {/* Content Body */}
+        <div className="p-5 overflow-y-auto space-y-4">
+          {isSuccess ? (
+            <div className="py-6 text-center space-y-3">
+              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-3xl animate-bounce">
+                🎉
+              </div>
+              <h4 className="text-base sm:text-lg font-black text-emerald-400">
+                អរគុណច្រើនសម្រាប់ការចូលរួម!
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
+                ទិន្នន័យ និងរឿងរ៉ាវរបស់អ្នកត្រូវបានបញ្ជូនទៅកាន់បង <b className="text-indigo-300">Rotana NOB</b> ដោយជោគជ័យហើយ!
+                បង Rotana នឹងយកខ្លឹមសារនេះទៅបង្រៀន (Train) AI បន្ថែមដើម្បីឱ្យវាស្គាល់ស៊ីតិចកាន់តែច្បាស់ និងឌឺកាន់តែត្រូវរឿង!
+              </p>
+              <div className="pt-3 flex gap-2.5 justify-center">
+                <button
+                  onClick={handleWriteAnother}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 transition"
+                >
+                  <i className="fas fa-pen mr-1"></i> ចែករំលែករឿងផ្សេងទៀត
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-black shadow-md transition"
+                >
+                  <i className="fas fa-check mr-1"></i> រួចរាល់
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Username Field */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  👤 ឈ្មោះរបស់អ្នក (Username)
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="ឧ. សិស្ស IT ឆ្នាំ២, អាប្អូនម៉ៅ..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-indigo-500 text-xs text-white outline-none transition"
+                  maxLength={50}
+                />
+              </div>
+
+              {/* Category Chips */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-2">
+                  🏷️ ជ្រើសរើសប្រធានបទរឿងរ៉ាវ (Category)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {CATEGORIES.map((cat) => {
+                    const isSelected = category === cat.label;
+                    return (
+                      <button
+                        type="button"
+                        key={cat.id}
+                        onClick={() => setCategory(cat.label)}
+                        className={`px-3 py-2 rounded-xl text-left text-[11px] font-semibold border transition flex items-center justify-between cursor-pointer ${
+                          isSelected
+                            ? 'bg-indigo-600/30 border-indigo-400 text-indigo-200 shadow-sm'
+                            : 'bg-slate-950/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                        }`}
+                      >
+                        <span className="truncate">{cat.label}</span>
+                        {isSelected && <i className="fas fa-check-circle text-indigo-400 text-xs ml-1"></i>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Lore / Story Textarea */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-bold text-slate-300">
+                    📝 ខ្លឹមសាររឿងរ៉ាវ / ពាក្យឌឺ / ចំណេះដឹងស៊ីតិច (Content)
+                  </label>
+                  <span className="text-[10px] text-slate-500">{content.length} អក្សរ</span>
+                </div>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="ឧទាហរណ៍៖ ឆ្មាពណ៌សនៅស៊ីតិចចូលចិត្តដេកមុខបណ្ណាល័យ ឬរឿងប្រឡង re-exam មុខវិជ្ជា C++... ឬពាក្យ Slang ថ្មីៗដែលសិស្សស៊ីតិចនិយមនិយាយ..."
+                  rows={5}
+                  className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 focus:border-indigo-500 text-xs text-white outline-none transition leading-relaxed resize-none"
+                  maxLength={2000}
+                  required
+                />
+              </div>
+
+              {errorMessage && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
+                  <i className="fas fa-exclamation-circle text-sm shrink-0"></i>
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+                >
+                  បោះបង់
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !content.trim()}
+                  className={`flex-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-black shadow-lg shadow-indigo-500/20 transition flex items-center justify-center gap-2 cursor-pointer ${
+                    isSubmitting || !content.trim() ? 'opacity-50 cursor-not-allowed' : 'active:scale-98'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <i className="fas fa-spinner fa-spin"></i>
+                      <span>កំពុងបញ្ជូនទៅបង Rotana...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-paper-plane"></i>
+                      <span>បញ្ជូនដើម្បីបង្រៀន AI (Submit)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

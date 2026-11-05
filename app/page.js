@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
+import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import { resetClientRateLimit } from './utils/rateLimiter';
 import { compressAvatarImage, saveAvatarToStorage } from './utils/imageStorage';
 
@@ -17,6 +18,7 @@ export default function Home() {
   const [theme, setTheme] = useState('light');
   const [isLogoSpinning, setIsLogoSpinning] = useState(false);
   const [spinKey, setSpinKey] = useState(0);
+  const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const bgmRef = useRef(null);
 
   const handleTriggerLogoSpin = () => {
@@ -339,6 +341,45 @@ export default function Home() {
                 </button>
               </div>
 
+              {/* AI Training & SETEC Lore Contribution Card */}
+              <div className="w-full mt-3 mb-2">
+                <div
+                  className={`w-full rounded-2xl border p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 transition shadow-sm ${
+                    isDark
+                      ? 'bg-gradient-to-r from-indigo-950/80 via-slate-900 to-purple-950/80 border-indigo-500/40'
+                      : 'bg-gradient-to-r from-indigo-50 via-white to-purple-50 border-indigo-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                    <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                      🧠
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-xs sm:text-sm text-indigo-500 dark:text-indigo-400 truncate">
+                          ចូលរួមអភិវឌ្ឍន៍ AI ស៊ីតិច (Lore & Slang)
+                        </span>
+                        <span className="text-[9px] bg-indigo-500/20 text-indigo-400 font-extrabold px-1.5 py-0.5 rounded-full border border-indigo-400/30 shrink-0">
+                          SETEC Lore
+                        </span>
+                      </div>
+                      <p className="text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5">
+                        ចែករំលែករឿងរ៉ាវក្នុងស៊ីតិច ឆ្មា Assignment ឬ Slang ទៅ Rotana NOB ដើម្បីបង្រៀន AI ឱ្យកាន់តែឆ្លាត!
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setContributeModalOpen(true)}
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs shadow-md shadow-indigo-500/20 transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+                  >
+                    <i className="fas fa-lightbulb text-amber-300"></i>
+                    <span>ចូលរួមសរសេរ</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Other Websites Section */}
               <div id="other-websites-section" className="flex flex-col items-center mt-3 mb-3">
                 <div
@@ -632,6 +673,13 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Contribute Lore & Knowledge Modal */}
+      <ContributeKnowledgeModal
+        isOpen={contributeModalOpen}
+        onClose={() => setContributeModalOpen(false)}
+        defaultBot="Home"
+      />
     </div>
   );
 }

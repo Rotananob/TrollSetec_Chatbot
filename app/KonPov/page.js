@@ -9,6 +9,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
 import ErrorReportModal from '@/components/ErrorReportModal';
+import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import { getApiEndpoint } from '../utils/apiConfig';
 import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage';
 
@@ -40,6 +41,7 @@ export default function KonPovPage() {
   // Error Report to Rotana NOB Modal State
   const [errorReportModalOpen, setErrorReportModalOpen] = useState(false);
   const [errorReportInitialText, setErrorReportInitialText] = useState('');
+  const [contributeModalOpen, setContributeModalOpen] = useState(false);
 
   // ToDo / Queued Prompt State (allows typing and queuing while AI is thinking)
   const [queuedPrompt, setQueuedPrompt] = useState(null); // { text, image }
@@ -732,7 +734,8 @@ ${
    - យល់ និងនិយាយ Slang & Latin គ្រប់ម៉ាត់: "ort dg", "tver ey", "nhom", "koun pov", "ot luy", "crush ort tob", "cringe", "slang", "bror", "sis", "fr fr", "no cap", "បាញ់ផ្ងារជើង", "ចុកឈាម", "គាំងបេះដូង", "ដាច់ផ្ងារ", "សិស្សច្បងបោក", "Assignment IT/Design គាំង", "ស៊ីបាយក្បែរ ស៊ីតិច", "កុំមកឌឺ ${botSelf}"!
 6. ហៅ User: ហៅ "${userNameStr}", "${userTerm}", "អាម៉ូយ" ឬបើវាឈ្លើយ ហៅ "អាហែង", "អាអូន"!
 7. បើ User ផ្ញើរូបភាពមក: ពិនិត្យមើលរូបភាពនោះយ៉ាងល្អិតល្អន់ រួចសើចចំអក ឬ Roast ឌឺដងបែប Gen Z ឱ្យចុកឈាមតែ Funny សើចចុកពោះ!
-8. បើគេសួររក Rotana NOB: និយាយថា "Rotana NOB ជាអ្នកបង្កើតអញមក គាត់ជាមនុស្ស Chill ទេ កុំមកស្ដីឱ្យគាត់ ព្រោះសម្ដីឈ្លើយៗចេញពីក្បាលអញ AI សុទ្ធសាធ!"`;
+8. បើគេសួររក Rotana NOB: និយាយថា "Rotana NOB ជាអ្នកបង្កើតអញមក គាត់ជាមនុស្ស Chill ទេ កុំមកស្ដីឱ្យគាត់ ព្រោះសម្ដីឈ្លើយៗចេញពីក្បាលអញ AI សុទ្ធសាធ!"
+9. ច្បាប់ឆ្លើយតបធម្មជាតិ & មិននិយាយពាក្យ SPAM WARNING ស្វ័យប្រវត្តិ៖ ក្នុង Chat ធម្មតា ឯងឆ្លើយតបទៅកាន់សំណួរ និងការនិយាយលេងរបស់ User ជានិច្ច! ដាច់ខាតកុំយកពាក្យរារាំង spam, warning server, ឬសារ rate-limit ចាស់ៗមកនិយាយដដែលៗដាក់ User ឡើយ! ឆ្លើយតបតាមធម្មជាតិ ឆ្លាត ឌឺដង តាមពាក្យដែល User ទើបតែនិយាយមក!`;
 
       const formattedContents = [];
       const recentHistory = messages.concat(userMsg).slice(-6);
@@ -768,6 +771,10 @@ ${
             bot: 'konpov',
             username: userNameStr,
             gender: userGender,
+            generationConfig: {
+              temperature: 0.88,
+              topP: 0.95
+            },
             stream: true
           })
         });
@@ -899,7 +906,7 @@ ${
 
   return (
     <div
-      className={`h-screen h-[100dvh] max-h-[100dvh] w-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
+      className={`fixed inset-0 w-full h-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
         isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
       }`}
     >
@@ -975,6 +982,16 @@ ${
           >
             <i className="fas fa-robot mr-1"></i> ទៅកាន់ កូនច្បង - រៀមច្បង IT
           </Link>
+
+          <button
+            onClick={() => {
+              setContributeModalOpen(true);
+              setDrawerOpen(false);
+            }}
+            className="w-full mb-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border border-indigo-500/30 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i className="fas fa-brain text-amber-300"></i> ចូលរួមបង្រៀន AI (SETEC Lore)
+          </button>
 
           <button
             onClick={() => {
@@ -1192,6 +1209,105 @@ ${
               <i className="fas fa-check-circle text-amber-200 text-sm"></i>
               <span>យល់ព្រម និងចូលទៅឆាតលេងឥឡូវនេះ</span>
             </button>
+          </div>
+        )}
+
+        {/* Welcome Starter Screen when chat is empty (Zero Blank Void) */}
+        {hasAgreed && messages.length === 0 && (
+          <div className="flex-1 flex flex-col items-center justify-center p-4 text-center my-auto max-w-md mx-auto animate-fade-in">
+            <div className="relative mb-3">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-xl shadow-blue-500/20">
+                <img
+                  src={botAvatar}
+                  alt="Bot"
+                  className="w-full h-full object-cover rounded-[22px] bg-slate-900"
+                />
+              </div>
+              <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-emerald-500 text-slate-950 font-black text-[9px] shadow-sm flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping inline-block"></span>
+                ONLINE
+              </span>
+            </div>
+
+            <h2 className="text-sm sm:text-base font-black mb-1">
+              {userGender === 'ប្រុស'
+                ? `សួស្តីអាប្អូនប្រុស ${username || 'User'}! មក chill ជាមួយចែមក!`
+                : `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! Daddy នៅចាំបាញ់!`}
+            </h2>
+            <p className="text-[11px] sm:text-xs text-slate-400 max-w-xs mb-4 font-medium leading-relaxed">
+              {userGender === 'ប្រុស'
+                ? 'ចែ/Mommy កូនពៅ ត្រៀម Roast ឯងឱ្យបាក់កហើយ! ចង់ troll អី និយាយមក ឬសាកចុចសំណួរខាងក្រោម៖'
+                : 'Daddy Mod កូនពៅ ត្រៀម Roast ឯងឱ្យផ្ងារជើង! ចង់ troll អី និយាយមក ឬសាកចុចសំណួរខាងក្រោម៖'}
+            </p>
+
+            {/* Quick Starter Prompt Chips */}
+            <div className="w-full space-y-2">
+              <button
+                type="button"
+                onClick={() => handleChat('Roast ខ្ញុំមួយក្បាច់មកមើល ថាឌឺប៉ុណ្ណា!')}
+                className={`w-full p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-between group cursor-pointer ${
+                  isDark
+                    ? 'bg-slate-900/80 border-slate-800 text-slate-200 hover:border-blue-500/60 hover:bg-slate-800'
+                    : 'bg-white border-slate-200 text-slate-800 hover:border-blue-500/60 hover:bg-blue-50/50 shadow-xs'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base">🔥</span>
+                  <span>Roast ខ្ញុំមួយក្បាច់មកមើល!</span>
+                </span>
+                <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5"></i>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleChat('នៅ ស៊ីតិច មានរឿងឆ្មាអីខ្លះដែរ?')}
+                className={`w-full p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-between group cursor-pointer ${
+                  isDark
+                    ? 'bg-slate-900/80 border-slate-800 text-slate-200 hover:border-blue-500/60 hover:bg-slate-800'
+                    : 'bg-white border-slate-200 text-slate-800 hover:border-blue-500/60 hover:bg-blue-50/50 shadow-xs'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base">🐱</span>
+                  <span>រឿងឆ្មាក្នុងវិទ្យាស្ថាន ស៊ីតិច មានអីខ្លះ?</span>
+                </span>
+                <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5"></i>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleChat('ជិតដល់ deadline Assignment ហើយ ជួយខ្ញុំផង!')}
+                className={`w-full p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-between group cursor-pointer ${
+                  isDark
+                    ? 'bg-slate-900/80 border-slate-800 text-slate-200 hover:border-blue-500/60 hover:bg-slate-800'
+                    : 'bg-white border-slate-200 text-slate-800 hover:border-blue-500/60 hover:bg-blue-50/50 shadow-xs'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base">📚</span>
+                  <span>ជិតដល់ deadline Assignment ហើយ ជួយផង!</span>
+                </span>
+                <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5"></i>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setContributeModalOpen(true)}
+                className={`w-full p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-between group cursor-pointer ${
+                  isDark
+                    ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300 hover:bg-indigo-900/50'
+                    : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 shadow-xs'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-base">💡</span>
+                  <span>ចូលរួមបង្រៀន AI (SETEC Lore & Slang)</span>
+                </span>
+                <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-black">
+                  Contribute
+                </span>
+              </button>
+            </div>
           </div>
         )}
 
@@ -1509,6 +1625,14 @@ ${
         {/* Quick Suggestion Pills Bar (Thin, single row, smooth scroll) */}
         <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
           <button
+            onClick={() => setContributeModalOpen(true)}
+            className="px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-400/30 text-indigo-400"
+          >
+            <i className="fas fa-brain text-xs text-amber-300"></i>
+            <span>ចូលរួមបង្រៀន AI</span>
+          </button>
+
+          <button
             onClick={() => handleRequestMeme()}
             disabled={!hasAgreed || isGeneratingMeme || isLoading}
             className={`px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
@@ -1708,6 +1832,13 @@ ${
         bot="konpov"
         initialIssue={errorReportInitialText}
         isDark={isDark}
+      />
+
+      {/* Contribute Lore & AI Training Modal */}
+      <ContributeKnowledgeModal
+        isOpen={contributeModalOpen}
+        onClose={() => setContributeModalOpen(false)}
+        defaultBot="Chatbot កូនពៅ"
       />
     </div>
   );

@@ -19,9 +19,12 @@ img, svg, video {
   height: auto;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
+  height: 100%;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
   font-family: 'Kantumruy Pro', sans-serif;
 }
 

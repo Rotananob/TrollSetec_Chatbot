@@ -24,9 +24,9 @@ export async function OPTIONS() {
 // Active ultra-fast models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
   'gemini-3.1-flash-lite',
-  'gemini-flash-lite-latest',
   'gemini-3-flash-preview',
-  'gemini-3.1-flash-lite-preview'
+  'gemini-3.1-flash-lite-preview',
+  'gemini-flash-lite-latest'
 ];
 const AUDIO_MODELS = [
   'gemini-2.5-flash-preview-tts',
@@ -329,9 +329,16 @@ export async function POST(req) {
           : systemInstruction
         : undefined;
 
+      const genConfig = {
+        temperature: generationConfig?.temperature ?? 0.88,
+        topP: generationConfig?.topP ?? 0.95,
+        ...generationConfig
+      };
+
       requestPayload = {
         contents: textContents,
-        ...(formattedSystemInstruction && { systemInstruction: formattedSystemInstruction })
+        ...(formattedSystemInstruction && { systemInstruction: formattedSystemInstruction }),
+        generationConfig: genConfig
       };
       // Determine user prompt text for alert logging
       const lastPart = textContents?.[textContents.length - 1]?.parts || [];

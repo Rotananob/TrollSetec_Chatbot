@@ -6,6 +6,7 @@ import {
   alertDailyVisitorReport,
   alertPwaInstall,
   alertUserReportedIssue,
+  alertDevContribution,
   getCambodiaDayKey
 } from '../../../lib/telegram';
 import {
@@ -129,6 +130,23 @@ export async function POST(req) {
 
       return Response.json(
         { success: true, message: 'Issue reported to Rotana NOB successfully' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Handle User Contributed SETEC Lore & AI Training Knowledge
+    if (type === 'ai_lore_contribution' || action === 'ai_lore_contribution') {
+      await alertDevContribution({
+        username: body.username || 'Anonymous SETECer',
+        category: body.category || 'SETEC Lore & Training',
+        content: body.content || '',
+        bot: body.bot || 'General Chatbot',
+        ip,
+        userAgent
+      }).catch((e) => console.error('[Track] Lore contribution alert error:', e));
+
+      return Response.json(
+        { success: true, message: 'Contribution submitted successfully to Rotana NOB' },
         { status: 200, headers: corsHeaders }
       );
     }
