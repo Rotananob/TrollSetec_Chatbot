@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
+import { getApiEndpoint } from '../app/utils/apiConfig';
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
@@ -43,9 +44,7 @@ export default function VisitorTracker() {
     const username = localStorage.getItem('chatbot_username') || 'Guest';
     const screen = `${window.innerWidth}x${window.innerHeight}`;
     const referrer = document.referrer || '';
-
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-    const trackEndpoint = apiBase ? `${apiBase.replace(/\/$/, '')}/api/track` : '/api/track';
+    const trackEndpoint = getApiEndpoint('/api/track');
 
     fetch(trackEndpoint, {
       method: 'POST',

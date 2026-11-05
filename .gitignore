@@ -4,6 +4,7 @@ node_modules/
 out/
 build/
 dist/
+dist-firebase/
 
 # Logs & Debug
 logs/
@@ -31,7 +32,6 @@ Thumbs.db
 # Firebase legacy cache & configs
 .firebase/
 .firebaserc
-firebase.json
 
 # Legacy Vanilla Version Files (Ignored for modern Next.js app)
 /*.html

@@ -8,14 +8,10 @@ import AntiSpamModal from '@/components/AntiSpamModal';
 import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
+import { getApiEndpoint } from '../utils/apiConfig';
 
-const API_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
-  ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/chat`
-  : '/api/chat';
-
-const MEME_ENDPOINT = process.env.NEXT_PUBLIC_API_URL
-  ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}/api/generate-meme`
-  : '/api/generate-meme';
+const API_ENDPOINT = getApiEndpoint('/api/chat');
+const MEME_ENDPOINT = getApiEndpoint('/api/generate-meme');
 
 export default function KonPovPage() {
   const router = useRouter();

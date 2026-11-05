@@ -74,17 +74,6 @@ export default function RootLayout({ children }) {
               }
               .hidden, input[type="file"].hidden { display: none !important; }
               img { max-width: 100%; height: auto; }
-              .bottom-logo-container {
-                position: fixed;
-                bottom: 16px;
-                right: 16px;
-                width: 68px;
-                height: 68px;
-                max-width: 68px;
-                max-height: 68px;
-                z-index: 40;
-              }
-              .bottom-logo-container img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
             `,
           }}
         />
