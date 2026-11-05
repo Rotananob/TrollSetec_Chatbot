@@ -838,7 +838,7 @@ export default function KonBongPage() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 ${
+      className={`h-screen h-[100dvh] max-h-[100dvh] w-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
         isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
       }`}
     >
@@ -917,60 +917,80 @@ export default function KonBongPage() {
         </div>
       </div>
 
-      {/* Header */}
+      {/* Permanent Fixed Header (stays pinned at top at all times) */}
       <header
-        className={`backdrop-blur-xl border-b flex justify-between items-center sticky top-0 z-30 transition-colors px-3.5 pb-3 ${
-          isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-white/90 border-slate-200 shadow-sm'
+        className={`shrink-0 backdrop-blur-xl border-b flex justify-between items-center z-30 transition-colors px-2.5 sm:px-4 py-2.5 ${
+          isDark ? 'bg-slate-950/95 border-slate-800' : 'bg-white/95 border-slate-200 shadow-sm'
         }`}
         style={{
-          paddingTop: 'max(env(safe-area-inset-top, 0px), 0.875rem)'
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 0.75rem)'
         }}
       >
-        <div className="flex items-center gap-2.5">
+        {/* Left Side: Back Arrow, Drawer Menu Toggle, Bot Avatar & Title */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+          <Link
+            href="/"
+            className={`p-2 rounded-xl text-xs transition shrink-0 ${
+              isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-black hover:bg-slate-100'
+            }`}
+            title="ត្រឡប់ទៅទំព័រដើម"
+          >
+            <i className="fas fa-arrow-left text-sm"></i>
+          </Link>
+
           <button
             onClick={() => setDrawerOpen(true)}
-            className="p-2 text-cyan-400 text-lg hover:bg-cyan-500/10 rounded-xl transition cursor-pointer"
-            title="Menu"
+            className="p-2 text-cyan-400 text-sm hover:bg-cyan-500/10 rounded-xl transition cursor-pointer shrink-0"
+            title="ប្រវត្តិជជែក & ម៉ឺនុយ"
           >
             <i className="fas fa-bars"></i>
           </button>
 
-          <div className="relative">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 p-0.5 shadow-md">
+          <div className="relative shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 p-0.5 shadow-md">
               <img src="/img/icon.jpg" alt="Avatar" className="w-full h-full rounded-[14px] object-cover" />
             </div>
-            <div className="absolute -top-1 -right-1 bg-cyan-500 text-[8px] font-black px-1.5 py-0.2 rounded-full text-white border border-white">
+            <div className="absolute -top-1 -right-1 bg-cyan-500 text-[7px] font-black px-1 py-0.1 rounded-full text-white border border-white">
               កូនច្បង
             </div>
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className={`font-black text-base tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                ស៊ីតិច Chatbot កូនច្បង
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 truncate">
+              <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                កូនច្បង
               </h1>
-              <span className="text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-black px-2 py-0.5 rounded-full">
-                ឆ្លាត & ឌឺដង
+              <span className="hidden sm:inline text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-black px-1.5 py-0.2 rounded-full">
+                ឆ្លាត & ឌឺ
               </span>
             </div>
-            <p className="text-[10px] text-cyan-400 font-semibold tracking-tight">
+            <p className="text-[9px] text-cyan-400 font-semibold tracking-tight truncate">
               SETEC Senior • By Rotana NOB
             </p>
           </div>
         </div>
 
-        {/* Header Right Actions */}
-        <div className="flex items-center gap-2">
-          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
-          <Link
-            href="/"
-            className={`p-2 rounded-xl text-xs transition ${
-              isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-black hover:bg-slate-100'
-            }`}
-            title="ត្រឡប់ទៅទំព័រដើម"
+        {/* Right Side: Quick Action Buttons (New Chat, Switch Bot, Theme) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            onClick={() => createNewSession()}
+            className="px-2.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 font-bold text-[11px] flex items-center gap-1 transition active:scale-95 shadow-sm cursor-pointer"
+            title="បង្កើតការជជែកថ្មី"
           >
-            <i className="fas fa-home"></i>
+            <i className="fas fa-plus text-[10px]"></i>
+            <span className="inline font-bold">ជជែកថ្មី</span>
+          </button>
+
+          <Link
+            href="/KonPov"
+            className="px-2.5 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-300 font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 shadow-sm"
+            title="ប្តូរទៅ ស៊ីតិច Chatbot កូនពៅ (ស្ដេចឌឺ)"
+          >
+            <i className="fas fa-repeat text-[10px] text-blue-400"></i>
+            <span className="hidden xs:inline sm:inline">ទៅកូនពៅ</span>
           </Link>
+
+          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
         </div>
       </header>
 
@@ -1218,9 +1238,9 @@ export default function KonBongPage() {
         style={{ display: 'none' }}
       />
 
-      {/* Chat Footer Input Area */}
+      {/* Chat Footer Input Area (Permanently pinned at bottom) */}
       <footer
-        className={`px-3.5 pt-3.5 border-t transition-colors ${
+        className={`shrink-0 px-3 sm:px-3.5 pt-2.5 border-t transition-colors z-30 ${
           isDark ? 'bg-slate-950/95 border-slate-800' : 'bg-white/95 border-slate-200'
         }`}
         style={{
@@ -1251,23 +1271,44 @@ export default function KonBongPage() {
           </div>
         )}
 
-        {/* Quick Actions Bar */}
-        <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-1 text-[11px]">
+        {/* Quick Actions Bar (Quick navigation at thumb level) */}
+        <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
+          <button
+            onClick={() => createNewSession()}
+            className="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 font-bold flex items-center gap-1 hover:bg-cyan-500/25 transition shrink-0 cursor-pointer shadow-sm"
+            title="បង្កើតការជជែកថ្មី"
+          >
+            <i className="fas fa-plus text-xs"></i> <span>ជជែកថ្មី</span>
+          </button>
+          <Link
+            href="/KonPov"
+            className="px-2.5 py-1 rounded-full bg-blue-500/15 border border-blue-400/40 text-blue-300 font-bold flex items-center gap-1 hover:bg-blue-500/25 transition shrink-0 shadow-sm"
+            title="ប្តូរទៅ ស៊ីតិច Chatbot កូនពៅ"
+          >
+            <i className="fas fa-robot text-xs text-blue-400"></i> <span>ទៅកូនពៅ</span>
+          </Link>
           <button
             onClick={() => handleRequestMeme()}
             disabled={isGeneratingMeme || isLoading}
-            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-400/40 text-amber-300 font-extrabold flex items-center gap-1.5 hover:bg-amber-500/30 transition shrink-0 cursor-pointer"
+            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-amber-400/40 text-amber-300 font-extrabold flex items-center gap-1 hover:bg-amber-500/30 transition shrink-0 cursor-pointer"
           >
             <i className="fas fa-wand-magic-sparkles text-amber-300"></i>
-            <span>សុំ Meme ១ សន្លឹក</span>
+            <span>សុំ Meme</span>
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             className="px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-400 font-bold flex items-center gap-1 hover:bg-cyan-500/20 transition shrink-0 cursor-pointer"
           >
-            <i className="fas fa-camera text-xs"></i> <span>ផ្ញើរូបភាព</span>
+            <i className="fas fa-camera text-xs"></i> <span>រូបភាព</span>
           </button>
-          <span className="text-[10px] text-slate-500 italic shrink-0">#SETEC_Troll #Meme_IT</span>
+          <Link
+            href="/"
+            className="px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-400/30 text-slate-400 font-bold flex items-center gap-1 hover:bg-slate-500/20 transition shrink-0"
+            title="ត្រឡប់ទៅទំព័រដើម"
+          >
+            <i className="fas fa-home text-xs"></i> <span>ទំព័រដើម</span>
+          </Link>
+          <span className="text-[10px] text-slate-500 italic shrink-0">#SETEC_Senior</span>
         </div>
 
         {/* ToDo Queued Prompt Chip (When user pressed enter/send while AI was thinking) */}
