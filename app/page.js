@@ -265,7 +265,7 @@ export default function Home() {
             ស្វាគមន៍មកកាន់ SETEC Chatbot
           </h2>
           <p className={`text-xs mb-5 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            កន្លែង Troll និងឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់ក្មេង SETEC
+            កន្លែង Troll និងឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់សិស្ស SETEC ទំនេរ
           </p>
 
           {!hasCheckedStorage ? (
@@ -389,11 +389,8 @@ export default function Home() {
                       : 'bg-gradient-to-r from-indigo-50/80 via-blue-50/80 to-purple-50/80 border-indigo-200/80'
                   }`}
                 >
-                  <span className="text-indigo-500 dark:text-indigo-400 font-black text-xs mb-1 flex items-center gap-1.5 uppercase tracking-wider">
-                    <i className="fas fa-globe-asia text-sm text-indigo-500"></i> Our Ecosystem & Websites
-                  </span>
-                  <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold mb-2.5 text-center leading-relaxed max-w-md">
-                    Chatbot នេះបងបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានសើចសប្បាយបំបាត់ស្ត្រេស! ចឹងសុំឆ្លៀតប្រម៉ូតស្នាដៃ និងគម្រោងរបស់ខ្ញុំបន្តិចណា៎ បងប្អូនជួយចូលមើល ជួយជាវ ឬជួយប្រើម្នាក់មួយផង 🙏🏻😭
+                  <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold mb-3 text-center leading-relaxed max-w-md px-1">
+                    Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតគម្រោងបន្តិចហើយណា៎ បងប្អូនជួយចូលមើល ជួយជាវ ឬជួយប្រើម្នាក់មួយផង <span className="font-sans text-xs sm:text-sm inline-block ml-0.5">🙏🏻😭</span>
                   </p>
 
                   <div className="grid grid-cols-2 gap-1.5 w-full min-w-0">
@@ -492,13 +489,6 @@ export default function Home() {
                       <i className="fas fa-cash-register text-red-500 text-sm mb-0.5"></i>
                       <span className="truncate">YOUNG POS</span>
                     </a>
-                  </div>
-
-                  {/* Chill & Funny Promotional Footer Note with 🙏🏻😭 at the bottom */}
-                  <div className="mt-3 pt-2.5 border-t border-indigo-200/60 dark:border-slate-800/80 w-full text-center">
-                    <p className="text-[11px] sm:text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed px-1">
-                      ព្រោះ Chatbot នេះខ្ញុំដាក់ឱ្យគ្រប់គ្នាបានចូលមកសើចសប្បាយ និង Chill ហើយ អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតរបស់ខ្ញុំតិចហើយបងប្អូន ជួយជាវ ឬជួយប្រើម្នាក់មួយផងណា៎ <span className="font-sans text-xs sm:text-sm inline-block ml-0.5">🙏🏻😭</span>
-                    </p>
                   </div>
                 </div>
               </div>
