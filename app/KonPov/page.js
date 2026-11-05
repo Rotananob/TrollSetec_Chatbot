@@ -9,6 +9,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
 import { getApiEndpoint } from '../utils/apiConfig';
+import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage';
 
 const API_ENDPOINT = getApiEndpoint('/api/chat');
 const MEME_ENDPOINT = getApiEndpoint('/api/generate-meme');
@@ -184,7 +185,6 @@ export default function KonPovPage() {
       'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
     const savedGender = localStorage.getItem('chatbot_gender') || '';
-    const savedAgreed = localStorage.getItem('chatbot_agreed_konpov') === 'true';
 
     setUsername(savedName);
     setAvatar(savedAvatar);
@@ -193,9 +193,9 @@ export default function KonPovPage() {
     if (savedGender) {
       setUserGender(savedGender);
     }
-    if (savedAgreed && savedGender) {
-      setHasAgreed(true);
-    }
+    // Always start with intro note for every new chat session (do not lock in localStorage)
+    setHasAgreed(false);
+    setMessages([]);
   }, []);
 
   const handleToggleTheme = () => {
@@ -214,32 +214,45 @@ export default function KonPovPage() {
     localStorage.setItem('chatbot_gender', gender);
   };
 
-  // Create New Chat Session
+  // Change user avatar on the fly and save safely to localStorage
+  const handleUserAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressAvatarImage(file);
+      setAvatar(compressed);
+      saveAvatarToStorage(compressed);
+    } catch (err) {
+      alert(err.message || 'មិនអាចជ្រើសរូបភាពនេះបានទេ!');
+    }
+    e.target.value = '';
+  };
+
+  // Create New Chat Session - always resets and shows the intro note
   const createNewSession = () => {
-    const isMale = userGender === 'ប្រុស';
-    const introMsg = isMale
-      ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username || 'User'}! មកចាប់ផ្តើមជជែកថ្មីជាមួយ ចែ/Mommy ណា៎! ចង់ឱ្យចែ Troll រឿងអីលើកនេះ?`
-      : `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! មកចាប់ផ្តើមជជែកថ្មីជាមួយ Daddy ណា៎! លើកនេះចង់សួររឿងអី?`;
-    setMessages([{ role: 'bot', text: introMsg }]);
+    setHasAgreed(false);
+    setMessages([]);
     setInputText('');
     setSelectedImage(null);
     setQueuedPrompt(null);
     queuedPromptRef.current = null;
-    triggerAudio(introMsg, 0, false);
+    if (audioPlayerRef.current) audioPlayerRef.current.pause();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
   };
 
   // User explicitly clicks "Agree & Start Chat"
   const handleAgreeAndStartChat = () => {
     setHasAgreed(true);
-    localStorage.setItem('chatbot_agreed_konpov', 'true');
-    const introMsg =
-      userGender === 'ប្រុស'
-        ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`
-        : `សួស្តីកូនស្រីសម្លាញ់ ${username}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទស្រី! ចរិតស្លូតបូតបែបស្រីៗចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង!`;
+    const isMale = userGender === 'ប្រុស';
+    const introMsg = isMale
+      ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username || 'User'}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`
+      : `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទស្រី! ចរិតស្លូតបូតបែបស្រីៗចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង!`;
 
-    const updated = [...messages, { role: 'bot', text: introMsg }];
+    const updated = [{ role: 'bot', text: introMsg }];
     setMessages(updated);
-    triggerAudio(introMsg, updated.length - 1, true);
+    triggerAudio(introMsg, 0, true);
   };
 
   // Image Selection Handler
@@ -592,7 +605,10 @@ export default function KonPovPage() {
 
   // Handle Send or ToDo Queue (allows typing while AI is thinking, holds/queues prompt)
   const handleSendMessageOrQueue = () => {
-    if (!hasAgreed || isGeneratingMeme) return;
+    if (isGeneratingMeme) return;
+    if (!hasAgreed) {
+      setHasAgreed(true);
+    }
     const currentText = inputText.trim();
     const currentImg = selectedImage;
     if (!currentText && !currentImg) return;
@@ -874,6 +890,39 @@ ${
             </button>
           </div>
 
+          {/* User Profile Card with Avatar Change */}
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/60 mb-3 shadow-sm">
+            <label className="relative cursor-pointer group shrink-0" title="ចុចដើម្បីប្ដូររូប Profile">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleUserAvatarChange}
+              />
+              <img
+                src={avatar}
+                alt="User Avatar"
+                className="w-11 h-11 rounded-full ring-2 ring-blue-500/50 object-cover shadow"
+              />
+              <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-[11px] text-white">
+                <i className="fas fa-camera"></i>
+              </div>
+            </label>
+            <div className="min-w-0 flex-1">
+              <span className="font-bold text-xs truncate block text-blue-400">{username || 'User'}</span>
+              <label className="text-[10px] text-slate-400 hover:text-white cursor-pointer underline flex items-center gap-1 mt-0.5">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleUserAvatarChange}
+                />
+                <i className="fas fa-camera text-[9px]"></i>
+                <span>ប្ដូររូប Profile ថ្មី</span>
+              </label>
+            </div>
+          </div>
+
           <button
             onClick={() => {
               createNewSession();
@@ -1022,12 +1071,12 @@ ${
           </div>
         </div>
 
-        {/* Right Side: Clean Action Icons (New Chat, Switch Bot, Menu) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Right Side: Clean Action Icons (New Chat, Theme Toggle, Switch Bot, Menu) */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => createNewSession()}
             disabled={!hasAgreed}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition active:scale-95 text-xs font-bold border cursor-pointer ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 text-xs font-bold border cursor-pointer ${
               !hasAgreed
                 ? 'opacity-40 cursor-not-allowed border-slate-700 text-slate-500'
                 : isDark
@@ -1039,9 +1088,11 @@ ${
             <i className="fas fa-plus"></i>
           </button>
 
+          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
+
           <Link
             href="/KonBong"
-            className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
+            className={`px-2 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
               isDark
                 ? 'bg-cyan-500/15 border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/25'
                 : 'bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100 shadow-xs'
@@ -1054,7 +1105,7 @@ ${
 
           <button
             onClick={() => setDrawerOpen(true)}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition active:scale-95 text-xs border cursor-pointer ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 text-xs border cursor-pointer ${
               isDark
                 ? 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 border-slate-800'
                 : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200 shadow-xs'
@@ -1101,11 +1152,22 @@ ${
               <div key={idx} className="flex flex-col items-end gap-1 self-end max-w-[88%] sm:max-w-[80%] animate-fade-in">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="font-bold text-blue-500 dark:text-blue-400 text-[11px]">{username}</span>
-                  <img
-                    src={avatar}
-                    alt="User Avatar"
-                    className="w-6 h-6 rounded-full ring-1 ring-blue-400/40 shadow-xs object-cover"
-                  />
+                  <label className="relative cursor-pointer group/avatar" title="ចុចដើម្បីប្ដូររូប Profile">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUserAvatarChange}
+                    />
+                    <img
+                      src={avatar}
+                      alt="User Avatar"
+                      className="w-6 h-6 rounded-full ring-1 ring-blue-400/40 shadow-xs object-cover hover:ring-2 hover:ring-blue-400 transition"
+                    />
+                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition text-[7px] text-white">
+                      <i className="fas fa-camera"></i>
+                    </div>
+                  </label>
                 </div>
 
                 {item.image && (

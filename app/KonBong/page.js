@@ -9,6 +9,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
 import { getApiEndpoint } from '../utils/apiConfig';
+import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage';
 
 const API_ENDPOINT = getApiEndpoint('/api/chat');
 const MEME_ENDPOINT = getApiEndpoint('/api/generate-meme');
@@ -184,6 +185,20 @@ export default function KonBongPage() {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     localStorage.setItem('chatbot_theme', next);
+  };
+
+  // Change user avatar on the fly and save safely to localStorage
+  const handleUserAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressAvatarImage(file);
+      setAvatar(compressed);
+      saveAvatarToStorage(compressed);
+    } catch (err) {
+      alert(err.message || 'មិនអាចជ្រើសរូបភាពនេះបានទេ!');
+    }
+    e.target.value = '';
   };
 
   useEffect(() => {
@@ -859,10 +874,43 @@ export default function KonBongPage() {
             <span className="font-extrabold text-sm text-cyan-400">SETEC Chatbot Hub</span>
             <button
               onClick={() => setDrawerOpen(false)}
-              className="text-slate-400 hover:text-white p-1"
+              className="text-slate-400 hover:text-white p-1 cursor-pointer"
             >
               <i className="fas fa-times text-lg"></i>
             </button>
+          </div>
+
+          {/* User Profile Card with Avatar Change */}
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/60 mb-3 shadow-sm">
+            <label className="relative cursor-pointer group shrink-0" title="ចុចដើម្បីប្ដូររូប Profile">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleUserAvatarChange}
+              />
+              <img
+                src={avatar}
+                alt="User Avatar"
+                className="w-11 h-11 rounded-full ring-2 ring-cyan-500/50 object-cover shadow"
+              />
+              <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-[11px] text-white">
+                <i className="fas fa-camera"></i>
+              </div>
+            </label>
+            <div className="min-w-0 flex-1">
+              <span className="font-bold text-xs truncate block text-cyan-400">{username || 'User'}</span>
+              <label className="text-[10px] text-slate-400 hover:text-white cursor-pointer underline flex items-center gap-1 mt-0.5">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleUserAvatarChange}
+                />
+                <i className="fas fa-camera text-[9px]"></i>
+                <span>ប្ដូររូប Profile ថ្មី</span>
+              </label>
+            </div>
           </div>
 
           <button
@@ -973,11 +1021,11 @@ export default function KonBongPage() {
           </div>
         </div>
 
-        {/* Right Side: Clean Action Icons (New Chat, Switch Bot, Menu) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        {/* Right Side: Clean Action Icons (New Chat, Theme Toggle, Switch Bot, Menu) */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => createNewSession()}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition active:scale-95 text-xs font-bold border cursor-pointer ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 text-xs font-bold border cursor-pointer ${
               isDark
                 ? 'bg-slate-900/80 text-cyan-400 hover:bg-cyan-500/15 border-slate-800'
                 : 'bg-slate-50 text-cyan-600 hover:bg-cyan-50 border-slate-200 shadow-xs'
@@ -987,9 +1035,11 @@ export default function KonBongPage() {
             <i className="fas fa-plus"></i>
           </button>
 
+          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
+
           <Link
             href="/KonPov"
-            className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
+            className={`px-2 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
               isDark
                 ? 'bg-blue-500/15 border-blue-400/30 text-blue-300 hover:bg-blue-500/25'
                 : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 shadow-xs'
@@ -1002,7 +1052,7 @@ export default function KonBongPage() {
 
           <button
             onClick={() => setDrawerOpen(true)}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition active:scale-95 text-xs border cursor-pointer ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 text-xs border cursor-pointer ${
               isDark
                 ? 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 border-slate-800'
                 : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200 shadow-xs'
@@ -1046,11 +1096,22 @@ export default function KonBongPage() {
               <div key={idx} className="flex flex-col items-end gap-1 self-end max-w-[88%] sm:max-w-[80%] animate-fade-in">
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="font-bold text-cyan-500 dark:text-cyan-400 text-[11px]">{username}</span>
-                  <img
-                    src={avatar}
-                    alt="User Avatar"
-                    className="w-6 h-6 rounded-full ring-1 ring-cyan-400/40 shadow-xs object-cover"
-                  />
+                  <label className="relative cursor-pointer group/avatar" title="ចុចដើម្បីប្ដូររូប Profile">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUserAvatarChange}
+                    />
+                    <img
+                      src={avatar}
+                      alt="User Avatar"
+                      className="w-6 h-6 rounded-full ring-1 ring-cyan-400/40 shadow-xs object-cover hover:ring-2 hover:ring-cyan-400 transition"
+                    />
+                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition text-[7px] text-white">
+                      <i className="fas fa-camera"></i>
+                    </div>
+                  </label>
                 </div>
 
                 {msg.image && (

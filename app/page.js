@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
 import { resetClientRateLimit } from './utils/rateLimiter';
+import { compressAvatarImage, saveAvatarToStorage } from './utils/imageStorage';
 
 export default function Home() {
   const router = useRouter();
@@ -80,16 +81,16 @@ export default function Home() {
     localStorage.setItem('chatbot_theme', next);
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const result = evt.target.result;
-        setAvatar(result);
-        localStorage.setItem('chatbot_avatar', result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressAvatarImage(file);
+        setAvatar(compressed);
+        saveAvatarToStorage(compressed);
+      } catch (err) {
+        alert(err.message || 'មិនអាចជ្រើសរូបភាពនេះបានទេ!');
+      }
     }
   };
 
@@ -104,7 +105,7 @@ export default function Home() {
       return;
     }
     localStorage.setItem('chatbot_username', trimmed);
-    localStorage.setItem('chatbot_avatar', avatar);
+    saveAvatarToStorage(avatar);
     resetClientRateLimit(trimmed);
     setIsSubmitted(true);
   };
