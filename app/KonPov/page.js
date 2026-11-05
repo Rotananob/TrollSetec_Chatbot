@@ -318,18 +318,6 @@ export default function KonPovPage() {
           return url;
         }
 
-        // Direct Native Khmer Speech Fallback
-        const cleanText = cleanSpeechText(text);
-        if (cleanText) {
-          if (typeof index === 'number') {
-            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-          }
-          const fallbackChunk = cleanText.slice(0, 180);
-          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fallbackChunk)}&tl=km&client=tw-ob`;
-          audioCacheRef.current.set(hash, directUrl);
-          return directUrl;
-        }
-
         return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
@@ -340,11 +328,60 @@ export default function KonPovPage() {
     return await fetchPromise;
   };
 
+  // Browser Web Speech API fallback for 100% voice uptime
+  const speakWithWebSpeech = (text, index) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return false;
+    try {
+      window.speechSynthesis.cancel();
+      const clean = cleanSpeechText(text);
+      if (!clean) return false;
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.rate = 1.0;
+      utterance.pitch = userGender === 'ប្រុស' ? 1.2 : 0.95;
+
+      const voices = window.speechSynthesis.getVoices();
+      const kmVoice = voices.find((v) => v.lang.startsWith('km') || v.lang.toLowerCase().includes('khmer'));
+      if (kmVoice) utterance.voice = kmVoice;
+
+      if (typeof index === 'number') {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+        setActiveVoiceIndex(index);
+        setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
+      }
+
+      utterance.onend = () => {
+        if (typeof index === 'number') {
+          setAudioStatuses((prev) => ({ ...prev, [index]: 'ended' }));
+          setActiveVoiceIndex(null);
+        }
+      };
+      utterance.onerror = () => {
+        if (typeof index === 'number') {
+          setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
+          setActiveVoiceIndex(null);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const triggerAudio = async (text, index, autoPlay = false) => {
     const player = audioPlayerRef.current;
-    if (!player || !text) return;
+    if (!text) return;
 
-    if (activeVoiceIndex === index) {
+    // Handle speech synthesis pause/cancel toggle
+    if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && activeVoiceIndex === index) {
+      window.speechSynthesis.cancel();
+      setAudioStatuses((prev) => ({ ...prev, [index]: 'paused' }));
+      setActiveVoiceIndex(null);
+      return;
+    }
+
+    if (activeVoiceIndex === index && player) {
       if (!player.paused) {
         player.pause();
         setAudioStatuses((prev) => ({ ...prev, [index]: 'paused' }));
@@ -356,6 +393,9 @@ export default function KonPovPage() {
     }
 
     if (player) player.pause();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
 
     const voiceGenderKey = userGender === 'ប្រុស' ? 'female' : 'male';
     const hash = hashText(text) + '_' + voiceGenderKey;
@@ -366,7 +406,7 @@ export default function KonPovPage() {
 
     const audioUrl = await loadAudioUrl(text, userGender, index);
 
-    if (audioUrl) {
+    if (audioUrl && player) {
       player.src = audioUrl;
       player.currentTime = 0;
       setActiveVoiceIndex(index);
@@ -376,8 +416,12 @@ export default function KonPovPage() {
         setActiveVoiceIndex(null);
       };
       player.onerror = () => {
-        setAudioStatuses((prev) => ({ ...prev, [index]: 'error' }));
-        setActiveVoiceIndex(null);
+        // Fallback to browser Web Speech API immediately so voice never fails!
+        const spoke = speakWithWebSpeech(text, index);
+        if (!spoke) {
+          setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
+          setActiveVoiceIndex(null);
+        }
       };
 
       if (autoPlay) {
@@ -385,16 +429,25 @@ export default function KonPovPage() {
         if (playPromise !== undefined) {
           playPromise
             .then(() => setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' })))
-            .catch(() => setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' })));
+            .catch(() => {
+              // Mobile browser autoplay policy - mark ready so user can tap
+              setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
+            });
         }
       } else {
         player.play()
           .then(() => setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' })))
-          .catch(() => setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' })));
+          .catch(() => {
+            speakWithWebSpeech(text, index);
+          });
       }
     } else {
-      setAudioStatuses((prev) => ({ ...prev, [index]: 'error' }));
-      setActiveVoiceIndex(null);
+      // Direct Web Speech API fallback
+      const spoke = speakWithWebSpeech(text, index);
+      if (!spoke) {
+        setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
+        setActiveVoiceIndex(null);
+      }
     }
   };
 
@@ -657,7 +710,22 @@ ${
           }
         } else if (response.ok) {
           const res = await response.json();
-          botText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const fullText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (fullText) {
+            // High-speed real-time typewriter preview (12-16ms)
+            const step = Math.max(1, Math.floor(fullText.length / 35));
+            for (let c = 0; c < fullText.length; c += step) {
+              const currentChunk = fullText.slice(0, c + step);
+              botText = currentChunk;
+              setMessages((prev) => {
+                const copy = [...prev];
+                copy[copy.length - 1] = { role: 'bot', text: currentChunk };
+                return copy;
+              });
+              await new Promise((r) => setTimeout(r, 14));
+            }
+            botText = fullText;
+          }
         }
       } catch (err) {
         console.warn('[KonPov] Backend API unavailable, falling back...', err);
@@ -875,6 +943,20 @@ ${
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-bold text-blue-400 text-xs mb-1">Chatbot កូនពៅ</span>
 
+                  {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
+                  {isLoading && idx === messages.length - 1 && !isGeneratingMeme && (
+                    <div className="mb-2 flex items-center space-x-2.5 text-blue-400 px-3.5 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl w-fit shadow-sm animate-fade-in">
+                      <div className="flex space-x-1">
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                      </div>
+                      <span className="text-[10.5px] font-bold tracking-tight">
+                        {typingStatus || `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងរកនឹកពាក្យឌឺ...`}
+                      </span>
+                    </div>
+                  )}
+
                   {item.memeImage && (
                     <div className="mb-2 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl max-w-sm">
                       <img
@@ -906,8 +988,10 @@ ${
                     }`}
                   >
                     <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
-                      {item.text}
-                      {isLoading && idx === messages.length - 1 && (
+                      {item.text || (isLoading && idx === messages.length - 1 ? (
+                        <span className="text-blue-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
+                      ) : '')}
+                      {isLoading && idx === messages.length - 1 && item.text && (
                         <span className="inline-block w-1.5 h-3.5 ml-1 bg-blue-400 animate-pulse align-middle"></span>
                       )}
                     </p>
@@ -938,7 +1022,7 @@ ${
                             <i className="fas fa-redo"></i> <span>ស្តាប់ម្ដងទៀត</span>
                           </>
                         )}
-                        {st === 'ready' && (
+                        {(st === 'ready' || st === 'idle') && (
                           <>
                             <i className="fas fa-play"></i>{' '}
                             <span>
@@ -951,11 +1035,16 @@ ${
                           </>
                         )}
                         {st === 'error' && (
-                          <span className="text-amber-400">
-                            {fallbackAudioMap[idx]
-                              ? 'សំឡេងជំនួស'
-                              : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
-                          </span>
+                          <>
+                            <i className="fas fa-play text-blue-400"></i>{' '}
+                            <span>
+                              {fallbackAudioMap[idx]
+                                ? 'សំឡេងជំនួស'
+                                : userGender === 'ប្រុស'
+                                ? 'ស្តាប់សំឡេង ចែ ឬ Mommy'
+                                : 'ស្តាប់សំឡេង Daddy'}
+                            </span>
+                          </>
                         )}
                       </button>
                     )}
@@ -996,25 +1085,6 @@ ${
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Status UI while loading / interactive typing thought */}
-        {isLoading && !isGeneratingMeme && (
-          <div className="flex items-center space-x-3 text-blue-400 px-4 py-2 bg-blue-500/10 border border-blue-500/20 rounded-xl w-fit shadow-md animate-fade-in">
-            <img
-              src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
-              alt="Bot Avatar"
-              className="w-7 h-7 rounded-full border border-blue-400"
-            />
-            <div className="flex space-x-1">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
-            </div>
-            <span className="text-[10px] font-black tracking-wider">
-              {typingStatus || `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងរកនឹកពាក្យឌឺ...`}
-            </span>
           </div>
         )}
 

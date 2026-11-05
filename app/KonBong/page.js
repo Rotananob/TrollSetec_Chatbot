@@ -538,7 +538,22 @@ export default function KonBongPage() {
           }
         } else if (response.ok) {
           const res = await response.json();
-          botText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const fullText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (fullText) {
+            // High-speed real-time typewriter preview (12-16ms)
+            const step = Math.max(1, Math.floor(fullText.length / 35));
+            for (let c = 0; c < fullText.length; c += step) {
+              const currentChunk = fullText.slice(0, c + step);
+              botText = currentChunk;
+              setMessages((prev) => {
+                const copy = [...prev];
+                copy[copy.length - 1] = { role: 'bot', text: currentChunk };
+                return copy;
+              });
+              await new Promise((r) => setTimeout(r, 14));
+            }
+            botText = fullText;
+          }
         }
       } catch (err) {
         console.warn('[KonBong] Backend API unavailable, falling back...', err);
@@ -630,18 +645,6 @@ export default function KonBongPage() {
           return url;
         }
 
-        // Direct Native Khmer Speech Fallback
-        const cleanText = cleanSpeechText(text);
-        if (cleanText) {
-          if (typeof index === 'number') {
-            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-          }
-          const fallbackChunk = cleanText.slice(0, 180);
-          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(fallbackChunk)}&tl=km&client=tw-ob`;
-          audioCacheRef.current.set(hash, directUrl);
-          return directUrl;
-        }
-
         return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
@@ -652,11 +655,60 @@ export default function KonBongPage() {
     return await fetchPromise;
   };
 
+  // Browser Web Speech API fallback for 100% voice uptime
+  const speakWithWebSpeech = (text, index) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return false;
+    try {
+      window.speechSynthesis.cancel();
+      const clean = cleanSpeechText(text);
+      if (!clean) return false;
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const kmVoice = voices.find((v) => v.lang.startsWith('km') || v.lang.toLowerCase().includes('khmer'));
+      if (kmVoice) utterance.voice = kmVoice;
+
+      if (typeof index === 'number') {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+        setActiveAudioIndex(index);
+        setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
+      }
+
+      utterance.onend = () => {
+        if (typeof index === 'number') {
+          setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
+          setActiveAudioIndex(null);
+        }
+      };
+      utterance.onerror = () => {
+        if (typeof index === 'number') {
+          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+          setActiveAudioIndex(null);
+        }
+      };
+
+      window.speechSynthesis.speak(utterance);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const triggerAudio = async (text, index, autoPlay = false) => {
     const player = audioPlayerRef.current;
-    if (!player || !text) return;
+    if (!text) return;
 
-    if (activeAudioIndex === index) {
+    // Handle speech synthesis pause/cancel toggle
+    if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && activeAudioIndex === index) {
+      window.speechSynthesis.cancel();
+      setAudioStates((prev) => ({ ...prev, [index]: 'paused' }));
+      setActiveAudioIndex(null);
+      return;
+    }
+
+    if (activeAudioIndex === index && player) {
       if (!player.paused) {
         player.pause();
         setAudioStates((prev) => ({ ...prev, [index]: 'paused' }));
@@ -668,6 +720,9 @@ export default function KonBongPage() {
     }
 
     if (player) player.pause();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
 
     const hash = hashText(text);
     if (!audioCacheRef.current.has(hash)) {
@@ -676,7 +731,7 @@ export default function KonBongPage() {
 
     const audioUrl = await loadAudioUrl(text, index);
 
-    if (audioUrl) {
+    if (audioUrl && player) {
       player.src = audioUrl;
       player.currentTime = 0;
       setActiveAudioIndex(index);
@@ -686,8 +741,12 @@ export default function KonBongPage() {
         setActiveAudioIndex(null);
       };
       player.onerror = () => {
-        setAudioStates((prev) => ({ ...prev, [index]: 'error' }));
-        setActiveAudioIndex(null);
+        // Fallback to browser Web Speech API immediately so audio never fails!
+        const spoke = speakWithWebSpeech(text, index);
+        if (!spoke) {
+          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+          setActiveAudioIndex(null);
+        }
       };
 
       if (autoPlay) {
@@ -695,16 +754,25 @@ export default function KonBongPage() {
         if (playPromise !== undefined) {
           playPromise
             .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
-            .catch(() => setAudioStates((prev) => ({ ...prev, [index]: 'ready' })));
+            .catch(() => {
+              // Mobile browser autoplay policy - mark ready so user can tap
+              setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+            });
         }
       } else {
         player.play()
           .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
-          .catch(() => setAudioStates((prev) => ({ ...prev, [index]: 'ready' })));
+          .catch(() => {
+            speakWithWebSpeech(text, index);
+          });
       }
     } else {
-      setAudioStates((prev) => ({ ...prev, [index]: 'error' }));
-      setActiveAudioIndex(null);
+      // Direct Web Speech API fallback
+      const spoke = speakWithWebSpeech(text, index);
+      if (!spoke) {
+        setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+        setActiveAudioIndex(null);
+      }
     }
   };
 
@@ -919,6 +987,20 @@ export default function KonBongPage() {
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-bold text-cyan-400 text-xs mb-1">Chatbot កូនច្បង</span>
 
+                  {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
+                  {isLoading && idx === messages.length - 1 && !isGeneratingMeme && (
+                    <div className="mb-2 flex items-center space-x-2.5 text-cyan-400 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/20 rounded-xl w-fit shadow-sm animate-fade-in">
+                      <div className="flex space-x-1">
+                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                      </div>
+                      <span className="text-[10.5px] font-bold tracking-tight">
+                        {typingStatus || 'ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរតើ...'}
+                      </span>
+                    </div>
+                  )}
+
                   {msg.memeImage && (
                     <div className="mb-2 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl max-w-sm">
                       <img
@@ -996,11 +1078,14 @@ export default function KonBongPage() {
                           </>
                         )}
                         {st === 'error' && (
-                          <span className="text-amber-400">
-                            {fallbackAudioMap[idx]
-                              ? 'សំឡេងជំនួស'
-                              : 'សុំទោស! មិនអាចទាញសំឡេងបានទេ'}
-                          </span>
+                          <>
+                            <i className="fas fa-volume-up text-cyan-400"></i>{' '}
+                            <span>
+                              {fallbackAudioMap[idx]
+                                ? 'សំឡេងជំនួស'
+                                : 'ស្តាប់សំឡេងកូនច្បង'}
+                            </span>
+                          </>
                         )}
                       </button>
                     )}
@@ -1041,25 +1126,6 @@ export default function KonBongPage() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Loading UI */}
-        {isLoading && !isGeneratingMeme && (
-          <div className="flex items-center space-x-3 text-cyan-400 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl w-fit">
-            <img
-              src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
-              alt="Bot Avatar"
-              className="w-7 h-7 rounded-full border border-cyan-400"
-            />
-            <div className="flex space-x-1">
-              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping"></div>
-              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping [animation-delay:0.2s]"></div>
-              <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping [animation-delay:0.4s]"></div>
-            </div>
-            <span className="text-[10px] font-black uppercase italic tracking-wider">
-              {typingStatus || 'ចាំតិចប្អូន! បងកំពុងគិតឌឺ...'}
-            </span>
           </div>
         )}
 
