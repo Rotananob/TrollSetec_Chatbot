@@ -29,6 +29,10 @@ export default function KonBongPage() {
   const [spamInfo, setSpamInfo] = useState({ ip: '', device: '', retryAfter: 60 });
   const [fallbackAudioMap, setFallbackAudioMap] = useState({});
 
+  // ToDo / Queued Prompt State (allows typing and queuing while AI is thinking)
+  const [queuedPrompt, setQueuedPrompt] = useState(null); // { text, image }
+  const queuedPromptRef = useRef(null);
+
   // Multimodal Image Upload State
   const [selectedImage, setSelectedImage] = useState(null); // { base64, mimeType, previewUrl, name }
   const fileInputRef = useRef(null);
@@ -377,26 +381,56 @@ export default function KonBongPage() {
     return 'ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
   }
 
+  // Handle Send or ToDo Queue (allows typing while AI is thinking, holds/queues prompt)
+  const handleSendMessageOrQueue = () => {
+    if (isGeneratingMeme) return;
+    const currentText = inputText.trim();
+    const currentImg = selectedImage;
+    if (!currentText && !currentImg) return;
+
+    if (isLoading) {
+      // AI is currently busy thinking/answering:
+      // Block immediate submission and place into ToDo Queue!
+      const item = { text: currentText, image: currentImg };
+      setQueuedPrompt(item);
+      queuedPromptRef.current = item;
+      setInputText('');
+      setSelectedImage(null);
+      return;
+    }
+
+    handleChat(currentText, currentImg);
+  };
+
   // Main Chat Handler (supports multimodal image + text + real-time streaming)
-  const handleChat = async () => {
-    if (isLoading || (!inputText.trim() && !selectedImage)) return;
+  const handleChat = async (overrideText, overrideImg) => {
+    const promptText = typeof overrideText === 'string' ? overrideText : inputText;
+    const currentImg = overrideImg !== undefined ? overrideImg : selectedImage;
+    if (isLoading || (!promptText.trim() && !currentImg)) return;
+
+    // Check rate limit: > 7 messages in 1 minute triggers alert popup
+    const rateCheck = checkClientRateLimit();
+    if (!rateCheck.allowed) {
+      if (rateCheck.retryAfter && rateCheck.retryAfter > 1) {
+        setSpamInfo({
+          ip: 'Client IP',
+          device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Mobile',
+          retryAfter: rateCheck.retryAfter
+        });
+        setSpamModalOpen(true);
+      }
+      return;
+    }
 
     // Check if user is asking to generate a meme
-    const lower = inputText.toLowerCase();
+    const lower = promptText.toLowerCase();
     if (lower.includes('បង្កើត meme') || lower.includes('សុំ meme') || lower.includes('គូរ meme') || lower.startsWith('/meme')) {
-      const memePrompt = inputText.replace(/\/meme|បង្កើត meme|សុំ meme|គូរ meme/gi, '').trim();
+      const memePrompt = promptText.replace(/\/meme|បង្កើត meme|សុំ meme|គូរ meme/gi, '').trim();
       setInputText('');
       handleRequestMeme(memePrompt);
       return;
     }
 
-    const rateCheck = checkClientRateLimit();
-    if (!rateCheck.allowed) {
-      return;
-    }
-
-    const promptText = inputText;
-    const currentImg = selectedImage;
     setInputText('');
     setSelectedImage(null);
 
@@ -552,6 +586,16 @@ export default function KonBongPage() {
 
       // Auto-fetch TTS audio
       triggerAudio(botText, botMsgIndex, true);
+
+      // Automatically dispatch ToDo queued message if user typed while AI was thinking
+      if (queuedPromptRef.current) {
+        const nextTask = queuedPromptRef.current;
+        setQueuedPrompt(null);
+        queuedPromptRef.current = null;
+        setTimeout(() => {
+          handleChat(nextTask.text, nextTask.image);
+        }, 350);
+      }
     } catch (e) {
       console.error(e);
       setIsLoading(false);
@@ -563,6 +607,15 @@ export default function KonBongPage() {
         }
       ];
       saveCurrentSessionMessages(fallbackMessages);
+
+      if (queuedPromptRef.current) {
+        const nextTask = queuedPromptRef.current;
+        setQueuedPrompt(null);
+        queuedPromptRef.current = null;
+        setTimeout(() => {
+          handleChat(nextTask.text, nextTask.image);
+        }, 350);
+      }
     }
   };
 
@@ -1217,6 +1270,32 @@ export default function KonBongPage() {
           <span className="text-[10px] text-slate-500 italic shrink-0">#SETEC_Troll #Meme_IT</span>
         </div>
 
+        {/* ToDo Queued Prompt Chip (When user pressed enter/send while AI was thinking) */}
+        {queuedPrompt && (
+          <div className="mb-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-cyan-500/15 border border-amber-400/40 flex items-center justify-between gap-2 text-xs animate-fade-in shadow-md backdrop-blur-sm">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="px-2 py-0.5 rounded-md bg-amber-500/30 text-amber-300 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0 border border-amber-400/30">
+                <i className="fas fa-list-check text-xs"></i> ToDo
+              </span>
+              <span className="text-slate-200 truncate font-semibold">
+                ត្រៀមផ្ញើស្វ័យប្រវត្ត៖ <span className="text-cyan-300 font-bold">"{queuedPrompt.text}"</span>
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setInputText(queuedPrompt.text);
+                if (queuedPrompt.image) setSelectedImage(queuedPrompt.image);
+                setQueuedPrompt(null);
+                queuedPromptRef.current = null;
+              }}
+              className="text-slate-400 hover:text-rose-400 p-1 rounded-md hover:bg-rose-500/10 transition cursor-pointer shrink-0"
+              title="កែសម្រួល ឬលុបចេញពី ToDo"
+            >
+              <i className="fas fa-times text-xs"></i>
+            </button>
+          </div>
+        )}
+
         {/* Input Bar */}
         <div className="relative flex items-center gap-2">
           {/* Camera Button */}
@@ -1237,13 +1316,13 @@ export default function KonBongPage() {
           <div className="flex-1 relative">
             <input
               type="text"
-              disabled={isLoading || isGeneratingMeme}
+              disabled={isGeneratingMeme}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleChat();
+                  handleSendMessageOrQueue();
                 }
               }}
               className={`w-full rounded-xl px-4 py-3 outline-none text-xs sm:text-sm transition-all border ${
@@ -1252,7 +1331,9 @@ export default function KonBongPage() {
                   : 'bg-slate-100 border-slate-300 text-slate-900 focus:border-cyan-500 placeholder:text-slate-400'
               }`}
               placeholder={
-                selectedImage
+                isLoading
+                  ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
+                  : selectedImage
                   ? 'វាយសំណួរ ឬពាក្យបញ្ជាអំពីរូបភាពនេះ...'
                   : 'សួរមកអាម៉ូយ... កុំឱ្យបង Kick ចេញទាន់!'
               }
@@ -1260,16 +1341,26 @@ export default function KonBongPage() {
           </div>
 
           <button
-            onClick={handleChat}
-            disabled={isLoading || isGeneratingMeme || (!inputText.trim() && !selectedImage)}
+            onClick={handleSendMessageOrQueue}
+            disabled={isGeneratingMeme || (!inputText.trim() && !selectedImage && !queuedPrompt)}
             className={`w-11 h-11 rounded-xl flex items-center justify-center transition active:scale-95 shadow-md ${
-              isLoading || (!inputText.trim() && !selectedImage)
+              !inputText.trim() && !selectedImage && !queuedPrompt
                 ? 'bg-slate-800 text-slate-600 cursor-not-allowed opacity-50'
+                : isLoading
+                ? 'bg-gradient-to-r from-amber-500 to-cyan-600 text-white hover:from-amber-400 hover:to-cyan-500 cursor-pointer shadow-amber-500/20'
                 : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-cyan-500/20'
             }`}
-            title="Send"
+            title={
+              isLoading
+                ? 'ចុចដើម្បីដាក់ចូល ToDo (ត្រៀមផ្ញើស្វ័យប្រវត្តពេល AI ឆ្លើយចប់)'
+                : 'ផ្ញើសារ'
+            }
           >
-            <i className="fas fa-paper-plane text-xs"></i>
+            {isLoading ? (
+              <i className="fas fa-clock animate-pulse text-xs"></i>
+            ) : (
+              <i className="fas fa-paper-plane text-xs"></i>
+            )}
           </button>
         </div>
       </footer>

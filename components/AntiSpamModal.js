@@ -36,7 +36,7 @@ export default function AntiSpamModal({ isOpen, onClose, username, retryAfter = 
           <span>សូមរង់ចាំបន្តិចណា៎!</span>
         </h3>
         <p className="text-xs text-slate-300 font-medium leading-relaxed mb-4">
-          អាម៉ូយ <span className="text-cyan-300 font-bold">{username || 'User'}</span> ផ្ញើសារញាប់ពេកហើយ! សូមរង់ចាំមួយភ្លែត ដើម្បីឱ្យ Chatbot ឆ្លើយតបបានរលូន និងកុំឱ្យ Server ឡើងកម្ដៅ។
+          ប្រព័ន្ធបានចាប់សកម្មភាពថា <span className="text-cyan-300 font-bold">{username || 'User'}</span> កំពុងព្យាយាមផ្ញើសារច្រើនដងក្នុងមួយនាទី! សូមរង់ចាំមួយភ្លែត ដើម្បីឱ្យ Chatbot ឆ្លើយតបបានរលូន និងកុំឱ្យ Server ឡើងកម្ដៅ។
         </p>
 
         {/* Real-time Countdown Timer */}

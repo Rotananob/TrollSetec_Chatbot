@@ -202,7 +202,7 @@ export async function POST(req) {
             ip: clientIp,
             device: clientUserAgent,
             retryAfter: rateResult.retryAfter,
-            message: `សូមរង់ចាំបន្តិចណា៎! ឈ្មោះ "${username || 'User'}" ផ្ញើសារញាប់ពេកហើយ សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីដើម្បីបន្ត។`
+            message: `ប្រព័ន្ធបានចាប់សកម្មភាពថា "${username || 'User'}" កំពុងព្យាយាមផ្ញើសារច្រើនដងក្នុងមួយនាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីដើម្បីបន្ត។`
           },
           {
             status: 429,
