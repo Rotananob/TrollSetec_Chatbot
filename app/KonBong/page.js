@@ -118,35 +118,44 @@ export default function KonBongPage() {
     return new Blob([buffer], { type: 'audio/wav' });
   }
 
-  function createAudioBlob(b64Data, mimeType = 'audio/wav') {
-    const binStr = atob(b64Data);
-    const len = binStr.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+  function createAudioBlob(b64Data, mimeType = 'audio/mpeg') {
+    try {
+      if (!b64Data || typeof b64Data !== 'string') return null;
+      const cleanB64 = b64Data.replace(/^data:[^;]+;base64,/, '').replace(/\s+/g, '');
+      if (!cleanB64) return null;
+      const binStr = atob(cleanB64);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
 
-    if (mimeType && (mimeType.includes('mpeg') || mimeType.includes('mp3'))) {
-      return new Blob([bytes], { type: 'audio/mpeg' });
+      if (mimeType && (mimeType.includes('mpeg') || mimeType.includes('mp3'))) {
+        return new Blob([bytes], { type: 'audio/mpeg' });
+      }
+
+      const isWav =
+        (bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70) ||
+        (mimeType && mimeType.includes('wav'));
+
+      if (isWav) {
+        return new Blob([bytes], { type: 'audio/wav' });
+      }
+
+      const isMp3 =
+        (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) ||
+        (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33);
+
+      if (isMp3) {
+        return new Blob([bytes], { type: 'audio/mpeg' });
+      }
+
+      const safeLen = len - (len % 2);
+      const pcmBytes = bytes.slice(0, safeLen);
+      const pcmData = new Int16Array(pcmBytes.buffer, pcmBytes.byteOffset, safeLen / 2);
+      return pcmToWav(pcmData, 24000);
+    } catch (err) {
+      console.warn('[Audio] createAudioBlob error:', err);
+      return null;
     }
-
-    const isWav =
-      (bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70) ||
-      (mimeType && mimeType.includes('wav'));
-
-    if (isWav) {
-      return new Blob([bytes], { type: 'audio/wav' });
-    }
-
-    const isMp3 =
-      (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) ||
-      (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33);
-
-    if (isMp3) {
-      return new Blob([bytes], { type: 'audio/mpeg' });
-    }
-
-    const pcmBytes = len % 2 === 0 ? bytes : bytes.slice(0, len - 1);
-    const pcmData = new Int16Array(pcmBytes.buffer, pcmBytes.byteOffset, pcmBytes.byteLength / 2);
-    return pcmToWav(pcmData, 24000);
   }
 
   // Clean markdown and non-spoken characters for clean Khmer TTS speech
@@ -154,6 +163,7 @@ export default function KonBongPage() {
     if (!str || typeof str !== 'string') return '';
     return str
       .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
+      .replace(/https?:\/\/\S+/gi, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
       .replace(/__(.*?)__/g, '$1')
@@ -161,7 +171,10 @@ export default function KonBongPage() {
       .replace(/#{1,6}\s+/g, '')
       .replace(/`{1,3}[^`]*`{1,3}/g, '')
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-      .trim();
+      .replace(/[^\u1780-\u17FFa-zA-Z0-9\s.,!?៖។\n\-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 1000);
   }
 
   // Fetch TTS Audio
@@ -171,7 +184,8 @@ export default function KonBongPage() {
       const speechText = cleanSpeechText(text);
       if (!speechText) return null;
       const deviceId = getDeviceId();
-      const response = await fetch(API_ENDPOINT, {
+      const endpoint = getApiEndpoint('/api/chat');
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -199,17 +213,29 @@ export default function KonBongPage() {
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return { blob: null, isFallback: true };
 
+      const blob = createAudioBlob(inlineData.data, inlineData.mimeType || 'audio/mpeg');
       return {
-        blob: createAudioBlob(inlineData.data, inlineData.mimeType),
+        blob,
         isFallback
       };
-    } catch {
+    } catch (e) {
+      console.warn('[Audio] fetchAudio error:', e);
       return null;
     }
   }
 
   useEffect(() => {
     initSecurityShield();
+
+    // Clean up any legacy or corrupt audio keys from localStorage
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('konbong_audio_')) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch {}
 
     // Check for Rotana Bypass Direct URL parameter
     if (typeof window !== 'undefined') {
@@ -955,35 +981,9 @@ ${
   // Load or fetch audio URL with instant caching
   const loadAudioUrl = async (text, index) => {
     const hash = hashText(text);
-    const storageKey = 'konbong_audio_' + hash;
-    const fallbackKey = 'konbong_audio_is_fallback_' + hash;
 
     if (audioCacheRef.current.has(hash)) {
-      if (typeof index === 'number' && typeof window !== 'undefined') {
-        if (localStorage.getItem(fallbackKey) === '1') {
-          setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-        }
-      }
       return audioCacheRef.current.get(hash);
-    }
-
-    if (typeof window !== 'undefined') {
-      try {
-        const storedB64 = localStorage.getItem(storageKey);
-        if (storedB64) {
-          const isFallback = localStorage.getItem(fallbackKey) === '1';
-          if (typeof index === 'number') {
-            setFallbackAudioMap((prev) => ({ ...prev, [index]: isFallback }));
-          }
-          const blob = createAudioBlob(storedB64, 'audio/mpeg');
-          const url = URL.createObjectURL(blob);
-          audioCacheRef.current.set(hash, url);
-          return url;
-        } else {
-          // Clean stale fallback marker if no actual audio data was stored
-          localStorage.removeItem(fallbackKey);
-        }
-      } catch {}
     }
 
     if (pendingAudioFetchesRef.current.has(hash)) {
@@ -999,31 +999,11 @@ ${
           if (typeof index === 'number') {
             setFallbackAudioMap((prev) => ({ ...prev, [index]: audioRes.isFallback }));
           }
-          try {
-            if (audioRes.isFallback) {
-              localStorage.setItem(fallbackKey, '1');
-            } else {
-              localStorage.removeItem(fallbackKey);
-            }
-          } catch {}
-
-          try {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const b64 = reader.result?.toString().split(',')[1];
-              if (b64) {
-                try {
-                  localStorage.setItem(storageKey, b64);
-                } catch {}
-              }
-            };
-            reader.readAsDataURL(audioRes.blob);
-          } catch {}
-
           return url;
         }
-
-        // Never return direct translate.google.com URLs (browsers block direct hotlinking with 403 / CORS)
+        return null;
+      } catch (err) {
+        console.warn('[Audio] loadAudioUrl error:', err);
         return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
@@ -1082,8 +1062,11 @@ ${
   };
 
   const triggerAudio = async (text, index, autoPlay = false) => {
-    const player = audioPlayerRef.current;
     if (!text) return;
+    if (!audioPlayerRef.current && typeof window !== 'undefined') {
+      audioPlayerRef.current = new Audio();
+    }
+    const player = audioPlayerRef.current;
 
     // Handle speech synthesis pause/cancel toggle
     if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && activeAudioIndex === index) {
@@ -1104,7 +1087,11 @@ ${
       return;
     }
 
-    if (player) player.pause();
+    if (player) {
+      try {
+        player.pause();
+      } catch {}
+    }
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
@@ -1119,21 +1106,14 @@ ${
     if (audioUrl && player) {
       player.src = audioUrl;
       player.playbackRate = playbackSpeed;
-      player.currentTime = 0;
       setActiveAudioIndex(index);
 
       player.onended = () => {
         setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
         setActiveAudioIndex(null);
       };
-      player.onerror = () => {
-        // Fallback to browser Web Speech API immediately so audio never fails!
-        if (typeof index === 'number') {
-          setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-        }
-        try {
-          localStorage.setItem('konbong_audio_is_fallback_' + hash, '1');
-        } catch {}
+      player.onerror = (e) => {
+        console.warn('[Audio] HTML5 audio error:', e);
         const spoke = speakWithWebSpeech(text, index);
         if (!spoke) {
           setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
@@ -1141,28 +1121,14 @@ ${
         }
       };
 
-      if (autoPlay) {
-        const playPromise = player.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
-            .catch(() => {
-              // Mobile browser autoplay policy - mark ready so user can tap
-              setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-            });
-        }
-      } else {
-        player.play()
+      const playPromise = player.play();
+      if (playPromise !== undefined) {
+        playPromise
           .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
-          .catch(() => {
-            if (typeof index === 'number') {
-              setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-            }
-            const spoke = speakWithWebSpeech(text, index);
-            if (!spoke) {
-              setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-              setActiveAudioIndex(null);
-            }
+          .catch((err) => {
+            console.warn('[Audio] play() blocked or interrupted:', err);
+            setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+            setActiveAudioIndex(null);
           });
       }
     } else {
@@ -2050,7 +2016,7 @@ ${
         <div ref={chatBottomRef} />
       </main>
 
-      <audio ref={audioPlayerRef} className="hidden" />
+      <audio ref={audioPlayerRef} className="sr-only" aria-hidden="true" preload="auto" />
 
       {/* Hidden File Input for Image Upload */}
       <input

@@ -153,7 +153,8 @@ async function fetchKhmerSpeechFallback(text) {
   try {
     if (!text || typeof text !== 'string') return null;
     const cleanText = text
-      .replace(/[*_#`~[\]()]/g, '')
+      .replace(/https?:\/\/\S+/gi, '')
+      .replace(/[^\u1780-\u17FFa-zA-Z0-9\s.,!?៖។\n\-]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
     if (!cleanText) return null;
