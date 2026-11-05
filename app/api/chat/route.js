@@ -30,11 +30,10 @@ const TEXT_MODELS = [
 ];
 const AUDIO_MODELS = [
   'gemini-3.8-flash-tts',
-  'gemini-3.1-flash-tts-preview',
-  'gemini-3.8-flash-lite-tts'
+  'gemini-3.1-flash-tts-preview'
 ];
 
-async function callModelWithFallback(models, apiKey, payload) {
+async function callModelWithFallback(models, apiKey, payload, timeoutMs = 8000) {
   let lastError = null;
   let lastData = null;
   let lastStatus = 500;
@@ -45,7 +44,8 @@ async function callModelWithFallback(models, apiKey, payload) {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(timeoutMs)
       });
 
       const data = await res.json();
@@ -63,14 +63,15 @@ async function callModelWithFallback(models, apiKey, payload) {
 }
 
 // Fast streaming with SSE fallback for real-time ChatGPT-like preview
-async function callStreamingModelWithFallback(models, apiKey, payload) {
+async function callStreamingModelWithFallback(models, apiKey, payload, timeoutMs = 8000) {
   for (const model of models) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(timeoutMs)
       });
       if (res.ok && res.body) {
         return { ok: true, stream: res.body };
@@ -274,7 +275,7 @@ export async function POST(req) {
         contents: audioContents,
         generationConfig: audioGenConfig
       };
-      const result = await callModelWithFallback(AUDIO_MODELS, apiKey, requestPayload);
+      const result = await callModelWithFallback(AUDIO_MODELS, apiKey, requestPayload, 3500);
       if (result.ok && result.data?.candidates?.[0]?.content?.parts?.some((p) => p.inlineData?.data)) {
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }

@@ -626,6 +626,17 @@ export default function KonBongPage() {
           return url;
         }
 
+        // Direct Google Translate robot voice fallback URL if backend voice was unavailable
+        const clean = cleanSpeechText(text);
+        if (clean) {
+          if (typeof index === 'number') {
+            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+          }
+          return `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(
+            clean.slice(0, 160)
+          )}&tl=km&client=tw-ob`;
+        }
+
         return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
@@ -723,6 +734,9 @@ export default function KonBongPage() {
       };
       player.onerror = () => {
         // Fallback to browser Web Speech API immediately so audio never fails!
+        if (typeof index === 'number') {
+          setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+        }
         const spoke = speakWithWebSpeech(text, index);
         if (!spoke) {
           setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
@@ -744,11 +758,17 @@ export default function KonBongPage() {
         player.play()
           .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
           .catch(() => {
+            if (typeof index === 'number') {
+              setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+            }
             speakWithWebSpeech(text, index);
           });
       }
     } else {
       // Direct Web Speech API fallback
+      if (typeof index === 'number') {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+      }
       const spoke = speakWithWebSpeech(text, index);
       if (!spoke) {
         setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
@@ -1024,44 +1044,66 @@ export default function KonBongPage() {
                       <button
                         onClick={() => triggerAudio(msg.text, idx)}
                         disabled={st === 'loading'}
-                        className="mt-3 bg-cyan-500/10 text-cyan-400 px-3 py-1.5 rounded-lg text-[10px] font-black border border-cyan-500/20 flex items-center gap-2 hover:bg-cyan-500/20 transition cursor-pointer"
+                        className={`mt-3 px-3 py-1.5 rounded-lg text-[10px] font-black border flex items-center gap-2 transition cursor-pointer ${
+                          fallbackAudioMap[idx]
+                            ? 'bg-cyan-500/15 text-cyan-300 border-cyan-400/40 hover:bg-cyan-500/25 shadow-sm'
+                            : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 hover:bg-cyan-500/20'
+                        }`}
                       >
                         {st === 'loading' && (
                           <>
-                            <i className="fas fa-spinner fa-spin"></i> <span>កំពុងទាញសំឡេងដើម្បីអាន...</span>
+                            <i className="fas fa-spinner fa-spin text-cyan-400"></i>{' '}
+                            <span>កំពុងទាញសំឡេងដើម្បីអាន...</span>
                           </>
                         )}
                         {st === 'playing' && (
                           <>
-                            <i className="fas fa-headset animate-pulse text-cyan-400"></i> <span>កំពុងអានជាសំឡេង...</span>
+                            <i
+                              className={`${
+                                fallbackAudioMap[idx]
+                                  ? 'fas fa-robot animate-bounce text-cyan-300'
+                                  : 'fas fa-headset animate-pulse text-cyan-400'
+                              }`}
+                            ></i>{' '}
+                            <span>
+                              {fallbackAudioMap[idx]
+                                ? 'Bot អ្នកអានជំនួស (ព្រោះសំឡេង AI រវល់)'
+                                : 'កំពុងអានជាសំឡេង...'}
+                            </span>
                           </>
                         )}
                         {st === 'paused' && (
                           <>
-                            <i className="fas fa-play"></i> <span>បន្តស្ដាប់</span>
+                            <i className="fas fa-play text-cyan-400"></i>{' '}
+                            <span>
+                              {fallbackAudioMap[idx]
+                                ? 'បន្តស្ដាប់ Bot ជំនួស'
+                                : 'បន្តស្ដាប់'}
+                            </span>
                           </>
                         )}
                         {st === 'ended' && (
                           <>
-                            <i className="fas fa-redo"></i> <span>អានម្ដងទៀត</span>
-                          </>
-                        )}
-                        {(st === 'idle' || st === 'ready') && (
-                          <>
-                            <i className="fas fa-volume-up"></i>{' '}
+                            <i className="fas fa-redo text-cyan-400"></i>{' '}
                             <span>
                               {fallbackAudioMap[idx]
-                                ? 'សំឡេងជំនួស'
-                                : 'ស្តាប់សំឡេងកូនច្បង'}
+                                ? 'Bot អានម្ដងទៀត'
+                                : 'អានម្ដងទៀត'}
                             </span>
                           </>
                         )}
-                        {st === 'error' && (
+                        {(st === 'idle' || st === 'ready' || st === 'error') && (
                           <>
-                            <i className="fas fa-volume-up text-cyan-400"></i>{' '}
+                            <i
+                              className={`${
+                                fallbackAudioMap[idx]
+                                  ? 'fas fa-robot text-cyan-300'
+                                  : 'fas fa-volume-up text-cyan-400'
+                              }`}
+                            ></i>{' '}
                             <span>
                               {fallbackAudioMap[idx]
-                                ? 'សំឡេងជំនួស'
+                                ? 'Bot អានជំនួស (ព្រោះសំឡេង AI រវល់)'
                                 : 'ស្តាប់សំឡេងកូនច្បង'}
                             </span>
                           </>
