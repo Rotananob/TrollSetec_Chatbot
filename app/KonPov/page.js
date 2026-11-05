@@ -753,9 +753,12 @@ ${
 
       {/* Header */}
       <header
-        className={`p-3.5 backdrop-blur-xl border-b flex justify-between items-center sticky top-0 z-30 transition-colors ${
+        className={`backdrop-blur-xl border-b flex justify-between items-center sticky top-0 z-30 transition-colors px-3.5 pb-3 ${
           isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-white/90 border-slate-200 shadow-sm'
         }`}
+        style={{
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 0.875rem)'
+        }}
       >
         <div className="flex items-center gap-2.5">
           <Link
@@ -817,7 +820,9 @@ ${
             </div>
 
             <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-5 whitespace-pre-line ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ គាត់គ្រាន់តែជាអ្នកបង្កើត Web App នេះឡើងក្នុងគោលបំណងបំបាត់ភាពស្រេស្តប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ដែរ លើសពីនេះគាត់ថែមទាំងដាក់ឱ្យខ្ញុំជា AI អាចលេងសប្បាយជជែក រៀនពីលក្ខណៈឱ្យដូចមនុស្ស បង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។ ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឈ្លើយ ពាក្យប៉ះពាល់ដល់កិត្តិយស ឬអារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលួសជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យគាត់អី! ព្រោះ AI អាចនឹងប្រើលើសព្រំដែន ព្រោះបានបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តឆាតនោះមានន័យថាអ្នកនឹងលែងប្រកាន់លើ Model AI នេះហើយ។
+              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តិផ្ទាល់ចេញពី AI សុទ្ធសាធ។ បង Rotana NOB គាត់គ្រាន់តែជាអ្នកបង្កើត Web App នេះឡើងក្នុងគោលបំណងកម្សាន្ត និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ឡើយ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំជា AI អាចលេងសប្បាយជជែក រៀនចរិតលក្ខណៈឱ្យដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។
+
+ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យបង Rotana NOB អីណា៎! ព្រោះ AI អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
             </div>
 
             <button
@@ -825,7 +830,7 @@ ${
               className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-sky-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/20"
             >
               <i className="fas fa-check-circle text-amber-200 text-base"></i>
-              <span>តើអ្នកយល់ និងយល់ព្រមឆាតហើយឬនៅ? បើព្រមចុចលើនេះដើម្បីឆាត!</span>
+              <span>យល់ព្រម និងចូលទៅឆាតលេងឥឡូវនេះ</span>
             </button>
           </div>
         )}
@@ -1030,9 +1035,12 @@ ${
 
       {/* Chat Footer Input Area (LOCKED until user has read and agreed) */}
       <footer
-        className={`p-3.5 border-t transition-colors ${
+        className={`px-3.5 pt-3.5 border-t transition-colors ${
           isDark ? 'bg-slate-950/95 border-slate-800' : 'bg-white/95 border-slate-200'
         }`}
+        style={{
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.875rem)'
+        }}
       >
         {/* Staged Image Preview Chip */}
         {selectedImage && (

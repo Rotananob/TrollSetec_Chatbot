@@ -801,9 +801,12 @@ export default function KonBongPage() {
 
       {/* Header */}
       <header
-        className={`p-3.5 backdrop-blur-xl border-b flex justify-between items-center sticky top-0 z-30 transition-colors ${
+        className={`backdrop-blur-xl border-b flex justify-between items-center sticky top-0 z-30 transition-colors px-3.5 pb-3 ${
           isDark ? 'bg-slate-950/90 border-slate-800' : 'bg-white/90 border-slate-200 shadow-sm'
         }`}
+        style={{
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 0.875rem)'
+        }}
       >
         <div className="flex items-center gap-2.5">
           <button
@@ -1077,9 +1080,12 @@ export default function KonBongPage() {
 
       {/* Chat Footer Input Area */}
       <footer
-        className={`p-3.5 border-t transition-colors ${
+        className={`px-3.5 pt-3.5 border-t transition-colors ${
           isDark ? 'bg-slate-950/95 border-slate-800' : 'bg-white/95 border-slate-200'
         }`}
+        style={{
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.875rem)'
+        }}
       >
         {/* Staged Image Preview Chip */}
         {selectedImage && (

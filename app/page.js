@@ -115,17 +115,26 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 pt-16 pb-20 sm:py-8 relative overflow-x-hidden ${
+      className={`min-h-screen transition-colors duration-300 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 sm:py-8 relative overflow-x-hidden ${
         isDark
           ? 'bg-slate-950 text-slate-100'
           : 'bg-gradient-to-br from-sky-100 via-indigo-50 to-pink-50 text-slate-800'
       }`}
+      style={{
+        paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 0px) + 4.25rem)',
+        paddingBottom: 'calc(max(env(safe-area-inset-bottom, 0px), 0px) + 4.5rem)'
+      }}
     >
       {/* Instant Funny Haha Background Audio Element */}
       <audio ref={bgmRef} src="/audio/funny-bgm.mp3" loop preload="none" />
 
       {/* Mobile Top App Bar (< 640px) to prevent any UI collision */}
-      <div className="sm:hidden fixed top-0 left-0 right-0 z-50 px-3 py-2 flex items-center justify-between backdrop-blur-md bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm">
+      <div
+        className="sm:hidden fixed top-0 left-0 right-0 z-50 px-3 pb-2 flex items-center justify-between backdrop-blur-md bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm"
+        style={{
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 0.625rem)'
+        }}
+      >
         <Link href="/" className="flex items-center gap-2 select-none" title="SETEC Chat">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-sm overflow-hidden flex-shrink-0">
             <img
@@ -250,7 +259,7 @@ export default function Home() {
             ស្វាគមន៍មកកាន់ SETEC Chatbot
           </h2>
           <p className={`text-xs mb-5 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            វេទិកា Troll & Chat AI សិស្ស SETEC ដ៏ពេញនិយម
+            កន្លែង Troll និងឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់ក្មេង SETEC
           </p>
 
           {!hasCheckedStorage ? (
