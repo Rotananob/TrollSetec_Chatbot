@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
+import { resetClientRateLimit } from './utils/rateLimiter';
 
 export default function Home() {
   const router = useRouter();
@@ -104,10 +105,12 @@ export default function Home() {
     }
     localStorage.setItem('chatbot_username', trimmed);
     localStorage.setItem('chatbot_avatar', avatar);
+    resetClientRateLimit(trimmed);
     setIsSubmitted(true);
   };
 
   const handleBackToForm = () => {
+    resetClientRateLimit();
     setIsSubmitted(false);
   };
 

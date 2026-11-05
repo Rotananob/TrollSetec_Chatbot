@@ -564,11 +564,10 @@ export default function KonPovPage() {
       return;
     }
 
-    const deviceId = getDeviceId();
-    const rateCheck = checkClientRateLimit(deviceId);
+    const rateCheck = checkClientRateLimit(username);
     if (!rateCheck.allowed) {
       setSpamInfo({
-        ip: '172.20.10.2 / Local & Cloud IP',
+        ip: 'User: ' + (username || 'Anonymous'),
         device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown Device',
         retryAfter: rateCheck.retryAfter
       });
@@ -731,7 +730,7 @@ ${
         console.warn('[KonPov] Backend API unavailable, falling back...', err);
       }
 
-      if (!botText) {
+      if (!botText || !botText.trim()) {
         botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
@@ -990,7 +989,9 @@ ${
                     <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
                       {item.text || (isLoading && idx === messages.length - 1 ? (
                         <span className="text-blue-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
-                      ) : '')}
+                      ) : (
+                        <span className="text-slate-400 italic text-[11px]">...</span>
+                      ))}
                       {isLoading && idx === messages.length - 1 && item.text && (
                         <span className="inline-block w-1.5 h-3.5 ml-1 bg-blue-400 animate-pulse align-middle"></span>
                       )}

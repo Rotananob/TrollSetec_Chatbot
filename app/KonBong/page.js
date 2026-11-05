@@ -390,11 +390,10 @@ export default function KonBongPage() {
       return;
     }
 
-    const deviceId = getDeviceId();
-    const rateCheck = checkClientRateLimit(deviceId);
+    const rateCheck = checkClientRateLimit(username);
     if (!rateCheck.allowed) {
       setSpamInfo({
-        ip: '172.20.10.2 / Local & Cloud IP',
+        ip: 'User: ' + (username || 'Anonymous'),
         device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown Device',
         retryAfter: rateCheck.retryAfter
       });
@@ -514,18 +513,6 @@ export default function KonBongPage() {
                   const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
                   if (delta) {
                     botText += delta;
-                    setSessions((prev) => {
-                      const updated = prev.map((s) => {
-                        if (s.id === currentSessionId) {
-                          const ms = [...s.messages];
-                          ms[ms.length - 1] = { role: 'bot', text: botText };
-                          return { ...s, messages: ms };
-                        }
-                        return s;
-                      });
-                      localStorage.setItem('konbong_chat_sessions', JSON.stringify(updated));
-                      return updated;
-                    });
                     setMessages((prev) => {
                       const copy = [...prev];
                       copy[copy.length - 1] = { role: 'bot', text: botText };
@@ -559,7 +546,7 @@ export default function KonBongPage() {
         console.warn('[KonBong] Backend API unavailable, falling back...', err);
       }
 
-      if (!botText) {
+      if (!botText || !botText.trim()) {
         botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
       }
 
@@ -1034,7 +1021,9 @@ export default function KonBongPage() {
                     <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
                       {msg.text || (isLoading && idx === messages.length - 1 ? (
                         <span className="text-cyan-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
-                      ) : '')}
+                      ) : (
+                        <span className="text-slate-400 italic text-[11px]">...</span>
+                      ))}
                       {isLoading && idx === messages.length - 1 && msg.text && (
                         <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse align-middle"></span>
                       )}

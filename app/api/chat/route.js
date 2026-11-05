@@ -190,11 +190,10 @@ export async function POST(req) {
     reqBot = bot;
     reqUsername = username;
 
-    // 1. Anti-Spam Rate Limiting (5 messages per minute per user/device)
+    // 1. Anti-Spam Rate Limiting (Tracked strictly per username, never locking the device permanently)
     // Internal audio synthesis requests do not consume the chat message quota
     if (!audio) {
-      const deviceId = req.headers.get('x-device-id') || clientUserAgent;
-      const rateResult = checkChatLimit(clientIp, deviceId);
+      const rateResult = checkChatLimit(clientIp, username || 'user');
       if (!rateResult.allowed) {
         // High-priority Telegram Security Spam Alert
         const userPrompt = prompt || contents?.[contents.length - 1]?.parts?.[0]?.text || '';
@@ -213,7 +212,7 @@ export async function POST(req) {
             ip: clientIp,
             device: clientUserAgent,
             retryAfter: rateResult.retryAfter,
-            message: `ប្រព័ន្ធសុវត្ថិភាព Anti-Spam / Anti-DDoS:\nឧបករណ៍របស់អ្នកបានផ្ញើសារលើសពី ៥ ដងក្នុង ១ នាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីទៀតមុនពេលសាកល្បងម្ដងទៀត ដើម្បីការពារ Server ពីការ Spam។`
+            message: `ប្រព័ន្ធសុវត្ថិភាព Anti-Spam:\nឈ្មោះ "${username || 'User'}" បានផ្ញើសារលឿនពេក (លើសពី ២៥ សារក្នុង ១ នាទី)!\nសូមរង់ចាំ ${rateResult.retryAfter} វិនាទី ឬប្ដូរឈ្មោះដើម្បីបន្តឆាត។`
           },
           {
             status: 429,
