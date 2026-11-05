@@ -58,6 +58,7 @@ export default function KonPovPage() {
 
   // Upgraded Feature 1: Savage Troll Level (gentle, medium, savage)
   const [savageLevel, setSavageLevel] = useState('savage');
+  const [showModeMenu, setShowModeMenu] = useState(false);
 
   // Upgraded Feature 2: Audio Playback Speed (1.0x, 1.25x, 1.5x, 2.0x)
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
@@ -1557,21 +1558,22 @@ ${
           </div>
         </div>
 
-        {/* Right Side: Clean Action Icons (Savage Level, New Chat, Theme Toggle, Switch Bot, Menu) */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Upgraded Savage Troll Level Selector */}
+        {/* Right Side: Clean, Uncluttered Action Controls */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
+          {/* Clear & Interactive AI Mode Selector */}
           <button
             type="button"
-            onClick={handleCycleSavageLevel}
-            className={`px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-black flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+            onClick={() => setShowModeMenu(!showModeMenu)}
+            className={`px-2.5 py-1 sm:px-3 sm:py-1.2 rounded-full text-[10.5px] sm:text-xs font-black flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
               savageLevel === 'savage'
                 ? 'bg-rose-500/15 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 ring-1 ring-rose-500/30'
                 : savageLevel === 'medium'
                 ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
                 : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25'
             }`}
-            title="ចុចដើម្បីប្ដូរកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
+            title="ចុចដើម្បីជ្រើសរើសម៉ូដ AI (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
           >
+            <span className="text-[9.5px] opacity-70 font-bold uppercase tracking-wider">ម៉ូដ AI:</span>
             <span>
               {savageLevel === 'savage'
                 ? '🔥 ឌឺបាក់ក'
@@ -1579,38 +1581,24 @@ ${
                 ? '😏 ឌឺល្មម'
                 : '😇 ស្លូត'}
             </span>
+            <i className={`fas fa-chevron-down text-[8px] opacity-70 transition-transform duration-200 ${showModeMenu ? 'rotate-180' : ''}`}></i>
           </button>
 
-          <button
-            onClick={() => createNewSession()}
-            disabled={!hasAgreed}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 text-xs font-bold border cursor-pointer ${
-              !hasAgreed
-                ? 'opacity-40 cursor-not-allowed border-slate-700 text-slate-500'
-                : isDark
-                ? 'bg-slate-900/80 text-blue-400 hover:bg-blue-500/15 border-slate-800'
-                : 'bg-slate-50 text-blue-600 hover:bg-blue-50 border-slate-200 shadow-xs'
-            }`}
-            title="បង្កើតការជជែកថ្មី"
-          >
-            <i className="fas fa-plus"></i>
-          </button>
-
-          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
-
+          {/* Switch to KonBong */}
           <Link
             href="/KonBong"
-            className={`px-2 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
+            className={`px-2.5 py-1 rounded-full text-[10.5px] sm:text-xs font-bold flex items-center gap-1 transition active:scale-95 border ${
               isDark
                 ? 'bg-cyan-500/15 border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/25'
                 : 'bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100 shadow-xs'
             }`}
             title="ប្តូរទៅ ស៊ីតិច Chatbot កូនច្បង"
           >
-            <i className="fas fa-repeat text-[10px]"></i>
+            <i className="fas fa-repeat text-[9px]"></i>
             <span>កូនច្បង</span>
           </Link>
 
+          {/* Drawer Menu Button */}
           <button
             onClick={() => setDrawerOpen(true)}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 text-xs border cursor-pointer ${
@@ -1622,6 +1610,87 @@ ${
           >
             <i className="fas fa-bars"></i>
           </button>
+
+          {/* AI Mode Selection Floating Dropdown */}
+          {showModeMenu && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setShowModeMenu(false)}
+              />
+              <div className={`absolute right-0 top-11 sm:top-12 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up ${
+                isDark ? 'bg-slate-900/98 border-slate-700 text-white shadow-black/80' : 'bg-white/98 border-slate-200 text-slate-900 shadow-xl'
+              }`}>
+                <div className="px-2 py-1 border-b border-slate-700/30 flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                    <span>⚡ ជ្រើសរើសម៉ូដ AI (AI Mode)</span>
+                  </span>
+                  <button
+                    onClick={() => setShowModeMenu(false)}
+                    className="text-slate-400 hover:text-white text-xs p-1 cursor-pointer"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  {[
+                    { id: 'savage', emoji: '🔥', title: 'ឌឺបាក់ក (Ultra Savage)', desc: 'Roast បាញ់ឱ្យបាក់ក ឱ្យចុកឈាម គ្មានការលើកលែង', border: 'border-rose-500/40', bg: 'bg-rose-500/15', text: 'text-rose-400' },
+                    { id: 'medium', emoji: '😏', title: 'ឌឺល្មម (Standard Troll)', desc: 'ឌឺដងបែប Gen Z SETEC ល្មមៗ កំប្លែង សើចកក្អឹក', border: 'border-amber-500/40', bg: 'bg-amber-500/15', text: 'text-amber-400' },
+                    { id: 'gentle', emoji: '😇', title: 'ស្លូត (Gentle Advice)', desc: 'ផ្ដល់ដំបូន្មានល្អៗ ចែករំលែកបទពិសោធន៍រៀនសូត្រ', border: 'border-emerald-500/40', bg: 'bg-emerald-500/15', text: 'text-emerald-400' }
+                  ].map((m) => {
+                    const isSelected = savageLevel === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          setSavageLevel(m.id);
+                          localStorage.setItem('troll_savage_level', m.id);
+                          setShowModeMenu(false);
+                        }}
+                        className={`w-full text-left p-2 rounded-xl transition flex items-start gap-2.5 cursor-pointer ${
+                          isSelected
+                            ? isDark
+                              ? `${m.bg} border ${m.border} ${m.text}`
+                              : 'bg-blue-50 border border-blue-300 text-blue-900 font-bold'
+                            : isDark
+                            ? 'hover:bg-slate-800/80 text-slate-300'
+                            : 'hover:bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        <span className="text-base shrink-0 mt-0.5">{m.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="font-black text-xs">{m.title}</span>
+                            {isSelected && <i className="fas fa-check text-blue-400 text-xs shrink-0"></i>}
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{m.desc}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Character/Persona quick toggle */}
+                <div className="pt-2 mt-2 border-t border-slate-700/30 flex items-center justify-between px-1">
+                  <span className="text-[10px] text-slate-400 font-bold">តួអង្គ AI ឆ្លើយ:</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = userGender === 'ប្រុស' ? 'ស្រី' : 'ប្រុស';
+                      handleSelectGender(next);
+                      setShowModeMenu(false);
+                    }}
+                    className="text-[10px] font-black text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1"
+                  >
+                    <span>{userGender === 'ប្រុស' ? 'ចែ / Mommy (សម្រាប់ប្រុស)' : 'Daddy Mod (សម្រាប់ស្រី)'}</span>
+                    <i className="fas fa-exchange-alt text-[9px]"></i>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </header>
 
