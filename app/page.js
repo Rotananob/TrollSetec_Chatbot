@@ -344,27 +344,24 @@ export default function Home() {
               {/* AI Training & SETEC Lore Contribution Card */}
               <div className="w-full mt-3 mb-2">
                 <div
-                  className={`w-full rounded-2xl border p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3 transition shadow-sm ${
+                  className={`w-full rounded-2xl border p-3 sm:p-3.5 flex items-center justify-between gap-3 transition shadow-xs ${
                     isDark
-                      ? 'bg-gradient-to-r from-indigo-950/80 via-slate-900 to-purple-950/80 border-indigo-500/40'
-                      : 'bg-gradient-to-r from-indigo-50 via-white to-purple-50 border-indigo-200'
+                      ? 'bg-gradient-to-r from-indigo-950/70 via-slate-900 to-purple-950/70 border-indigo-500/30'
+                      : 'bg-gradient-to-r from-indigo-50/90 via-white to-purple-50/90 border-indigo-200/70'
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
-                    <div className="w-11 h-11 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-400/25 flex items-center justify-center text-lg shrink-0">
                       🧠
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-xs sm:text-sm text-indigo-500 dark:text-indigo-400 truncate">
-                          ចូលរួមអភិវឌ្ឍន៍ AI ស៊ីតិច (Lore & Slang)
-                        </span>
-                        <span className="text-[9px] bg-indigo-500/20 text-indigo-400 font-extrabold px-1.5 py-0.5 rounded-full border border-indigo-400/30 shrink-0">
-                          SETEC Lore
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-xs sm:text-[13px] text-indigo-600 dark:text-indigo-400">
+                          ចូលរួមអភិវឌ្ឍន៍ AI (SETEC Lore)
                         </span>
                       </div>
-                      <p className="text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5">
-                        ចែករំលែករឿងរ៉ាវក្នុងស៊ីតិច ឆ្មា Assignment ឬ Slang ទៅ Rotana NOB ដើម្បីបង្រៀន AI ឱ្យកាន់តែឆ្លាត!
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-normal mt-0.5 line-clamp-1 sm:line-clamp-none">
+                        ចែករំលែករឿងរ៉ាវក្នុងស៊ីតិច ឆ្មា Assignment ឬ Slang ទៅ Rotana NOB
                       </p>
                     </div>
                   </div>
@@ -372,9 +369,9 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setContributeModalOpen(true)}
-                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-xs shadow-md shadow-indigo-500/20 transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+                    className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
                   >
-                    <i className="fas fa-lightbulb text-amber-300"></i>
+                    <i className="fas fa-lightbulb text-amber-300 text-xs"></i>
                     <span>ចូលរួមសរសេរ</span>
                   </button>
                 </div>
@@ -386,108 +383,152 @@ export default function Home() {
                   className={`w-full rounded-2xl border p-3 sm:p-4 flex flex-col items-center transition shadow-xs ${
                     isDark
                       ? 'bg-slate-950/70 border-slate-800'
-                      : 'bg-gradient-to-r from-indigo-50/80 via-blue-50/80 to-purple-50/80 border-indigo-200/80'
+                      : 'bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/70 border-indigo-200/70'
                   }`}
                 >
-                  <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold mb-3 text-center leading-relaxed max-w-md px-1">
-                    Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតគម្រោងបន្តិចហើយណា៎ បងប្អូនជួយចូលមើល ជួយជាវ ឬជួយប្រើម្នាក់មួយផង <span className="font-sans text-xs sm:text-sm inline-block ml-0.5">🙏🏻😭</span>
-                  </p>
+                  {/* Clean & Beautiful Promo Caption Box */}
+                  <div className="w-full mb-3 px-3.5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-indigo-100/70 dark:border-slate-800/80 shadow-2xs text-center backdrop-blur-xs">
+                    <p className="text-[12px] sm:text-[12.5px] text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                      Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតគម្រោងបន្តិចហើយណា៎ បងប្អូនជួយចូលមើល ជួយជាវ ឬជួយប្រើម្នាក់មួយផង <span className="inline-block ml-1 text-sm align-middle">🙏🏻😭</span>
+                    </p>
+                  </div>
 
-                  <div className="grid grid-cols-2 gap-1.5 w-full min-w-0">
+                  {/* Proper Professional UI Buttons Grid */}
+                  <div className="grid grid-cols-2 gap-2 w-full min-w-0">
+                    {/* S-Tech Store */}
                     <a
                       href="https://www.s-tech-store.tech"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex flex-col items-center p-1.5 rounded-xl border text-[10px] font-semibold transition ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                          : 'bg-white border-indigo-100 text-indigo-700 hover:bg-indigo-100/60'
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-indigo-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-indigo-300 hover:bg-indigo-50/40 text-slate-700 shadow-2xs'
                       }`}
                     >
-                      <i className="fas fa-store text-indigo-500 text-sm mb-0.5"></i>
-                      <span className="truncate">S-Tech Store</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-store"></i>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        S-Tech Store
+                      </span>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-indigo-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
+
+                    {/* Clinic System */}
                     <a
                       href="https://clinic-systems.vercel.app"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex flex-col items-center p-1.5 rounded-xl border text-[10px] font-semibold transition ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                          : 'bg-white border-emerald-100 text-emerald-700 hover:bg-emerald-100/60'
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-emerald-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-emerald-300 hover:bg-emerald-50/40 text-slate-700 shadow-2xs'
                       }`}
                     >
-                      <i className="fas fa-clinic-medical text-emerald-500 text-sm mb-0.5"></i>
-                      <span className="truncate">Clinic System</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-clinic-medical"></i>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        Clinic System
+                      </span>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-emerald-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
+
+                    {/* NRI Studio IDE */}
                     <a
                       href="https://rotananob-nri-studio.vercel.app"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex flex-col items-center p-1.5 rounded-xl border text-[10px] font-semibold transition ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                          : 'bg-white border-blue-100 text-blue-700 hover:bg-blue-100/60'
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-blue-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-blue-300 hover:bg-blue-50/40 text-slate-700 shadow-2xs'
                       }`}
                     >
-                      <i className="fas fa-laptop-code text-blue-500 text-sm mb-0.5"></i>
-                      <span className="truncate">NRI Studio IDE</span>
-                    </a>
-                    <div
-                      className={`flex flex-col items-center p-1.5 rounded-xl border text-[10px] font-semibold ${
-                        isDark ? 'bg-slate-900 border-amber-500/30 text-amber-300' : 'bg-white border-amber-200 text-amber-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1 mb-0.5">
-                        <i className="fas fa-graduation-cap text-amber-500 text-xs"></i>
-                        <span className="font-bold text-[10px] truncate">Rotana Education</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-laptop-code"></i>
                       </div>
-                      <div className="grid grid-cols-2 gap-1 w-full">
-                        <a
-                          href="https://rotana-elearningg.web.app"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-center py-0.5 px-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-[9px] font-bold transition"
-                          title="Rotana E-Learning V1"
-                        >
-                          V1
-                        </a>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        NRI Studio IDE
+                      </span>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                    </a>
+
+                    {/* Rotana Education (with V2 & V1 buttons) */}
+                    <div
+                      className={`flex items-center gap-1.5 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 ${
+                        isDark
+                          ? 'bg-slate-900/90 border-slate-800 text-slate-200'
+                          : 'bg-white border-slate-200/90 text-slate-700 shadow-2xs'
+                      }`}
+                    >
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 text-xs sm:text-sm">
+                        <i className="fas fa-graduation-cap"></i>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        Rotana Edu
+                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
                         <a
                           href="https://rotana-education.web.app"
                           target="_blank"
                           rel="noreferrer"
-                          className="text-center py-0.5 px-1 rounded bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold transition"
-                          title="Rotana Education V2"
+                          className="px-1.5 py-0.5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold transition shadow-2xs"
+                          title="Rotana Education V2 Tech"
                         >
-                          V2 Tech
+                          V2
+                        </a>
+                        <a
+                          href="https://rotana-elearningg.web.app"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-1.5 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-bold transition"
+                          title="Rotana E-Learning V1"
+                        >
+                          V1
                         </a>
                       </div>
                     </div>
+
+                    {/* QR Scan */}
                     <a
                       href="https://qr-scan-y659.vercel.app/"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex flex-col items-center p-1.5 rounded-xl border text-[10px] font-semibold transition ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                          : 'bg-white border-purple-100 text-purple-700 hover:bg-purple-100/60'
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-purple-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-purple-300 hover:bg-purple-50/40 text-slate-700 shadow-2xs'
                       }`}
                     >
-                      <i className="fas fa-qrcode text-purple-500 text-sm mb-0.5"></i>
-                      <span className="truncate">QR Scan</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-qrcode"></i>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        QR Scan
+                      </span>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-purple-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
+
+                    {/* YOUNG POS */}
                     <a
                       href="https://play.google.com/store/apps/developer?id=youngapp"
                       target="_blank"
                       rel="noreferrer"
-                      className={`flex flex-col items-center p-1.5 rounded-xl border text-[10px] font-semibold transition ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'
-                          : 'bg-white border-red-100 text-red-700 hover:bg-red-100/60'
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-rose-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/40 text-slate-700 shadow-2xs'
                       }`}
                     >
-                      <i className="fas fa-cash-register text-red-500 text-sm mb-0.5"></i>
-                      <span className="truncate">YOUNG POS</span>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-cash-register"></i>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        YOUNG POS
+                      </span>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-rose-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
                   </div>
                 </div>
