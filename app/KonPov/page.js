@@ -13,6 +13,14 @@ import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import { getApiEndpoint } from '../utils/apiConfig';
 import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage';
+import { initSecurityShield } from '../utils/securityShield';
+import {
+  validateBypassToken,
+  getLiveSession,
+  updateLiveSessionState,
+  sendLiveMessage,
+  subscribeToLiveSession
+} from '../utils/realtimeChat';
 
 const API_ENDPOINT = getApiEndpoint('/api/chat');
 const MEME_ENDPOINT = getApiEndpoint('/api/generate-meme');
@@ -25,6 +33,13 @@ export default function KonPovPage() {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Live Support Intervention State (Rotana NOB Bypass & Realtime Sync)
+  const [isRotanaAdmin, setIsRotanaAdmin] = useState(false);
+  const [bypassAccessDenied, setBypassAccessDenied] = useState(false);
+  const [activeLiveSessionId, setActiveLiveSessionId] = useState(null);
+  const [isRotanaOnline, setIsRotanaOnline] = useState(false);
+  const [isBotPaused, setIsBotPaused] = useState(false);
 
   // Dynamic Bot Avatar based on User Gender:
   // Male User ("ប្រុស") -> Bot is "ចែ / Mommy" (Female Avatar: MommyGirl)
@@ -215,6 +230,39 @@ export default function KonPovPage() {
   }
 
   useEffect(() => {
+    initSecurityShield();
+
+    // Check for Rotana Bypass Direct URL parameter
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const liveSessionParam = params.get('liveSession');
+      const tokenParam = params.get('token');
+
+      if (liveSessionParam && tokenParam) {
+        const isValid = validateBypassToken(liveSessionParam, 'konpov', tokenParam);
+        if (isValid) {
+          setIsRotanaAdmin(true);
+          setActiveLiveSessionId(liveSessionParam);
+          setHasAgreed(true);
+
+          // Mark Rotana as active in the session
+          updateLiveSessionState(liveSessionParam, { rotanaActive: true });
+
+          // Load existing session data
+          getLiveSession(liveSessionParam).then((sessionData) => {
+            if (sessionData) {
+              if (Array.isArray(sessionData.messages)) {
+                setMessages(sessionData.messages);
+              }
+              setIsBotPaused(!!sessionData.botPaused);
+            }
+          });
+        } else {
+          setBypassAccessDenied(true);
+        }
+      }
+    }
+
     const savedName = localStorage.getItem('chatbot_username') || 'User';
     const savedAvatar =
       localStorage.getItem('chatbot_avatar') ||
@@ -236,6 +284,47 @@ export default function KonPovPage() {
 
     loadSessions();
   }, []);
+
+  // Realtime Live Session Synchronizer (For both Rotana Intervention and User)
+  useEffect(() => {
+    const sessionToWatch = activeLiveSessionId || currentSessionId;
+    if (!sessionToWatch) return;
+
+    const unsubscribe = subscribeToLiveSession(sessionToWatch, (sessionData) => {
+      if (!sessionData) return;
+
+      setIsRotanaOnline(!!sessionData.rotanaActive);
+      setIsBotPaused(!!sessionData.botPaused);
+
+      // Handle real-time incoming messages from Rotana or User
+      if (sessionData.messages) {
+        let msgList = [];
+        if (Array.isArray(sessionData.messages)) {
+          msgList = sessionData.messages;
+        } else if (typeof sessionData.messages === 'object') {
+          msgList = Object.values(sessionData.messages);
+        }
+        if (msgList.length > 0) {
+          setMessages((prev) => {
+            const existingKeys = new Set(prev.map((m) => `${m.role}_${m.text || ''}_${m.timestamp || ''}`));
+            let hasNew = false;
+            const merged = [...prev];
+            for (const m of msgList) {
+              const key = `${m.role}_${m.text || ''}_${m.timestamp || ''}`;
+              if (!existingKeys.has(key)) {
+                merged.push(m);
+                existingKeys.add(key);
+                hasNew = true;
+              }
+            }
+            return hasNew ? merged : prev;
+          });
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [activeLiveSessionId, currentSessionId]);
 
   const handleToggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -1111,6 +1200,26 @@ ${
 
   const isDark = theme === 'dark';
 
+  if (bypassAccessDenied) {
+    return (
+      <div className="fixed inset-0 w-full h-full bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center font-['Kantumruy_Pro',sans-serif] z-50">
+        <div className="w-20 h-20 rounded-3xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-4xl mb-4 border border-rose-500/30 shadow-lg shadow-rose-500/20 animate-pulse">
+          <i className="fas fa-shield-halved"></i>
+        </div>
+        <h1 className="text-xl sm:text-2xl font-black mb-2 text-rose-400">403 Forbidden: Access Denied</h1>
+        <p className="text-xs sm:text-sm text-slate-400 max-w-md mb-6 leading-relaxed font-semibold">
+          គ្មានសិទ្ធិចូលមើល Private Chat នេះឡើយ! Link Token នេះមិនត្រឹមត្រូវ ឬត្រូវបានផុតកំណត់ហើយ ដើម្បីការពារសារសម្ងាត់របស់អ្នកប្រើប្រាស់។
+        </p>
+        <Link
+          href="/"
+          className="px-6 py-2.5 bg-gradient-to-r from-slate-800 to-slate-700 hover:brightness-110 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95"
+        >
+          ត្រឡប់ទៅទំព័រដើម
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`fixed inset-0 w-full h-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
@@ -1603,6 +1712,78 @@ ${
           </div>
         )}
 
+        {/* Rotana NOB Intervention Controller Bar */}
+        {isRotanaAdmin && (
+          <div className="mx-1 mb-3 p-3 bg-gradient-to-r from-amber-950/90 via-slate-900 to-purple-950/90 border border-amber-500/50 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-2.5 animate-fade-in">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-full ring-2 ring-amber-400 shrink-0 overflow-hidden shadow-md">
+                <img src="/img/DevPic.JPG" alt="Rotana" className="w-full h-full object-cover" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-xs text-amber-300">👑 Rotana NOB (Live Intervention)</span>
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
+                    Bypass Verified
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-300 truncate font-semibold">
+                  អ្នកមានសិទ្ធិឆ្លើយតបផ្ទាល់ និងផ្អាក Chatbot ក្នុង Chat នេះ
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const nextState = !isBotPaused;
+                  setIsBotPaused(nextState);
+                  updateLiveSessionState(activeLiveSessionId, { botPaused: nextState });
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-md ${
+                  isBotPaused
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
+                    : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-500/20'
+                }`}
+              >
+                <i className={isBotPaused ? 'fas fa-play' : 'fas fa-pause'}></i>
+                <span>{isBotPaused ? '▶️ បន្ត Chatbot (Resume)' : '⏸️ ផ្អាក Chatbot (Pause)'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('តើបងពិតជាចង់បញ្ចប់ការ Support លើ Chat នេះមែនទេ?')) {
+                    updateLiveSessionState(activeLiveSessionId, { alertActive: false, rotanaActive: false });
+                    alert('បានបញ្ចប់ការ Support រួចរាល់!');
+                  }
+                }}
+                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700"
+              >
+                បញ្ចប់
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* User Live Intervention Indicator */}
+        {!isRotanaAdmin && isRotanaOnline && (
+          <div className="mx-1 mb-3 p-3 bg-gradient-to-r from-emerald-950/90 via-slate-900 to-teal-950/90 border border-emerald-500/40 rounded-2xl shadow-lg flex items-center gap-3 animate-fade-in">
+            <div className="relative shrink-0">
+              <img src="/img/DevPic.JPG" alt="Rotana NOB" className="w-9 h-9 rounded-full ring-2 ring-emerald-400 object-cover shadow-md" />
+              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950 animate-ping"></span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                <span>🟢 បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!</span>
+              </p>
+              <p className="text-[10.5px] text-slate-300 font-medium">
+                {isBotPaused
+                  ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ បងប្អូនអាចជជែកផ្ទាល់ជាមួយបង Rotana បាន!'
+                  : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ។'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Chat Messages */}
         {messages.map((item, idx) => {
           if (item.role === 'user') {
@@ -1639,6 +1820,35 @@ ${
 
                 <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white">
                   {item.text}
+                </div>
+              </div>
+            );
+          } else if (item.role === 'rotana' || item.author?.includes('Rotana')) {
+            return (
+              <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in my-1">
+                <div className="relative shrink-0 mt-0.5">
+                  <img
+                    src="/img/DevPic.JPG"
+                    alt="Rotana NOB"
+                    className="w-9 h-9 rounded-full ring-2 ring-amber-400 shadow-md object-cover bg-slate-900"
+                  />
+                  <span className="absolute -top-1 -right-1 text-xs">👑</span>
+                </div>
+                <div className="flex flex-col flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="font-black text-amber-400 text-xs flex items-center gap-1">
+                      <span>Rotana NOB</span>
+                      <i className="fas fa-check-circle text-blue-400 text-[10px]" title="Verified Creator"></i>
+                    </span>
+                    <span className="text-[9px] bg-gradient-to-r from-amber-500 to-rose-500 text-white font-extrabold px-1.5 py-0.2 rounded-full shadow-xs">
+                      CREATOR / DEV
+                    </span>
+                  </div>
+                  <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-md border bg-gradient-to-br from-amber-500/15 via-purple-500/15 to-slate-900/90 border-amber-400/50 text-slate-100">
+                    <p className="text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-line text-amber-100">
+                      {item.text}
+                    </p>
+                  </div>
                 </div>
               </div>
             );
@@ -2094,7 +2304,11 @@ ${
             }}
             className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             placeholder={
-              !hasAgreed
+              isRotanaAdmin
+                ? 'សរសេរសារឆ្លើយតបក្នុងនាម Rotana NOB (Creator)...'
+                : isBotPaused
+                ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបង Rotana...'
+                : !hasAgreed
                 ? 'សូមអាន Note និងចុចយល់ព្រមខាងលើសិន មុនពេលឆាត...'
                 : isLoading
                 ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
@@ -2113,17 +2327,23 @@ ${
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 ${
               !hasAgreed || (!inputText.trim() && !selectedImage && !queuedPrompt)
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-40'
+                : isRotanaAdmin
+                ? 'bg-gradient-to-tr from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white shadow-amber-500/25 cursor-pointer'
                 : isLoading
                 ? 'bg-gradient-to-tr from-amber-500 to-blue-600 text-white shadow-amber-500/25 cursor-pointer'
                 : 'bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 cursor-pointer'
             }`}
             title={
-              isLoading
+              isRotanaAdmin
+                ? 'ផ្ញើសារក្នុងនាម Rotana NOB'
+                : isLoading
                 ? 'ចុចដើម្បីដាក់ចូល ToDo (ត្រៀមផ្ញើស្វ័យប្រវត្តពេល AI ឆ្លើយចប់)'
                 : 'ផ្ញើសារ'
             }
           >
-            {isLoading ? (
+            {isRotanaAdmin ? (
+              <i className="fas fa-crown text-xs"></i>
+            ) : isLoading ? (
               <i className="fas fa-clock animate-pulse text-xs"></i>
             ) : (
               <i className="fas fa-paper-plane text-xs"></i>
@@ -2163,7 +2383,7 @@ ${
         retryAfter={spamInfo.retryAfter}
       />
 
-      {/* Error Reporting Modal to Rotana NOB */}
+      {/* Error Reporting Modal to Rotana NOB (With Direct Bypass Alert) */}
       <ErrorReportModal
         isOpen={errorReportModalOpen}
         onClose={() => setErrorReportModalOpen(false)}
@@ -2171,6 +2391,11 @@ ${
         bot="konpov"
         initialIssue={errorReportInitialText}
         isDark={isDark}
+        sessionId={currentSessionId}
+        recentMessages={messages}
+        onLiveSessionStarted={({ sessionId }) => {
+          setActiveLiveSessionId(sessionId);
+        }}
       />
 
       {/* Contribute Lore & AI Training Modal */}

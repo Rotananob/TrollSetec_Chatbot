@@ -7,6 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import { resetClientRateLimit } from './utils/rateLimiter';
 import { compressAvatarImage, saveAvatarToStorage } from './utils/imageStorage';
+import { initSecurityShield } from './utils/securityShield';
 
 export default function Home() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function Home() {
   };
 
   useEffect(() => {
+    initSecurityShield();
     const savedName = localStorage.getItem('chatbot_username');
     const savedAvatar = localStorage.getItem('chatbot_avatar');
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';

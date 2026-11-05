@@ -1,0 +1,12 @@
+{
+  "rules": {
+    "live_sessions": {
+      ".read": true,
+      ".write": true,
+      "$sessionId": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}

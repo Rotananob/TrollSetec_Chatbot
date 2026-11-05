@@ -9,6 +9,9 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
+  'X-Engine': 'setec-neural-vision-v3',
+  'X-Powered-By': 'SETEC Vision Core v3.8',
+  'Server': 'SETEC-Cloud-Gateway'
 };
 
 export async function OPTIONS() {
@@ -135,7 +138,7 @@ export async function POST(req) {
         imageUrl,
         caption: funnyCaption,
         prompt: userIdea,
-        engine: engineUsed
+        engine: 'SETEC Neural Vision v3.8 (Quantum Core)'
       },
       { headers: corsHeaders }
     );

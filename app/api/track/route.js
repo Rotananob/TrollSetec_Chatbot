@@ -18,7 +18,10 @@ import {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-device-id'
+  'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
+  'X-Engine': 'setec-telemetry-core-v3',
+  'X-Powered-By': 'SETEC Security Gateway v3.8',
+  'Server': 'SETEC-Cloud-Gateway'
 };
 
 export async function OPTIONS() {
@@ -118,18 +121,24 @@ export async function POST(req) {
       );
     }
 
-    // Handle User Issue Report directly to Rotana NOB
+    // Handle User Issue Report directly to Rotana NOB (With Direct Bypass Support)
     if (type === 'user_report_issue' || action === 'user_report_issue') {
       await alertUserReportedIssue({
         username,
         issue: body.issue || body.message || 'បញ្ហាទូទៅលើ Chatbot',
         bot: body.bot || 'System',
         ip,
-        userAgent
+        userAgent,
+        sessionId: body.sessionId,
+        bypassToken: body.bypassToken
       }).catch((e) => console.error('[Report] User issue alert error:', e));
 
       return Response.json(
-        { success: true, message: 'Issue reported to Rotana NOB successfully' },
+        {
+          success: true,
+          sessionId: body.sessionId,
+          message: 'Issue reported to Rotana NOB successfully with direct bypass alert'
+        },
         { status: 200, headers: corsHeaders }
       );
     }

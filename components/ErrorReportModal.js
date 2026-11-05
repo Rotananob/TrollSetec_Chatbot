@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getApiEndpoint } from '../app/utils/apiConfig';
+import { generateBypassToken, initLiveSessionOnDatabase } from '../app/utils/realtimeChat';
 
 export default function ErrorReportModal({
   isOpen,
@@ -9,7 +10,10 @@ export default function ErrorReportModal({
   defaultUsername = '',
   bot = 'Chatbot',
   initialIssue = '',
-  isDark = true
+  isDark = true,
+  sessionId = '',
+  recentMessages = [],
+  onLiveSessionStarted = null
 }) {
   const [name, setName] = useState('');
   const [issue, setIssue] = useState('');
@@ -40,6 +44,22 @@ export default function ErrorReportModal({
     setIsSending(true);
 
     try {
+      const activeSessionId = sessionId || 'session_' + Date.now();
+      const botKey = (bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
+
+      // 1. Generate encrypted direct bypass token (Only created when user explicitly alerts)
+      const token = generateBypassToken(activeSessionId, botKey);
+
+      // 2. Initialize live session in Firebase Realtime Database
+      await initLiveSessionOnDatabase(activeSessionId, {
+        username: trimmedName,
+        bot: botKey,
+        issue: trimmedIssue,
+        messages: recentMessages || [],
+        token
+      }).catch((err) => console.warn('[Realtime] DB init error:', err));
+
+      // 3. Send Telegram alert with Direct Bypass Button to Rotana NOB
       const endpoint = getApiEndpoint('/api/track');
       await fetch(endpoint, {
         method: 'POST',
@@ -48,14 +68,17 @@ export default function ErrorReportModal({
           type: 'user_report_issue',
           username: trimmedName,
           issue: trimmedIssue,
-          bot
+          bot: botKey,
+          sessionId: activeSessionId,
+          bypassToken: token
         })
       });
 
+      if (onLiveSessionStarted) {
+        onLiveSessionStarted({ sessionId: activeSessionId, token });
+      }
+
       setSentSuccess(true);
-      setTimeout(() => {
-        onClose();
-      }, 2000);
     } catch {
       alert('មិនអាចបញ្ជូនបានទេ សូមសាកល្បងម្ដងទៀត!');
       setIsSending(false);
@@ -87,15 +110,30 @@ export default function ErrorReportModal({
 
         {sentSuccess ? (
           <div className="text-center py-6 animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl">
-              <i className="fas fa-check-circle"></i>
+            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl animate-bounce">
+              <i className="fas fa-satellite-dish"></i>
             </div>
-            <h3 className="text-lg font-black mb-2 text-emerald-400">
-              បានរាយការណ៍ជូនបង Rotana NOB រួចរាល់!
+            <h3 className="text-base sm:text-lg font-black mb-2 text-emerald-400">
+              បាន Alert ទៅកាន់ Telegram បង Rotana NOB រួចរាល់!
             </h3>
-            <p className={`text-xs leading-relaxed max-w-xs mx-auto ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-              បង Rotana ទទួលបានដំណឹងពីបញ្ហានេះហើយ និងកំពុងត្រួតពិនិត្យដោះស្រាយជូនភ្លាមៗ! អរគុណសម្រាប់ការរាយការណ៍!
-            </p>
+            <div className={`text-xs leading-relaxed max-w-sm mx-auto p-3.5 rounded-2xl mb-4 border ${
+              isDark ? 'bg-slate-950/80 border-emerald-500/30 text-emerald-200' : 'bg-emerald-50 border-emerald-200 text-emerald-950'
+            }`}>
+              <p className="font-bold mb-1">
+                ⚡ &ldquo;សូមប្អូនចាំបន្តិច! ខ្ញុំ Rotana NOB នឹងចូលមកភ្លាមក្នុង Chat Window នេះផ្ទាល់...&rdquo;
+              </p>
+              <p className="text-[11px] opacity-80">
+                Link Bypass មាន Encryption សុវត្ថិភាពខ្ពស់បំផុតត្រូវបានបញ្ជូនទៅកាន់ Telegram បង Rotana រួចហើយ!
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:brightness-110 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 cursor-pointer transition active:scale-95 inline-flex items-center gap-2"
+            >
+              <i className="fas fa-comments"></i>
+              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំ Rotana NOB</span>
+            </button>
           </div>
         ) : (
           <>

@@ -15,6 +15,9 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
+  'X-Engine': 'setec-neural-core-v3',
+  'X-Powered-By': 'SETEC Neural Network v3.8',
+  'Server': 'SETEC-Cloud-Gateway'
 };
 
 export async function OPTIONS() {
@@ -212,10 +215,13 @@ function sanitizeResponse(data) {
   if (!data || typeof data !== 'object') return data;
   const clone = { ...data };
   if (clone.modelVersion) {
-    clone.modelVersion = 'setec-troll-engine-v2';
+    clone.modelVersion = 'setec-troll-engine-v3-quantum';
   }
   if (clone.responseId) {
     delete clone.responseId;
+  }
+  if (clone.usageMetadata?.promptTokensDetails) {
+    delete clone.usageMetadata.promptTokensDetails;
   }
   return clone;
 }
