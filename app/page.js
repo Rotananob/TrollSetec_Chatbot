@@ -395,6 +395,46 @@ export default function Home() {
 
                   {/* Proper Professional UI Buttons Grid */}
                   <div className="grid grid-cols-2 gap-2 w-full min-w-0">
+                    {/* YOUNG POS */}
+                    <a
+                      href="https://play.google.com/store/apps/developer?id=youngapp"
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                        isDark
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-rose-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/40 text-slate-700 shadow-2xs'
+                      }`}
+                    >
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-cash-register"></i>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        YOUNG POS
+                      </span>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-rose-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                    </a>
+
+                    {/* QR Scan */}
+                    <a
+                      href="https://qr-scan-y659.vercel.app/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                        isDark
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-purple-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-purple-300 hover:bg-purple-50/40 text-slate-700 shadow-2xs'
+                      }`}
+                    >
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-qrcode"></i>
+                      </div>
+                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
+                        QR Scan
+                      </span>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-purple-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                    </a>
+
                     {/* S-Tech Store */}
                     <a
                       href="https://www.s-tech-store.tech"
@@ -435,26 +475,6 @@ export default function Home() {
                       <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-emerald-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
-                    {/* NRI Studio IDE */}
-                    <a
-                      href="https://rotananob-nri-studio.vercel.app"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
-                        isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-blue-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-blue-300 hover:bg-blue-50/40 text-slate-700 shadow-2xs'
-                      }`}
-                    >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-laptop-code"></i>
-                      </div>
-                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
-                        NRI Studio IDE
-                      </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
-                    </a>
-
                     {/* Rotana Education (with V2 & V1 buttons) */}
                     <div
                       className={`flex items-center gap-1.5 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 ${
@@ -491,44 +511,24 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* QR Scan */}
+                    {/* NRI Studio IDE (At the bottom) */}
                     <a
-                      href="https://qr-scan-y659.vercel.app/"
+                      href="https://rotananob-nri-studio.vercel.app"
                       target="_blank"
                       rel="noreferrer"
                       className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-purple-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-purple-300 hover:bg-purple-50/40 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-blue-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-blue-300 hover:bg-blue-50/40 text-slate-700 shadow-2xs'
                       }`}
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-qrcode"></i>
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                        <i className="fas fa-laptop-code"></i>
                       </div>
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
-                        QR Scan
+                        NRI Studio IDE
                       </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-purple-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
-                    </a>
-
-                    {/* YOUNG POS */}
-                    <a
-                      href="https://play.google.com/store/apps/developer?id=youngapp"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
-                        isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-rose-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/40 text-slate-700 shadow-2xs'
-                      }`}
-                    >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-cash-register"></i>
-                      </div>
-                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
-                        YOUNG POS
-                      </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-rose-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
                   </div>
                 </div>
