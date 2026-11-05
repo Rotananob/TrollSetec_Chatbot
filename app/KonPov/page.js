@@ -564,14 +564,8 @@ export default function KonPovPage() {
       return;
     }
 
-    const rateCheck = checkClientRateLimit(username);
+    const rateCheck = checkClientRateLimit();
     if (!rateCheck.allowed) {
-      setSpamInfo({
-        ip: 'User: ' + (username || 'Anonymous'),
-        device: typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown Device',
-        retryAfter: rateCheck.retryAfter
-      });
-      setSpamModalOpen(true);
       return;
     }
 
@@ -759,12 +753,6 @@ ${
 
   const handleCloseSpamModal = () => {
     setSpamModalOpen(false);
-    const isMaleUser = userGender === 'ប្រុស';
-    const botSelf = isMaleUser ? 'ចែ' : 'Daddy';
-    const postSpamRoast = `ខំឆាតច្រើនម៉េះអាប្អូន ${username}! កុំ spam អត់ប្រយោជន៍ទេអាអូន មក chill ជាមួយ ${botSelf} វិញមក! ឃើញ server ដើរលឿនចង់មកសាកល្បង spam ឬ? ទុកម្រាមដៃធ្វើ assignment វិញទៅអាប្អូន!`;
-    const updated = [...messages, { role: 'bot', text: postSpamRoast }];
-    setMessages(updated);
-    triggerAudio(postSpamRoast, updated.length - 1, true);
   };
 
   const isDark = theme === 'dark';

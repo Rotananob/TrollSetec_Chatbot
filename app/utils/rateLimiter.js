@@ -1,5 +1,5 @@
-// Client-side Anti-Spam Rate Limiter
-// Enforces generous human-friendly limits tracked strictly per username (never locking the device permanently)
+// Client-side Rate Limiter Helper
+// Safely resets any old lockouts and allows legitimate users to chat freely
 
 export function getDeviceId() {
   if (typeof window === 'undefined') return 'server';
@@ -11,57 +11,38 @@ export function getDeviceId() {
   return deviceId;
 }
 
-// Reset rate limits when user exits or changes their name
-export function resetClientRateLimit(username = '') {
+export function resetClientRateLimit() {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('troll_chat_timestamps');
-    if (username) {
-      localStorage.removeItem(`troll_rate_${username.trim().toLowerCase()}`);
-    }
-    // Also clean up any legacy rate limit keys
-    for (let i = 0; i < localStorage.length; i++) {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k && k.startsWith('troll_rate_')) {
+      if (k && (k.startsWith('troll_rate_') || k.includes('timestamp'))) {
         localStorage.removeItem(k);
       }
     }
   } catch {}
 }
 
-export function checkClientRateLimit(username = '') {
+// Client-side rate check: allows normal chatting freely and only debounces double clicks
+let lastSendTimestamp = 0;
+
+export function checkClientRateLimit() {
   if (typeof window === 'undefined') return { allowed: true };
   const now = Date.now();
-  const WINDOW_MS = 60 * 1000; // 60 seconds
-  const MAX_LIMIT = 25;        // 25 messages per minute per username
 
-  const cleanName = (username || '').trim().toLowerCase() || 'default_user';
-  const storageKey = `troll_rate_${cleanName}`;
-
-  let timestamps = [];
-  try {
-    timestamps = JSON.parse(localStorage.getItem(storageKey) || '[]');
-    if (!Array.isArray(timestamps)) timestamps = [];
-  } catch {
-    timestamps = [];
-  }
-
-  // Filter timestamps within the last 60 seconds
-  timestamps = timestamps.filter((t) => now - t < WINDOW_MS);
-
-  if (timestamps.length >= MAX_LIMIT) {
-    const oldest = timestamps[0];
-    const retryAfter = Math.max(1, Math.ceil((oldest + WINDOW_MS - now) / 1000));
+  // Rapid double-tap debounce (prevent sending 2 messages within 350ms)
+  if (now - lastSendTimestamp < 350) {
     return {
       allowed: false,
-      retryAfter,
-      message: `ប្រព័ន្ធសុវត្ថិភាព Anti-Spam:\nឈ្មោះ "${username || cleanName}" បានផ្ញើសារញឹកញាប់ពេក (លើសពី ២៥ សារក្នុង ១ នាទី)!\nសូមរង់ចាំ ${retryAfter} វិនាទី ឬប្ដូរឈ្មោះដើម្បីបន្តឆាត។`
+      retryAfter: 1,
+      message: 'សូមកុំចុចបញ្ជូនញាប់ពេក!'
     };
   }
+  lastSendTimestamp = now;
 
-  timestamps.push(now);
-  try {
-    localStorage.setItem(storageKey, JSON.stringify(timestamps));
-  } catch {}
+  // Clean up any stale legacy keys from old versions
+  resetClientRateLimit();
+
   return { allowed: true };
 }

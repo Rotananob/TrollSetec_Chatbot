@@ -195,24 +195,13 @@ export async function POST(req) {
     if (!audio) {
       const rateResult = checkChatLimit(clientIp, username || 'user');
       if (!rateResult.allowed) {
-        // High-priority Telegram Security Spam Alert
-        const userPrompt = prompt || contents?.[contents.length - 1]?.parts?.[0]?.text || '';
-        alertSecuritySpam({
-          username: username || 'Unknown',
-          ip: clientIp,
-          userAgent: clientUserAgent,
-          bot: bot || 'Unknown',
-          retryAfter: rateResult.retryAfter,
-          prompt: userPrompt
-        }).catch((e) => console.error('[Telegram] Alert spam error:', e));
-
         return Response.json(
           {
             error: 'Too Many Requests',
             ip: clientIp,
             device: clientUserAgent,
             retryAfter: rateResult.retryAfter,
-            message: `ប្រព័ន្ធសុវត្ថិភាព Anti-Spam:\nឈ្មោះ "${username || 'User'}" បានផ្ញើសារលឿនពេក (លើសពី ២៥ សារក្នុង ១ នាទី)!\nសូមរង់ចាំ ${rateResult.retryAfter} វិនាទី ឬប្ដូរឈ្មោះដើម្បីបន្តឆាត។`
+            message: `សូមរង់ចាំបន្តិចណា៎! ឈ្មោះ "${username || 'User'}" ផ្ញើសារញាប់ពេកហើយ សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីដើម្បីបន្ត។`
           },
           {
             status: 429,
