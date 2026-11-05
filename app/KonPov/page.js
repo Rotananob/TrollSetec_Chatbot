@@ -1137,7 +1137,46 @@ ${
           }
         }
       } catch (err) {
-        console.warn('[KonPov] Backend API unavailable, falling back...', err);
+        console.warn('[KonPov] Backend streaming unavailable, attempting non-stream fallback...', err);
+      }
+
+      // High-Reliability Fallback: If streaming produced empty text, fetch non-streaming directly
+      if (!botText || !botText.trim()) {
+        try {
+          const fallbackRes = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-device-id': deviceId
+            },
+            body: JSON.stringify({
+              contents: formattedContents,
+              systemInstruction,
+              bot: 'konpov',
+              username: userNameStr,
+              gender: userGender,
+              generationConfig: {
+                temperature: 0.88,
+                topP: 0.95
+              },
+              stream: false
+            })
+          });
+          if (fallbackRes.ok) {
+            const resJson = await fallbackRes.json();
+            const fullText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (fullText) {
+              botText = fullText;
+              setMessages((prev) => {
+                const copy = [...prev];
+                copy[copy.length - 1] = { role: 'bot', text: fullText };
+                return copy;
+              });
+            }
+          }
+        } catch (fbErr) {
+          console.warn('[KonPov] Non-stream fallback also failed:', fbErr);
+        }
       }
 
       const isErrorResponse = !botText || !botText.trim();

@@ -26,11 +26,11 @@ export async function OPTIONS() {
 
 // Active ultra-fast models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
-  'gemini-3-flash-preview',
-  'gemini-3.1-flash-lite-preview',
   'gemini-flash-lite-latest',
-  'gemini-3.5-flash',
+  'gemini-3.1-flash-lite-preview',
   'gemini-3.5-flash-lite',
+  'gemini-3-flash-preview',
+  'gemini-3.5-flash',
   'gemini-3.6-flash'
 ];
 const AUDIO_MODELS = [
@@ -74,7 +74,7 @@ export function getApiKeyPool(bot) {
   return Array.from(new Set(pool.filter(Boolean)));
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 3500) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8500) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   let lastError = null;
   let lastData = null;
@@ -115,7 +115,7 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 3500)
 }
 
 // Fast streaming with SSE fallback for real-time ChatGPT-like preview
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 3500) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 7000) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
 
   for (const key of keys) {
@@ -361,7 +361,7 @@ export async function POST(req) {
         contents: audioContents,
         generationConfig: audioGenConfig
       };
-      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 2000);
+      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 4500);
       if (result.ok && result.data?.candidates?.[0]?.content?.parts?.some((p) => p.inlineData?.data)) {
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }

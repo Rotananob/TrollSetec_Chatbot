@@ -140,6 +140,13 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
   let eventSource = null;
   let pollingInterval = null;
   let isClosed = false;
+  let sessionState = {};
+
+  const handleUpdate = (updatedObj) => {
+    if (isClosed || !updatedObj) return;
+    sessionState = { ...sessionState, ...updatedObj };
+    onUpdate(sessionState);
+  };
 
   try {
     eventSource = new EventSource(url);
@@ -147,8 +154,30 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
     eventSource.addEventListener('put', (e) => {
       try {
         const payload = JSON.parse(e.data);
-        if (payload?.data && !isClosed) {
-          onUpdate(payload.data);
+        if (isClosed) return;
+        if (payload?.path === '/') {
+          if (payload.data && typeof payload.data === 'object') {
+            sessionState = payload.data;
+            onUpdate(sessionState);
+          }
+        } else if (payload?.path) {
+          const cleanKey = payload.path.replace(/^\//, '');
+          if (cleanKey === 'botPaused') {
+            sessionState.botPaused = payload.data;
+          } else if (cleanKey === 'rotanaActive') {
+            sessionState.rotanaActive = payload.data;
+          } else if (cleanKey.startsWith('messages')) {
+            getLiveSession(sessionId).then((s) => {
+              if (s && !isClosed) {
+                sessionState = s;
+                onUpdate(sessionState);
+              }
+            });
+            return;
+          } else {
+            sessionState[cleanKey] = payload.data;
+          }
+          onUpdate(sessionState);
         }
       } catch {}
     });
@@ -157,7 +186,7 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
       try {
         const payload = JSON.parse(e.data);
         if (payload?.data && !isClosed) {
-          onUpdate(payload.data);
+          handleUpdate(payload.data);
         }
       } catch {}
     });
@@ -168,7 +197,10 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
         pollingInterval = setInterval(async () => {
           if (isClosed) return;
           const session = await getLiveSession(sessionId);
-          if (session && !isClosed) onUpdate(session);
+          if (session && !isClosed) {
+            sessionState = session;
+            onUpdate(session);
+          }
         }, 2500);
       }
     };
@@ -177,13 +209,19 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
     pollingInterval = setInterval(async () => {
       if (isClosed) return;
       const session = await getLiveSession(sessionId);
-      if (session && !isClosed) onUpdate(session);
+      if (session && !isClosed) {
+        sessionState = session;
+        onUpdate(session);
+      }
     }, 2500);
   }
 
   // Initial fetch for instant display
   getLiveSession(sessionId).then((session) => {
-    if (session && !isClosed) onUpdate(session);
+    if (session && !isClosed) {
+      sessionState = session;
+      onUpdate(session);
+    }
   });
 
   // Cleanup unsubscriber
