@@ -1,4 +1,6 @@
 // Standard Web API Response is used natively in Next.js Route Handlers
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // Allow full stream completion on Vercel Edge/Serverless
 
 import {
   alertChatActivity,
@@ -74,7 +76,7 @@ export function getApiKeyPool(bot) {
   return Array.from(new Set(pool.filter(Boolean)));
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8500) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 20000) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   let lastError = null;
   let lastData = null;
@@ -115,7 +117,7 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8500)
 }
 
 // Fast streaming with SSE fallback for real-time ChatGPT-like preview
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 7000) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 35000) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
 
   for (const key of keys) {
@@ -156,10 +158,10 @@ async function fetchKhmerSpeechFallback(text) {
       .trim();
     if (!cleanText) return null;
 
-    // Split text into chunks <= 160 chars at natural sentence/phrase boundaries (limit to max 5 chunks for instant playback)
+    // Split text into chunks <= 160 chars at natural sentence/phrase boundaries (limit to max 8 chunks for smooth playback)
     const chunks = [];
-    let remaining = cleanText.slice(0, 800);
-    while (remaining.length > 0 && chunks.length < 5) {
+    let remaining = cleanText.slice(0, 1400);
+    while (remaining.length > 0 && chunks.length < 8) {
       if (remaining.length <= 160) {
         chunks.push(remaining);
         break;

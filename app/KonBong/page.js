@@ -853,8 +853,8 @@ ${
         console.warn('[KonBong] Backend streaming unavailable, attempting non-stream fallback...', err);
       }
 
-      // High-Reliability Fallback: If streaming produced empty text, fetch non-streaming directly
-      if (!botText || !botText.trim()) {
+      // High-Reliability Fallback: If streaming produced empty or incomplete text (<8 chars), fetch non-streaming directly
+      if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
           const fallbackRes = await fetch(API_ENDPOINT, {
             method: 'POST',
@@ -894,12 +894,6 @@ ${
       const isErrorResponse = !botText || !botText.trim();
       if (!botText || !botText.trim()) {
         botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
-      } else {
-        // Enforce strictly max 14 lines for fast TTS & clean UX
-        const rawLines = botText.split('\n');
-        if (rawLines.length > 14) {
-          botText = rawLines.slice(0, 14).join('\n').trim();
-        }
       }
 
       const botMsgIndex = updatedMessages.length - 1;
@@ -908,8 +902,10 @@ ${
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
-      // Auto-fetch TTS audio
-      triggerAudio(botText, botMsgIndex, true);
+      // Decouple audio playback: wait for complete text render to settle before triggering audio
+      setTimeout(() => {
+        triggerAudio(botText, botMsgIndex, true);
+      }, 500);
 
       // Automatically dispatch ToDo queued message if user typed while AI was thinking
       if (queuedPromptRef.current) {
@@ -1881,7 +1877,7 @@ ${
                             {st === 'loading' && (
                               <>
                                 <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
-                                <span>{isFallbackVoice ? 'Bot កំពុងទាញសំឡេងជំនួស...' : 'កំពុងទាញសំឡេង...'}</span>
+                                <span>{isFallbackVoice ? 'កំពុងរៀបចំសំឡេង...' : 'កំពុងទាញសំឡេង...'}</span>
                               </>
                             )}
                             {st === 'playing' && (
@@ -1895,8 +1891,8 @@ ${
                                 ></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'Bot អ្នកអានជំនួស (ព្រោះសំឡេង AI រវល់)'
-                                    : 'កំពុងអាន'}
+                                    ? 'Bot កំពុងអាន...'
+                                    : 'កំពុងអាន...'}
                                 </span>
                               </>
                             )}
@@ -1905,7 +1901,7 @@ ${
                                 <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'បន្តស្ដាប់ Bot អានជំនួស'
+                                    ? 'បន្តស្ដាប់ Bot'
                                     : 'បន្តស្ដាប់'}
                                 </span>
                               </>
@@ -1915,7 +1911,7 @@ ${
                                 <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'Bot អានជំនួសម្ដងទៀត'
+                                    ? 'ស្តាប់ Bot ម្ដងទៀត'
                                     : 'អានម្ដងទៀត'}
                                 </span>
                               </>
@@ -1931,7 +1927,7 @@ ${
                                 ></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'Bot អ្នកអានជំនួស (ព្រោះសំឡេង AI រវល់)'
+                                    ? 'ស្តាប់សំឡេង Bot'
                                     : 'ស្តាប់សំឡេងកូនច្បង'}
                                 </span>
                               </>
