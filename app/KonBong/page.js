@@ -629,6 +629,7 @@ export default function KonBongPage() {
 
   // Main Chat Handler (supports multimodal image + text + real-time streaming)
   const handleChat = async (overrideText, overrideImg) => {
+    const deviceId = getDeviceId();
     const promptText = typeof overrideText === 'string' ? overrideText : inputText;
     const currentImg = overrideImg !== undefined ? overrideImg : selectedImage;
     if (isLoading || (!promptText.trim() && !currentImg)) return;

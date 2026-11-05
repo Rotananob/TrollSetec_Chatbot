@@ -932,6 +932,7 @@ export default function KonPovPage() {
 
   // Main Chat Handler (Real-time ChatGPT streaming preview + zero lag)
   const handleChat = async (overrideText, overrideImg) => {
+    const deviceId = getDeviceId();
     const promptText = typeof overrideText === 'string' ? overrideText : inputText;
     const currentImg = overrideImg !== undefined ? overrideImg : selectedImage;
     if (!hasAgreed || isLoading || (!promptText.trim() && !currentImg)) return;
