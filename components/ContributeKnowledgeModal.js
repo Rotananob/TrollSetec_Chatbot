@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getApiEndpoint } from '../app/utils/apiConfig';
 
 const CATEGORIES = [
   { id: 'cats', label: '🐱 ឆ្មាប្រចាំស៊ីតិច (Campus Cats)' },
@@ -21,7 +22,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedUser = localStorage.getItem('troll_username') || '';
+      const savedUser = localStorage.getItem('chatbot_username') || localStorage.getItem('troll_username') || '';
       if (savedUser) setUsername(savedUser);
     }
   }, [isOpen]);
@@ -39,7 +40,8 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
     setErrorMessage('');
 
     try {
-      const res = await fetch('/api/track', {
+      const endpoint = getApiEndpoint('/api/track');
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -51,10 +53,11 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
         })
       });
 
-      if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.success) {
         setIsSuccess(true);
       } else {
-        const data = await res.json().catch(() => ({}));
         setErrorMessage(data.message || 'មានបញ្ហាបន្តិចបន្តួច សូមព្យាយាមម្ដងទៀត!');
       }
     } catch {
