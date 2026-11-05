@@ -901,6 +901,14 @@ ${
             <i className="fas fa-venus-mars text-blue-400"></i> ប្តូរភេទ (ប្រុស / ស្រី)
           </button>
 
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 mb-3">
+            <span className="text-xs font-semibold text-slate-300">
+              <i className="fas fa-circle-half-stroke mr-1.5 text-blue-400"></i>
+              ពន្លឺ / ងងឹត (Theme)
+            </span>
+            <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
+          </div>
+
           <Link
             href="/"
             className="block w-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl text-center text-xs mb-2 transition"
@@ -965,20 +973,20 @@ ${
         </div>
       )}
 
-      {/* Permanent Fixed Header (stays pinned at top at all times) */}
+      {/* Permanent Fixed Header (stays pinned at top at all times, clean & spacious) */}
       <header
-        className={`shrink-0 backdrop-blur-xl border-b flex justify-between items-center z-30 transition-colors px-2.5 sm:px-4 py-2.5 ${
-          isDark ? 'bg-slate-950/95 border-slate-800' : 'bg-white/95 border-slate-200 shadow-sm'
+        className={`shrink-0 backdrop-blur-md border-b flex justify-between items-center z-30 transition-colors px-3 sm:px-4 py-2 ${
+          isDark ? 'bg-slate-950/90 border-slate-800/80' : 'bg-white/90 border-slate-200/80 shadow-xs'
         }`}
         style={{
-          paddingTop: 'max(env(safe-area-inset-top, 0px), 0.75rem)'
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 0.65rem)'
         }}
       >
-        {/* Left Side: Back Arrow, Drawer Menu Toggle, Bot Avatar & Title */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
+        {/* Left Side: Back Arrow, Bot Avatar & Clean Title */}
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <Link
             href="/"
-            className={`p-2 rounded-xl text-xs transition shrink-0 ${
+            className={`w-8 h-8 rounded-full flex items-center justify-center transition shrink-0 ${
               isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-black hover:bg-slate-100'
             }`}
             title="ត្រឡប់ទៅទំព័រដើម"
@@ -986,74 +994,91 @@ ${
             <i className="fas fa-arrow-left text-sm"></i>
           </Link>
 
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="p-2 text-blue-400 text-sm hover:bg-blue-500/10 rounded-xl transition cursor-pointer shrink-0"
-            title="ម៉ឺនុយ & ជម្រើស"
-          >
-            <i className="fas fa-bars"></i>
-          </button>
-
           <div className="relative shrink-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-0.5 shadow-md">
-              <img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod" alt="Avatar" className="w-full h-full rounded-[14px] object-cover" />
-            </div>
-            <div className="absolute -top-1 -right-1 bg-blue-500 text-[7px] font-black px-1 py-0.1 rounded-full text-white border border-white">
-              កូនពៅ
-            </div>
+            <img
+              src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
+              alt="KonPov Avatar"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-blue-500/30 shadow-xs bg-slate-800"
+            />
+            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-950"></span>
           </div>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 truncate">
+            <div className="flex items-center gap-1.5">
               <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                កូនពៅ
+                ស៊ីតិច កូនពៅ
               </h1>
-              <span className="text-[9px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black px-1.5 py-0.2 rounded-full shadow inline-flex items-center gap-1 shrink-0">
+              <span className="text-[9px] bg-blue-500/15 text-blue-500 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded-full border border-blue-500/20 inline-flex items-center gap-1 shrink-0">
                 <span>ស្ដេចឌឺ</span>
                 <i className="fas fa-fire text-amber-400 text-[8px]"></i>
               </span>
             </div>
-            <p className="text-[9px] text-blue-400 font-semibold tracking-tight truncate uppercase">
-              Gen Z & Savage King • By Rotana NOB
-            </p>
+            <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse"></span>
+              <span className="text-emerald-500 font-semibold">Online</span>
+              <span>•</span>
+              <span className="truncate">Gen Z Savage King</span>
+            </div>
           </div>
         </div>
 
-        {/* Right Side: Quick Action Buttons (New Chat, Switch Bot, Theme) */}
+        {/* Right Side: Clean Action Icons (New Chat, Switch Bot, Menu) */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={() => createNewSession()}
-            className="px-2.5 py-1.5 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-400/40 text-blue-300 font-bold text-[11px] flex items-center gap-1 transition active:scale-95 shadow-sm cursor-pointer"
+            disabled={!hasAgreed}
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition active:scale-95 text-xs font-bold border cursor-pointer ${
+              !hasAgreed
+                ? 'opacity-40 cursor-not-allowed border-slate-700 text-slate-500'
+                : isDark
+                ? 'bg-slate-900/80 text-blue-400 hover:bg-blue-500/15 border-slate-800'
+                : 'bg-slate-50 text-blue-600 hover:bg-blue-50 border-slate-200 shadow-xs'
+            }`}
             title="បង្កើតការជជែកថ្មី"
           >
-            <i className="fas fa-plus text-[10px]"></i>
-            <span className="inline font-bold">ជជែកថ្មី</span>
+            <i className="fas fa-plus"></i>
           </button>
 
           <Link
             href="/KonBong"
-            className="px-2.5 py-1.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/40 text-cyan-300 font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 shadow-sm"
+            className={`px-2.5 py-1.5 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
+              isDark
+                ? 'bg-cyan-500/15 border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/25'
+                : 'bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100 shadow-xs'
+            }`}
             title="ប្តូរទៅ ស៊ីតិច Chatbot កូនច្បង"
           >
-            <i className="fas fa-repeat text-[10px] text-cyan-400"></i>
-            <span className="hidden xs:inline sm:inline">ទៅកូនច្បង</span>
+            <i className="fas fa-repeat text-[10px]"></i>
+            <span>កូនច្បង</span>
           </Link>
 
-          <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition active:scale-95 text-xs border cursor-pointer ${
+              isDark
+                ? 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 border-slate-800'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200 shadow-xs'
+            }`}
+            title="ម៉ឺនុយ & ជម្រើស"
+          >
+            <i className="fas fa-bars"></i>
+          </button>
         </div>
       </header>
 
       {/* Main Chat Area */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-5 flex flex-col chat-area">
-        {/* PROMINENT YELLOW WARNING DISCLAIMER & AGREEMENT SECTION */}
+      <main className={`flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 flex flex-col chat-area ${
+        isDark ? 'bg-[#0a0e17]' : 'bg-slate-50/70'
+      }`}>
+        {/* PROMINENT WARNING DISCLAIMER & AGREEMENT SECTION */}
         {!hasAgreed && (
-          <div className="border-2 border-amber-400 bg-amber-500/15 dark:bg-amber-950/60 rounded-3xl p-5 shadow-2xl animate-fade-in my-2">
-            <div className="flex items-center gap-2 mb-2 font-black text-amber-600 dark:text-amber-300 text-sm">
-              <i className="fas fa-triangle-exclamation text-amber-500 text-xl animate-bounce"></i>
+          <div className="border border-amber-400/80 bg-amber-500/10 dark:bg-amber-950/40 rounded-2xl p-4 sm:p-5 shadow-lg animate-fade-in my-1">
+            <div className="flex items-center gap-2 mb-2 font-black text-amber-600 dark:text-amber-300 text-xs sm:text-sm">
+              <i className="fas fa-triangle-exclamation text-amber-500 text-base animate-bounce"></i>
               <span className="uppercase tracking-wider">NOTE សំខាន់សម្រាប់អ្នកចូលមកឆាតលេងនេះ</span>
             </div>
 
-            <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-5 whitespace-pre-line ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+            <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-4 whitespace-pre-line ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
               មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តិផ្ទាល់ចេញពី AI សុទ្ធសាធ។ បង Rotana NOB គាត់គ្រាន់តែជាអ្នកបង្កើត Web App នេះឡើងក្នុងគោលបំណងកម្សាន្ត និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ឡើយ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំជា AI អាចលេងសប្បាយជជែក រៀនចរិតលក្ខណៈឱ្យដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។
 
 ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យបង Rotana NOB អីណា៎! ព្រោះ AI អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
@@ -1061,9 +1086,9 @@ ${
 
             <button
               onClick={handleAgreeAndStartChat}
-              className="w-full py-4 px-4 rounded-2xl bg-gradient-to-r from-amber-500 via-sky-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-xl hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/20"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-sky-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-md hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer border border-white/20"
             >
-              <i className="fas fa-check-circle text-amber-200 text-base"></i>
+              <i className="fas fa-check-circle text-amber-200 text-sm"></i>
               <span>យល់ព្រម និងចូលទៅឆាតលេងឥឡូវនេះ</span>
             </button>
           </div>
@@ -1073,26 +1098,26 @@ ${
         {messages.map((item, idx) => {
           if (item.role === 'user') {
             return (
-              <div key={idx} className="flex flex-col items-end gap-1.5 self-end max-w-[85%]">
+              <div key={idx} className="flex flex-col items-end gap-1 self-end max-w-[88%] sm:max-w-[80%] animate-fade-in">
                 <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="font-bold text-blue-400 text-xs">{username}</span>
+                  <span className="font-bold text-blue-500 dark:text-blue-400 text-[11px]">{username}</span>
                   <img
                     src={avatar}
                     alt="User Avatar"
-                    className="w-7 h-7 rounded-full border-2 border-blue-400 shadow object-cover"
+                    className="w-6 h-6 rounded-full ring-1 ring-blue-400/40 shadow-xs object-cover"
                   />
                 </div>
 
                 {item.image && (
                   <div
                     onClick={() => setViewingImage({ url: item.image, caption: item.text })}
-                    className="cursor-pointer rounded-2xl overflow-hidden border-2 border-blue-400/50 shadow-lg max-w-xs hover:opacity-95 transition"
+                    className="cursor-pointer rounded-2xl overflow-hidden border border-blue-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
                   >
                     <img src={item.image} alt="User upload" className="max-h-56 w-auto object-cover" />
                   </div>
                 )}
 
-                <div className="p-3.5 rounded-2xl font-medium shadow-md text-xs sm:text-sm bg-gradient-to-br from-sky-500 to-blue-600 text-white">
+                <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white">
                   {item.text}
                 </div>
               </div>
@@ -1100,18 +1125,18 @@ ${
           } else {
             const st = audioStatuses[idx] || 'ready';
             return (
-              <div key={idx} className="flex items-start gap-2.5 max-w-[85%]">
+              <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
                 <img
                   src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
                   alt="Bot Avatar"
-                  className="w-9 h-9 rounded-full border-2 border-blue-400 shadow"
+                  className="w-8 h-8 rounded-full ring-2 ring-blue-500/30 shadow-xs shrink-0 mt-0.5 object-cover bg-slate-800"
                 />
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-bold text-blue-400 text-xs mb-1">Chatbot កូនពៅ</span>
+                  <span className="font-bold text-blue-500 dark:text-blue-400 text-xs mb-1">Chatbot កូនពៅ</span>
 
                   {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
                   {isLoading && idx === messages.length - 1 && !isGeneratingMeme && (
-                    <div className="mb-2 flex items-center space-x-2.5 text-blue-400 px-3.5 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl w-fit shadow-sm animate-fade-in">
+                    <div className="mb-2 flex items-center space-x-2 text-blue-500 dark:text-blue-400 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full w-fit shadow-xs animate-fade-in">
                       <div className="flex space-x-1">
                         <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
                         <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
@@ -1124,7 +1149,7 @@ ${
                   )}
 
                   {item.memeImage && (
-                    <div className="mb-2 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-xl max-w-sm">
+                    <div className="mb-2 rounded-2xl overflow-hidden border border-amber-400/60 shadow-md max-w-sm">
                       <img
                         src={item.memeImage}
                         alt="SETEC Meme"
@@ -1149,13 +1174,13 @@ ${
                   )}
 
                   <div
-                    className={`p-3.5 rounded-2xl shadow-md border ${
-                      isDark ? 'bg-slate-900/90 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+                    className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border ${
+                      isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
                     }`}
                   >
                     <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
                       {item.text || (isLoading && idx === messages.length - 1 ? (
-                        <span className="text-blue-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
+                        <span className="text-blue-500 dark:text-blue-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
                       ) : (
                         <span className="text-slate-400 italic text-[11px]">...</span>
                       ))}
@@ -1292,22 +1317,23 @@ ${
       />
 
       {/* Chat Footer Input Area (Permanently pinned at bottom) */}
+      {/* Chat Footer Input Area (Permanently pinned at bottom, ultra-clean & spacious) */}
       <footer
-        className={`shrink-0 px-3 sm:px-3.5 pt-2.5 border-t transition-colors z-30 ${
-          isDark ? 'bg-slate-950/95 border-slate-800' : 'bg-white/95 border-slate-200'
+        className={`shrink-0 px-3 sm:px-4 pt-2 border-t backdrop-blur-md transition-colors z-30 ${
+          isDark ? 'bg-slate-950/90 border-slate-800/80' : 'bg-white/90 border-slate-200/80 shadow-xs'
         }`}
         style={{
-          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.875rem)'
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.65rem)'
         }}
       >
         {/* Staged Image Preview Chip */}
         {selectedImage && (
-          <div className="mb-2 p-2 rounded-xl bg-blue-500/10 border border-blue-400/30 flex items-center justify-between max-w-sm animate-fade-in">
+          <div className="mb-2 p-1.5 rounded-xl bg-blue-500/10 border border-blue-400/30 flex items-center justify-between max-w-sm animate-fade-in">
             <div className="flex items-center gap-2 min-w-0">
               <img
                 src={selectedImage.previewUrl}
                 alt="Selected preview"
-                className="w-10 h-10 object-cover rounded-lg border border-blue-400 shadow"
+                className="w-9 h-9 object-cover rounded-lg border border-blue-400 shadow-xs"
               />
               <div className="text-[11px] truncate">
                 <span className="font-bold text-blue-400 block truncate">{selectedImage.name}</span>
@@ -1316,79 +1342,80 @@ ${
             </div>
             <button
               onClick={removeSelectedImage}
-              className="p-1 rounded-full text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
+              className="p-1 rounded-full text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
               title="លុបរូបភាពចេញ"
             >
-              <i className="fas fa-times text-sm"></i>
+              <i className="fas fa-times text-xs"></i>
             </button>
           </div>
         )}
 
-        {/* Quick Actions Bar (Quick navigation at thumb level) */}
+        {/* Quick Suggestion Pills Bar (Thin, single row, smooth scroll) */}
         <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
-          <button
-            onClick={() => createNewSession()}
-            disabled={!hasAgreed}
-            className={`px-2.5 py-1 rounded-full border font-bold flex items-center gap-1 transition shrink-0 shadow-sm ${
-              !hasAgreed
-                ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-blue-500/15 border-blue-400/40 text-blue-300 hover:bg-blue-500/25 cursor-pointer'
-            }`}
-            title="បង្កើតការជជែកថ្មី"
-          >
-            <i className="fas fa-plus text-xs"></i> <span>ជជែកថ្មី</span>
-          </button>
-          <Link
-            href="/KonBong"
-            className="px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 font-bold flex items-center gap-1 hover:bg-cyan-500/25 transition shrink-0 shadow-sm"
-            title="ប្តូរទៅ ស៊ីតិច Chatbot កូនច្បង"
-          >
-            <i className="fas fa-robot text-xs text-cyan-400"></i> <span>ទៅកូនច្បង</span>
-          </Link>
           <button
             onClick={() => handleRequestMeme()}
             disabled={!hasAgreed || isGeneratingMeme || isLoading}
-            className={`px-2.5 py-1 rounded-full border font-extrabold flex items-center gap-1 transition shrink-0 ${
+            className={`px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
               !hasAgreed
                 ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-gradient-to-r from-amber-500/20 to-pink-500/20 border-amber-400/40 text-amber-300 hover:bg-amber-500/30 cursor-pointer'
+                : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/30 text-amber-500 dark:text-amber-300'
             }`}
           >
-            <i className="fas fa-wand-magic-sparkles text-amber-300"></i>
-            <span>សុំ Meme</span>
+            <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
+            <span>សុំ Meme មួយសន្លឹក</span>
           </button>
+
           <button
             onClick={() => {
               if (hasAgreed) fileInputRef.current?.click();
             }}
             disabled={!hasAgreed}
-            className={`px-2.5 py-1 rounded-full border font-bold flex items-center gap-1 transition shrink-0 ${
+            className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
               !hasAgreed
                 ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-blue-500/10 border-blue-400/30 text-blue-400 hover:bg-blue-500/20 cursor-pointer'
+                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
             }`}
           >
-            <i className="fas fa-camera text-xs"></i> <span>រូបភាព</span>
+            <i className="fas fa-camera text-xs text-blue-400"></i>
+            <span>វិភាគរូបភាព</span>
           </button>
-          <Link
-            href="/"
-            className="px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-400/30 text-slate-400 font-bold flex items-center gap-1 hover:bg-slate-500/20 transition shrink-0"
-            title="ត្រឡប់ទៅទំព័រដើម"
+
+          <button
+            onClick={() => handleChat('Troll ឌឺខ្ញុំមួយមើល ថាស្ដេចឌឺច្បាស់ការឬអត់?')}
+            disabled={!hasAgreed || isLoading}
+            className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
+              !hasAgreed
+                ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
+                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
+            }`}
           >
-            <i className="fas fa-home text-xs"></i> <span>ទំព័រដើម</span>
-          </Link>
-          <span className="text-[10px] text-slate-500 italic shrink-0">#GenZ_King</span>
+            <i className="fas fa-fire text-xs text-amber-400"></i>
+            <span>Troll ឌឺមួយមើល</span>
+          </button>
+
+          <button
+            onClick={() => createNewSession()}
+            disabled={!hasAgreed}
+            className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
+              !hasAgreed
+                ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
+                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-400 cursor-pointer'
+            }`}
+          >
+            <i className="fas fa-rotate text-xs"></i>
+            <span>ជជែកថ្មី</span>
+          </button>
         </div>
 
         {/* ToDo Queued Prompt Chip (When user pressed enter/send while AI was thinking) */}
         {queuedPrompt && (
-          <div className="mb-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-blue-500/15 border border-amber-400/40 flex items-center justify-between gap-2 text-xs animate-fade-in shadow-md backdrop-blur-sm">
+          <div className="mb-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-between gap-2 text-xs animate-fade-in shadow-xs backdrop-blur-sm">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="px-2 py-0.5 rounded-md bg-amber-500/30 text-amber-300 font-extrabold text-[10px] uppercase tracking-wider flex items-center gap-1 shrink-0 border border-amber-400/30">
-                <i className="fas fa-list-check text-xs"></i> ToDo
+              <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[9px] uppercase tracking-wider flex items-center gap-1 shrink-0">
+                <i className="fas fa-list-check text-[10px]"></i> ToDo
               </span>
-              <span className="text-slate-200 truncate font-semibold">
-                ត្រៀមផ្ញើស្វ័យប្រវត្ត៖ <span className="text-blue-300 font-bold">"{queuedPrompt.text}"</span>
+              <span className="text-slate-700 dark:text-slate-200 truncate text-[11px] font-medium">
+                ត្រៀមផ្ញើស្វ័យប្រវត្ត៖ <span className="text-blue-500 dark:text-blue-300 font-bold">"{queuedPrompt.text}"</span>
               </span>
             </div>
             <button
@@ -1398,7 +1425,7 @@ ${
                 setQueuedPrompt(null);
                 queuedPromptRef.current = null;
               }}
-              className="text-slate-400 hover:text-rose-400 p-1 rounded-md hover:bg-rose-500/10 transition cursor-pointer shrink-0"
+              className="text-slate-400 hover:text-rose-400 p-1 rounded transition cursor-pointer shrink-0"
               title="កែសម្រួល ឬលុបចេញពី ToDo"
             >
               <i className="fas fa-times text-xs"></i>
@@ -1406,70 +1433,70 @@ ${
           </div>
         )}
 
-        {/* Input Bar */}
-        <div className="relative flex items-center gap-2">
-          {/* Camera Button */}
+        {/* Clean Capsule Input Bar */}
+        <div className={`flex items-center gap-1.5 p-1 sm:p-1.5 rounded-2xl sm:rounded-3xl border shadow-sm transition-all focus-within:ring-2 ${
+          !hasAgreed
+            ? 'opacity-60 bg-slate-900/30 border-slate-800'
+            : isDark
+            ? 'bg-slate-900 border-slate-700/80 focus-within:border-blue-400/80 focus-within:ring-blue-500/20'
+            : 'bg-white border-slate-200 focus-within:border-blue-500/80 focus-within:ring-blue-500/20'
+        }`}>
+          {/* Photo attach button */}
           <button
             onClick={() => {
               if (hasAgreed) fileInputRef.current?.click();
             }}
             disabled={!hasAgreed}
-            className={`w-11 h-11 rounded-xl flex items-center justify-center transition border ${
+            className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition shrink-0 ${
               !hasAgreed
-                ? 'opacity-40 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-600'
+                ? 'opacity-40 cursor-not-allowed text-slate-600'
                 : selectedImage
-                ? 'bg-blue-500 text-white border-blue-400'
+                ? 'bg-blue-500 text-white shadow-xs cursor-pointer'
                 : isDark
-                ? 'bg-slate-900 border-slate-700 text-slate-400 hover:text-blue-400 hover:border-blue-400'
-                : 'bg-slate-100 border-slate-300 text-slate-600 hover:text-blue-600'
+                ? 'text-slate-400 hover:text-blue-400 hover:bg-slate-800 cursor-pointer'
+                : 'text-slate-500 hover:text-blue-600 hover:bg-slate-100 cursor-pointer'
             }`}
             title="ផ្ញើរូបភាព"
           >
             <i className="fas fa-image text-sm"></i>
           </button>
 
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              disabled={!hasAgreed || isGeneratingMeme}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessageOrQueue();
-                }
-              }}
-              className={`w-full rounded-xl px-4 py-3 outline-none text-xs sm:text-sm transition-all border ${
-                !hasAgreed
-                  ? 'bg-slate-900/40 border-slate-800 text-slate-500 cursor-not-allowed placeholder:text-amber-500/70'
-                  : isDark
-                  ? 'bg-slate-900 border-slate-700 text-white focus:border-blue-400 placeholder:text-slate-500'
-                  : 'bg-slate-100 border-slate-300 text-slate-900 focus:border-blue-500 placeholder:text-slate-400'
-              }`}
-              placeholder={
-                !hasAgreed
-                  ? 'សូមអាន Note និងចុចយល់ព្រមខាងលើសិន មុនពេលឆាត...'
-                  : isLoading
-                  ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
-                  : selectedImage
-                  ? `វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} Roast រូបនេះ...`
-                  : userGender === 'ប្រុស'
-                  ? 'និយាយមកអាប្អូនប្រុស... កុំរត់ចោល ចែ/Mommy បាទ!'
-                  : 'និយាយមកកូនស្រី... កុំរត់ចោល Daddy បាទ!'
+          {/* Text Input */}
+          <input
+            type="text"
+            disabled={!hasAgreed || isGeneratingMeme}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessageOrQueue();
               }
-            />
-          </div>
+            }}
+            className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
+            placeholder={
+              !hasAgreed
+                ? 'សូមអាន Note និងចុចយល់ព្រមខាងលើសិន មុនពេលឆាត...'
+                : isLoading
+                ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
+                : selectedImage
+                ? `វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} Roast រូបនេះ...`
+                : userGender === 'ប្រុស'
+                ? 'និយាយមកអាប្អូនប្រុស... កុំរត់ចោល ចែ/Mommy បាទ!'
+                : 'និយាយមកកូនស្រី... កុំរត់ចោល Daddy បាទ!'
+            }
+          />
 
+          {/* Send / Queue button */}
           <button
             onClick={handleSendMessageOrQueue}
             disabled={!hasAgreed || isGeneratingMeme || (!inputText.trim() && !selectedImage && !queuedPrompt)}
-            className={`w-11 h-11 rounded-xl flex items-center justify-center transition active:scale-95 shadow-md ${
+            className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 ${
               !hasAgreed || (!inputText.trim() && !selectedImage && !queuedPrompt)
-                ? 'bg-slate-800 text-slate-600 cursor-not-allowed opacity-50'
+                ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-40'
                 : isLoading
-                ? 'bg-gradient-to-r from-amber-500 to-blue-600 text-white hover:from-amber-400 hover:to-blue-500 cursor-pointer shadow-amber-500/20'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/20'
+                ? 'bg-gradient-to-tr from-amber-500 to-blue-600 text-white shadow-amber-500/25 cursor-pointer'
+                : 'bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 cursor-pointer'
             }`}
             title={
               isLoading
