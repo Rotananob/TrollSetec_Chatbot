@@ -503,6 +503,9 @@ export default function KonPovPage() {
           const url = URL.createObjectURL(blob);
           audioCacheRef.current.set(hash, url);
           return url;
+        } else {
+          // Clean stale fallback marker if no actual audio data was stored
+          localStorage.removeItem(fallbackKey);
         }
       } catch {}
     }
@@ -544,20 +547,7 @@ export default function KonPovPage() {
           return url;
         }
 
-        // Direct Google Translate robot voice fallback URL if backend voice was unavailable
-        const clean = cleanSpeechText(text);
-        if (clean) {
-          if (typeof index === 'number') {
-            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-          }
-          try {
-            localStorage.setItem(fallbackKey, '1');
-          } catch {}
-          return `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(
-            clean.slice(0, 160)
-          )}&tl=km&client=tw-ob`;
-        }
-
+        // Never return direct translate.google.com URLs (browsers block direct hotlinking with 403 / CORS)
         return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
@@ -575,12 +565,18 @@ export default function KonPovPage() {
       window.speechSynthesis.cancel();
       const clean = cleanSpeechText(text);
       if (!clean) return false;
-      const utterance = new SpeechSynthesisUtterance(clean);
-      utterance.rate = playbackSpeed;
-      utterance.pitch = userGender === 'ប្រុស' ? 1.2 : 0.95;
 
       const voices = window.speechSynthesis.getVoices();
       const kmVoice = voices.find((v) => v.lang.startsWith('km') || v.lang.toLowerCase().includes('khmer'));
+      const hasKhmer = /[\u1780-\u17FF]/.test(clean);
+      if (hasKhmer && !kmVoice) {
+        // Mobile browsers without Khmer TTS voice should not attempt silent playback
+        return false;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.rate = playbackSpeed;
+      utterance.pitch = userGender === 'ប្រុស' ? 1.2 : 0.95;
       if (kmVoice) utterance.voice = kmVoice;
 
       if (typeof index === 'number') {
@@ -688,7 +684,11 @@ export default function KonPovPage() {
             if (typeof index === 'number') {
               setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
             }
-            speakWithWebSpeech(text, index);
+            const spoke = speakWithWebSpeech(text, index);
+            if (!spoke) {
+              setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
+              setActiveVoiceIndex(null);
+            }
           });
       }
     } else {

@@ -23,41 +23,42 @@ export async function OPTIONS() {
 
 // Active ultra-fast models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
-  'gemini-3.1-flash-lite',
   'gemini-3-flash-preview',
   'gemini-3.1-flash-lite-preview',
   'gemini-flash-lite-latest',
-  'gemini-3.8-flash'
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-3.6-flash'
 ];
 const AUDIO_MODELS = [
-  'gemini-2.5-flash-preview-tts',
-  'gemini-2.5-pro-preview-tts'
+  'gemini-3.8-flash-tts',
+  'gemini-3.8-flash-lite-tts'
 ];
 
 export function getApiKeyPool(bot) {
   const pool = [];
 
-  // 1. Primary dedicated key for the requested bot
-  if (bot === 'konpov' && process.env.GEMINI_API_KEY_KONPOV) {
-    pool.push(process.env.GEMINI_API_KEY_KONPOV);
-  } else if (bot === 'konbong' && process.env.GEMINI_API_KEY_KONBONG) {
-    pool.push(process.env.GEMINI_API_KEY_KONBONG);
+  // 1. Fresh Reserve Keys (100% uptime verified)
+  if (process.env.GEMINI_API_KEY_RESERVE_TWO) {
+    pool.push(process.env.GEMINI_API_KEY_RESERVE_TWO);
   }
-
-  // 2. Main default key
-  if (process.env.GEMINI_API_KEY) {
-    pool.push(process.env.GEMINI_API_KEY);
-  }
-
-  // 3. User reserve keys (Production 100% failover)
   if (process.env.GEMINI_API_KEY_RESERVE) {
     pool.push(process.env.GEMINI_API_KEY_RESERVE);
   }
   if (process.env.GEMINI_API_KEY_RESERVE_ONE) {
     pool.push(process.env.GEMINI_API_KEY_RESERVE_ONE);
   }
-  if (process.env.GEMINI_API_KEY_RESERVE_TWO) {
-    pool.push(process.env.GEMINI_API_KEY_RESERVE_TWO);
+
+  // 2. Primary dedicated key for the requested bot
+  if (bot === 'konpov' && process.env.GEMINI_API_KEY_KONPOV) {
+    pool.push(process.env.GEMINI_API_KEY_KONPOV);
+  } else if (bot === 'konbong' && process.env.GEMINI_API_KEY_KONBONG) {
+    pool.push(process.env.GEMINI_API_KEY_KONBONG);
+  }
+
+  // 3. Main default key
+  if (process.env.GEMINI_API_KEY) {
+    pool.push(process.env.GEMINI_API_KEY);
   }
 
   // 4. Cross-bot key failover
@@ -70,7 +71,7 @@ export function getApiKeyPool(bot) {
   return Array.from(new Set(pool.filter(Boolean)));
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8000) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 3500) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   let lastError = null;
   let lastData = null;
@@ -78,7 +79,9 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8000)
 
   for (const key of keys) {
     if (!key) continue;
+    let keyFailedAuth = false;
     for (const model of models) {
+      if (keyFailedAuth) break;
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
         const res = await fetch(url, {
@@ -91,6 +94,9 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8000)
         const data = await res.json();
         if (res.ok) {
           return { ok: true, data, status: res.status };
+        }
+        if (res.status === 403 || res.status === 401) {
+          keyFailedAuth = true; // Key blocked, skip to next key immediately
         }
         lastStatus = res.status;
         lastData = data;
@@ -106,12 +112,14 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 8000)
 }
 
 // Fast streaming with SSE fallback for real-time ChatGPT-like preview
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 8000) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 3500) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
 
   for (const key of keys) {
     if (!key) continue;
+    let keyFailedAuth = false;
     for (const model of models) {
+      if (keyFailedAuth) break;
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${key}`;
         const res = await fetch(url, {
@@ -122,6 +130,9 @@ async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutM
         });
         if (res.ok && res.body) {
           return { ok: true, stream: res.body };
+        }
+        if (res.status === 403 || res.status === 401) {
+          keyFailedAuth = true; // Key blocked, skip to next key immediately
         }
         console.warn(`[Stream Fallback] ${model} with key (${key.slice(0, 10)}...) status ${res.status}`);
       } catch (err) {
@@ -293,7 +304,37 @@ export async function POST(req) {
         .replace(/^["']|["']$/g, '')
         .trim();
 
-      // The TTS models require pure transcript text without conversational instructions
+      const hasKhmer = /[\u1780-\u17FF]/.test(speechText);
+
+      // Fast-path: For Khmer text, use high-speed native Khmer speech synthesis (<1s response)
+      if (hasKhmer) {
+        const fallbackAudioB64 = await fetchKhmerSpeechFallback(speechText);
+        if (fallbackAudioB64) {
+          return Response.json(
+            {
+              isFallbackBotVoice: true,
+              candidates: [
+                {
+                  content: {
+                    parts: [
+                      {
+                        inlineData: {
+                          mimeType: 'audio/mpeg',
+                          data: fallbackAudioB64
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              modelVersion: 'setec-troll-engine-v2-speech'
+            },
+            { status: 200, headers: corsHeaders }
+          );
+        }
+      }
+
+      // Non-Khmer or secondary fallback to Gemini TTS
       const audioContents = [{ parts: [{ text: speechText }] }];
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
@@ -314,7 +355,7 @@ export async function POST(req) {
         contents: audioContents,
         generationConfig: audioGenConfig
       };
-      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 3500);
+      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 2000);
       if (result.ok && result.data?.candidates?.[0]?.content?.parts?.some((p) => p.inlineData?.data)) {
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }
@@ -358,7 +399,7 @@ export async function POST(req) {
 
       return Response.json(
         sanitizeResponse(result.data) || { error: result.error || 'Audio generation failed' },
-        { status: result.status, headers: corsHeaders }
+        { status: result.status || 500, headers: corsHeaders }
       );
     } else {
       const textContents = contents || [{ parts: [{ text: prompt }] }];
