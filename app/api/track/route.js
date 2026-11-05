@@ -4,6 +4,7 @@
 import {
   alertNewVisitor,
   alertDailyVisitorReport,
+  alertPwaInstall,
   getCambodiaDayKey
 } from '../../../lib/telegram';
 import {
@@ -97,7 +98,23 @@ export async function POST(req) {
     await checkDayRollover();
 
     const body = await req.json().catch(() => ({}));
-    const { deviceId, pathname, screen, referrer, username } = body;
+    const { deviceId, pathname, screen, referrer, username, type, action, platform } = body;
+
+    // Handle PWA Installation Alert (Only when user explicitly added to Home Screen)
+    if (type === 'pwa_install' || action === 'pwa_install') {
+      await alertPwaInstall({
+        username,
+        ip,
+        userAgent,
+        platform,
+        screen
+      }).catch((e) => console.error('[Track] PWA install alert error:', e));
+
+      return Response.json(
+        { success: true, alerted: true, message: 'PWA install recorded and alerted to Telegram' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
 
     const sessionKey = `${ip}_${deviceId || 'anon'}`;
     const now = Date.now();

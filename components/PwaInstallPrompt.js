@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { getApiEndpoint } from '../app/utils/apiConfig';
 
 export default function PwaInstallPrompt({ isDark = true }) {
   const [isStandalone, setIsStandalone] = useState(false);
@@ -8,15 +9,54 @@ export default function PwaInstallPrompt({ isDark = true }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showBanner, setShowBanner] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const alertSentRef = useRef(false);
+
+  // Helper to send real-time alert to Telegram strictly on actual Add to Home Screen / Install
+  const sendPwaInstallAlert = async (platformSource = '') => {
+    if (alertSentRef.current) return;
+    try {
+      const alreadySent = sessionStorage.getItem('setec_pwa_install_alert_sent');
+      if (alreadySent) return;
+      sessionStorage.setItem('setec_pwa_install_alert_sent', 'true');
+      alertSentRef.current = true;
+
+      const username = localStorage.getItem('chatbot_username') || 'Guest';
+      const screen = typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : '';
+      const trackEndpoint = getApiEndpoint('/api/track');
+
+      await fetch(trackEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: 'pwa_install',
+          username,
+          screen,
+          platform: platformSource || (deviceType === 'ios' ? 'iOS Safari' : deviceType === 'android' ? 'Android' : 'Desktop')
+        })
+      });
+    } catch (err) {
+      console.warn('[PWA] Failed to dispatch install alert:', err);
+    }
+  };
 
   useEffect(() => {
-    // 1. Check if already installed & running in standalone mode
+    if (typeof window === 'undefined') return;
+
+    // 1. Check if already running in standalone mode (Launched from Home Screen)
     const standaloneMode =
       window.matchMedia('(display-mode: standalone)').matches ||
       window.navigator.standalone === true;
 
     if (standaloneMode) {
       setIsStandalone(true);
+      // Alert once if opened for the first time in standalone mode
+      const alertedStandalone = localStorage.getItem('setec_pwa_standalone_alerted');
+      if (!alertedStandalone) {
+        localStorage.setItem('setec_pwa_standalone_alerted', 'true');
+        sendPwaInstallAlert('Launched from Standalone Home Screen');
+      }
       return;
     }
 
@@ -36,9 +76,17 @@ export default function PwaInstallPrompt({ isDark = true }) {
       setDeferredPrompt(e);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    // 4. Listen for browser native appinstalled event (Fires only upon actual installation)
+    const handleAppInstalled = () => {
+      setShowModal(false);
+      setShowBanner(false);
+      sendPwaInstallAlert('Browser appinstalled Event');
+    };
 
-    // 4. Check if dismissed within last 24 hours
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    // 5. Check if dismissed within last 24 hours
     const lastDismissed = parseInt(localStorage.getItem('setec_pwa_dismissed') || '0', 10);
     const oneDay = 24 * 60 * 60 * 1000;
     const now = Date.now();
@@ -47,7 +95,11 @@ export default function PwaInstallPrompt({ isDark = true }) {
       const timer = setTimeout(() => {
         setShowBanner(true);
       }, 2500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        window.removeEventListener('appinstalled', handleAppInstalled);
+      };
     }
 
     const handleOpenInstall = () => setShowModal(true);
@@ -55,6 +107,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
       window.removeEventListener('open-pwa-install', handleOpenInstall);
     };
   }, []);
@@ -67,6 +120,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
       if (outcome === 'accepted') {
         setShowModal(false);
         setShowBanner(false);
+        sendPwaInstallAlert('Android / Chromium Native Prompt (Accepted)');
       }
       setDeferredPrompt(null);
     } else {
@@ -171,7 +225,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                 : 'bg-white border-blue-200 text-slate-800 shadow-2xl'
             }`}
           >
-            {/* Close Button */}
+            {/* Close Button - does NOT trigger install alert */}
             <button
               onClick={() => setShowModal(false)}
               className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition ${
@@ -203,7 +257,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
 
             {/* Targeted Guidance for iOS (iPhone / iPad) */}
             {deviceType === 'ios' && (
-              <div className="space-y-3.5 mb-6 text-left">
+              <div className="space-y-3 mb-6 text-left">
                 <div className={`p-3 rounded-2xl border flex items-start gap-3 ${
                   isDark ? 'bg-slate-950/60 border-slate-800' : 'bg-blue-50/60 border-blue-100'
                 }`}>
@@ -227,7 +281,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ២</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">«បន្ថែមទៅទំព័រដើម»</strong>។
+                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">«បន្ថែមទៅទំព័រដើម»</strong> (Add to Home Screen)។
                     </p>
                   </div>
                 </div>
@@ -241,10 +295,26 @@ export default function PwaInstallPrompt({ isDark = true }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ៣</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      ចុចពាក្យ <strong className="text-emerald-400">«បន្ថែម»</strong> នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
+                      ចុចពាក្យ <strong className="text-emerald-400">«បន្ថែម»</strong> (Add) នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
                     </p>
                   </div>
                 </div>
+
+                {/* Explicit Action Button for iOS users to confirm installation */}
+                <button
+                  onClick={() => {
+                    sendPwaInstallAlert('iOS Safari Add to Home Screen (User Confirmed)');
+                    setShowModal(false);
+                    setShowBanner(false);
+                    try {
+                      localStorage.setItem('setec_pwa_installed_ios', 'true');
+                    } catch {}
+                  }}
+                  className="w-full py-3 rounded-2xl font-black text-xs text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:brightness-110 active:scale-95 shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-3"
+                >
+                  <i className="fas fa-circle-check text-sm"></i>
+                  <span>ខ្ញុំបាន Add to Home Screen រួចហើយ! 🚀</span>
+                </button>
               </div>
             )}
 
@@ -288,6 +358,22 @@ export default function PwaInstallPrompt({ isDark = true }) {
                         </p>
                       </div>
                     </div>
+
+                    {/* Fallback confirmation button for Android manual install */}
+                    <button
+                      onClick={() => {
+                        sendPwaInstallAlert('Android Manual Add to Home Screen (User Confirmed)');
+                        setShowModal(false);
+                        setShowBanner(false);
+                        try {
+                          localStorage.setItem('setec_pwa_installed_android', 'true');
+                        } catch {}
+                      }}
+                      className="w-full py-2.5 rounded-xl font-bold text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500/20 transition flex items-center justify-center gap-2 cursor-pointer mt-2"
+                    >
+                      <i className="fas fa-check"></i>
+                      <span>ខ្ញុំបានបន្ថែមទៅ Home Screen រួចរាល់</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -322,7 +408,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
               </div>
             )}
 
-            {/* Footer Done Button */}
+            {/* Footer Dismiss Button (Only closes modal, does NOT send alert) */}
             <div className="flex justify-center">
               <button
                 onClick={() => setShowModal(false)}
@@ -332,7 +418,7 @@ export default function PwaInstallPrompt({ isDark = true }) {
                     : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                 }`}
               >
-                ខ្ញុំយល់ហើយ
+                ខ្ញុំយល់ហើយ (បិទ)
               </button>
             </div>
           </div>
