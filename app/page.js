@@ -341,15 +341,19 @@ export default function Home() {
               {/* Other Websites Section */}
               <div id="other-websites-section" className="flex flex-col items-center mt-3 mb-3">
                 <div
-                  className={`w-full rounded-2xl border p-3 flex flex-col items-center transition ${
+                  className={`w-full rounded-2xl border p-3 sm:p-4 flex flex-col items-center transition shadow-xs ${
                     isDark
                       ? 'bg-slate-950/70 border-slate-800'
-                      : 'bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-200'
+                      : 'bg-gradient-to-r from-indigo-50/80 via-blue-50/80 to-purple-50/80 border-indigo-200/80'
                   }`}
                 >
-                  <span className="text-indigo-400 font-bold text-[11px] mb-2 flex items-center gap-1.5 uppercase tracking-wider">
-                    <i className="fas fa-globe-asia text-sm text-indigo-400"></i> Our Ecosystem & Websites
+                  <span className="text-indigo-500 dark:text-indigo-400 font-black text-xs mb-1 flex items-center gap-1.5 uppercase tracking-wider">
+                    <i className="fas fa-globe-asia text-sm text-indigo-500"></i> Our Ecosystem & Websites
                   </span>
+                  <p className="text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-2.5 text-center">
+                    គម្រោង និងស្នាដៃផ្សេងៗបង្កើតឡើងដោយ Rotana NOB
+                  </p>
+
                   <div className="grid grid-cols-2 gap-1.5 w-full min-w-0">
                     <a
                       href="https://www.s-tech-store.tech"
@@ -446,6 +450,13 @@ export default function Home() {
                       <i className="fas fa-cash-register text-red-500 text-sm mb-0.5"></i>
                       <span className="truncate">YOUNG POS</span>
                     </a>
+                  </div>
+
+                  {/* Chill & Funny Promotional Footer Note with 🙏🏻😭 at the bottom */}
+                  <div className="mt-3 pt-2.5 border-t border-indigo-200/60 dark:border-slate-800/80 w-full text-center">
+                    <p className="text-[11px] sm:text-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed px-1">
+                      ព្រោះ Chatbot នេះខ្ញុំដាក់ឱ្យគ្រប់គ្នាបានចូលមកសើចសប្បាយ និង Chill ហើយ អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតរបស់ខ្ញុំតិចហើយបងប្អូន ជួយជាវ ឬជួយប្រើម្នាក់មួយផងណា៎ <span className="font-sans text-xs sm:text-sm inline-block ml-0.5">🙏🏻😭</span>
+                    </p>
                   </div>
                 </div>
               </div>
