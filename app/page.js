@@ -392,8 +392,8 @@ export default function Home() {
                   <span className="text-indigo-500 dark:text-indigo-400 font-black text-xs mb-1 flex items-center gap-1.5 uppercase tracking-wider">
                     <i className="fas fa-globe-asia text-sm text-indigo-500"></i> Our Ecosystem & Websites
                   </span>
-                  <p className="text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-2.5 text-center">
-                    គម្រោង និងស្នាដៃផ្សេងៗបង្កើតឡើងដោយ Rotana NOB
+                  <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 font-semibold mb-2.5 text-center leading-relaxed max-w-md">
+                    Chatbot នេះបងបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានសើចសប្បាយបំបាត់ស្ត្រេស! ចឹងសុំឆ្លៀតប្រម៉ូតស្នាដៃ និងគម្រោងរបស់ខ្ញុំបន្តិចណា៎ បងប្អូនជួយចូលមើល ជួយជាវ ឬជួយប្រើម្នាក់មួយផង 🙏🏻😭
                   </p>
 
                   <div className="grid grid-cols-2 gap-1.5 w-full min-w-0">

@@ -10,6 +10,7 @@ import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
 import ErrorReportModal from '@/components/ErrorReportModal';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import { getApiEndpoint } from '../utils/apiConfig';
 import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage';
 
@@ -32,6 +33,22 @@ export default function KonPovPage() {
     userGender === 'ប្រុស'
       ? 'https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl'
       : 'https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod';
+
+  // Custom Delete History Modal State
+  const [deleteModalConfig, setDeleteModalConfig] = useState(null); // { isOpen, type: 'all'|'single', sessionId, title, description }
+
+  // Sessions Management
+  const [sessions, setSessions] = useState([]);
+  const [currentSessionId, setCurrentSessionId] = useState('');
+
+  // Upgraded Feature 1: Savage Troll Level (gentle, medium, savage)
+  const [savageLevel, setSavageLevel] = useState('savage');
+
+  // Upgraded Feature 2: Audio Playback Speed (1.0x, 1.25x, 1.5x, 2.0x)
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+
+  // Upgraded Feature 3: One-Click Copy Feedback
+  const [copiedIndex, setCopiedIndex] = useState(null);
 
   // Anti-Spam Scary/Funny Modal State
   const [spamModalOpen, setSpamModalOpen] = useState(false);
@@ -204,23 +221,63 @@ export default function KonPovPage() {
       'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
     const savedGender = localStorage.getItem('chatbot_gender') || '';
+    const savedSavage = localStorage.getItem('troll_savage_level') || 'savage';
+    const savedSpeed = parseFloat(localStorage.getItem('troll_audio_speed') || '1.0');
 
     setUsername(savedName);
     setAvatar(savedAvatar);
     setTheme(savedTheme);
+    setSavageLevel(savedSavage);
+    setPlaybackSpeed(savedSpeed);
 
     if (savedGender) {
       setUserGender(savedGender);
     }
-    // Always start with intro note for every new chat session (do not lock in localStorage)
-    setHasAgreed(false);
-    setMessages([]);
+
+    loadSessions();
   }, []);
 
   const handleToggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     localStorage.setItem('chatbot_theme', next);
+  };
+
+  const handleCycleSavageLevel = () => {
+    const next = savageLevel === 'savage' ? 'gentle' : savageLevel === 'gentle' ? 'medium' : 'savage';
+    setSavageLevel(next);
+    localStorage.setItem('troll_savage_level', next);
+  };
+
+  const handleCyclePlaybackSpeed = () => {
+    const speeds = [1.0, 1.25, 1.5, 2.0];
+    const currIdx = speeds.indexOf(playbackSpeed);
+    const next = speeds[(currIdx + 1) % speeds.length];
+    setPlaybackSpeed(next);
+    localStorage.setItem('troll_audio_speed', String(next));
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.playbackRate = next;
+    }
+  };
+
+  const handleCopyText = (text, idx) => {
+    if (!text) return;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setCopiedIndex(idx);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (e) {
+      console.warn('Copy failed:', e);
+    }
   };
 
   useEffect(() => {
@@ -247,10 +304,47 @@ export default function KonPovPage() {
     e.target.value = '';
   };
 
+  // Sessions management
+  const loadSessions = () => {
+    try {
+      const saved = localStorage.getItem('konpov_chat_sessions');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSessions(parsed);
+          const mostRecent = parsed[0];
+          setCurrentSessionId(mostRecent.id);
+          const validMsgs = (mostRecent.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+          setMessages(validMsgs);
+          if (validMsgs.length > 0) {
+            setHasAgreed(true);
+          } else {
+            setHasAgreed(false);
+          }
+          return;
+        }
+      }
+      createNewSession([]);
+    } catch {
+      createNewSession([]);
+    }
+  };
+
   // Create New Chat Session - always resets and shows the intro note
-  const createNewSession = () => {
-    setHasAgreed(false);
+  const createNewSession = (baseSessions = sessions) => {
+    const newId = 'session_' + Date.now();
+    const newSession = {
+      id: newId,
+      title: 'Chat ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      createdAt: new Date().toISOString(),
+      messages: []
+    };
+    const validBase = Array.isArray(baseSessions) ? baseSessions : [];
+    const updated = [newSession, ...validBase];
+    setSessions(updated);
+    setCurrentSessionId(newId);
     setMessages([]);
+    setHasAgreed(false);
     setInputText('');
     setSelectedImage(null);
     setQueuedPrompt(null);
@@ -259,6 +353,67 @@ export default function KonPovPage() {
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
+    localStorage.setItem('konpov_chat_sessions', JSON.stringify(updated));
+    return newSession;
+  };
+
+  const saveCurrentSessionMessages = (newMessages) => {
+    setMessages(newMessages);
+    setSessions((prevSessions) => {
+      const updated = prevSessions.map((s) => {
+        if (s.id === currentSessionId) {
+          let title = s.title;
+          if (s.messages.length === 0 && newMessages.length > 0) {
+            const firstUserMsg = newMessages.find((m) => m.role === 'user');
+            if (firstUserMsg) {
+              title = firstUserMsg.text?.slice(0, 24) || 'Chat';
+            }
+          }
+          return { ...s, messages: newMessages, title };
+        }
+        return s;
+      });
+      localStorage.setItem('konpov_chat_sessions', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  // 100% Reliable Delete All History
+  const handleDeleteAllHistory = () => {
+    localStorage.removeItem('konpov_chat_sessions');
+    const newId = 'session_' + Date.now();
+    const freshSession = {
+      id: newId,
+      title: 'Chat 1',
+      createdAt: new Date().toISOString(),
+      messages: []
+    };
+    setSessions([freshSession]);
+    setCurrentSessionId(newId);
+    setMessages([]);
+    setHasAgreed(false);
+    localStorage.setItem('konpov_chat_sessions', JSON.stringify([freshSession]));
+    setDeleteModalConfig(null);
+    setDrawerOpen(false);
+  };
+
+  // 100% Reliable Delete Single Session
+  const handleDeleteSingleSession = (sessionId) => {
+    const remaining = sessions.filter((s) => s.id !== sessionId);
+    if (remaining.length === 0) {
+      handleDeleteAllHistory();
+      return;
+    }
+    setSessions(remaining);
+    localStorage.setItem('konpov_chat_sessions', JSON.stringify(remaining));
+    if (currentSessionId === sessionId) {
+      const nextSession = remaining[0];
+      setCurrentSessionId(nextSession.id);
+      const validMsgs = (nextSession.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+      setMessages(validMsgs);
+      setHasAgreed(validMsgs.length > 0);
+    }
+    setDeleteModalConfig(null);
   };
 
   // User explicitly clicks "Agree & Start Chat"
@@ -270,7 +425,7 @@ export default function KonPovPage() {
       : `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទស្រី! ចរិតស្លូតបូតបែបស្រីៗចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង!`;
 
     const updated = [{ role: 'bot', text: introMsg }];
-    setMessages(updated);
+    saveCurrentSessionMessages(updated);
     triggerAudio(introMsg, 0, true);
   };
 
@@ -421,7 +576,7 @@ export default function KonPovPage() {
       const clean = cleanSpeechText(text);
       if (!clean) return false;
       const utterance = new SpeechSynthesisUtterance(clean);
-      utterance.rate = 1.0;
+      utterance.rate = playbackSpeed;
       utterance.pitch = userGender === 'ប្រុស' ? 1.2 : 0.95;
 
       const voices = window.speechSynthesis.getVoices();
@@ -493,6 +648,7 @@ export default function KonPovPage() {
 
     if (audioUrl && player) {
       player.src = audioUrl;
+      player.playbackRate = playbackSpeed;
       player.currentTime = 0;
       setActiveVoiceIndex(index);
 
@@ -770,10 +926,20 @@ ${
    - រាល់ការឆ្លើយតបទាំងអស់ត្រូវមានប្រវែងចន្លោះពី ៣ ទៅ ១៤ បន្ទាត់ (Lines) ជាដាច់ខាត!
    - តិចបំផុត៖ ៣ បន្ទាត់ (Minimum 3 lines) - ហាមឆ្លើយខ្លីពេកតែ ១ ឬ ២ ម៉ាត់ឡើយ។
    - ច្រើនបំផុត៖ ១៤ បន្ទាត់ (Maximum 14 lines) - ដាច់ខាតមិនត្រូវសរសេរវែងអន្លាយ រាប់សិបបន្ទាត់ដូចតែងសេចក្តីឡើយ ដើម្បីកុំឱ្យពិបាកដល់ប្រព័ន្ធបញ្ចេញសំឡេង TTS!
-   - ឆ្លើយឱ្យខ្លី ខ្លឹម ឌឺ ចុក ឈ្លើយ សើចចុកពោះ ក្នុងរង្វង់ 3 ទៅ 14 បន្ទាត់ជានិច្ច!`;
+   - ឆ្លើយឱ្យខ្លី ខ្លឹម ឌឺ ចុក ឈ្លើយ សើចចុកពោះ ក្នុងរង្វង់ 3 ទៅ 14 បន្ទាត់ជានិច្ច!
+${
+  savageLevel === 'gentle'
+    ? '- កម្រិត TROLL បច្ចុប្បន្ន៖ "😇 ស្លូត (Gentle Advice)" - កុំប្រើពាក្យជេរប្រមាថ ឬបាញ់ខ្លាំងពេក! ផ្ដល់ដំបូន្មានល្អៗ ចែករំលែកបទពិសោធន៍រៀនសូត្រនៅ ស៊ីតិច (SETEC) ដោយពាក្យសម្ដីទន់ភ្លន់ កំប្លុកកំប្លែង ឆ្លាត និងលើកទឹកចិត្ត User!'
+    : savageLevel === 'medium'
+    ? '- កម្រិត TROLL បច្ចុប្បន្ន៖ "😏 ឌឺល្មម (Standard Troll)" - ឌឺដងបែប Gen Z SETEC ល្មមៗ កំប្លែង សើចកក្អឹក ឌឺរឿង Assignment គាំង ឬរឿង Crush មិនតប មិនបាញ់ជ្រុលហួសព្រំដែនពេក!'
+    : '- កម្រិត TROLL បច្ចុប្បន្ន៖ "🔥 ឌឺបាក់ក (Ultra Savage 100%)" - កម្រិតមហាឌឺ មហា Roast បាញ់ឱ្យបាក់ក ឱ្យចុកឈាម គ្មានការលើកលែង! ប្រើពាក្យចាក់ដោត ឈ្លើយៗ កំប្លែងសើចចុកពោះ វាយបកគ្រប់ក្បាច់!'
+}`;
 
       const formattedContents = [];
-      const recentHistory = messages.concat(userMsg).slice(-6);
+      const recentHistory = messages
+        .filter((m) => !m.isError && !m.text?.includes('កុំ spam') && !m.text?.includes('ខំចាត់ច្រើនម៉េះ'))
+        .concat(userMsg)
+        .slice(-6);
 
       for (let i = 0; i < recentHistory.length; i++) {
         const m = recentHistory[i];
@@ -898,7 +1064,7 @@ ${
 
       const finalMessages = [...updatedMessages];
       finalMessages[finalMessages.length - 1] = { role: 'bot', text: botText, isError: isErrorResponse };
-      setMessages(finalMessages);
+      saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
       // Auto-fetch voice
@@ -926,7 +1092,7 @@ ${
           isError: true
         }
       ];
-      setMessages(fallbackMessages);
+      saveCurrentSessionMessages(fallbackMessages);
 
       if (queuedPromptRef.current) {
         const nextTask = queuedPromptRef.current;
@@ -1017,6 +1183,64 @@ ${
             <i className="fas fa-plus"></i> ជជែកថ្មី
           </button>
 
+          <div className="mb-2 text-blue-400 font-bold text-xs flex items-center gap-2">
+            <i className="fas fa-comments"></i> ប្រវត្តិជជែក
+          </div>
+
+          <ul className="flex-1 overflow-y-auto space-y-1.5 mb-4 pr-1">
+            {sessions.length === 0 ? (
+              <li className="text-slate-400 text-xs italic p-2 text-center">មិនទាន់មានប្រវត្តិ</li>
+            ) : (
+              sessions.map((session) => {
+                const isActive = session.id === currentSessionId;
+                return (
+                  <li
+                    key={session.id}
+                    onClick={() => {
+                      setCurrentSessionId(session.id);
+                      const validMsgs = (session.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+                      setMessages(validMsgs);
+                      setHasAgreed(validMsgs.length > 0);
+                      setDrawerOpen(false);
+                    }}
+                    className={`flex items-center justify-between gap-2 p-2.5 rounded-xl cursor-pointer text-xs font-bold transition group ${
+                      isActive
+                        ? isDark
+                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : isDark
+                        ? 'hover:bg-slate-800 text-slate-300'
+                        : 'hover:bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <i className={`fas fa-comment-dots text-xs shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-500'}`}></i>
+                      <span className="truncate">{session.title || 'Chat'}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteModalConfig({
+                          isOpen: true,
+                          type: 'single',
+                          sessionId: session.id,
+                          title: `លុបការជជែក "${session.title || 'Chat'}"?`,
+                          description: 'តើអ្នកពិតជាចង់លុបការជជែកនេះចេញពីប្រវត្តិមែនទេ?'
+                        });
+                      }}
+                      className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
+                      title="លុបការជជែកនេះ"
+                    >
+                      <i className="fas fa-trash-can text-[11px]"></i>
+                    </button>
+                  </li>
+                );
+              })
+            )}
+          </ul>
+
           <Link
             href="/KonBong"
             className="block w-full bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs mb-2 transition border border-cyan-500/30"
@@ -1062,12 +1286,17 @@ ${
           <div className="mt-auto">
             <button
               onClick={() => {
-                setMessages([]);
-                setDrawerOpen(false);
+                setDeleteModalConfig({
+                  isOpen: true,
+                  type: 'all',
+                  title: 'លុបប្រវត្តិជជែកទាំងអស់?',
+                  description: 'តើអ្នកពិតជាចង់លុបរាល់ការជជែកទាំងអស់មែនទេ? រាល់សារ និងកំណត់ត្រាទាំងអស់នឹងត្រូវសម្អាតចោលគ្មានសល់!'
+                });
               }}
-              className="w-full bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold py-2 px-4 rounded-xl text-xs transition flex items-center gap-2 justify-center border border-rose-500/30 cursor-pointer"
+              className="w-full bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center gap-2 justify-center border border-rose-500/30 cursor-pointer active:scale-95 shadow-sm"
             >
-              <i className="fas fa-trash"></i> សម្អាតការជជែក
+              <i className="fas fa-trash"></i>
+              <span>លុបប្រវត្តិជជែកទាំងអស់</span>
             </button>
           </div>
         </div>
@@ -1179,8 +1408,30 @@ ${
           </div>
         </div>
 
-        {/* Right Side: Clean Action Icons (New Chat, Theme Toggle, Switch Bot, Menu) */}
+        {/* Right Side: Clean Action Icons (Savage Level, New Chat, Theme Toggle, Switch Bot, Menu) */}
         <div className="flex items-center gap-1.5 shrink-0">
+          {/* Upgraded Savage Troll Level Selector */}
+          <button
+            type="button"
+            onClick={handleCycleSavageLevel}
+            className={`px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-black flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+              savageLevel === 'savage'
+                ? 'bg-rose-500/15 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 ring-1 ring-rose-500/30'
+                : savageLevel === 'medium'
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
+                : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25'
+            }`}
+            title="ចុចដើម្បីប្ដូរកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
+          >
+            <span>
+              {savageLevel === 'savage'
+                ? '🔥 ឌឺបាក់ក'
+                : savageLevel === 'medium'
+                ? '😏 ឌឺល្មម'
+                : '😇 ស្លូត'}
+            </span>
+          </button>
+
           <button
             onClick={() => createNewSession()}
             disabled={!hasAgreed}
@@ -1253,8 +1504,8 @@ ${
           </div>
         )}
 
-        {/* Welcome Starter Screen when chat is empty (Zero Blank Void) */}
-        {hasAgreed && messages.length === 0 && (
+        {/* Welcome Starter Screen when chat is empty (Zero Blank Void Guaranteed) */}
+        {hasAgreed && messages.filter((m) => m && (m.text?.trim() || m.memeImage || m.image || (isLoading && m.role === 'bot'))).length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center p-4 text-center my-auto max-w-md mx-auto animate-fade-in">
             <div className="relative mb-3">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-xl shadow-blue-500/20">
@@ -1463,6 +1714,7 @@ ${
                       )}
                     </p>
 
+                    {/* Audio Player, Playback Speed & Copy Actions */}
                     {item.text && (() => {
                       const voiceGenderKey = userGender === 'ប្រុស' ? 'female' : 'male';
                       const audioHash = hashText(item.text) + '_' + voiceGenderKey;
@@ -1471,80 +1723,114 @@ ${
                       const isFallbackVoice = !!(fallbackAudioMap[idx] || item.isFallbackVoice || isStoredFallback);
 
                       return (
-                        <button
-                          onClick={() => triggerAudio(item.text, idx)}
-                          disabled={st === 'loading'}
-                          className={`mt-3 px-3.5 py-1.5 rounded-xl text-[10.5px] font-black border flex items-center gap-2 transition cursor-pointer select-none ${
-                            isFallbackVoice
-                              ? isDark
-                                ? 'bg-amber-500/20 text-amber-300 border-amber-400 hover:bg-amber-500/30 shadow-md shadow-amber-500/20 ring-1 ring-amber-400/40'
-                                : 'bg-amber-100 text-amber-900 border-amber-400 hover:bg-amber-200/90 shadow-sm ring-1 ring-amber-400/40 font-black'
-                              : isDark
-                              ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20'
-                              : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 shadow-xs'
-                          }`}
-                        >
-                          {st === 'loading' && (
-                            <>
-                              <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
-                              <span>{isFallbackVoice ? 'Bot កំពុងទាញសំឡេងជំនួស...' : 'កំពុងទាញសំឡេង...'}</span>
-                            </>
-                          )}
-                          {st === 'playing' && (
-                            <>
-                              <i
-                                className={`${
-                                  isFallbackVoice
-                                    ? 'fas fa-robot animate-bounce text-amber-400 text-xs'
-                                    : 'fas fa-headset animate-pulse text-blue-400'
-                                }`}
-                              ></i>{' '}
-                              <span>
-                                {isFallbackVoice
-                                  ? 'Bot អ្នកអានជំនួស (ព្រោះសំឡេង AI រវល់)'
-                                  : 'កំពុងអាន'}
-                              </span>
-                            </>
-                          )}
-                          {st === 'paused' && (
-                            <>
-                              <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
-                              <span>
-                                {isFallbackVoice
-                                  ? 'បន្តស្ដាប់ Bot អានជំនួស'
-                                  : 'បន្តស្ដាប់'}
-                              </span>
-                            </>
-                          )}
-                          {st === 'ended' && (
-                            <>
-                              <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
-                              <span>
-                                {isFallbackVoice
-                                  ? 'Bot អានជំនួសម្ដងទៀត'
-                                  : 'ស្តាប់ម្ដងទៀត'}
-                              </span>
-                            </>
-                          )}
-                          {(st === 'ready' || st === 'idle' || st === 'error') && (
-                            <>
-                              <i
-                                className={`${
-                                  isFallbackVoice
-                                    ? 'fas fa-robot text-amber-400 text-xs'
-                                    : 'fas fa-play text-blue-400'
-                                }`}
-                              ></i>{' '}
-                              <span>
-                                {isFallbackVoice
-                                  ? 'Bot អ្នកអានជំនួស (ព្រោះសំឡេង AI រវល់)'
-                                  : userGender === 'ប្រុស'
-                                  ? 'ស្តាប់សំឡេង ចែ ឬ Mommy'
-                                  : 'ស្តាប់សំឡេង Daddy'}
-                              </span>
-                            </>
-                          )}
-                        </button>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                          <button
+                            onClick={() => triggerAudio(item.text, idx)}
+                            disabled={st === 'loading'}
+                            className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black border flex items-center gap-2 transition cursor-pointer select-none active:scale-95 ${
+                              isFallbackVoice
+                                ? isDark
+                                  ? 'bg-amber-500/20 text-amber-300 border-amber-400 hover:bg-amber-500/30 shadow-md shadow-amber-500/20 ring-1 ring-amber-400/40'
+                                  : 'bg-amber-100 text-amber-900 border-amber-400 hover:bg-amber-200/90 shadow-sm ring-1 ring-amber-400/40 font-black'
+                                : isDark
+                                ? 'bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20'
+                                : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 shadow-xs'
+                            }`}
+                          >
+                            {st === 'loading' && (
+                              <>
+                                <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
+                                <span>{isFallbackVoice ? 'Bot កំពុងទាញសំឡេងជំនួស...' : 'កំពុងទាញសំឡេង...'}</span>
+                              </>
+                            )}
+                            {st === 'playing' && (
+                              <>
+                                <i
+                                  className={`${
+                                    isFallbackVoice
+                                      ? 'fas fa-robot animate-bounce text-amber-400 text-xs'
+                                      : 'fas fa-headset animate-pulse text-blue-400'
+                                  }`}
+                                ></i>{' '}
+                                <span>
+                                  {isFallbackVoice
+                                    ? 'Bot អ្នកអានជំនួស (ព្រោះសំឡេង AI រវល់)'
+                                    : 'កំពុងអាន'}
+                                </span>
+                              </>
+                            )}
+                            {st === 'paused' && (
+                              <>
+                                <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
+                                <span>
+                                  {isFallbackVoice
+                                    ? 'បន្តស្ដាប់ Bot អានជំនួស'
+                                    : 'បន្តស្ដាប់'}
+                                </span>
+                              </>
+                            )}
+                            {st === 'ended' && (
+                              <>
+                                <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
+                                <span>
+                                  {isFallbackVoice
+                                    ? 'Bot អានជំនួសម្ដងទៀត'
+                                    : 'ស្តាប់ម្ដងទៀត'}
+                                </span>
+                              </>
+                            )}
+                            {(st === 'ready' || st === 'idle' || st === 'error') && (
+                              <>
+                                <i
+                                  className={`${
+                                    isFallbackVoice
+                                      ? 'fas fa-robot text-amber-400 text-xs'
+                                      : 'fas fa-play text-blue-400'
+                                  }`}
+                                ></i>{' '}
+                                <span>
+                                  {isFallbackVoice
+                                    ? 'Bot អ្នកអានជំនួស (ព្រោះសំឡេង AI រវល់)'
+                                    : userGender === 'ប្រុស'
+                                    ? 'ស្តាប់សំឡេង ចែ ឬ Mommy'
+                                    : 'ស្តាប់សំឡេង Daddy'}
+                                </span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* Upgraded Audio Speed Controller */}
+                          <button
+                            type="button"
+                            onClick={handleCyclePlaybackSpeed}
+                            className={`px-2 py-1.5 rounded-xl text-[10.5px] font-black border flex items-center gap-1 transition cursor-pointer select-none active:scale-95 ${
+                              isDark
+                                ? 'bg-slate-800 text-blue-300 border-slate-700 hover:bg-slate-700'
+                                : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                            }`}
+                            title="ចុចដើម្បីប្ដូរល្បឿនអានសំឡេង (1.0x, 1.25x, 1.5x, 2.0x)"
+                          >
+                            <i className="fas fa-bolt text-amber-400 text-[10px]"></i>
+                            <span>{playbackSpeed}x</span>
+                          </button>
+
+                          {/* Upgraded One-Click Copy Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleCopyText(item.text, idx)}
+                            className={`px-2.5 py-1.5 rounded-xl text-[10.5px] font-bold border flex items-center gap-1 transition cursor-pointer select-none active:scale-95 ${
+                              copiedIndex === idx
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-400'
+                                : isDark
+                                ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                                : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                            }`}
+                            title="ចម្លងអត្ថបទ"
+                          >
+                            <i className={copiedIndex === idx ? 'fas fa-check text-emerald-400' : 'fas fa-copy text-slate-400'}></i>
+                            <span>{copiedIndex === idx ? 'ចម្លងរួច' : 'ចម្លង'}</span>
+                          </button>
+                        </div>
                       );
                     })()}
 
@@ -1892,6 +2178,22 @@ ${
         isOpen={contributeModalOpen}
         onClose={() => setContributeModalOpen(false)}
         defaultBot="Chatbot កូនពៅ"
+      />
+
+      {/* Confirm Delete Chat History Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!deleteModalConfig?.isOpen}
+        onClose={() => setDeleteModalConfig(null)}
+        onConfirm={() => {
+          if (deleteModalConfig?.type === 'single') {
+            handleDeleteSingleSession(deleteModalConfig.sessionId);
+          } else {
+            handleDeleteAllHistory();
+          }
+        }}
+        title={deleteModalConfig?.title || 'តើអ្នកពិតជាចង់លុបមែនទេ?'}
+        description={deleteModalConfig?.description || 'រាល់សារ និងប្រវត្តិជជែកទាំងអស់នឹងត្រូវលុបចេញជារៀងរហូត!'}
+        isDark={isDark}
       />
     </div>
   );
