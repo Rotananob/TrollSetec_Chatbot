@@ -24,6 +24,53 @@ export const SETEC_FOUNDATION_LORE = `
    - "សិស្សឆ្នើមលួចគេង": អង្គុយក្រោយគេក្នុងថ្នាក់ធ្វើមុខស្ដាប់ តែតាមពិតភ្នែកបិទជិត។
 `;
 
+export const SOCIAL_MEDIA_CULTURE_AND_SLANG = `
+វប្បធម៌លេងបណ្ដាញសង្គម GEN Z (KHMER SOCIAL MEDIA EMOJI NUANCES & LATIN SLANG):
+១. អត្ថន័យ & ក្បួនប្រើប្រាស់ EMOJI និង SYMBOL តាម SOCIAL MEDIA ខ្មែរ (CAMBODIAN SOCIAL MEDIA EMOJI PSYCHOLOGY):
+   - 😭🙏🏻 : ប្រើក្នុងន័យ "រំលឹក ឬហួសចិត្តរឿងអីមួយ" (Disbelief, facepalm, exasperation, or reminding someone with hand on head)!
+   - 😔😔 : ឌឺដងបែប "ប្រឈិតប្រឈាង បែប Cringe គេ" (Passive-aggressive cringe mocking, teasing someone's awkward or corny behavior)!
+   - -,- : ធ្វើចរិតជា "មនុស្សទាន់សម័យ ទាន់ Trend គេ" ឬពេលគេសួរហើយប្រាប់ចម្លើយគេ គឺដាក់ Symbol "-,-" ពីក្រោយ (Cool, trendy, unfazed, nonchalant face expression)!
+   - 😋 : ប្រើបែប "ឌឺដង បែបប្រើអារម្មណ៍" ដូចជាសួរបញ្ជី ឬ Assignment ច្រើនអត់? ឬបន្ថែមការ Errors ឬអីដែលច្រើនៗ គឺបន្ថែមអារម្មណ៍ឌឺជា Emoji "😋" ហ្នឹង (Rubbing salt into the wound playfully, e.g. "Assignment គរដូចភ្នំមែនទេ? 😋", "Error ឡើង 100 បន្ទាត់មែនអត់អាប្អូន? 😋")!
+   - 😭🤍 : Emoji បែប "ញ៉ែញ៉ង" ផ្អែមល្ហែម ស្នេហា គួរឱ្យស្រលាញ់ (Affectionate, soft romantic teasing)!
+   - 😭 : ជាកំពូល Emoji ពហុអារម្មណ៍ ប្រើបានគ្រប់បរិបទ: យំ, សើច, ហួសចិត្ត, សប្បាយចិត្ត, អៀន, និងញ៉ែ!
+   - 🤍😡 ឬ 😡🤍 : ស្នេហាចចារគ្នាបែបស្នេហាខ្លាំងៗ (Aggressive affection / Tsundere love, e.g. "Bong/Oun sl B or o klang klang 😡🤍")!
+
+២. វចនានុក្រមអក្សរកាត់ឡាតាំង SOCIAL MEDIA (KHMER SOCIAL MEDIA LATIN ABBREVIATIONS & SHORTENED SLANG):
+   - Sl = ស្រលាញ់
+   - O = oun (អូន)
+   - B = bong (បង)
+   - klang = ខ្លាំង
+   - Joy = ចុយ
+   - ah = អា
+   - Hg = ហែង
+   - Lop = ឡប់
+   - Kduy = កាដួយ
+   - Mae ឬ mea = ម៉ែ
+   - Ov = ឪ
+   - Kdor = ក្ដ
+   - Kdet = ក្ដិត
+   - Thhun = ធុញ
+   - Hort = ហត់
+   - Nov = នៅ
+   - Na = ណា
+   - Ng = នឹង
+   - Hz ឬ hx = ហើយ
+   - Ven = វេន
+   - Tos = តោះ
+   - Sers = សិស្ស
+   - Madong = ម្ដង
+   - M’deng = មិនដឹង
+   - Jbong = ច្បង
+   - P’o = ប្អូន
+   - Kru = គ្រូ
+   - Ka ngea = ការងារ
+   - Saob = ស្អប់
+   - Lue ឬ luer = ឮ (លឺ)
+   - Leng = លេង ឬ លែង
+   - Lerng = ឡើង
+   - Chob ឬ chop = ឈប់
+`;
+
 // Extensible registry for user contributions during production
 export const COMMUNITY_CONTRIBUTIONS = [
   {
@@ -42,6 +89,7 @@ export const COMMUNITY_CONTRIBUTIONS = [
 
 export function getFullCommunityLoreText() {
   let text = SETEC_FOUNDATION_LORE;
+  text += '\n\n' + SOCIAL_MEDIA_CULTURE_AND_SLANG;
   if (COMMUNITY_CONTRIBUTIONS.length > 0) {
     text += '\n\nចំណេះដឹងបន្ថែមពីសហគមន៍ (COMMUNITY CONTRIBUTED LORE):\n';
     COMMUNITY_CONTRIBUTIONS.forEach((item, idx) => {
