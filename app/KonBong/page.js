@@ -555,7 +555,8 @@ export default function KonBongPage() {
       const updated = prevSessions.map((s) => {
         if (s.id === currentSessionId) {
           let title = s.title;
-          if (s.messages.length === 0 && newMessages.length > 0) {
+          const prevMsgs = Array.isArray(s.messages) ? s.messages : [];
+          if (prevMsgs.length === 0 && newMessages.length > 0) {
             const firstUserMsg = newMessages.find((m) => m.role === 'user');
             if (firstUserMsg) {
               title = firstUserMsg.text?.slice(0, 24) || 'Chat';
