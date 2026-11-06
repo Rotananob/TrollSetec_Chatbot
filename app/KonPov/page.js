@@ -485,7 +485,42 @@ export default function KonPovPage() {
   // Gender selection
   const handleSelectGender = (gender) => {
     setUserGender(gender);
-    localStorage.setItem('chatbot_gender', gender);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chatbot_gender', gender);
+    }
+  };
+
+  // Strictly enforce 100% Persona Gender Consistency (Zero contradictions between Bot role & User gender)
+  const enforcePersonaConsistency = (rawText, isMale) => {
+    if (!rawText || typeof rawText !== 'string') return rawText;
+    let text = rawText;
+
+    if (isMale) {
+      // User is Male ('ប្រុស') -> Bot is STRICTLY "ចែ / Mommy"
+      // Replace any accidental "Daddy", "ដាឌី", "លោកប៉ា" with "ចែ"
+      text = text
+        .replace(/\bDaddy\b/gi, 'ចែ')
+        .replace(/ដាឌី/g, 'ចែ')
+        .replace(/លោកប៉ា/g, 'ចែ')
+        .replace(/កូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
+        .replace(/កូនស្រី/g, 'អាប្អូនប្រុស')
+        .replace(/អូនសម្លាញ់/g, 'អាប្អូនសម្លាញ់')
+        .replace(/ស្រីស្អាតរបស់\s*(Daddy|ចែ)?/gi, 'អាប្អូនប្រុស');
+    } else {
+      // User is Female ('ស្រី') -> Bot is STRICTLY "Daddy"
+      // Replace any accidental "ចែ", "Mommy", "ម៉ាក់" with "Daddy"
+      text = text
+        .replace(/\bMommy\b/gi, 'Daddy')
+        .replace(/ចែ/g, 'Daddy')
+        .replace(/ម៉ាក់/g, 'Daddy')
+        .replace(/អាប្អូនប្រុសមួយនេះ/g, 'កូនស្រីមួយនេះ')
+        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'កូនស្រីសម្លាញ់')
+        .replace(/អាប្អូនប្រុស/g, 'កូនស្រី')
+        .replace(/អាប្អូន/g, 'កូនស្រី')
+        .replace(/អាម៉ូយ/g, 'អូនសម្លាញ់')
+        .replace(/អាហែង/g, 'កូនឯង');
+    }
+    return text;
   };
 
   // Change user avatar on the fly and save safely to localStorage
@@ -1268,6 +1303,8 @@ export default function KonPovPage() {
       const isErrorResponse = !botText || !botText.trim();
       if (!botText || !botText.trim()) {
         botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+      } else {
+        botText = enforcePersonaConsistency(botText, isMaleUser);
       }
 
       const finalMessages = [...updatedMessages];
@@ -1488,15 +1525,39 @@ export default function KonPovPage() {
             <i className="fas fa-brain text-amber-300"></i> ចូលរួមបង្រៀន AI (SETEC Lore)
           </button>
 
-          <button
-            onClick={() => {
-              setUserGender('');
-              setDrawerOpen(false);
-            }}
-            className="w-full mb-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center gap-2 justify-center border border-slate-700 cursor-pointer"
-          >
-            <i className="fas fa-venus-mars text-blue-400"></i> ប្តូរភេទ (ប្រុស / ស្រី)
-          </button>
+          {/* Direct 1-Click Gender Switcher in Drawer */}
+          <div className="mb-2 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+            <span className="text-[10.5px] font-bold text-slate-300 block mb-1.5 flex items-center gap-1.5">
+              <i className="fas fa-venus-mars text-blue-400"></i>
+              <span>ភេទរបស់អ្នក (Your Gender):</span>
+            </span>
+            <div className="grid grid-cols-2 gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleSelectGender('ប្រុស')}
+                className={`py-2 px-2 rounded-lg font-black text-[11px] transition flex items-center justify-center gap-1 border cursor-pointer ${
+                  userGender === 'ប្រុស'
+                    ? 'bg-blue-600 border-blue-400 text-white shadow-xs'
+                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <i className="fas fa-mars text-xs text-cyan-300"></i>
+                <span>ប្រុស (Bot: ចែ)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectGender('ស្រី')}
+                className={`py-2 px-2 rounded-lg font-black text-[11px] transition flex items-center justify-center gap-1 border cursor-pointer ${
+                  userGender === 'ស្រី'
+                    ? 'bg-pink-600 border-pink-400 text-white shadow-xs'
+                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
+                }`}
+              >
+                <i className="fas fa-venus text-xs text-pink-300"></i>
+                <span>ស្រី (Bot: Daddy)</span>
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 mb-3">
             <span className="text-xs font-semibold text-slate-300">
@@ -2705,6 +2766,39 @@ export default function KonPovPage() {
               <p className="text-[11px] text-blue-400 font-bold mt-0.5">
                 ស៊ីតិច Chatbot កូនពៅ • 100% Savage & Unfiltered Gen Z
               </p>
+            </div>
+
+            {/* Quick 1-Click Gender Toggle to guarantee 100% alignment */}
+            <div className="bg-slate-950/80 rounded-2xl p-2.5 border border-slate-800 mb-3 text-center">
+              <span className="text-[11px] text-slate-300 font-bold block mb-1.5">
+                ជ្រើសរើសភេទរបស់អ្នក (Your Gender):
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSelectGender('ប្រុស')}
+                  className={`py-2 px-2 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 border cursor-pointer ${
+                    userGender === 'ប្រុស'
+                      ? 'bg-blue-600 border-blue-400 text-white shadow-md shadow-blue-500/30'
+                      : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <i className="fas fa-mars text-sm text-cyan-300"></i>
+                  <span>ខ្ញុំជាប្រុស (Bot: ចែ)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectGender('ស្រី')}
+                  className={`py-2 px-2 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 border cursor-pointer ${
+                    userGender === 'ស្រី'
+                      ? 'bg-pink-600 border-pink-400 text-white shadow-md shadow-pink-500/30'
+                      : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <i className="fas fa-venus text-sm text-pink-300"></i>
+                  <span>ខ្ញុំជាស្រី (Bot: Daddy)</span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2.5 text-xs bg-slate-950/60 rounded-2xl p-3.5 border border-slate-800 mb-4">
