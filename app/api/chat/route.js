@@ -36,8 +36,9 @@ const TEXT_MODELS = [
   'gemini-3.6-flash'
 ];
 const AUDIO_MODELS = [
+  'gemini-3.8-flash-lite-tts',
   'gemini-3.8-flash-tts',
-  'gemini-3.8-flash-lite-tts'
+  'gemini-3.1-flash-tts-preview'
 ];
 
 export function getApiKeyPool(bot) {
@@ -313,38 +314,18 @@ export async function POST(req) {
         .replace(/^["']|["']$/g, '')
         .trim();
 
-      const hasKhmer = /[\u1780-\u17FF]/.test(speechText);
-
-      // Fast-path: For Khmer text, use high-speed native Khmer speech synthesis (<1s response)
-      if (hasKhmer) {
-        const fallbackAudioB64 = await fetchKhmerSpeechFallback(speechText);
-        if (fallbackAudioB64) {
-          return Response.json(
-            {
-              isFallbackBotVoice: true,
-              candidates: [
-                {
-                  content: {
-                    parts: [
-                      {
-                        inlineData: {
-                          mimeType: 'audio/mpeg',
-                          data: fallbackAudioB64
-                        }
-                      }
-                    ]
-                  }
-                }
-              ],
-              modelVersion: 'setec-troll-engine-v2-speech'
-            },
-            { status: 200, headers: corsHeaders }
-          );
-        }
+      // Smart length optimization for lightning-fast AI Voice generation (<3s):
+      // If the response is long, slice to the first complete sentences or max 280 characters
+      let audioPromptText = speechText;
+      if (audioPromptText.length > 280) {
+        const sentenceBoundary = audioPromptText.slice(0, 280).lastIndexOf('។');
+        const altBoundary = audioPromptText.slice(0, 280).lastIndexOf('\n');
+        const cutoff = sentenceBoundary > 100 ? sentenceBoundary + 1 : (altBoundary > 100 ? altBoundary : 280);
+        audioPromptText = audioPromptText.slice(0, cutoff).trim();
       }
 
-      // Non-Khmer or secondary fallback to Gemini TTS
-      const audioContents = [{ parts: [{ text: speechText }] }];
+      // 1. Primary AI Voice: Call Gemini TTS (Puck / Aoede) for the chill & funny real AI voice
+      const audioContents = [{ parts: [{ text: audioPromptText }] }];
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
         (bot === 'konpov'
@@ -364,9 +345,15 @@ export async function POST(req) {
         contents: audioContents,
         generationConfig: audioGenConfig
       };
-      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 4500);
+      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 8500);
       if (result.ok && result.data?.candidates?.[0]?.content?.parts?.some((p) => p.inlineData?.data)) {
-        return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
+        return Response.json(
+          {
+            ...sanitizeResponse(result.data),
+            isFallbackBotVoice: false
+          },
+          { status: 200, headers: corsHeaders }
+        );
       }
 
       // Seamless fallback to high-uptime Khmer speech synthesis when AI TTS quota is exhausted

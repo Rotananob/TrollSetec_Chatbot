@@ -2022,7 +2022,7 @@ ${
                             {st === 'loading' && (
                               <>
                                 <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
-                                <span>{isFallbackVoice ? 'កំពុងរៀបចំសំឡេង...' : 'កំពុងទាញសំឡេង...'}</span>
+                                <span>{isFallbackVoice ? 'AI រវល់... កំពុងរៀបចំសំឡេង Bot...' : 'កំពុងទាញសំឡេង AI...'}</span>
                               </>
                             )}
                             {st === 'playing' && (
@@ -2036,8 +2036,10 @@ ${
                                 ></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'Bot កំពុងអាន...'
-                                    : 'កំពុងអាន...'}
+                                    ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
+                                    : userGender === 'ប្រុស'
+                                    ? 'សំឡេង ចែ ឬ Mommy កំពុងអាន...'
+                                    : 'សំឡេង Daddy កំពុងអាន...'}
                                 </span>
                               </>
                             )}
@@ -2046,8 +2048,8 @@ ${
                                 <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'បន្តស្ដាប់ Bot'
-                                    : 'បន្តស្ដាប់'}
+                                    ? 'បន្តស្ដាប់សំឡេង Bot អានជំនួស'
+                                    : 'បន្តស្ដាប់សំឡេង AI'}
                                 </span>
                               </>
                             )}
@@ -2056,7 +2058,7 @@ ${
                                 <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'ស្តាប់ Bot ម្ដងទៀត'
+                                    ? 'ស្តាប់ Bot អានជំនួសម្ដងទៀត (AI រវល់)'
                                     : 'ស្តាប់ម្ដងទៀត'}
                                 </span>
                               </>
@@ -2072,7 +2074,7 @@ ${
                                 ></i>{' '}
                                 <span>
                                   {isFallbackVoice
-                                    ? 'ស្តាប់សំឡេង Bot'
+                                    ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
                                     : userGender === 'ប្រុស'
                                     ? 'ស្តាប់សំឡេង ចែ ឬ Mommy'
                                     : 'ស្តាប់សំឡេង Daddy'}
