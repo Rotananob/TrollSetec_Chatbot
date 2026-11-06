@@ -499,18 +499,20 @@ export default function KonPovPage() {
       // User is Male ('ប្រុស') -> Bot is STRICTLY "ចែ / Mommy"
       // Replace any accidental "Daddy", "ដាឌី", "លោកប៉ា" with "ចែ"
       text = text
-        .replace(/\bDaddy\b/gi, 'ចែ')
+        .replace(/Daddy/gi, 'ចែ')
         .replace(/ដាឌី/g, 'ចែ')
         .replace(/លោកប៉ា/g, 'ចែ')
         .replace(/កូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
+        .replace(/កូនស្រីមួយនេះ/g, 'អាប្អូនប្រុសមួយនេះ')
         .replace(/កូនស្រី/g, 'អាប្អូនប្រុស')
         .replace(/អូនសម្លាញ់/g, 'អាប្អូនសម្លាញ់')
-        .replace(/ស្រីស្អាតរបស់\s*(Daddy|ចែ)?/gi, 'អាប្អូនប្រុស');
+        .replace(/ស្រីស្អាតរបស់\s*(?:Daddy|ចែ)?/gi, 'អាប្អូនប្រុស')
+        .replace(/ស្រីស្អាត/g, 'អាប្អូនប្រុស');
     } else {
       // User is Female ('ស្រី') -> Bot is STRICTLY "Daddy"
       // Replace any accidental "ចែ", "Mommy", "ម៉ាក់" with "Daddy"
       text = text
-        .replace(/\bMommy\b/gi, 'Daddy')
+        .replace(/Mommy/gi, 'Daddy')
         .replace(/ចែ/g, 'Daddy')
         .replace(/ម៉ាក់/g, 'Daddy')
         .replace(/អាប្អូនប្រុសមួយនេះ/g, 'កូនស្រីមួយនេះ')
@@ -1228,9 +1230,10 @@ export default function KonPovPage() {
                   const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
                   if (delta) {
                     botText += delta;
+                    const liveSanitized = enforcePersonaConsistency(botText, isMaleUser);
                     setMessages((prev) => {
                       const copy = [...prev];
-                      copy[copy.length - 1] = { role: 'bot', text: botText };
+                      copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
                       return copy;
                     });
                   }
@@ -1247,9 +1250,10 @@ export default function KonPovPage() {
             for (let c = 0; c < fullText.length; c += step) {
               const currentChunk = fullText.slice(0, c + step);
               botText = currentChunk;
+              const liveSanitized = enforcePersonaConsistency(currentChunk, isMaleUser);
               setMessages((prev) => {
                 const copy = [...prev];
-                copy[copy.length - 1] = { role: 'bot', text: currentChunk };
+                copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
                 return copy;
               });
               await new Promise((r) => setTimeout(r, 14));
@@ -1288,9 +1292,10 @@ export default function KonPovPage() {
             const fullText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
             if (fullText) {
               botText = fullText;
+              const liveSanitized = enforcePersonaConsistency(fullText, isMaleUser);
               setMessages((prev) => {
                 const copy = [...prev];
-                copy[copy.length - 1] = { role: 'bot', text: fullText };
+                copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
                 return copy;
               });
             }
@@ -1846,6 +1851,123 @@ export default function KonPovPage() {
         </div>
       </header>
 
+      {/* Pinned Rotana NOB Master Live Intervention Bar & Waiting Panel (Sticky & Pinned at Top, Never Scrolls Away) */}
+      {isRotanaAdmin && (
+        <div className="shrink-0 z-20 px-3 sm:px-6 pt-2 pb-1 bg-inherit">
+          <div className="p-3 bg-gradient-to-r from-amber-950/90 via-slate-900 to-purple-950/90 border border-amber-500/50 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-2.5 animate-fade-in">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-full ring-2 ring-amber-400 shrink-0 overflow-hidden shadow-md">
+                <img src="/img/DevPic.JPG" alt="Rotana" className="w-full h-full object-cover" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-xs text-amber-300 flex items-center gap-1.5">
+                    <i className="fas fa-crown text-amber-400 text-xs"></i>
+                    <span>Rotana NOB (Live Intervention)</span>
+                  </span>
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
+                    Bypass Verified
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-300 truncate font-semibold">
+                  អ្នកមានសិទ្ធិឆ្លើយតបផ្ទាល់ និងផ្អាក Chatbot ក្នុង Chat នេះ
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const nextState = !isBotPaused;
+                  setIsBotPaused(nextState);
+                  updateLiveSessionState(activeLiveSessionId, { botPaused: nextState });
+                  addSessionLog(
+                    activeLiveSessionId,
+                    nextState
+                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Chatbot (AI Paused) - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
+                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Chatbot ឡើងវិញ (AI Resumed)។',
+                    'state_change'
+                  );
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-md ${
+                  isBotPaused
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
+                    : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-500/20'
+                }`}
+              >
+                <i className={isBotPaused ? 'fas fa-play' : 'fas fa-pause'}></i>
+                <span>{isBotPaused ? 'បន្ត Chatbot (Resume)' : 'ផ្អាក Chatbot (Pause)'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('តើបងពិតជាចង់បញ្ចប់ការ Support លើ Chat នេះមែនទេ?')) {
+                    updateLiveSessionState(activeLiveSessionId, { alertActive: false, rotanaActive: false, status: 'ended' });
+                    addSessionLog(activeLiveSessionId, '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat និងបញ្ចប់ការ Support (Session Ended)។', 'leave');
+                    alert('បានបញ្ចប់ការ Support រួចរាល់!');
+                  }
+                }}
+                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700"
+              >
+                បញ្ចប់
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Live Intervention Indicator (Pinned & Never Scrolls Away) */}
+      {!isRotanaAdmin && (isRotanaOnline || activeLiveSessionId) && (
+        <div className="shrink-0 z-20 px-3 sm:px-6 pt-2 pb-1 bg-inherit">
+          <div className={`p-3 rounded-2xl shadow-xl flex items-center justify-between gap-3 animate-fade-in border ${
+            isRotanaOnline
+              ? 'bg-gradient-to-r from-emerald-950/95 via-slate-900 to-teal-950/95 border-emerald-500/50 shadow-emerald-950/30'
+              : 'bg-gradient-to-r from-amber-950/95 via-slate-900 to-amber-900/60 border-amber-500/50 shadow-amber-950/30'
+          }`}>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="relative shrink-0">
+                <img src="/img/DevPic.JPG" alt="Rotana NOB" className={`w-9 h-9 rounded-full ring-2 object-cover shadow-md ${
+                  isRotanaOnline ? 'ring-emerald-400' : 'ring-amber-400'
+                }`} />
+                <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-slate-950 animate-ping ${
+                  isRotanaOnline ? 'bg-emerald-400' : 'bg-amber-400'
+                }`}></span>
+              </div>
+              <div className="min-w-0">
+                <p className={`text-xs font-black flex items-center gap-1.5 ${
+                  isRotanaOnline ? 'text-emerald-300' : 'text-amber-300'
+                }`}>
+                  <i className={`fas ${isRotanaOnline ? 'fa-circle-check text-emerald-400' : 'fa-clock text-amber-400'} text-xs`}></i>
+                  <span>
+                    {isRotanaOnline
+                      ? 'បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
+                      : 'Rotana NOB (កំពុងរង់ចាំចូលរួម...)'}
+                  </span>
+                </p>
+                <p className="text-[10.5px] text-slate-300 font-medium truncate">
+                  {isRotanaOnline
+                    ? isBotPaused
+                      ? 'Chatbot ត្រូវបានផ្អាក។ បងប្អូនកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
+                      : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ (1-1 Protocol)។'
+                    : countdownRemaining !== null && countdownRemaining > 0
+                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ (នៅសល់ ${countdownRemaining}s)...`
+                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram / Mini App ចូលមកភ្លាមៗ!'}
+                </p>
+              </div>
+            </div>
+            {isRotanaOnline ? (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40 shrink-0">
+                1-1 LIVE
+              </span>
+            ) : countdownRemaining !== null && countdownRemaining > 0 ? (
+              <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black font-mono shrink-0 border border-amber-500/30">
+                {Math.floor(countdownRemaining / 60)}:{(countdownRemaining % 60).toString().padStart(2, '0')}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      )}
+
       {/* Main Chat Area */}
       <main className={`flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 flex flex-col chat-area ${
         isDark ? 'bg-[#0a0e17]' : 'bg-slate-50/70'
@@ -1973,118 +2095,7 @@ export default function KonPovPage() {
           </div>
         )}
 
-        {/* Rotana NOB Intervention Controller Bar */}
-        {isRotanaAdmin && (
-          <div className="mx-1 mb-3 p-3 bg-gradient-to-r from-amber-950/90 via-slate-900 to-purple-950/90 border border-amber-500/50 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-2.5 animate-fade-in">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-full ring-2 ring-amber-400 shrink-0 overflow-hidden shadow-md">
-                <img src="/img/DevPic.JPG" alt="Rotana" className="w-full h-full object-cover" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-black text-xs text-amber-300 flex items-center gap-1.5">
-                    <i className="fas fa-crown text-amber-400 text-xs"></i>
-                    <span>Rotana NOB (Live Intervention)</span>
-                  </span>
-                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
-                    Bypass Verified
-                  </span>
-                </div>
-                <p className="text-[10px] text-slate-300 truncate font-semibold">
-                  អ្នកមានសិទ្ធិឆ្លើយតបផ្ទាល់ និងផ្អាក Chatbot ក្នុង Chat នេះ
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  const nextState = !isBotPaused;
-                  setIsBotPaused(nextState);
-                  updateLiveSessionState(activeLiveSessionId, { botPaused: nextState });
-                  addSessionLog(
-                    activeLiveSessionId,
-                    nextState
-                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Chatbot (AI Paused) - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
-                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Chatbot ឡើងវិញ (AI Resumed)។',
-                    'state_change'
-                  );
-                }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-md ${
-                  isBotPaused
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20'
-                    : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-500/20'
-                }`}
-              >
-                <i className={isBotPaused ? 'fas fa-play' : 'fas fa-pause'}></i>
-                <span>{isBotPaused ? 'បន្ត Chatbot (Resume)' : 'ផ្អាក Chatbot (Pause)'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm('តើបងពិតជាចង់បញ្ចប់ការ Support លើ Chat នេះមែនទេ?')) {
-                    updateLiveSessionState(activeLiveSessionId, { alertActive: false, rotanaActive: false, status: 'ended' });
-                    addSessionLog(activeLiveSessionId, '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat និងបញ្ចប់ការ Support (Session Ended)។', 'leave');
-                    alert('បានបញ្ចប់ការ Support រួចរាល់!');
-                  }
-                }}
-                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700"
-              >
-                បញ្ចប់
-              </button>
-            </div>
-          </div>
-        )}
 
-        {/* User Live Intervention Indicator (Like IG / Facebook Agent) */}
-        {!isRotanaAdmin && (isRotanaOnline || (activeLiveSessionId && countdownRemaining !== null)) && (
-          <div className={`mx-1 mb-3 p-3 rounded-2xl shadow-lg flex items-center justify-between gap-3 animate-fade-in border ${
-            isRotanaOnline
-              ? 'bg-gradient-to-r from-emerald-950/90 via-slate-900 to-teal-950/90 border-emerald-500/50'
-              : 'bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-900/40 border-amber-500/50'
-          }`}>
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative shrink-0">
-                <img src="/img/DevPic.JPG" alt="Rotana NOB" className={`w-9 h-9 rounded-full ring-2 object-cover shadow-md ${
-                  isRotanaOnline ? 'ring-emerald-400' : 'ring-amber-400'
-                }`} />
-                <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-slate-950 animate-ping ${
-                  isRotanaOnline ? 'bg-emerald-400' : 'bg-amber-400'
-                }`}></span>
-              </div>
-              <div className="min-w-0">
-                <p className={`text-xs font-black flex items-center gap-1.5 ${
-                  isRotanaOnline ? 'text-emerald-300' : 'text-amber-300'
-                }`}>
-                  <i className={`fas ${isRotanaOnline ? 'fa-circle-check text-emerald-400' : 'fa-clock text-amber-400'} text-xs`}></i>
-                  <span>
-                    {isRotanaOnline
-                      ? 'បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
-                      : 'Rotana NOB (កំពុងរង់ចាំចូលរួម...)'}
-                  </span>
-                </p>
-                <p className="text-[10.5px] text-slate-300 font-medium">
-                  {isRotanaOnline
-                    ? isBotPaused
-                      ? 'Chatbot ត្រូវបានផ្អាក។ បងប្អូនកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
-                      : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ (1-1 Protocol)។'
-                    : countdownRemaining !== null && countdownRemaining > 0
-                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ (នៅសល់ ${countdownRemaining}s)...`
-                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram / Mini App ចូលមកភ្លាមៗ!'}
-                </p>
-              </div>
-            </div>
-            {isRotanaOnline ? (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40 shrink-0">
-                1-1 LIVE
-              </span>
-            ) : countdownRemaining !== null && countdownRemaining > 0 ? (
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black font-mono shrink-0 border border-amber-500/30">
-                {Math.floor(countdownRemaining / 60)}:{(countdownRemaining % 60).toString().padStart(2, '0')}
-              </span>
-            ) : null}
-          </div>
-        )}
 
         {/* Real-time In-Chat System Logs */}
         {sessionLogs.map((log, lIdx) => (
