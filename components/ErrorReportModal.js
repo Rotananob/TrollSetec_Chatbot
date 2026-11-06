@@ -134,7 +134,7 @@ export default function ErrorReportModal({
               <i className="fas fa-paper-plane"></i>
             </div>
             <h3 className="text-base sm:text-lg font-black mb-1.5 text-emerald-400">
-              បាន Alert ទៅកាន់ Telegram បង Rotana NOB រួចរាល់!
+              បានបញ្ជូន Alert ទៅកាន់ Telegram របស់បង Rotana NOB (ម្ចាស់ប្រព័ន្ធ) រួចរាល់!
             </h3>
             
             {/* 180s Realtime Countdown Badge */}
@@ -149,7 +149,7 @@ export default function ErrorReportModal({
             }`}>
               <p className="font-bold flex items-center gap-1.5">
                 <i className="fas fa-circle-check text-emerald-400 text-xs"></i>
-                <span>បន្តិចទៀតនេះ បង Rotana NOB នឹងបើកតាម Telegram / Mini App របស់គាត់ចូលមកដល់ក្នុង Chat នេះភ្លាមៗ!</span>
+                <span>បន្តិចទៀតនេះ បង Rotana NOB (ម្ចាស់ប្រព័ន្ធ) នឹងបើកតាម Telegram / Mini App របស់គាត់ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
               </p>
               <p className="text-[11px] opacity-80 pl-4">
                 សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ (Protocol 1-1 សុវត្ថិភាពខ្ពស់)។
@@ -173,10 +173,10 @@ export default function ErrorReportModal({
                 <i className="fas fa-triangle-exclamation"></i>
               </div>
               <h3 className="text-base sm:text-lg font-black tracking-tight mb-1">
-                រាយការណ៍បញ្ហាទៅកាន់ Rotana NOB
+                រាយការណ៍បញ្ហាទៅកាន់ម្ចាស់ប្រព័ន្ធ (Web App)
               </h3>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមរៀបរាប់ខ្លីៗខាងក្រោម៖
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមផ្ញើ Alert រាយការណ៍ជូនម្ចាស់ប្រព័ន្ធដើម្បីជួយដោះស្រាយ៖
               </p>
             </div>
 
@@ -243,7 +243,7 @@ export default function ErrorReportModal({
                   ) : (
                     <>
                       <i className="fas fa-paper-plane"></i>
-                      <span>ផ្ញើរាយការណ៍ភ្លាមៗ</span>
+                      <span>ផ្ញើ Alert ទៅកាន់ម្ចាស់ប្រព័ន្ធ</span>
                     </>
                   )}
                 </button>

@@ -2722,7 +2722,7 @@ export default function KonPovPage() {
                           className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-black text-[11px] shadow-sm flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
                         >
                           <i className="fas fa-triangle-exclamation text-amber-300"></i>
-                          <span>Send Alert ទៅ Rotana NOB</span>
+                          <span>Send Alert ទៅកាន់ម្ចាស់ប្រព័ន្ធ</span>
                         </button>
 
                         <a
