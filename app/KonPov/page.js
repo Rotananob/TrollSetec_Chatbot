@@ -1631,27 +1631,44 @@ export default function KonPovPage() {
 
         {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
-          {/* AI Mode Selector: Clean, Compact Pill without Emojis */}
+          {/* AI Mode Selector: Unmistakably Clear Interactive Dropdown Pill */}
           <button
             type="button"
             onClick={() => setShowModeMenu(!showModeMenu)}
-            className={`px-2 sm:px-2.5 py-1 rounded-full text-[10.5px] sm:text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+            className={`px-2.5 py-1 rounded-full text-[10.5px] sm:text-[11px] font-black flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
               savageLevel === 'savage'
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20'
+                ? 'bg-rose-500/10 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/60'
                 : savageLevel === 'medium'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
-                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+                ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/60'
+                : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60'
             }`}
-            title="ជ្រើសរើសកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
+            title="ចុចដើម្បីជ្រើសរើសម៉ូដ AI (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
           >
+            <i
+              className={`fas ${
+                savageLevel === 'savage'
+                  ? 'fa-bolt text-rose-500'
+                  : savageLevel === 'medium'
+                  ? 'fa-comment-dots text-amber-500'
+                  : 'fa-heart text-emerald-500'
+              } text-[10px]`}
+            ></i>
             <span>
-              {savageLevel === 'savage'
-                ? 'ឌឺបាក់ក'
-                : savageLevel === 'medium'
-                ? 'ឌឺល្មម'
-                : 'ស្លូត'}
+              ម៉ូដ: {savageLevel === 'savage' ? 'ឌឺបាក់ក' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
             </span>
-            <i className={`fas fa-chevron-down text-[8px] opacity-60 transition-transform duration-200 ${showModeMenu ? 'rotate-180' : ''}`}></i>
+            <span
+              className={`w-4 h-4 rounded-full flex items-center justify-center transition-transform duration-200 ${
+                showModeMenu ? 'rotate-180' : ''
+              } ${
+                savageLevel === 'savage'
+                  ? 'bg-rose-500/20 text-rose-500 dark:text-rose-300'
+                  : savageLevel === 'medium'
+                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300'
+                  : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
+              }`}
+            >
+              <i className="fas fa-caret-down text-[9px]"></i>
+            </span>
           </button>
 
           {/* Switch to KonBong */}
