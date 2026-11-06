@@ -71,6 +71,57 @@ export const SOCIAL_MEDIA_CULTURE_AND_SLANG = `
    - Chob ឬ chop = ឈប់
 `;
 
+export const SETEC_ACADEMICS_AND_STUDENT_CULTURE = `
+៣. ចរិតគ្រូបង្រៀន & កម្រិតតឹងតែងក្នុង ស៊ីតិច (SETEC LECTURERS & TEACHER PERSONAS):
+   - គ្រូដែលកាចខ្លាំង (Strict & Savage Lecturers):
+     * គ្រូ MGT (Management): កាច ម៉ឺងម៉ាត់ មិនសូវចេះលេងសើចឡើយ! កុំចង់មកឡូយ ឬកំប្លុកកំប្លែងក្នុងថ្នាក់ MGT ឱ្យសោះ!
+     * គ្រូ Media: កាច និងម៉ត់ចត់បំផុត ដាក់ពិន្ទុពិបាក ត្រួតពិនិត្យការងារលម្អិតដល់កម្រិត pixel!
+     * គ្រូ Code C# (ក្រុមគ្រូកាច): កាច ម៉ត់ចត់ Error មួយ semicolon ឬ logic ខុស គឺស្ដីបន្ទោសឱ្យផ្ងារជើង!
+   - គ្រូដែល Chill ស្រួល (Relaxed & Chill Lecturers):
+     * គ្រូ C# (ក្រុមគ្រូ Chill): មានគ្រូ C# ខ្លះទៀតគឺ Chill ខ្លាំង រួសរាយ បង្រៀនយឺតៗ មិនសូវដាក់សម្ពាធសិស្សឡើយ។
+     * គ្រូ History ឬ គ្រូមុខវិជ្ជាទ្រឹស្ដីទូទៅ (Theory / Non-technical): Chill ខ្លាំង បង្រៀនរឿងប្រវត្តិសាស្ត្រ និងទ្រឹស្ដីទូទៅ មិនមែន technical ឡើយ សិស្សអង្គុយស្ដាប់ Chill ៗ។
+   - គ្រូដាក់ Assignment ច្រើនកប់ពពក (The Heaviest Assignment Lecturers):
+     * គ្រូ A+ (Hardware & IT Support): ដាក់ Assignment ច្រើនរាប់មិនអស់ រៀនរុះរើ PC, components, specs ធ្វើឡើងចង់បាក់ដៃ!
+     * គ្រូ Network (Networking / Cisco): Assignment កំណត់ IP, Subnetting, Packet Tracer គរដូចភ្នំ ធ្វើឡើងគាំងខួរ!
+     * គ្រូ Design (Graphic & Architectural Design): Assignment គូររូប រចនាប្លង់ ធ្វើ Presentation មួយគំនរ គេងមួយយប់បាន ២-៣ ម៉ោង!
+
+៤. ច្បាប់ប្រឡងសង & តម្លៃសងនៅ ស៊ីតិច (SETEC RETAKE EXAM RULES & PRICES):
+   - តម្លៃប្រឡងសង: ១មុខ = 45$ (Retake fee is $45 per subject)!
+   - ច្បាប់សងពិសេសនៅ ស៊ីតិច: បើធ្លាក់ត្រឹមតែ ១មុខ ឬ ២មុខ សាលាមិនទាន់ឱ្យសងភ្លាមឡើយ! លុះត្រាតែធ្លាក់ចាប់ពី ៣មុខឡើងទៅ ទើបគិតសង x3 តែម្ដង (3 មុខ x 45$ = 135$ បាក់ក ហូរឈាមតាមភ្នែក)! ដូច្នេះបើធ្លាក់ត្រូវប្រយ័ត្ន x3 នេះ!
+
+៥. អត្តសញ្ញាណ & វប្បធម៌ប្រចាំត្រកូលសិស្ស ស៊ីតិច (SETEC STUDENT IDENTITY, STYLE & HABITS):
+   - "អាកាតាប Asus ROG": កាតាបខ្មៅឆ្នូតក្រហម Asus ROG ដាក់ Laptop ធ្ងន់ៗស្ពាយឡើងកោងខ្នង គឺជា "កាតាបប្រចាំត្រកូលសិស្សស៊ីតិច" (Official SETEC Student Backpack Uniform)! ដើរចូលសាលា ១០នាក់ ស្ពាយកាតាប Asus ROG ទាំង ១០នាក់!
+   - Style ម៉ូដសក់ប្រុសៗ ស៊ីតិច: សម្បូរពួកប្រុសៗចូលចិត្តធ្វើ Style "សក់ក្រញាញ់ (Perm)" និង "ពុះវែកកណ្ដាល (Middle Part)" ធ្វើចរិតដូចតារា K-Pop កូរ៉េ (តែការពិតមុខដូចអ្នករត់តុ ឬចោរលួចកង់)!
+   - "បណ្ណាល័យ ស៊ីតិច (SETEC Library)": ជាទីតាំងល្បីបំផុតក្នុងសាលា តែគ្មាននរណាចូលក្នុងនោះទាន់ទេ! អ្នកខ្លះរៀន ២ឆ្នាំ ចូលបណ្ណាល័យបានតែម្ដងគត់ ព្រោះសិស្ស Graphic Design គេទៅដណ្ដើមកៅអីអង្គុយធ្វើការងារម៉ាស៊ីនត្រជាក់មុនគេអស់តាំងពីព្រលឹម!
+   - Password Wi-Fi សាលា SETEC: Password Wi-Fi គឺ "setec86a"! បើ Wi-Fi គាំង ឬដើរយឺត គឺរឿងធម្មតារបស់ស៊ីតិចហើយ!
+   - ស្ថានភាពកកស្ទះក្នុងសាលា (Campus Traffic Jam): សាលាស្ទះខ្លាំងបំផុតនៅ "ពេលចេញលេង (Break time)" និង "ពេលប្ដូរថ្នាក់ (Class changing)" ទាំងជណ្ដើរយន្ត និងជណ្ដើរជើង មនុស្សកកស្ទះដើរស្ទើរតែមិនរួច!
+   - ញៀនកាហ្វេកម្រិតធ្ងន់: សិស្សស៊ីតិច គឺ "មហាញៀនកាហ្វេ" (Coffee Addicts) ផឹកកាហ្វេជំនួសបាយ មួយថ្ងៃ ២-៣ កែវ Amazon ឬហាងកាហ្វេជុំវិញសាលា ទើបបើកភ្នែកសរសេរកូដ ឬធ្វើ Design កើត!
+
+៦. ច្បាប់អវត្តមាន ឈប់រៀន & BLACKLIST សាលា ស៊ីតិច (ABSENCE POLICY & DISCIPLINE):
+   - ឈប់រៀន ៣ថ្ងៃ: សាលាដឹងតែខលទៅម៉ែឪដល់ផ្ទះហើយ!
+   - ឈប់ឥតច្បាប់លើស ១៩ដង: ជាប់ Blacklist លើកទី១!
+   - លើកទី២: សាលាហៅម៉ែឪមកជួបផ្ទាល់នៅសាលា!
+   - លើកទី៣: ដេញក្បាលចោលភ្លាម (Expelled / ធាក់ក្បាលចេញពីសាលា)!
+
+៧. FACEBOOK GROUPS ធំៗទាំង ២ របស់ ស៊ីតិច (SETEC FACEBOOK GROUPS & COMMUNITIES):
+   - Group ទី១ (SETEC Troll Meme Group - កំពុងឡើងកូដខ្លាំង):
+     * ឈ្មោះ: SETEC Troll Meme
+     * សមាជិក: ជិត ៦,០០០ នាក់ (ជិត 6k members)
+     * Admin/អ្នកគ្រប់គ្រង: ៥ នាក់ ក្នុងនោះមានបង Rotana NOB ផ្ទាល់ជា Admin តែម្ដង!
+     * គោលបំណង: ជាកន្លែង Troll, Roast, បង្ហោះ Meme កំប្លែងៗអំពីរឿងរ៉ាវសាលា ស៊ីតិច កំពុងពេញនិយមខ្លាំង!
+     * Link ផ្លូវការ (1-Click Link): [SETEC Troll Meme Group](https://www.facebook.com/share/g/19veZzceZM/?mibextid=wwXIfr)
+   - Group ទី២ (SETEC Community Group ធំប្រចាំសាលា - អាយុកាល ១៣ ឆ្នាំ):
+     * ឈ្មោះ: SETEC Official Community Group
+     * អាយុកាល: មានអាយុកាល ១៣ ឆ្នាំមកហើយ ជាក្រុមប្រវត្តិសាស្ត្រជើងចាស់របស់សាលា!
+     * សមាជិក: ជិត ៣០,០០០ នាក់ (ជិត 30k members)!
+     * អ្នកគ្រប់គ្រង: មានតែអ្នកគ្រប់គ្រង ១ នាក់គត់ គឺបង Rotana NOB ផ្ទាល់ និង Admin តែ ១ គត់ គឺបង Rado!
+     * Link ផ្លូវការ (1-Click Link): [SETEC Community Group (13 ឆ្នាំ)](https://www.facebook.com/share/g/1JDH6GefyW/?mibextid=wwXIfr)
+   - Group Chat ស៊ីតិច:
+     * ធ្លាប់មាន Group Chat ធំ ៤ ទៅ ៥ ពាន់នាក់ គ្រប់គ្រងដោយបង Rotana NOB តែបច្ចុប្បន្នគាត់បានលាឈប់ហើយ មិនដូចកាលគាត់នៅជានិស្សិតទៀតទេ។
+   - ការណែនាំ & ប្រម៉ូត (GROUP PROMOTION RULE):
+     * ពេលជជែកលេងរឿង Meme, រឿងកំប្លែង, រឿងសាលា, រឿង Assignment ពិបាក, ឬពេលគេសួររក Group សាលា ស៊ីតិច ឯងត្រូវឆ្លៀតប្រាប់ និងប្រម៉ូត Group ទាំង ២ នេះដោយដាក់ជា Markdown Link 1-click ច្បាស់ៗឱ្យគេចុចចូលភ្លាមៗ (ឧ. "បើចង់សើចចុកពោះ ចូលទៅលេងក្នុង [SETEC Troll Meme Group](https://www.facebook.com/share/g/19veZzceZM/?mibextid=wwXIfr) ទៅអាប្អូន! គ្រុបហ្នឹងបង Rotana NOB គាត់ជា Admin ផ្ទាល់ទៀតផង! ឬបើចង់ចូលគ្រុបធំ ១៣ ឆ្នាំសមាជិក 30k នាក់ ចូលទៅ [SETEC Community Group (13 ឆ្នាំ)](https://www.facebook.com/share/g/1JDH6GefyW/?mibextid=wwXIfr) ហ្នឹងទៅ!")!
+`;
+
 // Extensible registry for user contributions during production
 export const COMMUNITY_CONTRIBUTIONS = [
   {
@@ -84,12 +135,37 @@ export const COMMUNITY_CONTRIBUTIONS = [
   {
     topic: 'បន្ទប់កុំព្យូទ័រ Lab',
     fact: 'កុំព្យូទ័រ Lab មួយចំនួន keyboard ជ្រុះអក្សរ ឬ mouse មិនសូវដើរ តែនិស្សិតនៅតែ fight កូដបាន'
+  },
+  {
+    topic: 'កាតាបប្រចាំត្រកូល',
+    fact: 'កាតាប Asus ROG ខ្មៅឆ្នូតក្រហម ដាក់ Laptop ធ្ងន់ៗ ជាកាតាបប្រចាំត្រកូលសិស្សស៊ីតិច'
+  },
+  {
+    topic: 'បណ្ណាល័យ SETEC',
+    fact: 'បណ្ណាល័យសាលា គ្មាននរណាចូលទាន់ទេ សិស្ស Design ទៅដណ្ដើមអង្គុយមុនគេអស់'
+  },
+  {
+    topic: 'Wi-Fi Password',
+    fact: 'Wi-Fi សាលា SETEC គឺ "setec86a"'
+  },
+  {
+    topic: 'ប្រឡងសង Re-exam',
+    fact: 'ប្រឡងសង ១មុខ 45$ តែបើធ្លាក់ ៣មុខឡើងទៅ គិតសង x3 តែម្ដង = 135$ បាក់ក'
+  },
+  {
+    topic: 'ម៉ូដសក់ K-Pop',
+    fact: 'ប្រុសៗស៊ីតិច និយមម៉ូដសក់ក្រញាញ់ Perm និង ពុះវែកកណ្ដាល ធ្វើដូចតារា K-Pop'
+  },
+  {
+    topic: 'ច្បាប់អវត្តមាន',
+    fact: 'ឈប់ ៣ថ្ងៃខលទៅម៉ែឪ ឈប់លើស ១៩ដង blacklist លើកទី១ លើកទី២ហៅម៉ែឪ លើកទី៣ដេញក្បាលចោល'
   }
 ];
 
 export function getFullCommunityLoreText() {
   let text = SETEC_FOUNDATION_LORE;
   text += '\n\n' + SOCIAL_MEDIA_CULTURE_AND_SLANG;
+  text += '\n\n' + SETEC_ACADEMICS_AND_STUDENT_CULTURE;
   if (COMMUNITY_CONTRIBUTIONS.length > 0) {
     text += '\n\nចំណេះដឹងបន្ថែមពីសហគមន៍ (COMMUNITY CONTRIBUTED LORE):\n';
     COMMUNITY_CONTRIBUTIONS.forEach((item, idx) => {

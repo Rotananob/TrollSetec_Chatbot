@@ -523,6 +523,61 @@ export default function KonBongPage() {
     e.target.value = '';
   };
 
+  // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
+  const renderClickableContent = (content) => {
+    if (!content || typeof content !== 'string') return content;
+    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(content)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(content.substring(lastIndex, match.index));
+      }
+
+      if (match[1] && match[2]) {
+        const label = match[1];
+        const url = match[2];
+        parts.push(
+          <a
+            key={`md_link_${match.index}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-2 decoration-cyan-400/60 transition active:scale-95 bg-cyan-500/15 hover:bg-cyan-500/25 px-2 py-0.5 rounded-lg mx-1 my-0.5 border border-cyan-400/30 shadow-xs cursor-pointer select-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span>{label}</span>
+            <i className="fas fa-arrow-up-right-from-square text-[9.5px] text-cyan-300"></i>
+          </a>
+        );
+      } else if (match[3]) {
+        const url = match[3];
+        parts.push(
+          <a
+            key={`raw_link_${match.index}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-bold text-cyan-400 hover:text-cyan-300 underline underline-offset-2 decoration-cyan-400/60 transition active:scale-95 bg-cyan-500/15 hover:bg-cyan-500/25 px-2 py-0.5 rounded-lg mx-1 my-0.5 border border-cyan-400/30 shadow-xs truncate max-w-[260px] sm:max-w-xs align-bottom cursor-pointer select-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="truncate">{url}</span>
+            <i className="fas fa-arrow-up-right-from-square text-[9.5px] text-cyan-300"></i>
+          </a>
+        );
+      }
+      lastIndex = linkRegex.lastIndex;
+    }
+
+    if (lastIndex < content.length) {
+      parts.push(content.substring(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : content;
+  };
+
   const removeSelectedImage = () => {
     setSelectedImage(null);
   };
@@ -2083,7 +2138,7 @@ export default function KonBongPage() {
                     )}
 
                     <div className="px-4 py-2.5 rounded-2xl rounded-tl-xs font-medium shadow-md text-xs sm:text-sm leading-relaxed bg-slate-800/95 border border-slate-700 text-slate-100">
-                      {msg.text}
+                      {renderClickableContent(msg.text)}
                     </div>
                   </div>
                 </div>
@@ -2122,7 +2177,7 @@ export default function KonBongPage() {
                   )}
 
                   <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white">
-                    {msg.text}
+                    {renderClickableContent(msg.text)}
                   </div>
                 </div>
               );
@@ -2157,7 +2212,7 @@ export default function KonBongPage() {
                   )}
 
                   <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-semibold shadow-md text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 text-white">
-                    {msg.text}
+                    {renderClickableContent(msg.text)}
                   </div>
                 </div>
               );
@@ -2197,7 +2252,7 @@ export default function KonBongPage() {
 
                     <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-md border bg-gradient-to-br from-amber-500/15 via-purple-500/15 to-slate-900/90 border-amber-400/50 text-slate-100">
                       <p className="text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-line text-amber-100">
-                        {msg.text}
+                        {renderClickableContent(msg.text)}
                       </p>
                     </div>
                   </div>
@@ -2303,7 +2358,7 @@ export default function KonBongPage() {
                     }`}
                   >
                     <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
-                      {msg.text || (isLoading && idx === messages.length - 1 ? (
+                      {msg.text ? renderClickableContent(msg.text) : (isLoading && idx === messages.length - 1 ? (
                         <span className="text-cyan-500 dark:text-cyan-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
                       ) : (
                         <span className="text-slate-400 italic text-[11px]">...</span>
