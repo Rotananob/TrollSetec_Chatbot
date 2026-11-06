@@ -1642,56 +1642,47 @@ ${
           </div>
 
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                {userGender === 'ប្រុស' ? 'ស៊ីតិច កូនពៅ (ចែ)' : 'ស៊ីតិច កូនពៅ (Daddy)'}
-              </h1>
-              <span className="text-[9px] bg-blue-500/15 text-blue-500 dark:text-blue-300 font-bold px-1.5 py-0.5 rounded-full border border-blue-500/20 inline-flex items-center gap-1 shrink-0">
-                <span>{userGender === 'ប្រុស' ? 'ចែ ឌឺ' : 'ស្ដេចឌឺ'}</span>
-                <i className="fas fa-fire text-amber-400 text-[8px]"></i>
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+            <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
+              {userGender === 'ប្រុស' ? 'ស៊ីតិច កូនពៅ (ចែ)' : 'ស៊ីតិច កូនពៅ (Daddy)'}
+            </h1>
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse"></span>
               <span className="text-emerald-500 font-semibold">Online</span>
-              <span>•</span>
-              <span className="truncate">{userGender === 'ប្រុស' ? 'Mommy Savage Queen' : 'Gen Z Savage King'}</span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Clean, Uncluttered Action Controls */}
+        {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
-          {/* Clear & Interactive AI Mode Selector */}
+          {/* AI Mode Selector: Clean, Compact Pill without Emojis */}
           <button
             type="button"
             onClick={() => setShowModeMenu(!showModeMenu)}
-            className={`px-2.5 py-1 sm:px-3 sm:py-1.2 rounded-full text-[10.5px] sm:text-xs font-black flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
               savageLevel === 'savage'
-                ? 'bg-rose-500/15 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 ring-1 ring-rose-500/30'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20'
                 : savageLevel === 'medium'
-                ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25'
-                : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
             }`}
-            title="ចុចដើម្បីជ្រើសរើសម៉ូដ AI (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
+            title="ជ្រើសរើសកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
           >
-            <span className="text-[9.5px] opacity-70 font-bold uppercase tracking-wider">ម៉ូដ AI:</span>
             <span>
               {savageLevel === 'savage'
-                ? '🔥 ឌឺបាក់ក'
+                ? 'ឌឺបាក់ក'
                 : savageLevel === 'medium'
-                ? '😏 ឌឺល្មម'
-                : '😇 ស្លូត'}
+                ? 'ឌឺល្មម'
+                : 'ស្លូត'}
             </span>
-            <i className={`fas fa-chevron-down text-[8px] opacity-70 transition-transform duration-200 ${showModeMenu ? 'rotate-180' : ''}`}></i>
+            <i className={`fas fa-chevron-down text-[8px] opacity-60 transition-transform duration-200 ${showModeMenu ? 'rotate-180' : ''}`}></i>
           </button>
 
           {/* Switch to KonBong */}
           <Link
             href="/KonBong"
-            className={`px-2.5 py-1 rounded-full text-[10.5px] sm:text-xs font-bold flex items-center gap-1 transition active:scale-95 border ${
+            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
               isDark
-                ? 'bg-cyan-500/15 border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/25'
+                ? 'bg-cyan-500/10 border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20'
                 : 'bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100 shadow-xs'
             }`}
             title="ប្តូរទៅ ស៊ីតិច Chatbot កូនច្បង"
@@ -1713,7 +1704,7 @@ ${
             <i className="fas fa-bars"></i>
           </button>
 
-          {/* AI Mode Selection Floating Dropdown */}
+          {/* AI Mode Selection Floating Dropdown (Clean, Crisp, NO EMOJI) */}
           {showModeMenu && (
             <>
               <div
@@ -1725,7 +1716,8 @@ ${
               }`}>
                 <div className="px-2 py-1 border-b border-slate-700/30 flex items-center justify-between mb-1.5">
                   <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
-                    <span>⚡ ជ្រើសរើសម៉ូដ AI (AI Mode)</span>
+                    <i className="fas fa-sliders-h text-xs"></i>
+                    <span>ជ្រើសរើសម៉ូដ AI</span>
                   </span>
                   <button
                     onClick={() => setShowModeMenu(false)}
@@ -1737,9 +1729,9 @@ ${
 
                 <div className="space-y-1">
                   {[
-                    { id: 'savage', emoji: '🔥', title: 'ឌឺបាក់ក (Ultra Savage)', desc: 'Roast បាញ់ឱ្យបាក់ក ឱ្យចុកឈាម គ្មានការលើកលែង', border: 'border-rose-500/40', bg: 'bg-rose-500/15', text: 'text-rose-400' },
-                    { id: 'medium', emoji: '😏', title: 'ឌឺល្មម (Standard Troll)', desc: 'ឌឺដងបែប Gen Z SETEC ល្មមៗ កំប្លែង សើចកក្អឹក', border: 'border-amber-500/40', bg: 'bg-amber-500/15', text: 'text-amber-400' },
-                    { id: 'gentle', emoji: '😇', title: 'ស្លូត (Gentle Advice)', desc: 'ផ្ដល់ដំបូន្មានល្អៗ ចែករំលែកបទពិសោធន៍រៀនសូត្រ', border: 'border-emerald-500/40', bg: 'bg-emerald-500/15', text: 'text-emerald-400' }
+                    { id: 'savage', icon: 'fa-bolt', iconColor: 'text-rose-400', title: 'ឌឺបាក់ក (Ultra Savage)', desc: 'Roast បាញ់ឱ្យបាក់ក ឱ្យចុកឈាម គ្មានការលើកលែង', border: 'border-rose-500/40', bg: 'bg-rose-500/15', text: 'text-rose-400' },
+                    { id: 'medium', icon: 'fa-comment-dots', iconColor: 'text-amber-400', title: 'ឌឺល្មម (Standard Troll)', desc: 'ឌឺដងបែប Gen Z SETEC ល្មមៗ កំប្លែង សើចកក្អឹក', border: 'border-amber-500/40', bg: 'bg-amber-500/15', text: 'text-amber-400' },
+                    { id: 'gentle', icon: 'fa-heart', iconColor: 'text-emerald-400', title: 'ស្លូត (Gentle Advice)', desc: 'ផ្ដល់ដំបូន្មានល្អៗ ចែករំលែកបទពិសោធន៍រៀនសូត្រ', border: 'border-emerald-500/40', bg: 'bg-emerald-500/15', text: 'text-emerald-400' }
                   ].map((m) => {
                     const isSelected = savageLevel === m.id;
                     return (
@@ -1761,7 +1753,9 @@ ${
                             : 'hover:bg-slate-100 text-slate-700'
                         }`}
                       >
-                        <span className="text-base shrink-0 mt-0.5">{m.emoji}</span>
+                        <span className="w-6 h-6 rounded-lg bg-slate-800/80 flex items-center justify-center shrink-0 mt-0.5">
+                          <i className={`fas ${m.icon} ${m.iconColor} text-xs`}></i>
+                        </span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <span className="font-black text-xs">{m.title}</span>
@@ -1864,7 +1858,7 @@ ${
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-base">🔥</span>
+                  <i className="fas fa-fire text-rose-400 text-sm w-4 text-center"></i>
                   <span>Roast ខ្ញុំមួយក្បាច់មកមើល!</span>
                 </span>
                 <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5"></i>
@@ -1880,7 +1874,7 @@ ${
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-base">🐱</span>
+                  <i className="fas fa-cat text-amber-400 text-sm w-4 text-center"></i>
                   <span>រឿងឆ្មាក្នុងវិទ្យាស្ថាន ស៊ីតិច មានអីខ្លះ?</span>
                 </span>
                 <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5"></i>
@@ -1896,7 +1890,7 @@ ${
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-base">📚</span>
+                  <i className="fas fa-book-open text-blue-400 text-sm w-4 text-center"></i>
                   <span>ជិតដល់ deadline Assignment ហើយ ជួយផង!</span>
                 </span>
                 <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-blue-500 transition-transform group-hover:translate-x-0.5"></i>
@@ -1912,7 +1906,7 @@ ${
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <span className="text-base">💡</span>
+                  <i className="fas fa-lightbulb text-amber-300 text-sm w-4 text-center"></i>
                   <span>ចូលរួមបង្រៀន AI (SETEC Lore & Slang)</span>
                 </span>
                 <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-black">
@@ -1932,7 +1926,10 @@ ${
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-black text-xs text-amber-300">👑 Rotana NOB (Live Intervention)</span>
+                  <span className="font-black text-xs text-amber-300 flex items-center gap-1.5">
+                    <i className="fas fa-crown text-amber-400 text-xs"></i>
+                    <span>Rotana NOB (Live Intervention)</span>
+                  </span>
                   <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
                     Bypass Verified
                   </span>
@@ -1957,7 +1954,7 @@ ${
                 }`}
               >
                 <i className={isBotPaused ? 'fas fa-play' : 'fas fa-pause'}></i>
-                <span>{isBotPaused ? '▶️ បន្ត Chatbot (Resume)' : '⏸️ ផ្អាក Chatbot (Pause)'}</span>
+                <span>{isBotPaused ? 'បន្ត Chatbot (Resume)' : 'ផ្អាក Chatbot (Pause)'}</span>
               </button>
               <button
                 type="button"
@@ -1984,7 +1981,8 @@ ${
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-black text-emerald-300 flex items-center gap-1.5">
-                <span>🟢 បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!</span>
+                <i className="fas fa-circle text-emerald-400 text-[8px]"></i>
+                <span>បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!</span>
               </p>
               <p className="text-[10.5px] text-slate-300 font-medium">
                 {isBotPaused
@@ -2043,7 +2041,9 @@ ${
                     alt="Rotana NOB"
                     className="w-9 h-9 rounded-full ring-2 ring-amber-400 shadow-md object-cover bg-slate-900"
                   />
-                  <span className="absolute -top-1 -right-1 text-xs">👑</span>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[9px] shadow-xs">
+                    <i className="fas fa-crown"></i>
+                  </span>
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-1">
