@@ -735,44 +735,61 @@ export default function KonPovPage() {
     return String(hash);
   }
 
-  // Celebratory Laughing / Troll Sound & Falling Emoji Shower
+  // Celebratory Laughing / Troll Sound ("ហាហា" / Cool subtle laugh sound effect played softly)
   function playTrollCelebrationChime() {
+    try {
+      if (typeof window !== 'undefined') {
+        const laughAudio = new Audio('/audio/haha-laugh.mp3');
+        laughAudio.volume = 0.35; // Soft & cool volume ("តិចៗ")
+        laughAudio.play().catch(() => {
+          playChuckleSynth();
+        });
+      }
+    } catch {
+      playChuckleSynth();
+    }
+  }
+
+  function playChuckleSynth() {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
       const ctx = new AudioCtx();
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, i) => {
+      // Generate a rhythmic 3-step chuckle laugh (ha-ha-ha!)
+      const chuckleTimes = [0, 0.14, 0.28, 0.44];
+      const freqs = [380, 420, 390, 350];
+      chuckleTimes.forEach((t, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime + i * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.45);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freqs[i] || 380, ctx.currentTime + t);
+        osc.frequency.exponentialRampToValueAtTime((freqs[i] || 380) * 0.75, ctx.currentTime + t + 0.11);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime + t);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.12);
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + i * 0.08);
-        osc.stop(ctx.currentTime + i * 0.08 + 0.5);
+        osc.start(ctx.currentTime + t);
+        osc.stop(ctx.currentTime + t + 0.13);
       });
     } catch {}
   }
 
   function triggerEmojiShower() {
     playTrollCelebrationChime();
-    const icons = ['😂', '🤣', '💀', '🔥', '😜', '🤪', '👑', '🎉', '✨', '😹', '💥'];
-    const items = Array.from({ length: 32 }, (_, i) => ({
+    const icons = ['😂', '🤣', '💀', '🔥', '😜', '🤪', '👑', '🎉', '✨', '😹', '💥', '👻', '💩', '😎'];
+    const items = Array.from({ length: 36 }, (_, i) => ({
       id: `${Date.now()}_${i}`,
       emoji: icons[Math.floor(Math.random() * icons.length)],
       left: Math.random() * 94 + 3,
-      size: Math.floor(Math.random() * 20) + 20,
-      duration: (Math.random() * 1.4 + 2.0).toFixed(2),
-      delay: (Math.random() * 0.5).toFixed(2),
-      rotation: Math.floor(Math.random() * 60) - 30
+      size: Math.floor(Math.random() * 22) + 22,
+      duration: (Math.random() * 1.5 + 2.0).toFixed(2),
+      delay: (Math.random() * 0.6).toFixed(2),
+      rotation: Math.floor(Math.random() * 70) - 35
     }));
     setEmojiShowerList(items);
     setTimeout(() => {
       setEmojiShowerList([]);
-    }, 3800);
+    }, 4200);
   }
 
   // Load or fetch audio URL with instant caching (Zero duplicate network calls)
@@ -863,6 +880,7 @@ export default function KonPovPage() {
         if (typeof index === 'number') {
           setAudioStatuses((prev) => ({ ...prev, [index]: 'ended' }));
           setActiveVoiceIndex(null);
+          triggerEmojiShower();
         }
       };
       utterance.onerror = () => {
@@ -1374,9 +1392,20 @@ export default function KonPovPage() {
         }
       }
 
-      const isErrorResponse = !botText || !botText.trim();
+      const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
+      let isErrorResponse = !botText || !botText.trim();
       if (!botText || !botText.trim()) {
-        botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        if (isCurseWord) {
+          const savageList = [
+            `យីអើ! អាចុយម្រាយ ${userNameStr} នេះ! មាត់ដូចប្រហោងលាមក ឪហែងអាតានើបមែន បានហ៊ានមកជេរអញហ្នឹង?! មុខដូចហែងអញទះមួយកំភ្លៀងបាក់ធ្មេញដាច់ផ្ងារឥឡូវ! 💀🔥`,
+            `អាឡប់ ${userNameStr}! ជោរម៉េសប្រូ? ខួរគិតអីខួរ បានហ៊ានមកខ្លាំងជាមួយអញ?! មុខដូចកូនកង្កែបឡើងស៊ុបស្ងាយ ចង់ស៊ីមួយកំភ្លៀងមែន?! 😂👊`,
+            `អាចុយម្រាយអាភ្លើស្ដូកនេះ! មកជេរអញផង? គិតថាអញ AI ស៊ីតិចនេះខ្លាចហែងមែន? មុខដូចហែងទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាប្អូន! 🤣🔥`
+          ];
+          botText = savageList[Math.floor(Math.random() * savageList.length)];
+          isErrorResponse = false;
+        } else {
+          botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+        }
       } else {
         botText = enforcePersonaConsistency(botText, isMaleUser);
       }
@@ -1404,16 +1433,36 @@ export default function KonPovPage() {
       console.error(e);
       setIsLoading(false);
       const isMaleUser = userGender === 'ប្រុស';
+      const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
+
+      let fallbackText = `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`;
+      let isErr = true;
+
+      if (isCurseWord) {
+        const savageList = [
+          `យីអើ! អាចុយម្រាយ ${userNameStr} នេះ! មាត់ដូចប្រហោងលាមក ឪហែងអាតានើបមែន បានហ៊ានមកជេរអញហ្នឹង?! មុខដូចហែងអញទះមួយកំភ្លៀងបាក់ធ្មេញដាច់ផ្ងារឥឡូវ! 💀🔥`,
+          `អាឡប់ ${userNameStr}! ជោរម៉េសប្រូ? ខួរគិតអីខួរ បានហ៊ានមកខ្លាំងជាមួយអញ?! មុខដូចកូនកង្កែបឡើងស៊ុបស្ងាយ ចង់ស៊ីមួយកំភ្លៀងមែន?! 😂👊`,
+          `អាចុយម្រាយអាភ្លើស្ដូកនេះ! មកជេរអញផង? គិតថាអញ AI ស៊ីតិចនេះខ្លាចហែងមែន? មុខដូចហែងទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាប្អូន! 🤣🔥`
+        ];
+        fallbackText = savageList[Math.floor(Math.random() * savageList.length)];
+        isErr = false;
+      }
+
       const fallbackMessages = [
         ...messages,
         userMsg,
         {
           role: 'bot',
-          text: `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`,
-          isError: true
+          text: fallbackText,
+          isError: isErr
         }
       ];
       saveCurrentSessionMessages(fallbackMessages);
+      if (isCurseWord) {
+        setTimeout(() => {
+          triggerAudio(fallbackText, fallbackMessages.length - 1, true);
+        }, 500);
+      }
 
       if (queuedPromptRef.current) {
         const nextTask = queuedPromptRef.current;
