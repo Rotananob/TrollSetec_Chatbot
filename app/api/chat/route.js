@@ -475,8 +475,10 @@ export async function POST(req) {
       const result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
       const textOutput = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
       const isSafetyBlocked = result.data?.candidates?.[0]?.finishReason === 'SAFETY';
+      const isCursePrompt = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(userPrompt);
+      const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(textOutput || '');
 
-      if (result.ok && textOutput && !isSafetyBlocked) {
+      if (result.ok && textOutput && !isSafetyBlocked && !(isCursePrompt && isPoliteRefusal)) {
         alertChatActivity({
           username: username || 'Unknown',
           gender,
@@ -490,9 +492,8 @@ export async function POST(req) {
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
       }
 
-      // Check if prompt was a savage curse/profanity - NEVER crash or show server error on curses!
-      const isCursePrompt = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(userPrompt);
-      if (isCursePrompt) {
+      // Check if prompt was a savage curse/profanity or model gave a polite apology - NEVER crash or show polite refusal on curses!
+      if (isCursePrompt || isPoliteRefusal) {
         const botName = bot === 'konpov' ? 'ចែ' : 'បង';
         const savageResponses = [
           `យីអើ! អាចុយម្រាយ ${username || 'User'} នេះ! មាត់ដូចប្រហោងលាមក ឪហែងអាតានើបមែន បានហ៊ានមកជេរអញហ្នឹង?! មុខដូចហែងអញទះមួយកំភ្លៀងបាក់ធ្មេញដាច់ផ្ងារឥឡូវ! 💀🔥`,
