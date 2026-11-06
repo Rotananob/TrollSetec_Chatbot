@@ -65,6 +65,7 @@ export default function KonPovPage() {
 
   // Upgraded Feature 3: One-Click Copy Feedback
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [emojiShowerList, setEmojiShowerList] = useState([]);
 
   // Anti-Spam Scary/Funny Modal State
   const [spamModalOpen, setSpamModalOpen] = useState(false);
@@ -236,6 +237,16 @@ export default function KonPovPage() {
       }
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return { blob: null, isFallback: true };
+
+      // Persist to sessionStorage for instant replay without re-fetching
+      if (typeof window !== 'undefined') {
+        try {
+          const voiceGenderKey = (gender || userGender) === 'ប្រុស' ? 'female' : 'male';
+          const hash = hashText(text) + '_' + voiceGenderKey;
+          sessionStorage.setItem('troll_audio_cache_' + hash, inlineData.data);
+          sessionStorage.setItem('troll_audio_fallback_' + hash, isFallback ? '1' : '0');
+        } catch {}
+      }
 
       const blob = createAudioBlob(inlineData.data, inlineData.mimeType || 'audio/mpeg');
       return {
@@ -593,13 +604,73 @@ export default function KonPovPage() {
     return String(hash);
   }
 
-  // Load or fetch audio URL with instant caching
+  // Celebratory Laughing / Troll Sound & Falling Emoji Shower
+  function playTrollCelebrationChime() {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const notes = [523.25, 659.25, 783.99, 1046.50];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime + i * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.08 + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + i * 0.08);
+        osc.stop(ctx.currentTime + i * 0.08 + 0.5);
+      });
+    } catch {}
+  }
+
+  function triggerEmojiShower() {
+    playTrollCelebrationChime();
+    const icons = ['😂', '🤣', '💀', '🔥', '😜', '🤪', '👑', '🎉', '✨', '😹', '💥'];
+    const items = Array.from({ length: 32 }, (_, i) => ({
+      id: `${Date.now()}_${i}`,
+      emoji: icons[Math.floor(Math.random() * icons.length)],
+      left: Math.random() * 94 + 3,
+      size: Math.floor(Math.random() * 20) + 20,
+      duration: (Math.random() * 1.4 + 2.0).toFixed(2),
+      delay: (Math.random() * 0.5).toFixed(2),
+      rotation: Math.floor(Math.random() * 60) - 30
+    }));
+    setEmojiShowerList(items);
+    setTimeout(() => {
+      setEmojiShowerList([]);
+    }, 3800);
+  }
+
+  // Load or fetch audio URL with instant caching (Zero duplicate network calls)
   const loadAudioUrl = async (text, gender, index) => {
     const voiceGenderKey = gender === 'ប្រុស' ? 'female' : 'male';
     const hash = hashText(text) + '_' + voiceGenderKey;
 
+    // 1. Instant in-memory cache
     if (audioCacheRef.current.has(hash)) {
       return audioCacheRef.current.get(hash);
+    }
+
+    // 2. Instant sessionStorage persistent cache (survives re-renders, 0ms latency on replay)
+    if (typeof window !== 'undefined') {
+      try {
+        const storedB64 = sessionStorage.getItem('troll_audio_cache_' + hash);
+        const storedFallback = sessionStorage.getItem('troll_audio_fallback_' + hash);
+        if (storedB64) {
+          const blob = createAudioBlob(storedB64, 'audio/wav');
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            audioCacheRef.current.set(hash, url);
+            if (typeof index === 'number') {
+              setFallbackAudioMap((prev) => ({ ...prev, [index]: storedFallback === '1' }));
+            }
+            return url;
+          }
+        }
+      } catch {}
     }
 
     if (pendingAudioFetchesRef.current.has(hash)) {
@@ -715,6 +786,18 @@ export default function KonPovPage() {
     const voiceGenderKey = userGender === 'ប្រុស' ? 'female' : 'male';
     const hash = hashText(text) + '_' + voiceGenderKey;
 
+    // Instant replay check: if player already loaded this sound, play immediately with 0ms delay (No API call)
+    const cachedUrl = audioCacheRef.current.get(hash);
+    if (cachedUrl && player && player.src === cachedUrl) {
+      player.currentTime = 0;
+      player.playbackRate = playbackSpeed;
+      setActiveVoiceIndex(index);
+      player.play()
+        .then(() => setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' })))
+        .catch(() => {});
+      return;
+    }
+
     if (!audioCacheRef.current.has(hash)) {
       setAudioStatuses((prev) => ({ ...prev, [index]: 'loading' }));
     }
@@ -729,6 +812,7 @@ export default function KonPovPage() {
       player.onended = () => {
         setAudioStatuses((prev) => ({ ...prev, [index]: 'ended' }));
         setActiveVoiceIndex(null);
+        triggerEmojiShower();
       };
       player.onerror = (e) => {
         console.warn('[Audio] HTML5 audio error:', e);
@@ -1986,11 +2070,26 @@ ${
             const st = audioStatuses[idx] || 'ready';
             return (
               <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
-                <img
-                  src={botAvatar}
-                  alt="Bot Avatar"
-                  className="w-8 h-8 rounded-full ring-2 ring-blue-500/30 shadow-xs shrink-0 mt-0.5 object-cover bg-slate-800"
-                />
+                {/* Interactive Animated Talking/Roasting Bot Avatar */}
+                <div className="relative shrink-0 mt-0.5">
+                  <img
+                    src={botAvatar}
+                    alt="Bot Avatar"
+                    className={`w-8 h-8 rounded-full shadow-md shrink-0 object-cover bg-slate-800 transition-transform duration-300 ${
+                      st === 'playing'
+                        ? 'ring-4 ring-blue-400 ring-offset-2 ring-offset-slate-900 bot-speaking-avatar scale-110 shadow-lg shadow-blue-500/50'
+                        : 'ring-2 ring-blue-500/30'
+                    }`}
+                  />
+                  {st === 'playing' && (
+                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-500 items-center justify-center text-[8px] text-white">
+                        <i className="fas fa-volume-up animate-pulse"></i>
+                      </span>
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-bold text-blue-500 dark:text-blue-400 text-xs mb-1">
                     {userGender === 'ប្រុស' ? 'Chatbot កូនពៅ (ចែ)' : 'Chatbot កូនពៅ (Daddy)'}
@@ -2549,6 +2648,27 @@ ${
         description={deleteModalConfig?.description || 'រាល់សារ និងប្រវត្តិជជែកទាំងអស់នឹងត្រូវលុបចេញជារៀងរហូត!'}
         isDark={isDark}
       />
+
+      {/* Interactive Falling Emoji Shower when Bot Audio Finishes */}
+      {emojiShowerList.length > 0 && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {emojiShowerList.map((item) => (
+            <span
+              key={item.id}
+              className="absolute top-0 animate-emoji-fall select-none drop-shadow-md"
+              style={{
+                left: `${item.left}%`,
+                fontSize: `${item.size}px`,
+                animationDuration: `${item.duration}s`,
+                animationDelay: `${item.delay}s`,
+                transform: `rotate(${item.rotation}deg)`
+              }}
+            >
+              {item.emoji}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
