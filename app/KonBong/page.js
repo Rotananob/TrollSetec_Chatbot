@@ -1310,6 +1310,25 @@ export default function KonBongPage() {
     return await fetchPromise;
   };
 
+  // Helper to ensure ONLY ONE audio message is ever active/playing/loading at a time
+  const setExclusiveAudioState = (targetIndex, newState) => {
+    setAudioStates((prev) => {
+      const next = { ...prev };
+      if (newState === 'playing' || newState === 'loading') {
+        Object.keys(next).forEach((k) => {
+          const i = Number(k);
+          if (i !== targetIndex && (next[i] === 'playing' || next[i] === 'loading')) {
+            next[i] = 'paused';
+          }
+        });
+      }
+      if (typeof targetIndex === 'number') {
+        next[targetIndex] = newState;
+      }
+      return next;
+    });
+  };
+
   // Browser Web Speech API fallback for 100% voice uptime
   const speakWithWebSpeech = (text, index) => {
     if (typeof window === 'undefined' || !window.speechSynthesis) return false;
@@ -1334,20 +1353,20 @@ export default function KonBongPage() {
       if (typeof index === 'number') {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
         setActiveAudioIndex(index);
-        setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
+        setExclusiveAudioState(index, 'playing');
       }
 
       utterance.onend = () => {
         if (typeof index === 'number') {
           setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
-          setActiveAudioIndex(null);
+          setActiveAudioIndex((curr) => (curr === index ? null : curr));
           triggerEmojiShower();
         }
       };
       utterance.onerror = () => {
         if (typeof index === 'number') {
           setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-          setActiveAudioIndex(null);
+          setActiveAudioIndex((curr) => (curr === index ? null : curr));
         }
       };
 
@@ -1365,33 +1384,49 @@ export default function KonBongPage() {
     }
     const player = audioPlayerRef.current;
 
-    // Handle speech synthesis pause/cancel toggle
+    // Handle speech synthesis pause/cancel toggle on active item
     if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && activeAudioIndex === index) {
       window.speechSynthesis.cancel();
-      setAudioStates((prev) => ({ ...prev, [index]: 'paused' }));
+      setExclusiveAudioState(index, 'paused');
       setActiveAudioIndex(null);
       return;
     }
 
+    // Toggle pause/play on currently active audio item
     if (activeAudioIndex === index && player) {
       if (!player.paused) {
         player.pause();
-        setAudioStates((prev) => ({ ...prev, [index]: 'paused' }));
+        setExclusiveAudioState(index, 'paused');
       } else {
         player.play().catch(() => {});
-        setAudioStates((prev) => ({ ...prev, [index]: 'playing' }));
+        setExclusiveAudioState(index, 'playing');
       }
       return;
     }
 
+    // Immediately stop and pause ANY existing audio player and speech synthesis
     if (player) {
       try {
         player.pause();
       } catch {}
     }
     if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
+
+    // Pause all other message audio states immediately so no previous button says "កំពុងអាន..."
+    setAudioStates((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((k) => {
+        const i = Number(k);
+        if (i !== index && (next[i] === 'playing' || next[i] === 'loading')) {
+          next[i] = 'paused';
+        }
+      });
+      return next;
+    });
 
     const hash = hashText(text);
 
@@ -1402,13 +1437,13 @@ export default function KonBongPage() {
       player.playbackRate = playbackSpeed;
       setActiveAudioIndex(index);
       player.play()
-        .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
+        .then(() => setExclusiveAudioState(index, 'playing'))
         .catch(() => {});
       return;
     }
 
     if (!audioCacheRef.current.has(hash)) {
-      setAudioStates((prev) => ({ ...prev, [index]: 'loading' }));
+      setExclusiveAudioState(index, 'loading');
     }
 
     const audioUrl = await loadAudioUrl(text, index);
@@ -1420,7 +1455,7 @@ export default function KonBongPage() {
 
       player.onended = () => {
         setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
-        setActiveAudioIndex(null);
+        setActiveAudioIndex((curr) => (curr === index ? null : curr));
         triggerEmojiShower();
       };
       player.onerror = (e) => {
@@ -1428,18 +1463,18 @@ export default function KonBongPage() {
         const spoke = speakWithWebSpeech(text, index);
         if (!spoke) {
           setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-          setActiveAudioIndex(null);
+          setActiveAudioIndex((curr) => (curr === index ? null : curr));
         }
       };
 
       const playPromise = player.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => setAudioStates((prev) => ({ ...prev, [index]: 'playing' })))
+          .then(() => setExclusiveAudioState(index, 'playing'))
           .catch((err) => {
             console.warn('[Audio] play() blocked or interrupted:', err);
             setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-            setActiveAudioIndex(null);
+            setActiveAudioIndex((curr) => (curr === index ? null : curr));
           });
       }
     } else {
@@ -1450,7 +1485,7 @@ export default function KonBongPage() {
       const spoke = speakWithWebSpeech(text, index);
       if (!spoke) {
         setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-        setActiveAudioIndex(null);
+        setActiveAudioIndex((curr) => (curr === index ? null : curr));
       }
     }
   };
@@ -2264,12 +2299,17 @@ export default function KonBongPage() {
             if (!msg.text && !msg.memeImage && !(isLoading && idx === messages.length - 1)) {
               return null;
             }
-            const st = audioStates[idx] || 'idle';
+            const rawSt = audioStates[idx] || 'idle';
+            const isThisItemPlaying = activeAudioIndex === idx && rawSt === 'playing';
+            const isThisItemLoading = activeAudioIndex === idx && rawSt === 'loading';
+            const isThisItemPaused = rawSt === 'paused' || (activeAudioIndex !== idx && (rawSt === 'playing' || rawSt === 'loading'));
+            const isThisItemEnded = rawSt === 'ended';
+
             return (
               <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
                 {/* Interactive Animated Talking/Roasting Bot Avatar (DJ Beat / Surprise Popup / Puppet Talking Mouth "ហាមាត់ធំៗ") */}
-                <div className={`relative shrink-0 mt-0.5 ${st === 'playing' ? 'animate-puppet-talk' : ''}`}>
-                  {st === 'playing' && (
+                <div className={`relative shrink-0 mt-0.5 ${isThisItemPlaying ? 'animate-puppet-talk' : ''}`}>
+                  {isThisItemPlaying && (
                     <>
                       {/* Concentric Radiating Bass Waves */}
                       <span className="absolute inset-0 rounded-full animate-sound-wave-1 pointer-events-none"></span>
@@ -2280,13 +2320,13 @@ export default function KonBongPage() {
                     src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
                     alt="Bot Avatar"
                     className={`w-8 h-8 rounded-full shadow-md shrink-0 transition-all duration-300 relative z-10 ${
-                      st === 'playing'
+                      isThisItemPlaying
                         ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-900 bot-avatar-beat-mega'
                         : 'ring-2 ring-cyan-500/30'
                     }`}
                   />
                   {/* Animated Puppet Talking Mouth (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */}
-                  {st === 'playing' && (
+                  {isThisItemPlaying && (
                     <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
                       <div className="puppet-talking-mouth flex flex-col items-center justify-between overflow-hidden">
                         {/* Top White Teeth */}
@@ -2296,7 +2336,7 @@ export default function KonBongPage() {
                       </div>
                     </div>
                   )}
-                  {st === 'playing' && (
+                  {isThisItemPlaying && (
                     <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 z-20">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-gradient-to-tr from-cyan-600 via-teal-600 to-emerald-500 items-center justify-center text-[8.5px] text-white shadow-md ring-1 ring-white dark:ring-slate-900">
@@ -2395,8 +2435,9 @@ export default function KonBongPage() {
                       return (
                         <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                           <button
+                            type="button"
                             onClick={() => triggerAudio(msg.text, idx)}
-                            disabled={st === 'loading'}
+                            disabled={isThisItemLoading}
                             className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black border flex items-center gap-2 transition cursor-pointer select-none active:scale-95 ${
                               isFallbackVoice
                                 ? isDark
@@ -2407,13 +2448,13 @@ export default function KonBongPage() {
                                 : 'bg-cyan-50 text-cyan-700 border-cyan-200 hover:bg-cyan-100 shadow-xs'
                             }`}
                           >
-                            {st === 'loading' && (
+                            {isThisItemLoading && (
                               <>
                                 <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
                                 <span>{isFallbackVoice ? 'AI រវល់... កំពុងរៀបចំសំឡេង Bot...' : 'កំពុងទាញសំឡេង AI...'}</span>
                               </>
                             )}
-                            {st === 'playing' && (
+                            {isThisItemPlaying && (
                               <>
                                 <i
                                   className={`${
@@ -2429,7 +2470,7 @@ export default function KonBongPage() {
                                 </span>
                               </>
                             )}
-                            {st === 'paused' && (
+                            {isThisItemPaused && (
                               <>
                                 <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
                                 <span>
@@ -2439,7 +2480,7 @@ export default function KonBongPage() {
                                 </span>
                               </>
                             )}
-                            {st === 'ended' && (
+                            {isThisItemEnded && (
                               <>
                                 <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
                                 <span>
@@ -2449,7 +2490,7 @@ export default function KonBongPage() {
                                 </span>
                               </>
                             )}
-                            {(st === 'idle' || st === 'ready' || st === 'error') && (
+                            {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
                               <>
                                 <i
                                   className={`${

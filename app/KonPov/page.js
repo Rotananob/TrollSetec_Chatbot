@@ -926,20 +926,20 @@ export default function KonPovPage() {
       if (typeof index === 'number') {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
         setActiveVoiceIndex(index);
-        setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
+        setExclusiveVoiceState(index, 'playing');
       }
 
       utterance.onend = () => {
         if (typeof index === 'number') {
           setAudioStatuses((prev) => ({ ...prev, [index]: 'ended' }));
-          setActiveVoiceIndex(null);
+          setActiveVoiceIndex((curr) => (curr === index ? null : curr));
           triggerEmojiShower();
         }
       };
       utterance.onerror = () => {
         if (typeof index === 'number') {
           setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
-          setActiveVoiceIndex(null);
+          setActiveVoiceIndex((curr) => (curr === index ? null : curr));
         }
       };
 
@@ -950,6 +950,25 @@ export default function KonPovPage() {
     }
   };
 
+  // Helper to ensure ONLY ONE audio message is ever active/playing/loading at a time
+  const setExclusiveVoiceState = (targetIndex, newState) => {
+    setAudioStatuses((prev) => {
+      const next = { ...prev };
+      if (newState === 'playing' || newState === 'loading') {
+        Object.keys(next).forEach((k) => {
+          const i = Number(k);
+          if (i !== targetIndex && (next[i] === 'playing' || next[i] === 'loading')) {
+            next[i] = 'paused';
+          }
+        });
+      }
+      if (typeof targetIndex === 'number') {
+        next[targetIndex] = newState;
+      }
+      return next;
+    });
+  };
+
   const triggerAudio = async (text, index, autoPlay = false) => {
     if (!text) return;
     if (!audioPlayerRef.current && typeof window !== 'undefined') {
@@ -957,33 +976,49 @@ export default function KonPovPage() {
     }
     const player = audioPlayerRef.current;
 
-    // Handle speech synthesis pause/cancel toggle
+    // Handle speech synthesis pause/cancel toggle on active item
     if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && activeVoiceIndex === index) {
       window.speechSynthesis.cancel();
-      setAudioStatuses((prev) => ({ ...prev, [index]: 'paused' }));
+      setExclusiveVoiceState(index, 'paused');
       setActiveVoiceIndex(null);
       return;
     }
 
+    // Toggle pause/play on currently active item
     if (activeVoiceIndex === index && player) {
       if (!player.paused) {
         player.pause();
-        setAudioStatuses((prev) => ({ ...prev, [index]: 'paused' }));
+        setExclusiveVoiceState(index, 'paused');
       } else {
         player.play().catch(() => {});
-        setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' }));
+        setExclusiveVoiceState(index, 'playing');
       }
       return;
     }
 
+    // Immediately stop and pause ANY existing audio player and speech synthesis
     if (player) {
       try {
         player.pause();
       } catch {}
     }
     if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
     }
+
+    // Pause all other message audio states immediately so no previous button says "កំពុងអាន..."
+    setAudioStatuses((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((k) => {
+        const i = Number(k);
+        if (i !== index && (next[i] === 'playing' || next[i] === 'loading')) {
+          next[i] = 'paused';
+        }
+      });
+      return next;
+    });
 
     const voiceGenderKey = 'female';
     const hash = hashText(text) + '_' + voiceGenderKey;
@@ -995,13 +1030,13 @@ export default function KonPovPage() {
       player.playbackRate = playbackSpeed;
       setActiveVoiceIndex(index);
       player.play()
-        .then(() => setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' })))
+        .then(() => setExclusiveVoiceState(index, 'playing'))
         .catch(() => {});
       return;
     }
 
     if (!audioCacheRef.current.has(hash)) {
-      setAudioStatuses((prev) => ({ ...prev, [index]: 'loading' }));
+      setExclusiveVoiceState(index, 'loading');
     }
 
     const audioUrl = await loadAudioUrl(text, userGender, index);
@@ -1013,7 +1048,7 @@ export default function KonPovPage() {
 
       player.onended = () => {
         setAudioStatuses((prev) => ({ ...prev, [index]: 'ended' }));
-        setActiveVoiceIndex(null);
+        setActiveVoiceIndex((curr) => (curr === index ? null : curr));
         triggerEmojiShower();
       };
       player.onerror = (e) => {
@@ -1021,18 +1056,18 @@ export default function KonPovPage() {
         const spoke = speakWithWebSpeech(text, index);
         if (!spoke) {
           setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
-          setActiveVoiceIndex(null);
+          setActiveVoiceIndex((curr) => (curr === index ? null : curr));
         }
       };
 
       const playPromise = player.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => setAudioStatuses((prev) => ({ ...prev, [index]: 'playing' })))
+          .then(() => setExclusiveVoiceState(index, 'playing'))
           .catch((err) => {
             console.warn('[Audio] play() blocked or interrupted:', err);
             setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
-            setActiveVoiceIndex(null);
+            setActiveVoiceIndex((curr) => (curr === index ? null : curr));
           });
       }
     } else {
@@ -1043,7 +1078,7 @@ export default function KonPovPage() {
       const spoke = speakWithWebSpeech(text, index);
       if (!spoke) {
         setAudioStatuses((prev) => ({ ...prev, [index]: 'ready' }));
-        setActiveVoiceIndex(null);
+        setActiveVoiceIndex((curr) => (curr === index ? null : curr));
       }
     }
   };
@@ -2469,12 +2504,17 @@ export default function KonPovPage() {
             if (!item.text && !item.memeImage && !(isLoading && idx === messages.length - 1)) {
               return null;
             }
-            const st = audioStatuses[idx] || 'ready';
+            const rawSt = audioStatuses[idx] || 'ready';
+            const isThisItemPlaying = activeVoiceIndex === idx && rawSt === 'playing';
+            const isThisItemLoading = activeVoiceIndex === idx && rawSt === 'loading';
+            const isThisItemPaused = rawSt === 'paused' || (activeVoiceIndex !== idx && (rawSt === 'playing' || rawSt === 'loading'));
+            const isThisItemEnded = rawSt === 'ended';
+
             return (
               <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
                 {/* Interactive Animated Talking/Roasting Bot Avatar (DJ Beat / Surprise Popup / Puppet Talking Mouth "ហាមាត់ធំៗ") */}
-                <div className={`relative shrink-0 mt-0.5 ${st === 'playing' ? 'animate-puppet-talk' : ''}`}>
-                  {st === 'playing' && (
+                <div className={`relative shrink-0 mt-0.5 ${isThisItemPlaying ? 'animate-puppet-talk' : ''}`}>
+                  {isThisItemPlaying && (
                     <>
                       {/* Concentric Radiating Bass Waves */}
                       <span className="absolute inset-0 rounded-full animate-sound-wave-1 pointer-events-none"></span>
@@ -2485,13 +2525,13 @@ export default function KonPovPage() {
                     src={botAvatar}
                     alt="Bot Avatar"
                     className={`w-8 h-8 rounded-full shadow-md shrink-0 object-cover bg-slate-800 transition-all duration-300 relative z-10 ${
-                      st === 'playing'
+                      isThisItemPlaying
                         ? 'ring-4 ring-pink-400 ring-offset-2 ring-offset-slate-900 bot-avatar-beat-mega'
                         : 'ring-2 ring-pink-500/30'
                     }`}
                   />
                   {/* Animated Puppet Talking Mouth (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */}
-                  {st === 'playing' && (
+                  {isThisItemPlaying && (
                     <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
                       <div className="puppet-talking-mouth flex flex-col items-center justify-between overflow-hidden shadow-inner">
                         {/* Top White Teeth */}
@@ -2501,7 +2541,7 @@ export default function KonPovPage() {
                       </div>
                     </div>
                   )}
-                  {st === 'playing' && (
+                  {isThisItemPlaying && (
                     <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 z-20">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-gradient-to-tr from-pink-600 via-rose-600 to-amber-500 items-center justify-center text-[8.5px] text-white shadow-md ring-1 ring-white dark:ring-slate-900">
@@ -2603,8 +2643,9 @@ export default function KonPovPage() {
                       return (
                         <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                           <button
+                            type="button"
                             onClick={() => triggerAudio(item.text, idx)}
-                            disabled={st === 'loading'}
+                            disabled={isThisItemLoading}
                             className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black border flex items-center gap-2 transition cursor-pointer select-none active:scale-95 ${
                               isFallbackVoice
                                 ? isDark
@@ -2615,13 +2656,13 @@ export default function KonPovPage() {
                                 : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 shadow-xs'
                             }`}
                           >
-                            {st === 'loading' && (
+                            {isThisItemLoading && (
                               <>
                                 <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
                                 <span>{isFallbackVoice ? 'AI រវល់... កំពុងរៀបចំសំឡេង Bot...' : 'កំពុងទាញសំឡេង AI...'}</span>
                               </>
                             )}
-                            {st === 'playing' && (
+                            {isThisItemPlaying && (
                               <>
                                 <i
                                   className={`${
@@ -2637,27 +2678,27 @@ export default function KonPovPage() {
                                 </span>
                               </>
                             )}
-                            {st === 'paused' && (
+                            {isThisItemPaused && (
                               <>
                                 <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
                                 <span>
                                   {isFallbackVoice
                                     ? 'បន្តស្ដាប់សំឡេង Bot អានជំនួស'
-                                    : 'បន្តស្ដាប់សំឡេង AI'}
+                                    : 'បន្តស្ដាប់សំឡេង ចែ ឬ Mommy'}
                                 </span>
                               </>
                             )}
-                            {st === 'ended' && (
+                            {isThisItemEnded && (
                               <>
                                 <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
                                 <span>
                                   {isFallbackVoice
                                     ? 'ស្តាប់ Bot អានជំនួសម្ដងទៀត (AI រវល់)'
-                                    : 'ស្តាប់ម្ដងទៀត'}
+                                    : 'ស្តាប់សំឡេង ចែ ឬ Mommy ម្ដងទៀត'}
                                 </span>
                               </>
                             )}
-                            {(st === 'ready' || st === 'idle' || st === 'error') && (
+                            {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
                               <>
                                 <i
                                   className={`${
