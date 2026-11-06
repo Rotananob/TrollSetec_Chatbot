@@ -42,6 +42,7 @@ export default function KonPovPage() {
 
   // Live Support Intervention State (Rotana NOB Bypass & Realtime Sync)
   const [isRotanaAdmin, setIsRotanaAdmin] = useState(false);
+  const [clientUsername, setClientUsername] = useState('User');
   const [bypassAccessDenied, setBypassAccessDenied] = useState(false);
   const [activeLiveSessionId, setActiveLiveSessionId] = useState(null);
   const [isRotanaOnline, setIsRotanaOnline] = useState(false);
@@ -294,18 +295,37 @@ export default function KonPovPage() {
           setIsRotanaAdmin(true);
           setActiveLiveSessionId(liveSessionParam);
           setHasAgreed(true);
+          setIsBotPaused(true); // Automatically pause AI when Rotana intervenes
 
-          // Mark Rotana as active in the session and append log
-          updateLiveSessionState(liveSessionParam, { rotanaActive: true, status: 'active' });
-          addSessionLog(liveSessionParam, '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session)។', 'join');
+          // Mark Rotana as active in the session, pause bot, and append log
+          updateLiveSessionState(liveSessionParam, {
+            rotanaActive: true,
+            botPaused: true,
+            status: 'active'
+          });
+          addSessionLog(
+            liveSessionParam,
+            '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Chatbot ត្រូវបានផ្អាកការឆ្លើយតប។',
+            'join'
+          );
 
           // Load existing session data
           getLiveSession(liveSessionParam).then((sessionData) => {
             if (sessionData) {
-              if (Array.isArray(sessionData.messages)) {
-                setMessages(sessionData.messages);
+              if (sessionData.username) {
+                setClientUsername(sessionData.username);
               }
-              setIsBotPaused(!!sessionData.botPaused);
+              if (sessionData.messages) {
+                const msgList = Array.isArray(sessionData.messages)
+                  ? sessionData.messages
+                  : typeof sessionData.messages === 'object' && sessionData.messages !== null
+                  ? Object.values(sessionData.messages)
+                  : [];
+                if (msgList.length > 0) {
+                  setMessages(msgList);
+                }
+              }
+              setIsBotPaused(true);
               if (sessionData.logs) {
                 const logs = Array.isArray(sessionData.logs) ? sessionData.logs : Object.values(sessionData.logs);
                 setSessionLogs(logs);
@@ -381,6 +401,10 @@ export default function KonPovPage() {
 
     const unsubscribe = subscribeToLiveSession(sessionToWatch, (sessionData) => {
       if (!sessionData) return;
+
+      if (sessionData.username) {
+        setClientUsername(sessionData.username);
+      }
 
       setIsRotanaOnline(!!sessionData.rotanaActive);
       setIsBotPaused(!!sessionData.botPaused);
@@ -1066,6 +1090,30 @@ export default function KonPovPage() {
     }
   };
 
+  // Direct Live Intervention Send by Rotana NOB (Zero AI Involvement)
+  const handleRotanaSend = async (currentText, currentImg) => {
+    setInputText('');
+    setSelectedImage(null);
+
+    const rotanaMsg = {
+      role: 'rotana',
+      senderName: 'Rotana NOB',
+      senderBadge: 'Developer & Creator',
+      avatar: '/img/DevPic.JPG',
+      text: currentText || '[រូបភាព]',
+      ...(currentImg && { image: currentImg.previewUrl }),
+      timestamp: Date.now()
+    };
+
+    const updated = [...messages, rotanaMsg];
+    setMessages(updated);
+    saveCurrentSessionMessages(updated);
+
+    if (activeLiveSessionId) {
+      await sendLiveMessage(activeLiveSessionId, rotanaMsg);
+    }
+  };
+
   // Handle Send or ToDo Queue (allows typing while AI is thinking, holds/queues prompt)
   const handleSendMessageOrQueue = () => {
     if (isGeneratingMeme) return;
@@ -1075,6 +1123,12 @@ export default function KonPovPage() {
     const currentText = inputText.trim();
     const currentImg = selectedImage;
     if (!currentText && !currentImg) return;
+
+    // ROTANA LIVE AGENT DIRECT SEND (Direct Human Intervention - No AI)
+    if (isRotanaAdmin) {
+      handleRotanaSend(currentText, currentImg);
+      return;
+    }
 
     if (isLoading) {
       // AI is currently busy thinking/answering:
@@ -1126,8 +1180,23 @@ export default function KonPovPage() {
     const userMsg = {
       role: 'user',
       text: promptText || '[បានផ្ញើរូបភាពមួយសន្លឹក]',
-      ...(currentImg && { image: currentImg.previewUrl })
+      ...(currentImg && { image: currentImg.previewUrl }),
+      timestamp: Date.now(),
+      senderName: username || 'User',
+      avatar: avatar
     };
+
+    // If Rotana has paused the bot (Live 1-1 Intervention Mode):
+    // DO NOT invoke Gemini AI! Deliver message directly to Rotana in real-time.
+    if (isBotPaused || isRotanaOnline) {
+      const updatedMessages = [...messages, userMsg];
+      setMessages(updatedMessages);
+      saveCurrentSessionMessages(updatedMessages);
+      if (activeLiveSessionId || currentSessionId) {
+        await sendLiveMessage(activeLiveSessionId || currentSessionId, userMsg);
+      }
+      return; // Stop here! AI is completely disabled while Rotana is chatting!
+    }
 
     // Pre-insert bot message for real-time streaming preview
     const updatedMessages = [...messages, userMsg, { role: 'bot', text: '' }];
@@ -1678,64 +1747,84 @@ export default function KonPovPage() {
 
           <div className="relative shrink-0">
             <img
-              src={botAvatar}
-              alt="KonPov Avatar"
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-blue-500/30 shadow-xs bg-slate-800"
+              src={isRotanaAdmin ? '/img/DevPic.JPG' : botAvatar}
+              alt={isRotanaAdmin ? 'Rotana NOB' : 'KonPov Avatar'}
+              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shadow-xs bg-slate-800 ring-2 ${
+                isRotanaAdmin ? 'ring-amber-400' : 'ring-blue-500/30'
+              }`}
             />
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-950"></span>
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 min-w-0">
-              <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate shrink-0 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                <span>ស៊ីតិច</span>
-                <span className="hidden sm:inline"> កូនពៅ</span>
+              <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate shrink-0 ${
+                isRotanaAdmin ? 'text-amber-400' : isDark ? 'text-white' : 'text-slate-900'
+              }`}>
+                {isRotanaAdmin ? (
+                  <span className="flex items-center gap-1.5">
+                    <i className="fas fa-headset text-xs text-amber-400"></i>
+                    <span>Live Support</span>
+                    <span className="text-[10px] text-slate-300 font-normal truncate">({clientUsername})</span>
+                  </span>
+                ) : (
+                  <>
+                    <span>ស៊ីតិច</span>
+                    <span className="hidden sm:inline"> កូនពៅ</span>
+                  </>
+                )}
               </h1>
-              {/* Savage Persona Badge Button: ស្ដេចឌឺ (ចែ / Daddy) */}
-              <button
-                type="button"
-                onClick={() => setShowPersonaModal(true)}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black tracking-tight transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
-                  isDark
-                    ? 'bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 border-blue-400/40 text-blue-300 hover:border-blue-400/70 hover:shadow-blue-500/20'
-                    : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300 text-blue-700 hover:bg-blue-100'
-                }`}
-                title="ចុចដើម្បីមើលព័ត៌មានស្ដេចឌឺ (ចែ / Daddy)"
-              >
-                <i className="fas fa-crown text-[8.5px] text-amber-400"></i>
-                <span>{userGender === 'ប្រុស' ? 'ស្ដេចឌឺ (ចែ)' : 'ស្ដេចឌឺ (Daddy)'}</span>
-              </button>
+              {!isRotanaAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setShowPersonaModal(true)}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black tracking-tight transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+                    isDark
+                      ? 'bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 border-blue-400/40 text-blue-300 hover:border-blue-400/70 hover:shadow-blue-500/20'
+                      : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300 text-blue-700 hover:bg-blue-100'
+                  }`}
+                  title="ចុចដើម្បីមើលព័ត៌មានស្ដេចឌឺ (ចែ / Daddy)"
+                >
+                  <i className="fas fa-crown text-[8.5px] text-amber-400"></i>
+                  <span>{userGender === 'ប្រុស' ? 'ស្ដេចឌឺ (ចែ)' : 'ស្ដេចឌឺ (Daddy)'}</span>
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse"></span>
-              <span className="text-emerald-500 font-semibold text-[9.5px]">Online</span>
+              <span className="text-emerald-500 font-semibold text-[9.5px]">
+                {isRotanaAdmin ? 'Rotana Verified Agent (1-1)' : 'Online'}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
-          {/* AI Mode Selector: Clean, Compact Pill Matching User Design (Image 2) */}
+          {/* AI Mode Selector: Interactive Animated Pill with clear dropdown cue */}
           <button
             type="button"
             onClick={() => setShowModeMenu(!showModeMenu)}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
               savageLevel === 'savage'
-                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20'
+                ? 'bg-rose-500/15 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 ring-1 ring-rose-500/20'
                 : savageLevel === 'medium'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
-                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 ring-1 ring-amber-500/20'
+                : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 ring-1 ring-emerald-500/20'
             }`}
-            title="ជ្រើសរើសកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
+            title="ចុចដើម្បីជ្រើសរើសកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
           >
-            <span>
-              {savageLevel === 'savage' ? 'ឌឺបាក់ក' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
+            <i className={`fas fa-bolt text-[10px] ${savageLevel === 'savage' ? 'animate-pulse text-rose-500 dark:text-rose-400' : ''}`}></i>
+            <span className="font-extrabold">
+              ម៉ូដ: {savageLevel === 'savage' ? 'ឌឺបាក់ក' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
             </span>
-            <i
-              className={`fas fa-chevron-down text-[8.5px] transition-transform duration-200 ${
-                showModeMenu ? 'rotate-180' : ''
-              }`}
-            ></i>
+            <span className="w-3.5 h-3.5 rounded-full bg-rose-500/20 dark:bg-rose-400/20 flex items-center justify-center">
+              <i
+                className={`fas fa-chevron-down text-[8px] transition-transform duration-200 ${
+                  showModeMenu ? 'rotate-180' : ''
+                }`}
+              ></i>
+            </span>
           </button>
 
           {/* Switch to KonBong */}
@@ -1870,7 +1959,9 @@ export default function KonPovPage() {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-300 truncate font-semibold">
-                  អ្នកមានសិទ្ធិឆ្លើយតបផ្ទាល់ និងផ្អាក Chatbot ក្នុង Chat នេះ
+                  {isBotPaused
+                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} (Chatbot ត្រូវបានផ្អាក AI)`
+                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} (Chatbot កំពុងដំណើរការ)`}
                 </p>
               </div>
             </div>
@@ -1896,20 +1987,31 @@ export default function KonPovPage() {
                 }`}
               >
                 <i className={isBotPaused ? 'fas fa-play' : 'fas fa-pause'}></i>
-                <span>{isBotPaused ? 'បន្ត Chatbot (Resume)' : 'ផ្អាក Chatbot (Pause)'}</span>
+                <span>{isBotPaused ? 'បន្ត AI (Resume)' : 'ផ្អាក AI (Pause)'}</span>
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm('តើបងពិតជាចង់បញ្ចប់ការ Support លើ Chat នេះមែនទេ?')) {
-                    updateLiveSessionState(activeLiveSessionId, { alertActive: false, rotanaActive: false, status: 'ended' });
-                    addSessionLog(activeLiveSessionId, '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat និងបញ្ចប់ការ Support (Session Ended)។', 'leave');
-                    alert('បានបញ្ចប់ការ Support រួចរាល់!');
+                onClick={async () => {
+                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? (Chatbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ)')) {
+                    await updateLiveSessionState(activeLiveSessionId, {
+                      alertActive: false,
+                      rotanaActive: false,
+                      botPaused: false,
+                      status: 'ended'
+                    });
+                    await addSessionLog(
+                      activeLiveSessionId,
+                      '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat - Chatbot បានបន្តដំណើរការឆ្លើយតបឡើងវិញជាស្វ័យប្រវត្តិ។',
+                      'leave'
+                    );
+                    setIsBotPaused(false);
+                    setIsRotanaOnline(false);
+                    alert('បានបញ្ចប់ការ Support និងបើកដំណើរការ AI ឡើងវិញរួចរាល់!');
                   }
                 }}
-                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700"
+                className="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-200 hover:text-rose-300 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700 hover:border-rose-500/40"
               >
-                បញ្ចប់
+                ចាកចេញ (Exit)
               </button>
             </div>
           </div>
@@ -2110,73 +2212,159 @@ export default function KonPovPage() {
         {/* Chat Messages */}
         {messages.map((item, idx) => {
           if (item.role === 'user') {
-            return (
-              <div key={idx} className="flex flex-col items-end gap-1 self-end max-w-[88%] sm:max-w-[80%] animate-fade-in">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="font-bold text-blue-500 dark:text-blue-400 text-[11px]">{username}</span>
-                  <label className="relative cursor-pointer group/avatar" title="ចុចដើម្បីប្ដូររូប Profile">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleUserAvatarChange}
-                    />
+            if (isRotanaAdmin) {
+              // VIEWED BY ROTANA (AGENT SIDE): This is an INCOMING message from the customer/student on the LEFT!
+              return (
+                <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in my-1.5 self-start">
+                  <div className="relative shrink-0 mt-0.5">
                     <img
-                      src={avatar}
+                      src={item.avatar || 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student'}
                       alt="User Avatar"
-                      className="w-6 h-6 rounded-full ring-1 ring-blue-400/40 shadow-xs object-cover hover:ring-2 hover:ring-blue-400 transition"
+                      className="w-8 h-8 rounded-full ring-2 ring-blue-400 shadow-md object-cover bg-slate-800"
                     />
-                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition text-[7px] text-white">
-                      <i className="fas fa-camera"></i>
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-blue-500 border border-slate-900"></span>
+                  </div>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="font-bold text-blue-400 text-xs">
+                        {item.senderName || clientUsername || 'User'}
+                      </span>
+                      <span className="text-[9px] bg-blue-500/20 text-blue-300 font-bold px-1.5 py-0.2 rounded-full border border-blue-500/30">
+                        សិស្ស / User
+                      </span>
                     </div>
-                  </label>
-                </div>
 
-                {item.image && (
-                  <div
-                    onClick={() => setViewingImage({ url: item.image, caption: item.text })}
-                    className="cursor-pointer rounded-2xl overflow-hidden border border-blue-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
-                  >
-                    <img src={item.image} alt="User upload" className="max-h-56 w-auto object-cover" />
-                  </div>
-                )}
+                    {item.image && (
+                      <div
+                        onClick={() => setViewingImage({ url: item.image, caption: item.text })}
+                        className="cursor-pointer rounded-2xl overflow-hidden border border-blue-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
+                      >
+                        <img src={item.image} alt="User upload" className="max-h-56 w-auto object-cover" />
+                      </div>
+                    )}
 
-                <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white">
-                  {item.text}
-                </div>
-              </div>
-            );
-          } else if (item.role === 'rotana' || item.author?.includes('Rotana')) {
-            return (
-              <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in my-1">
-                <div className="relative shrink-0 mt-0.5">
-                  <img
-                    src="/img/DevPic.JPG"
-                    alt="Rotana NOB"
-                    className="w-9 h-9 rounded-full ring-2 ring-amber-400 shadow-md object-cover bg-slate-900"
-                  />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[9px] shadow-xs">
-                    <i className="fas fa-crown"></i>
-                  </span>
-                </div>
-                <div className="flex flex-col flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="font-black text-amber-400 text-xs flex items-center gap-1">
-                      <span>Rotana NOB</span>
-                      <i className="fas fa-check-circle text-blue-400 text-[10px]" title="Verified Creator"></i>
-                    </span>
-                    <span className="text-[9px] bg-gradient-to-r from-amber-500 to-rose-500 text-white font-extrabold px-1.5 py-0.2 rounded-full shadow-xs">
-                      CREATOR / DEV
-                    </span>
-                  </div>
-                  <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-md border bg-gradient-to-br from-amber-500/15 via-purple-500/15 to-slate-900/90 border-amber-400/50 text-slate-100">
-                    <p className="text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-line text-amber-100">
+                    <div className="px-4 py-2.5 rounded-2xl rounded-tl-xs font-medium shadow-md text-xs sm:text-sm leading-relaxed bg-slate-800/95 border border-slate-700 text-slate-100">
                       {item.text}
-                    </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
+              );
+            } else {
+              // VIEWED BY STUDENT/USER: This is the user's OWN message on the RIGHT!
+              return (
+                <div key={idx} className="flex flex-col items-end gap-1 self-end max-w-[88%] sm:max-w-[80%] animate-fade-in">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="font-bold text-blue-500 dark:text-blue-400 text-[11px]">{username}</span>
+                    <label className="relative cursor-pointer group/avatar" title="ចុចដើម្បីប្ដូររូប Profile">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleUserAvatarChange}
+                      />
+                      <img
+                        src={avatar}
+                        alt="User Avatar"
+                        className="w-6 h-6 rounded-full ring-1 ring-blue-400/40 shadow-xs object-cover hover:ring-2 hover:ring-blue-400 transition"
+                      />
+                      <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition text-[7px] text-white">
+                        <i className="fas fa-camera"></i>
+                      </div>
+                    </label>
+                  </div>
+
+                  {item.image && (
+                    <div
+                      onClick={() => setViewingImage({ url: item.image, caption: item.text })}
+                      className="cursor-pointer rounded-2xl overflow-hidden border border-blue-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
+                    >
+                      <img src={item.image} alt="User upload" className="max-h-56 w-auto object-cover" />
+                    </div>
+                  )}
+
+                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white">
+                    {item.text}
+                  </div>
+                </div>
+              );
+            }
+          } else if (item.role === 'rotana' || item.author?.includes('Rotana')) {
+            if (isRotanaAdmin) {
+              // VIEWED BY ROTANA: This is Rotana's OWN message on the RIGHT!
+              return (
+                <div key={idx} className="flex flex-col items-end gap-1 self-end max-w-[88%] sm:max-w-[80%] animate-fade-in my-1.5">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[9px] bg-gradient-to-r from-amber-500 to-rose-500 text-white font-extrabold px-1.5 py-0.2 rounded-full shadow-xs">
+                      LIVE AGENT
+                    </span>
+                    <span className="font-black text-amber-400 text-xs flex items-center gap-1">
+                      <span>Rotana NOB (ខ្ញុំ)</span>
+                      <i className="fas fa-crown text-amber-400 text-[10px]"></i>
+                    </span>
+                    <img
+                      src="/img/DevPic.JPG"
+                      alt="Rotana NOB"
+                      className="w-6 h-6 rounded-full ring-1 ring-amber-400 shadow-xs object-cover"
+                    />
+                  </div>
+
+                  {item.image && (
+                    <div
+                      onClick={() => setViewingImage({ url: item.image, caption: item.text })}
+                      className="cursor-pointer rounded-2xl overflow-hidden border border-amber-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
+                    >
+                      <img src={item.image} alt="Rotana upload" className="max-h-56 w-auto object-cover" />
+                    </div>
+                  )}
+
+                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-semibold shadow-md text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 text-white">
+                    {item.text}
+                  </div>
+                </div>
+              );
+            } else {
+              // VIEWED BY STUDENT/USER: This is an INCOMING message from Rotana NOB on the LEFT!
+              return (
+                <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in my-1.5 self-start">
+                  <div className="relative shrink-0 mt-0.5">
+                    <img
+                      src="/img/DevPic.JPG"
+                      alt="Rotana NOB"
+                      className="w-9 h-9 rounded-full ring-2 ring-amber-400 shadow-md object-cover bg-slate-900"
+                    />
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[9px] shadow-xs">
+                      <i className="fas fa-crown"></i>
+                    </span>
+                  </div>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="font-black text-amber-400 text-xs flex items-center gap-1">
+                        <span>Rotana NOB</span>
+                        <i className="fas fa-check-circle text-blue-400 text-[10px]" title="Verified Creator"></i>
+                      </span>
+                      <span className="text-[9px] bg-gradient-to-r from-amber-500 to-rose-500 text-white font-extrabold px-1.5 py-0.2 rounded-full shadow-xs">
+                        CREATOR / LIVE SUPPORT
+                      </span>
+                    </div>
+
+                    {item.image && (
+                      <div
+                        onClick={() => setViewingImage({ url: item.image, caption: item.text })}
+                        className="cursor-pointer rounded-2xl overflow-hidden border border-amber-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
+                      >
+                        <img src={item.image} alt="Rotana upload" className="max-h-56 w-auto object-cover" />
+                      </div>
+                    )}
+
+                    <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-md border bg-gradient-to-br from-amber-500/15 via-purple-500/15 to-slate-900/90 border-amber-400/50 text-slate-100">
+                      <p className="text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-line text-amber-100">
+                        {item.text}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
           } else {
             if (!item.text && !item.memeImage && !(isLoading && idx === messages.length - 1)) {
               return null;
@@ -2548,70 +2736,94 @@ export default function KonPovPage() {
           </div>
         )}
 
-        {/* Quick Suggestion Pills Bar (Thin, single row, smooth scroll) */}
-        <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
-          <button
-            onClick={() => setContributeModalOpen(true)}
-            className="px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-400/30 text-indigo-400"
-          >
-            <i className="fas fa-brain text-xs text-amber-300"></i>
-            <span>ចូលរួមបង្រៀន AI</span>
-          </button>
+        {/* Quick Suggestion Pills Bar */}
+        {isRotanaAdmin ? (
+          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
+            <span className="text-[10px] text-amber-400 font-bold shrink-0 flex items-center gap-1 px-1">
+              <i className="fas fa-bolt text-xs"></i>
+              <span>ឆ្លើយតបរហ័ស:</span>
+            </span>
+            {[
+              'បងបានឃើញហើយ កំពុងពិនិត្យមើលជូន...',
+              'កុំភ័យ បងជួយដោះស្រាយ!',
+              'សាក Refresh ម្តងទៀតមើលប្អូន',
+              'មានបញ្ហាត្រង់ណាទៀតអត់?'
+            ].map((phrase, pIdx) => (
+              <button
+                key={pIdx}
+                type="button"
+                onClick={() => setInputText(phrase)}
+                className="px-2.5 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-semibold text-[11px] shrink-0 transition active:scale-95 cursor-pointer shadow-xs"
+              >
+                {phrase}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
+            <button
+              onClick={() => setContributeModalOpen(true)}
+              className="px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-400/30 text-indigo-400"
+            >
+              <i className="fas fa-brain text-xs text-amber-300"></i>
+              <span>ចូលរួមបង្រៀន AI</span>
+            </button>
 
-          <button
-            onClick={() => handleRequestMeme()}
-            disabled={!hasAgreed || isGeneratingMeme || isLoading}
-            className={`px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
-              !hasAgreed
-                ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/30 text-amber-500 dark:text-amber-300'
-            }`}
-          >
-            <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
-            <span>សុំ Meme ៥ សន្លឹក</span>
-          </button>
+            <button
+              onClick={() => handleRequestMeme()}
+              disabled={!hasAgreed || isGeneratingMeme || isLoading}
+              className={`px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
+                !hasAgreed
+                  ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
+                  : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/30 text-amber-500 dark:text-amber-300'
+              }`}
+            >
+              <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
+              <span>សុំ Meme ៥ សន្លឹក</span>
+            </button>
 
-          <button
-            onClick={() => {
-              if (hasAgreed) fileInputRef.current?.click();
-            }}
-            disabled={!hasAgreed}
-            className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
-              !hasAgreed
-                ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
-            }`}
-          >
-            <i className="fas fa-camera text-xs text-blue-400"></i>
-            <span>វិភាគរូបភាព</span>
-          </button>
+            <button
+              onClick={() => {
+                if (hasAgreed) fileInputRef.current?.click();
+              }}
+              disabled={!hasAgreed}
+              className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
+                !hasAgreed
+                  ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
+                  : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
+              }`}
+            >
+              <i className="fas fa-camera text-xs text-blue-400"></i>
+              <span>វិភាគរូបភាព</span>
+            </button>
 
-          <button
-            onClick={() => handleChat('Troll ឌឺខ្ញុំមួយមើល ថាស្ដេចឌឺច្បាស់ការឬអត់?')}
-            disabled={!hasAgreed || isLoading}
-            className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
-              !hasAgreed
-                ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
-            }`}
-          >
-            <i className="fas fa-fire text-xs text-amber-400"></i>
-            <span>Troll ឌឺមួយមើល</span>
-          </button>
+            <button
+              onClick={() => handleChat('Troll ឌឺខ្ញុំមួយមើល ថាស្ដេចឌឺច្បាស់ការឬអត់?')}
+              disabled={!hasAgreed || isLoading}
+              className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
+                !hasAgreed
+                  ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
+                  : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
+              }`}
+            >
+              <i className="fas fa-fire text-xs text-amber-400"></i>
+              <span>Troll ឌឺមួយមើល</span>
+            </button>
 
-          <button
-            onClick={() => createNewSession()}
-            disabled={!hasAgreed}
-            className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
-              !hasAgreed
-                ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-400 cursor-pointer'
-            }`}
-          >
-            <i className="fas fa-rotate text-xs"></i>
-            <span>ជជែកថ្មី</span>
-          </button>
-        </div>
+            <button
+              onClick={() => createNewSession()}
+              disabled={!hasAgreed}
+              className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
+                !hasAgreed
+                  ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
+                  : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-400 cursor-pointer'
+              }`}
+            >
+              <i className="fas fa-rotate text-xs"></i>
+              <span>ជជែកថ្មី</span>
+            </button>
+          </div>
+        )}
 
         {/* ToDo Queued Prompt Chip (When user pressed enter/send while AI was thinking) */}
         {queuedPrompt && (
@@ -2641,7 +2853,9 @@ export default function KonPovPage() {
 
         {/* Clean Capsule Input Bar */}
         <div className={`flex items-center gap-1.5 p-1 sm:p-1.5 rounded-2xl sm:rounded-3xl border shadow-sm transition-all focus-within:ring-2 ${
-          !hasAgreed
+          isRotanaAdmin
+            ? 'bg-slate-900 border-amber-500/70 shadow-lg shadow-amber-950/40 ring-1 ring-amber-500/30'
+            : !hasAgreed
             ? 'opacity-60 bg-slate-900/30 border-slate-800'
             : isDark
             ? 'bg-slate-900 border-slate-700/80 focus-within:border-blue-400/80 focus-within:ring-blue-500/20'
@@ -2650,11 +2864,11 @@ export default function KonPovPage() {
           {/* Photo attach button */}
           <button
             onClick={() => {
-              if (hasAgreed) fileInputRef.current?.click();
+              if (isRotanaAdmin || hasAgreed) fileInputRef.current?.click();
             }}
-            disabled={!hasAgreed}
+            disabled={!isRotanaAdmin && !hasAgreed}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition shrink-0 ${
-              !hasAgreed
+              !isRotanaAdmin && !hasAgreed
                 ? 'opacity-40 cursor-not-allowed text-slate-600'
                 : selectedImage
                 ? 'bg-blue-500 text-white shadow-xs cursor-pointer'
@@ -2670,7 +2884,7 @@ export default function KonPovPage() {
           {/* Text Input */}
           <input
             type="text"
-            disabled={!hasAgreed || isGeneratingMeme}
+            disabled={!isRotanaAdmin && (!hasAgreed || isGeneratingMeme)}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => {
@@ -2682,7 +2896,7 @@ export default function KonPovPage() {
             className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             placeholder={
               isRotanaAdmin
-                ? 'សរសេរសារឆ្លើយតបក្នុងនាម Rotana NOB (Creator)...'
+                ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
                 : isBotPaused
                 ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបង Rotana...'
                 : !hasAgreed
@@ -2700,26 +2914,26 @@ export default function KonPovPage() {
           {/* Send / Queue button */}
           <button
             onClick={handleSendMessageOrQueue}
-            disabled={!hasAgreed || isGeneratingMeme || (!inputText.trim() && !selectedImage && !queuedPrompt)}
+            disabled={(!isRotanaAdmin && !hasAgreed) || isGeneratingMeme || (!inputText.trim() && !selectedImage && !queuedPrompt)}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 ${
-              !hasAgreed || (!inputText.trim() && !selectedImage && !queuedPrompt)
+              (!isRotanaAdmin && !hasAgreed) || (!inputText.trim() && !selectedImage && !queuedPrompt)
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-40'
                 : isRotanaAdmin
-                ? 'bg-gradient-to-tr from-amber-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white shadow-amber-500/25 cursor-pointer'
+                ? 'bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-600 hover:brightness-110 text-white shadow-amber-500/30 cursor-pointer'
                 : isLoading
                 ? 'bg-gradient-to-tr from-amber-500 to-blue-600 text-white shadow-amber-500/25 cursor-pointer'
                 : 'bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 cursor-pointer'
             }`}
             title={
               isRotanaAdmin
-                ? 'ផ្ញើសារក្នុងនាម Rotana NOB'
+                ? `ផ្ញើសារក្នុងនាម Rotana NOB ទៅកាន់ ${clientUsername}`
                 : isLoading
                 ? 'ចុចដើម្បីដាក់ចូល ToDo (ត្រៀមផ្ញើស្វ័យប្រវត្តពេល AI ឆ្លើយចប់)'
                 : 'ផ្ញើសារ'
             }
           >
             {isRotanaAdmin ? (
-              <i className="fas fa-crown text-xs"></i>
+              <i className="fas fa-paper-plane text-xs"></i>
             ) : isLoading ? (
               <i className="fas fa-clock animate-pulse text-xs"></i>
             ) : (
