@@ -1631,44 +1631,27 @@ export default function KonPovPage() {
 
         {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
-          {/* AI Mode Selector: Unmistakably Clear Interactive Dropdown Pill */}
+          {/* AI Mode Selector: Clean, Compact Pill Matching User Design (Image 2) */}
           <button
             type="button"
             onClick={() => setShowModeMenu(!showModeMenu)}
-            className={`px-2.5 py-1 rounded-full text-[10.5px] sm:text-[11px] font-black flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
               savageLevel === 'savage'
-                ? 'bg-rose-500/10 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/60'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20'
                 : savageLevel === 'medium'
-                ? 'bg-amber-500/10 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/60'
-                : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/60'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
             }`}
-            title="ចុចដើម្បីជ្រើសរើសម៉ូដ AI (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
+            title="ជ្រើសរើសកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
           >
-            <i
-              className={`fas ${
-                savageLevel === 'savage'
-                  ? 'fa-bolt text-rose-500'
-                  : savageLevel === 'medium'
-                  ? 'fa-comment-dots text-amber-500'
-                  : 'fa-heart text-emerald-500'
-              } text-[10px]`}
-            ></i>
             <span>
-              ម៉ូដ: {savageLevel === 'savage' ? 'ឌឺបាក់ក' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
+              {savageLevel === 'savage' ? 'ឌឺបាក់ក' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
             </span>
-            <span
-              className={`w-4 h-4 rounded-full flex items-center justify-center transition-transform duration-200 ${
+            <i
+              className={`fas fa-chevron-down text-[8.5px] transition-transform duration-200 ${
                 showModeMenu ? 'rotate-180' : ''
-              } ${
-                savageLevel === 'savage'
-                  ? 'bg-rose-500/20 text-rose-500 dark:text-rose-300'
-                  : savageLevel === 'medium'
-                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300'
-                  : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
               }`}
-            >
-              <i className="fas fa-caret-down text-[9px]"></i>
-            </span>
+            ></i>
           </button>
 
           {/* Switch to KonBong */}
@@ -2111,21 +2094,34 @@ export default function KonPovPage() {
             const st = audioStatuses[idx] || 'ready';
             return (
               <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
-                {/* Interactive Animated Talking/Roasting Bot Avatar */}
+                {/* Interactive Animated Talking/Roasting Bot Avatar (DJ Beat / Surprise Popup "មហាចលនា") */}
                 <div className="relative shrink-0 mt-0.5">
+                  {st === 'playing' && (
+                    <>
+                      {/* Concentric Radiating Bass Waves */}
+                      <span className="absolute inset-0 rounded-full animate-sound-wave-1 pointer-events-none"></span>
+                      <span className="absolute inset-0 rounded-full animate-sound-wave-2 pointer-events-none"></span>
+                      {/* Mini Dancing Equalizer Bars above avatar */}
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-end gap-0.5 px-1 py-0.5 rounded-full bg-slate-900/90 border border-blue-400/50 shadow-md z-20 pointer-events-none">
+                        <span className="w-0.5 bg-blue-400 rounded-full animate-eq-1"></span>
+                        <span className="w-0.5 bg-pink-400 rounded-full animate-eq-2"></span>
+                        <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-3"></span>
+                      </div>
+                    </>
+                  )}
                   <img
                     src={botAvatar}
                     alt="Bot Avatar"
-                    className={`w-8 h-8 rounded-full shadow-md shrink-0 object-cover bg-slate-800 transition-transform duration-300 ${
+                    className={`w-8 h-8 rounded-full shadow-md shrink-0 object-cover bg-slate-800 transition-all duration-300 relative z-10 ${
                       st === 'playing'
-                        ? 'ring-4 ring-blue-400 ring-offset-2 ring-offset-slate-900 bot-speaking-avatar scale-110 shadow-lg shadow-blue-500/50'
+                        ? 'ring-4 ring-blue-400 ring-offset-2 ring-offset-slate-900 bot-avatar-beat-mega'
                         : 'ring-2 ring-blue-500/30'
                     }`}
                   />
                   {st === 'playing' && (
-                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4">
+                    <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 z-20">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-500 items-center justify-center text-[8px] text-white">
+                      <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 items-center justify-center text-[8.5px] text-white shadow-md ring-1 ring-white dark:ring-slate-900">
                         <i className="fas fa-volume-up animate-pulse"></i>
                       </span>
                     </span>
