@@ -58,6 +58,7 @@ export default function KonBongPage() {
   // Upgraded Feature 1: Savage Troll Level (gentle, medium, savage)
   const [savageLevel, setSavageLevel] = useState('savage');
   const [showModeMenu, setShowModeMenu] = useState(false);
+  const [showPersonaModal, setShowPersonaModal] = useState(false);
 
   // Upgraded Feature 2: Audio Playback Speed (1.0x, 1.25x, 1.5x, 2.0x)
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
@@ -1532,9 +1533,26 @@ export default function KonBongPage() {
           </div>
 
           <div className="min-w-0 flex-1">
-            <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
-              ស៊ីតិច កូនច្បង
-            </h1>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate shrink-0 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <span>ស៊ីតិច</span>
+                <span className="hidden sm:inline"> កូនច្បង</span>
+              </h1>
+              {/* Savage Persona Badge Button: ស្ដេចឌឺ (កូនច្បង) */}
+              <button
+                type="button"
+                onClick={() => setShowPersonaModal(true)}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black tracking-tight transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+                  isDark
+                    ? 'bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-emerald-500/20 border-cyan-400/40 text-cyan-300 hover:border-cyan-400/70 hover:shadow-cyan-500/20'
+                    : 'bg-gradient-to-r from-cyan-50 to-teal-50 border-cyan-300 text-cyan-700 hover:bg-cyan-100'
+                }`}
+                title="ចុចដើម្បីមើលព័ត៌មានស្ដេចឌឺ (កូនច្បង)"
+              >
+                <i className="fas fa-crown text-[8.5px] text-amber-400"></i>
+                <span>ស្ដេចឌឺ (កូនច្បង)</span>
+              </button>
+            </div>
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse"></span>
               <span className="text-emerald-500 font-semibold text-[9.5px]">Online</span>
@@ -2536,6 +2554,70 @@ export default function KonBongPage() {
         caption={viewingImage?.caption}
         onClose={() => setViewingImage(null)}
       />
+
+      {/* Persona Info Modal: ស្ដេចឌឺ (កូនច្បង) */}
+      {showPersonaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl p-5 border shadow-2xl relative bg-slate-900 border-cyan-500/40 text-white animate-scale-up">
+            <button
+              onClick={() => setShowPersonaModal(false)}
+              className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition cursor-pointer"
+              title="បិទ"
+            >
+              <i className="fas fa-times text-xs"></i>
+            </button>
+
+            <div className="text-center pt-2 pb-3">
+              <div className="relative inline-block mx-auto mb-3">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-600 via-teal-600 to-emerald-500 p-0.5 shadow-xl">
+                  <img src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot" alt="Persona" className="w-full h-full rounded-full object-cover bg-slate-800" />
+                </div>
+                <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow text-xs">
+                  <i className="fas fa-crown"></i>
+                </span>
+              </div>
+              <h3 className="text-base font-black tracking-tight text-white flex items-center justify-center gap-1.5">
+                <span>ស្ដេចឌឺ (កូនច្បង)</span>
+              </h3>
+              <p className="text-[11px] text-cyan-400 font-bold mt-0.5">
+                ស៊ីតិច Chatbot កូនច្បង • រៀមច្បង SETEC សម្ដីកាំបិតចិតបេះដូង
+              </p>
+            </div>
+
+            <div className="space-y-2.5 text-xs bg-slate-950/60 rounded-2xl p-3.5 border border-slate-800 mb-4">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-slate-400">កម្រិតឌឺបច្ចុប្បន្ន:</span>
+                <span className="font-black text-rose-400 flex items-center gap-1">
+                  <i className="fas fa-bolt text-[10px]"></i>
+                  {savageLevel === 'savage' ? 'ឌឺបាក់ក (Savage)' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-slate-400">ចរិតលក្ខណៈ:</span>
+                <span className="font-bold text-cyan-300">
+                  រៀមច្បងឌឺបាញ់សិស្សប្អូន
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span className="text-slate-400">ប្រព័ន្ធការពារ:</span>
+                <span className="font-bold text-emerald-400 flex items-center gap-1">
+                  <i className="fas fa-shield-halved text-[10px]"></i> Anti-Jailbreak Active
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-300 italic pt-1 text-center leading-relaxed">
+                «សិស្សប្អូនអើយ ចូលមករៀន ឬចូលមកឱ្យបង Troll? សួរមក បងចាំបាញ់!»
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowPersonaModal(false)}
+              className="w-full py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white shadow-lg shadow-cyan-500/25 active:scale-98 transition cursor-pointer"
+            >
+              បាញ់មកបងច្បង! ខ្ញុំត្រៀមខ្លួនហើយ
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Anti-Spam Scary & Funny Alert Modal */}
       <AntiSpamModal
