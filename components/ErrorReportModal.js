@@ -19,6 +19,7 @@ export default function ErrorReportModal({
   const [issue, setIssue] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(180);
 
   useEffect(() => {
     if (isOpen) {
@@ -26,10 +27,29 @@ export default function ErrorReportModal({
       setIssue(initialIssue || '');
       setSentSuccess(false);
       setIsSending(false);
+      setCountdown(180);
     }
   }, [isOpen, defaultUsername, initialIssue]);
 
+  useEffect(() => {
+    let timer = null;
+    if (sentSuccess && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [sentSuccess, countdown]);
+
   if (!isOpen) return null;
+
+  const formatCountdown = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,30 +129,40 @@ export default function ErrorReportModal({
         </button>
 
         {sentSuccess ? (
-          <div className="text-center py-6 animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl animate-bounce">
-              <i className="fas fa-satellite-dish"></i>
+          <div className="text-center py-5 animate-fade-in">
+            <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl animate-pulse">
+              <i className="fas fa-paper-plane"></i>
             </div>
-            <h3 className="text-base sm:text-lg font-black mb-2 text-emerald-400">
+            <h3 className="text-base sm:text-lg font-black mb-1.5 text-emerald-400">
               បាន Alert ទៅកាន់ Telegram បង Rotana NOB រួចរាល់!
             </h3>
-            <div className={`text-xs leading-relaxed max-w-sm mx-auto p-3.5 rounded-2xl mb-4 border ${
+            
+            {/* 180s Realtime Countdown Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 font-black text-sm my-2 shadow-xs">
+              <i className="fas fa-stopwatch animate-spin text-xs"></i>
+              <span>{formatCountdown(countdown)}</span>
+              <span className="text-[10px] font-bold opacity-80">(នៅសល់ {countdown}s)</span>
+            </div>
+
+            <div className={`text-xs leading-relaxed max-w-sm mx-auto p-3.5 rounded-2xl mb-4 border text-left space-y-1.5 ${
               isDark ? 'bg-slate-950/80 border-emerald-500/30 text-emerald-200' : 'bg-emerald-50 border-emerald-200 text-emerald-950'
             }`}>
-              <p className="font-bold mb-1">
-                ⚡ &ldquo;សូមប្អូនចាំបន្តិច! ខ្ញុំ Rotana NOB នឹងចូលមកភ្លាមក្នុង Chat Window នេះផ្ទាល់...&rdquo;
+              <p className="font-bold flex items-center gap-1.5">
+                <i className="fas fa-circle-check text-emerald-400 text-xs"></i>
+                <span>បន្តិចទៀតនេះ បង Rotana NOB នឹងបើកតាម Telegram / Mini App របស់គាត់ចូលមកដល់ក្នុង Chat នេះភ្លាមៗ!</span>
               </p>
-              <p className="text-[11px] opacity-80">
-                Link Bypass មាន Encryption សុវត្ថិភាពខ្ពស់បំផុតត្រូវបានបញ្ជូនទៅកាន់ Telegram បង Rotana រួចហើយ!
+              <p className="text-[11px] opacity-80 pl-4">
+                សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ (Protocol 1-1 សុវត្ថិភាពខ្ពស់)។
               </p>
             </div>
+
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:brightness-110 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 cursor-pointer transition active:scale-95 inline-flex items-center gap-2"
+              className="w-full py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:brightness-110 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
             >
               <i className="fas fa-comments"></i>
-              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំ Rotana NOB</span>
+              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំបង Rotana ({countdown}s)</span>
             </button>
           </div>
         ) : (

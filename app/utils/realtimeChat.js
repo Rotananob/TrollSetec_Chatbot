@@ -28,7 +28,7 @@ export function generateBypassToken(sessionId, bot) {
   return btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-// Validate Encrypted Bypass Token
+// Validate Encrypted Bypass Token (Strict 1-1 Protocol)
 export function validateBypassToken(sessionId, bot, token) {
   if (!token) return false;
   try {
@@ -51,6 +51,13 @@ export function validateBypassToken(sessionId, bot, token) {
 export async function initLiveSessionOnDatabase(sessionId, { username, bot, issue, messages, token }) {
   try {
     const url = `${FIREBASE_DB_URL}/live_sessions/${encodeURIComponent(sessionId)}.json`;
+    const initialLog = {
+      id: 'log_' + Date.now(),
+      type: 'alert_sent',
+      text: `User "${username || 'User'}" បានចុច Send Alert ទៅកាន់បង Rotana NOB រួចរាល់។ កំពុងរង់ចាំ (180 វិនាទី)...`,
+      timestamp: Date.now()
+    };
+
     const payload = {
       sessionId,
       username: username || 'User',
@@ -59,10 +66,13 @@ export async function initLiveSessionOnDatabase(sessionId, { username, bot, issu
       alertActive: true,
       botPaused: false,
       rotanaActive: false,
+      countdownStartedAt: Date.now(),
+      status: 'waiting', // 'waiting' (yellow) | 'active' (green) | 'timeout' | 'ended'
       createdAt: Date.now(),
       updatedAt: Date.now(),
       bypassToken: token,
-      messages: Array.isArray(messages) ? messages.slice(-15) : []
+      messages: Array.isArray(messages) ? messages.slice(-20) : [],
+      logs: [initialLog]
     };
 
     const res = await fetch(url, {
@@ -110,7 +120,29 @@ export async function updateLiveSessionState(sessionId, patchData) {
   }
 }
 
-// 4. Send a Message into the Live Session (Used by Rotana or User)
+// 4. Append In-Chat Action Log (e.g. Rotana entered, paused AI, resumed AI, or left)
+export async function addSessionLog(sessionId, text, type = 'info') {
+  if (!sessionId || !text) return false;
+  try {
+    const url = `${FIREBASE_DB_URL}/live_sessions/${encodeURIComponent(sessionId)}/logs.json`;
+    const logItem = {
+      id: 'log_' + Date.now(),
+      type,
+      text,
+      timestamp: Date.now()
+    };
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logItem)
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+// 5. Send a Message into the Live Session (Used by Rotana or User)
 export async function sendLiveMessage(sessionId, message) {
   if (!sessionId || !message) return false;
   try {
@@ -129,8 +161,7 @@ export async function sendLiveMessage(sessionId, message) {
   }
 }
 
-// 5. Realtime Subscription via Server-Sent Events (SSE / EventSource)
-// Native browser support with zero dependencies and instant synchronization
+// 6. Realtime Subscription via Server-Sent Events (SSE / EventSource)
 export function subscribeToLiveSession(sessionId, onUpdate) {
   if (typeof window === 'undefined' || !window.EventSource || !sessionId) {
     return () => {};
@@ -166,7 +197,7 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
             sessionState.botPaused = payload.data;
           } else if (cleanKey === 'rotanaActive') {
             sessionState.rotanaActive = payload.data;
-          } else if (cleanKey.startsWith('messages')) {
+          } else if (cleanKey.startsWith('messages') || cleanKey.startsWith('logs')) {
             getLiveSession(sessionId).then((s) => {
               if (s && !isClosed) {
                 sessionState = s;
@@ -192,7 +223,6 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
     });
 
     eventSource.onerror = () => {
-      // If SSE disconnects, fall back to lightweight polling every 2.5s
       if (!pollingInterval && !isClosed) {
         pollingInterval = setInterval(async () => {
           if (isClosed) return;
@@ -201,11 +231,10 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
             sessionState = session;
             onUpdate(session);
           }
-        }, 2500);
+        }, 2000);
       }
     };
   } catch {
-    // Immediate fallback to polling
     pollingInterval = setInterval(async () => {
       if (isClosed) return;
       const session = await getLiveSession(sessionId);
@@ -213,7 +242,7 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
         sessionState = session;
         onUpdate(session);
       }
-    }, 2500);
+    }, 2000);
   }
 
   // Initial fetch for instant display
@@ -224,7 +253,6 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
     }
   });
 
-  // Cleanup unsubscriber
   return () => {
     isClosed = true;
     if (eventSource) {
@@ -236,4 +264,84 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
       clearInterval(pollingInterval);
     }
   };
+}
+
+// 7. REAL-TIME DATABASE CHAT STORAGE (STRICTLY NO LOCALSTORAGE FOR CHAT SESSIONS)
+export async function saveChatSessionToDatabase(deviceId, bot, session) {
+  if (!deviceId || !bot || !session?.id) return false;
+  try {
+    // Sanitize session to prevent clogging / lag: limit stored messages to last 40 items per session
+    const cleanSession = {
+      id: session.id,
+      title: session.title || 'Chat',
+      createdAt: session.createdAt || new Date().toISOString(),
+      updatedAt: Date.now(),
+      messages: Array.isArray(session.messages)
+        ? session.messages.slice(-40).map((m) => ({
+            role: m.role || 'user',
+            text: m.text || '',
+            author: m.author || undefined,
+            memeImage: m.memeImage || undefined,
+            image: m.image ? (m.image.length > 500000 ? '[រូបភាពធំ]' : m.image) : undefined,
+            timestamp: m.timestamp || Date.now()
+          }))
+        : []
+    };
+
+    const url = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/${encodeURIComponent(session.id)}.json`;
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cleanSession)
+    });
+    return res.ok;
+  } catch (e) {
+    console.warn('[RealtimeChat] saveChatSession error:', e);
+    return false;
+  }
+}
+
+export async function loadChatSessionsFromDatabase(deviceId, bot) {
+  if (!deviceId || !bot) return [];
+  try {
+    const url = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}.json`;
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data || typeof data !== 'object') return [];
+
+    const list = Object.values(data).filter((s) => s && s.id);
+    // Sort descending by createdAt
+    list.sort((a, b) => {
+      const ta = new Date(a.createdAt || a.updatedAt || 0).getTime();
+      const tb = new Date(b.createdAt || b.updatedAt || 0).getTime();
+      return tb - ta;
+    });
+    return list;
+  } catch (e) {
+    console.warn('[RealtimeChat] loadChatSessions error:', e);
+    return [];
+  }
+}
+
+export async function deleteChatSessionFromDatabase(deviceId, bot, sessionId) {
+  if (!deviceId || !bot || !sessionId) return false;
+  try {
+    const url = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/${encodeURIComponent(sessionId)}.json`;
+    const res = await fetch(url, { method: 'DELETE' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteAllChatSessionsFromDatabase(deviceId, bot) {
+  if (!deviceId || !bot) return false;
+  try {
+    const url = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}.json`;
+    const res = await fetch(url, { method: 'DELETE' });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }

@@ -5,6 +5,15 @@
       ".write": true,
       "$sessionId": {
         ".read": true,
+        ".write": true,
+        ".indexOn": ["updatedAt", "createdAt"]
+      }
+    },
+    "chat_sessions": {
+      ".read": true,
+      ".write": true,
+      "$deviceId": {
+        ".read": true,
         ".write": true
       }
     }

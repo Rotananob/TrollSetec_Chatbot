@@ -19,7 +19,12 @@ import {
   getLiveSession,
   updateLiveSessionState,
   sendLiveMessage,
-  subscribeToLiveSession
+  subscribeToLiveSession,
+  addSessionLog,
+  saveChatSessionToDatabase,
+  loadChatSessionsFromDatabase,
+  deleteChatSessionFromDatabase,
+  deleteAllChatSessionsFromDatabase
 } from '../utils/realtimeChat';
 
 const API_ENDPOINT = getApiEndpoint('/api/chat');
@@ -42,6 +47,9 @@ export default function KonBongPage() {
   const [activeLiveSessionId, setActiveLiveSessionId] = useState(null);
   const [isRotanaOnline, setIsRotanaOnline] = useState(false);
   const [isBotPaused, setIsBotPaused] = useState(false);
+  const [sessionLogs, setSessionLogs] = useState([]);
+  const [countdownRemaining, setCountdownRemaining] = useState(null);
+  const countdownIntervalRef = useRef(null);
 
   // Custom Delete History Modal State
   const [deleteModalConfig, setDeleteModalConfig] = useState(null); // { isOpen, type: 'all'|'single', sessionId, title, description }
@@ -249,7 +257,7 @@ export default function KonBongPage() {
       }
     } catch {}
 
-    // Check for Rotana Bypass Direct URL parameter
+    // Check for Rotana Bypass Direct URL parameter (Strict 1-1 Protocol)
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const liveSessionParam = params.get('liveSession');
@@ -261,8 +269,9 @@ export default function KonBongPage() {
           setIsRotanaAdmin(true);
           setActiveLiveSessionId(liveSessionParam);
 
-          // Mark Rotana as active in the session
-          updateLiveSessionState(liveSessionParam, { rotanaActive: true });
+          // Mark Rotana as active in the session and append join log
+          updateLiveSessionState(liveSessionParam, { rotanaActive: true, status: 'active' });
+          addSessionLog(liveSessionParam, '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session)។', 'join');
 
           // Load existing session data
           getLiveSession(liveSessionParam).then((sessionData) => {
@@ -271,6 +280,10 @@ export default function KonBongPage() {
                 setMessages(sessionData.messages);
               }
               setIsBotPaused(!!sessionData.botPaused);
+              if (sessionData.logs) {
+                const logs = Array.isArray(sessionData.logs) ? sessionData.logs : Object.values(sessionData.logs);
+                setSessionLogs(logs);
+              }
             }
           });
         } else {
@@ -298,6 +311,40 @@ export default function KonBongPage() {
     loadSessions();
   }, []);
 
+  // 180s Countdown controller for User waiting for Rotana
+  const startCountdown180s = () => {
+    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    setCountdownRemaining(180);
+
+    countdownIntervalRef.current = setInterval(() => {
+      setCountdownRemaining((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+          handleCountdownExpired();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleCountdownExpired = () => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.isExpireAlertPrompt)) return prev;
+      const expireMsg = {
+        role: 'bot',
+        isExpireAlertPrompt: true,
+        text: 'ផុតកំណត់ម៉ោងរង់ចាំ (180 វិនាទី)! បង Rotana អាចកំពុងរវល់ ឬជាប់ភារកិច្ចបន្ទាន់។ ប្អូនអាចចុច Re-send Alert ម្ដងទៀត ឬផ្ញើសារ Report ទុកដើម្បីឱ្យបង Rotana ចូលមកពិនិត្យនៅពេលក្រោយបាន។',
+        timestamp: Date.now()
+      };
+      const updated = [...prev, expireMsg];
+      saveCurrentSessionMessages(updated);
+      return updated;
+    });
+  };
+
   // Realtime Live Session Synchronizer (For both Rotana Intervention and User)
   useEffect(() => {
     const sessionToWatch = activeLiveSessionId || currentSessionId;
@@ -308,6 +355,26 @@ export default function KonBongPage() {
 
       setIsRotanaOnline(!!sessionData.rotanaActive);
       setIsBotPaused(!!sessionData.botPaused);
+
+      // If Rotana joined, clear user countdown
+      if (sessionData.rotanaActive) {
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
+        setCountdownRemaining(null);
+      }
+
+      // Sync in-chat logs
+      if (sessionData.logs) {
+        let logList = [];
+        if (Array.isArray(sessionData.logs)) {
+          logList = sessionData.logs;
+        } else if (typeof sessionData.logs === 'object') {
+          logList = Object.values(sessionData.logs);
+        }
+        setSessionLogs(logList);
+      }
 
       // Handle real-time incoming messages from Rotana or User
       if (sessionData.messages) {
@@ -434,19 +501,18 @@ export default function KonBongPage() {
     setSelectedImage(null);
   };
 
-  // Sessions management
-  const loadSessions = () => {
+  // Sessions management (100% Firebase Realtime Database - Zero localStorage)
+  const loadSessions = async () => {
     try {
-      const saved = localStorage.getItem('konbong_chat_sessions');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setSessions(parsed);
-          const mostRecent = parsed[0];
-          setCurrentSessionId(mostRecent.id);
-          setMessages(mostRecent.messages || []);
-          return;
-        }
+      const deviceId = getDeviceId();
+      const remoteSessions = await loadChatSessionsFromDatabase(deviceId, 'konbong');
+      if (Array.isArray(remoteSessions) && remoteSessions.length > 0) {
+        setSessions(remoteSessions);
+        const mostRecent = remoteSessions[0];
+        setCurrentSessionId(mostRecent.id);
+        const validMsgs = (mostRecent.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+        setMessages(validMsgs);
+        return;
       }
       createNewSession([]);
     } catch {
@@ -454,7 +520,9 @@ export default function KonBongPage() {
     }
   };
 
+  // Create New Chat Session - stored directly in Firebase Realtime Database
   const createNewSession = (baseSessions = sessions) => {
+    const deviceId = getDeviceId();
     const newId = 'session_' + Date.now();
     const newSession = {
       id: newId,
@@ -467,11 +535,21 @@ export default function KonBongPage() {
     setSessions(updated);
     setCurrentSessionId(newId);
     setMessages([]);
-    localStorage.setItem('konbong_chat_sessions', JSON.stringify(updated));
+    setInputText('');
+    setSelectedImage(null);
+    setQueuedPrompt(null);
+    queuedPromptRef.current = null;
+    if (audioPlayerRef.current) audioPlayerRef.current.pause();
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    // Save to Firebase RTDB
+    saveChatSessionToDatabase(deviceId, 'konbong', newSession);
     return newSession;
   };
 
   const saveCurrentSessionMessages = (newMessages) => {
+    const deviceId = getDeviceId();
     setMessages(newMessages);
     setSessions((prevSessions) => {
       const updated = prevSessions.map((s) => {
@@ -483,18 +561,20 @@ export default function KonBongPage() {
               title = firstUserMsg.text?.slice(0, 24) || 'Chat';
             }
           }
-          return { ...s, messages: newMessages, title };
+          const updatedSession = { ...s, messages: newMessages, title, updatedAt: Date.now() };
+          saveChatSessionToDatabase(deviceId, 'konbong', updatedSession);
+          return updatedSession;
         }
         return s;
       });
-      localStorage.setItem('konbong_chat_sessions', JSON.stringify(updated));
       return updated;
     });
   };
 
-  // 100% Reliable Delete All History
+  // 100% Reliable Delete All History from Firebase Realtime Database
   const handleDeleteAllHistory = () => {
-    localStorage.removeItem('konbong_chat_sessions');
+    const deviceId = getDeviceId();
+    deleteAllChatSessionsFromDatabase(deviceId, 'konbong');
     const newId = 'session_' + Date.now();
     const freshSession = {
       id: newId,
@@ -505,20 +585,21 @@ export default function KonBongPage() {
     setSessions([freshSession]);
     setCurrentSessionId(newId);
     setMessages([]);
-    localStorage.setItem('konbong_chat_sessions', JSON.stringify([freshSession]));
+    saveChatSessionToDatabase(deviceId, 'konbong', freshSession);
     setDeleteModalConfig(null);
     setDrawerOpen(false);
   };
 
-  // 100% Reliable Delete Single Session
+  // 100% Reliable Delete Single Session from Firebase Realtime Database
   const handleDeleteSingleSession = (sessionId) => {
+    const deviceId = getDeviceId();
+    deleteChatSessionFromDatabase(deviceId, 'konbong', sessionId);
     const remaining = sessions.filter((s) => s.id !== sessionId);
     if (remaining.length === 0) {
       handleDeleteAllHistory();
       return;
     }
     setSessions(remaining);
-    localStorage.setItem('konbong_chat_sessions', JSON.stringify(remaining));
     if (currentSessionId === sessionId) {
       const nextSession = remaining[0];
       setCurrentSessionId(nextSession.id);
@@ -1538,13 +1619,13 @@ ${
             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-950"></span>
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${isDark ? 'text-white' : 'text-slate-900'}`}>
               ស៊ីតិច កូនច្បង
             </h1>
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse"></span>
-              <span className="text-emerald-500 font-semibold">Online</span>
+              <span className="text-emerald-500 font-semibold text-[9.5px]">Online</span>
             </div>
           </div>
         </div>
@@ -1555,7 +1636,7 @@ ${
           <button
             type="button"
             onClick={() => setShowModeMenu(!showModeMenu)}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+            className={`px-2 sm:px-2.5 py-1 rounded-full text-[10.5px] sm:text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
               savageLevel === 'savage'
                 ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 dark:text-rose-400 hover:bg-rose-500/20'
                 : savageLevel === 'medium'
@@ -1577,7 +1658,7 @@ ${
           {/* Switch to KonPov */}
           <Link
             href="/KonPov"
-            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
+            className={`px-2 sm:px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
               isDark
                 ? 'bg-blue-500/10 border-blue-400/20 text-blue-300 hover:bg-blue-500/20'
                 : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 shadow-xs'
@@ -1585,7 +1666,7 @@ ${
             title="ប្តូរទៅ ស៊ីតិច Chatbot កូនពៅ (ស្ដេចឌឺ)"
           >
             <i className="fas fa-repeat text-[9px]"></i>
-            <span>កូនពៅ</span>
+            <span className="hidden sm:inline">កូនពៅ</span>
           </Link>
 
           {/* Drawer Menu Button */}
@@ -1800,6 +1881,13 @@ ${
                   const nextState = !isBotPaused;
                   setIsBotPaused(nextState);
                   updateLiveSessionState(activeLiveSessionId, { botPaused: nextState });
+                  addSessionLog(
+                    activeLiveSessionId,
+                    nextState
+                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Chatbot ជាបណ្ដោះអាសន្ន។'
+                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបើកដំណើរការ Chatbot ឡើងវិញ។',
+                    'pause_toggle'
+                  );
                 }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-md ${
                   isBotPaused
@@ -1814,7 +1902,8 @@ ${
                 type="button"
                 onClick={() => {
                   if (confirm('តើបងពិតជាចង់បញ្ចប់ការ Support លើ Chat នេះមែនទេ?')) {
-                    updateLiveSessionState(activeLiveSessionId, { alertActive: false, rotanaActive: false });
+                    updateLiveSessionState(activeLiveSessionId, { alertActive: false, rotanaActive: false, status: 'resolved' });
+                    addSessionLog(activeLiveSessionId, '🔒 [ប្រព័ន្ធ] បង Rotana បានបញ្ចប់ Session 1-1 Live Support រួចរាល់។', 'end');
                     alert('បានបញ្ចប់ការ Support រួចរាល់!');
                   }
                 }}
@@ -1826,26 +1915,77 @@ ${
           </div>
         )}
 
-        {/* User Live Intervention Indicator */}
-        {!isRotanaAdmin && isRotanaOnline && (
-          <div className="mx-1 mb-3 p-3 bg-gradient-to-r from-emerald-950/90 via-slate-900 to-teal-950/90 border border-emerald-500/40 rounded-2xl shadow-lg flex items-center gap-3 animate-fade-in">
-            <div className="relative shrink-0">
-              <img src="/img/DevPic.JPG" alt="Rotana NOB" className="w-9 h-9 rounded-full ring-2 ring-emerald-400 object-cover shadow-md" />
-              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full ring-2 ring-slate-950 animate-ping"></span>
+        {/* User Live Intervention Indicator (Yellow if waiting, Green if Rotana joined) */}
+        {!isRotanaAdmin && (isRotanaOnline || activeLiveSessionId) && (
+          <div
+            className={`mx-1 mb-3 p-3 rounded-2xl shadow-lg flex items-center justify-between gap-3 animate-fade-in border ${
+              isRotanaOnline
+                ? 'bg-gradient-to-r from-emerald-950/90 via-slate-900 to-teal-950/90 border-emerald-500/40'
+                : 'bg-gradient-to-r from-amber-950/90 via-slate-900 to-yellow-950/90 border-amber-500/40'
+            }`}
+          >
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="relative shrink-0">
+                <img
+                  src="/img/DevPic.JPG"
+                  alt="Rotana NOB"
+                  className={`w-9 h-9 rounded-full object-cover shadow-md ${
+                    isRotanaOnline ? 'ring-2 ring-emerald-400' : 'ring-2 ring-amber-400 opacity-90'
+                  }`}
+                />
+                <span
+                  className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-slate-950 ${
+                    isRotanaOnline ? 'bg-emerald-400 animate-ping' : 'bg-amber-400 animate-pulse'
+                  }`}
+                ></span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p
+                  className={`text-xs font-black flex items-center gap-1.5 ${
+                    isRotanaOnline ? 'text-emerald-300' : 'text-amber-300'
+                  }`}
+                >
+                  <i
+                    className={`fas ${isRotanaOnline ? 'fa-circle-check text-emerald-400' : 'fa-clock text-amber-400'} text-xs`}
+                  ></i>
+                  <span>
+                    {isRotanaOnline
+                      ? 'បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
+                      : 'Rotana NOB (កំពុងរង់ចាំចូលរួម...)'}
+                  </span>
+                </p>
+                <p className="text-[10.5px] text-slate-300 font-medium">
+                  {isRotanaOnline
+                    ? isBotPaused
+                      ? 'Chatbot ត្រូវបានផ្អាក។ បងប្អូនកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
+                      : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ (1-1 Protocol)។'
+                    : countdownRemaining !== null && countdownRemaining > 0
+                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ (នៅសល់ ${countdownRemaining}s)...`
+                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram / Mini App ចូលមកភ្លាមៗ!'}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-black text-emerald-300 flex items-center gap-1.5">
-                <i className="fas fa-circle text-emerald-400 text-[8px]"></i>
-                <span>បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!</span>
-              </p>
-              <p className="text-[10.5px] text-slate-300 font-medium">
-                {isBotPaused
-                  ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ បងប្អូនអាចជជែកផ្ទាល់ជាមួយបង Rotana បាន!'
-                  : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ។'}
-              </p>
-            </div>
+            {isRotanaOnline ? (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40 shrink-0">
+                1-1 LIVE
+              </span>
+            ) : countdownRemaining !== null && countdownRemaining > 0 ? (
+              <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black font-mono shrink-0 border border-amber-500/30">
+                {Math.floor(countdownRemaining / 60)}:{(countdownRemaining % 60).toString().padStart(2, '0')}
+              </span>
+            ) : null}
           </div>
         )}
+
+        {/* Real-time In-Chat System Logs */}
+        {sessionLogs.map((log, lIdx) => (
+          <div key={'log_' + lIdx} className="flex justify-center my-1.5 animate-fade-in">
+            <div className="px-3.5 py-1 rounded-full bg-slate-800/90 border border-slate-700/60 text-slate-300 text-[10.5px] font-medium flex items-center gap-1.5 shadow-xs backdrop-blur-sm">
+              <i className="fas fa-info-circle text-cyan-400 text-[11px]"></i>
+              <span>{log.text}</span>
+            </div>
+          </div>
+        ))}
 
         {/* Dynamic Messages */}
         {messages.map((msg, idx) => {
@@ -2001,6 +2141,28 @@ ${
                         <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse align-middle"></span>
                       )}
                     </p>
+
+                    {/* Expired Countdown Prompt (With Re-send and Leave Message buttons) */}
+                    {msg.isExpireAlertPrompt && (
+                      <div className="mt-3 pt-2.5 border-t border-slate-700/40 flex flex-wrap gap-2 animate-fade-in">
+                        <button
+                          type="button"
+                          onClick={() => setErrorReportModalOpen(true)}
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md cursor-pointer"
+                        >
+                          <i className="fas fa-repeat text-xs"></i>
+                          <span>Re-send Alert ម្ដងទៀត</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setErrorReportModalOpen(true)}
+                          className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 border border-slate-700 cursor-pointer"
+                        >
+                          <i className="fas fa-pen-to-square text-xs text-amber-400"></i>
+                          <span>ទុកសារ Report ជូនបង Rotana</span>
+                        </button>
+                      </div>
+                    )}
 
                     {/* Audio Player, Playback Speed & Copy Actions */}
                     {msg.text && (() => {
@@ -2469,7 +2631,10 @@ ${
         initialIssue={errorReportInitialText}
         sessionId={currentSessionId}
         recentMessages={messages}
-        onLiveSessionStarted={({ sessionId }) => setActiveLiveSessionId(sessionId)}
+        onLiveSessionStarted={({ sessionId }) => {
+          setActiveLiveSessionId(sessionId);
+          startCountdown180s();
+        }}
         isDark={isDark}
       />
 
