@@ -2211,8 +2211,8 @@ export default function KonBongPage() {
             const st = audioStates[idx] || 'idle';
             return (
               <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
-                {/* Interactive Animated Talking/Roasting Bot Avatar (DJ Beat / Surprise Popup "មហាចលនា") */}
-                <div className="relative shrink-0 mt-0.5">
+                {/* Interactive Animated Talking/Roasting Bot Avatar (DJ Beat / Surprise Popup / Puppet Talking Mouth "ហាមាត់ធំៗ") */}
+                <div className={`relative shrink-0 mt-0.5 ${st === 'playing' ? 'animate-puppet-talk' : ''}`}>
                   {st === 'playing' && (
                     <>
                       {/* Concentric Radiating Bass Waves */}
@@ -2235,6 +2235,17 @@ export default function KonBongPage() {
                         : 'ring-2 ring-cyan-500/30'
                     }`}
                   />
+                  {/* Animated Puppet Talking Mouth (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */}
+                  {st === 'playing' && (
+                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
+                      <div className="puppet-talking-mouth flex flex-col items-center justify-between overflow-hidden">
+                        {/* Top White Teeth */}
+                        <div className="w-full h-[1.5px] bg-white rounded-t-xs opacity-95"></div>
+                        {/* Cute Red Tongue */}
+                        <div className="w-2.5 h-1.5 bg-rose-500 rounded-full mb-0.5 animate-pulse"></div>
+                      </div>
+                    </div>
+                  )}
                   {st === 'playing' && (
                     <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 z-20">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
