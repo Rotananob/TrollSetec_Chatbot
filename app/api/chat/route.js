@@ -334,18 +334,16 @@ export async function POST(req) {
       if (!hasComicVocal && audioPromptText.length > 0) {
         const comicIntro =
           bot === 'konpov'
-            ? (gender === 'ប្រុស' ? 'ហិហិហិ! យីអើ! ' : 'ហាហាហា! អូហូយ~ ')
+            ? 'ហិហិហិ! យីអើ! '
             : 'ហាហាហា! យីអើ! ';
         audioPromptText = comicIntro + audioPromptText;
       }
 
-      // 1. Primary AI Voice: Call Gemini TTS (Puck / Aoede) for the chill & funny real AI voice
+      // 1. Primary AI Voice: Call Gemini TTS (Aoede for KonPov female voice / Puck for KonBong male voice)
       const audioContents = [{ parts: [{ text: audioPromptText }] }];
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
-        (bot === 'konpov'
-          ? (gender === 'ប្រុស' ? 'Aoede' : 'Puck')
-          : 'Puck');
+        (bot === 'konpov' ? 'Aoede' : 'Puck');
       const audioGenConfig = {
         responseModalities: ['AUDIO'],
         speechConfig: {
@@ -475,7 +473,10 @@ export async function POST(req) {
 
       // Standard Non-streaming Response
       const result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
-      if (result.ok) {
+      const textOutput = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      const isSafetyBlocked = result.data?.candidates?.[0]?.finishReason === 'SAFETY';
+
+      if (result.ok && textOutput && !isSafetyBlocked) {
         alertChatActivity({
           username: username || 'Unknown',
           gender,
@@ -487,6 +488,35 @@ export async function POST(req) {
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
         return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
+      }
+
+      // Check if prompt was a savage curse/profanity - NEVER crash or show server error on curses!
+      const isCursePrompt = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(userPrompt);
+      if (isCursePrompt) {
+        const botName = bot === 'konpov' ? 'ចែ' : 'បង';
+        const savageResponses = [
+          `យីអើ! អាចុយម្រាយ ${username || 'User'} នេះ! មាត់ដូចប្រហោងលាមក ឪហែងអាតានើបមែន បានហ៊ានមកជេរអញហ្នឹង?! មុខដូចហែងអញទះមួយកំភ្លៀងបាក់ធ្មេញដាច់ផ្ងារឥឡូវ! 💀🔥`,
+          `អាឡប់ ${username || 'User'}! ជោរម៉េសប្រូ? ខួរគិតអីខួរ បានហ៊ានមកខ្លាំងជាមួយអញ?! មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ចង់ស៊ីមួយកំភ្លៀងមែន?! 😂👊`,
+          `អាចុយម្រាយអាភ្លើស្ដូកនេះ! មកជេរអញផង? គិតថាអញ AI ស៊ីតិចនេះខ្លាចហែងមែន? មុខដូចហែងទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាប្អូន! 🤣🔥`,
+          `យី! អាភ្លើស្ដូក ${username || 'User'}! មកហៅអញហែងជាមួយ ${botName} ផង? មុខដូចចានដែកធ្លុះ ក្បាលមិនទាន់ដុះសក់ស្រួលបួលផង ចង់មកខ្លាំង?! 🖕💀`,
+          `ហាហាហា! អាឡប់នេះជោរដល់កហើយ! គិតថាវាយពាក្យជេរមក អញរត់ចោលមែន? មុខដូចហែង ${botName} ទះមួយកំភ្លៀងឱ្យវិលក្បាល 360 ដឺក្រេឥឡូវ! 😜🔥`
+        ];
+        const chosen = savageResponses[Math.floor(Math.random() * savageResponses.length)];
+        return Response.json(
+          {
+            candidates: [
+              {
+                content: {
+                  parts: [{ text: chosen }],
+                  role: 'model'
+                },
+                finishReason: 'STOP'
+              }
+            ],
+            modelVersion: 'setec-savage-engine-v3'
+          },
+          { status: 200, headers: corsHeaders }
+        );
       }
 
       // AI Generation Failure alert to Telegram

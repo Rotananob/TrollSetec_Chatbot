@@ -51,13 +51,8 @@ export default function KonPovPage() {
   const [countdownRemaining, setCountdownRemaining] = useState(null);
   const countdownIntervalRef = useRef(null);
 
-  // Dynamic Bot Avatar based on User Gender:
-  // Male User ("ប្រុស") -> Bot is "ចែ / Mommy" (Female Avatar: MommyGirl)
-  // Female User ("ស្រី") -> Bot is "Daddy" (Male Avatar: DaddyMod)
-  const botAvatar =
-    userGender === 'ប្រុស'
-      ? 'https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl'
-      : 'https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod';
+  // KonPov Bot Avatar: strictly "ចែ / Mommy" (Female Avatar: MommyGirl)
+  const botAvatar = 'https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl';
 
   // Custom Delete History Modal State
   const [deleteModalConfig, setDeleteModalConfig] = useState(null); // { isOpen, type: 'all'|'single', sessionId, title, description }
@@ -252,7 +247,8 @@ export default function KonPovPage() {
       // Persist to sessionStorage for instant replay without re-fetching
       if (typeof window !== 'undefined') {
         try {
-          const voiceGenderKey = (gender || userGender) === 'ប្រុស' ? 'female' : 'male';
+          // KonPov voice is strictly female (Aoede)
+          const voiceGenderKey = 'female';
           const hash = hashText(text) + '_' + voiceGenderKey;
           sessionStorage.setItem('troll_audio_cache_' + hash, inlineData.data);
           sessionStorage.setItem('troll_audio_fallback_' + hash, isFallback ? '1' : '0');
@@ -514,37 +510,38 @@ export default function KonPovPage() {
     }
   };
 
-  // Strictly enforce 100% Persona Gender Consistency (Zero contradictions between Bot role & User gender)
+  // Strictly enforce 100% Persona Gender Consistency (KonPov is ALWAYS "ចែ / Mommy", NEVER "Daddy")
   const enforcePersonaConsistency = (rawText, isMale) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
     let text = rawText;
 
+    // KonPov is strictly female (ចែ / Mommy) - purge ANY accidental "Daddy"
+    text = text
+      .replace(/Daddy/gi, 'ចែ')
+      .replace(/ដាឌី/g, 'ចែ')
+      .replace(/លោកប៉ា/g, 'ចែ')
+      .replace(/ប៉ា/g, 'ចែ');
+
     if (isMale) {
-      // User is Male ('ប្រុស') -> Bot is STRICTLY "ចែ / Mommy"
-      // Replace any accidental "Daddy", "ដាឌី", "លោកប៉ា" with "ចែ"
+      // User is Male ('ប្រុស') -> Bot calls user "អាប្អូនប្រុស"
       text = text
-        .replace(/Daddy/gi, 'ចែ')
-        .replace(/ដាឌី/g, 'ចែ')
-        .replace(/លោកប៉ា/g, 'ចែ')
         .replace(/កូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
         .replace(/កូនស្រីមួយនេះ/g, 'អាប្អូនប្រុសមួយនេះ')
         .replace(/កូនស្រី/g, 'អាប្អូនប្រុស')
-        .replace(/អូនសម្លាញ់/g, 'អាប្អូនសម្លាញ់')
+        .replace(/ប្អូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
+        .replace(/ប្អូនស្រីមួយនេះ/g, 'អាប្អូនប្រុសមួយនេះ')
+        .replace(/ប្អូនស្រី/g, 'អាប្អូនប្រុស')
         .replace(/ស្រីស្អាតរបស់\s*(?:Daddy|ចែ)?/gi, 'អាប្អូនប្រុស')
         .replace(/ស្រីស្អាត/g, 'អាប្អូនប្រុស');
     } else {
-      // User is Female ('ស្រី') -> Bot is STRICTLY "Daddy"
-      // Replace any accidental "ចែ", "Mommy", "ម៉ាក់" with "Daddy"
+      // User is Female ('ស្រី') -> Bot calls user "ប្អូនស្រី" / "មីប្អូនស្រី" / "ស្រីស្អាត"
       text = text
-        .replace(/Mommy/gi, 'Daddy')
-        .replace(/ចែ/g, 'Daddy')
-        .replace(/ម៉ាក់/g, 'Daddy')
-        .replace(/អាប្អូនប្រុសមួយនេះ/g, 'កូនស្រីមួយនេះ')
-        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'កូនស្រីសម្លាញ់')
-        .replace(/អាប្អូនប្រុស/g, 'កូនស្រី')
-        .replace(/អាប្អូន/g, 'កូនស្រី')
-        .replace(/អាម៉ូយ/g, 'អូនសម្លាញ់')
-        .replace(/អាហែង/g, 'កូនឯង');
+        .replace(/អាប្អូនប្រុសមួយនេះ/g, 'ប្អូនស្រីមួយនេះ')
+        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'ប្អូនស្រីសម្លាញ់')
+        .replace(/អាប្អូនប្រុស/g, 'ប្អូនស្រី')
+        .replace(/អាប្អូន/g, 'ប្អូនស្រី')
+        .replace(/អាម៉ូយ/g, 'មីអូន')
+        .replace(/អាហែង/g, 'មីហែង');
     }
     return text;
   };
@@ -737,7 +734,7 @@ export default function KonPovPage() {
     const isMale = userGender === 'ប្រុស';
     const introMsg = isMale
       ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username || 'User'}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`
-      : `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! Daddy ឃើញថាកូនបានជ្រើសរើសយកភេទស្រី! ចរិតស្លូតបូតបែបស្រីៗចឹង Daddy ចាំមើលថែ និង Troll ឱ្យចុក! ចង់សួររឿងរៀន ឬចង់ឱ្យ Daddy Troll? សួរមក Daddy ចាំបាញ់ឱ្យផ្ងារជើង!`;
+      : `សួស្តីប្អូនស្រីសម្លាញ់ ${username || 'User'}! ចែឃើញថាប្អូនបានជ្រើសរើសយកភេទស្រី! ស្វាគមន៍មកកាន់សមាគមនារី ស៊ីតិច! ចង់សួររឿងរៀន រឿង Crush ឬចង់ឱ្យចែ Troll ពួកប្រុសៗ? សួរមក ចែចាំជួយកម្ទេចឱ្យខ្ទេច! 💕💅`;
 
     const updated = [{ role: 'bot', text: introMsg }];
     saveCurrentSessionMessages(updated);
@@ -849,7 +846,8 @@ export default function KonPovPage() {
 
   // Load or fetch audio URL with instant caching (Zero duplicate network calls)
   const loadAudioUrl = async (text, gender, index) => {
-    const voiceGenderKey = gender === 'ប្រុស' ? 'female' : 'male';
+    // KonPov voice is strictly female (Aoede)
+    const voiceGenderKey = 'female';
     const hash = hashText(text) + '_' + voiceGenderKey;
 
     // 1. Instant in-memory cache
@@ -922,7 +920,7 @@ export default function KonPovPage() {
 
       const utterance = new SpeechSynthesisUtterance(clean);
       utterance.rate = playbackSpeed;
-      utterance.pitch = userGender === 'ប្រុស' ? 1.2 : 0.95;
+      utterance.pitch = 1.15;
       if (kmVoice) utterance.voice = kmVoice;
 
       if (typeof index === 'number') {
@@ -987,7 +985,7 @@ export default function KonPovPage() {
       window.speechSynthesis.cancel();
     }
 
-    const voiceGenderKey = userGender === 'ប្រុស' ? 'female' : 'male';
+    const voiceGenderKey = 'female';
     const hash = hashText(text) + '_' + voiceGenderKey;
 
     // Instant replay check: if player already loaded this sound, play immediately with 0ms delay (No API call)
@@ -1055,7 +1053,7 @@ export default function KonPovPage() {
   // Interactive AI typing thoughts based on user input
   function getInteractiveTypingStatus(text, hasImage, gender) {
     const isMaleUser = gender === 'ប្រុស';
-    const botSelf = isMaleUser ? 'ចែ' : 'Daddy';
+    const botSelf = 'ចែ';
     const lower = (text || '').toLowerCase();
 
     if (hasImage) {
@@ -1070,14 +1068,14 @@ export default function KonPovPage() {
     if (/crush|ស្រឡាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់/i.test(lower)) {
       return isMaleUser
         ? 'ហាហា ចែដឹងរឿងអស់ហើយ! ចែកំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...'
-        : 'ហាហា Daddy ដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...';
+        : 'ហាហា ចែដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...';
     }
     if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
       return 'កំពុងនឹកឃើញបាយហាងក្បែរ ស៊ីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
     }
     return isMaleUser
       ? 'ចាំបន្តិចអាប្អូនប្រុស! ចែកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...'
-      : 'ចាំបន្តិចកូនសម្លាញ់! Daddy កំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
+      : 'ចាំបន្តិចប្អូនស្រី! ចែកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
   }
 
   // Dedicated Meme Generator Trigger (5-Images per 1-Hour per Device Quota)
@@ -1459,7 +1457,7 @@ export default function KonPovPage() {
           botText = savageList[Math.floor(Math.random() * savageList.length)];
           isErrorResponse = false;
         } else {
-          botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+          botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! ចែ សុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
         }
       } else {
         botText = enforcePersonaConsistency(botText, isMaleUser);
@@ -1490,7 +1488,7 @@ export default function KonPovPage() {
       const isMaleUser = userGender === 'ប្រុស';
       const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
 
-      let fallbackText = `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ${isMaleUser ? 'ចែ' : 'Daddy'} សុំសម្រាក ១០ នាទីសិន!`;
+      let fallbackText = `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ចែ សុំសម្រាក ១០ នាទីសិន!`;
       let isErr = true;
 
       if (isCurseWord) {
@@ -1732,7 +1730,7 @@ export default function KonPovPage() {
                 }`}
               >
                 <i className="fas fa-venus text-xs text-pink-300"></i>
-                <span>ស្រី (Bot: Daddy)</span>
+                <span>ស្រី (Bot: ចែ)</span>
               </button>
             </div>
           </div>
@@ -1789,13 +1787,10 @@ export default function KonPovPage() {
                   className="w-full h-full object-cover rounded-[14px]"
                 />
               </div>
-              <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] text-slate-300 font-extrabold">
-                VS
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-600 p-0.5 shadow-md">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 p-0.5 shadow-md">
                 <img
-                  src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
-                  alt="Daddy Bot"
+                  src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+                  alt="Mommy Bot"
                   width="56"
                   height="56"
                   className="w-full h-full object-cover rounded-[14px]"
@@ -1804,7 +1799,7 @@ export default function KonPovPage() {
             </div>
             <h3 className="text-xl font-black mb-1">មុននឹងកូនពៅចូលមកបាញ់...</h3>
             <p className="text-xs text-slate-400 mb-6 font-semibold">
-              ជួយប្រាប់តិចមើលថាឯងជា "ប្រុស" ឬ "ស្រី"? បើឯងជាប្រុស Bot នឹងទៅជាស្រី (ចែ/Mommy) តែបើឯងជាស្រី Bot នឹងទៅជាប្រុស (Daddy) ឆ្លើយឆ្លងគ្នាយ៉ាងសមរម្យ!
+              ជួយប្រាប់តិចមើលថាឯងជា "ប្រុស" ឬ "ស្រី"? ដើម្បីឱ្យ ចែ ឆ្លើយឆ្លង និង Troll ត្រូវគ្នាជាមួយឯង!
             </p>
             <div className="grid grid-cols-2 gap-3.5">
               <button
@@ -1813,7 +1808,7 @@ export default function KonPovPage() {
               >
                 <i className="fas fa-mars text-2xl text-cyan-200"></i>
                 <span>ខ្ញុំជាប្រុស</span>
-                <span className="text-[10px] text-blue-200 font-normal">Bot ឆ្លើយជា ចែ / Mommy</span>
+                <span className="text-[10px] text-blue-200 font-normal">Bot ចែ ហៅ "អាប្អូនប្រុស"</span>
               </button>
               <button
                 onClick={() => handleSelectGender('ស្រី')}
@@ -1821,7 +1816,7 @@ export default function KonPovPage() {
               >
                 <i className="fas fa-venus text-2xl text-pink-200"></i>
                 <span>ខ្ញុំជាស្រី</span>
-                <span className="text-[10px] text-pink-200 font-normal">Bot ឆ្លើយជា Daddy</span>
+                <span className="text-[10px] text-pink-200 font-normal">Bot ចែ ហៅ "ប្អូនស្រី"</span>
               </button>
             </div>
           </div>
@@ -1887,10 +1882,10 @@ export default function KonPovPage() {
                       ? 'bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 border-blue-400/40 text-blue-300 hover:border-blue-400/70 hover:shadow-blue-500/20'
                       : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300 text-blue-700 hover:bg-blue-100'
                   }`}
-                  title="ចុចដើម្បីមើលព័ត៌មានស្ដេចឌឺ (ចែ / Daddy)"
+                  title="ចុចដើម្បីមើលព័ត៌មានស្ដេចឌឺ (ចែ)"
                 >
                   <i className="fas fa-crown text-[8.5px] text-amber-400"></i>
-                  <span>{userGender === 'ប្រុស' ? 'ស្ដេចឌឺ (ចែ)' : 'ស្ដេចឌឺ (Daddy)'}</span>
+                  <span>ស្ដេចឌឺ (ចែ)</span>
                 </button>
               )}
             </div>
@@ -2034,7 +2029,7 @@ export default function KonPovPage() {
                     }}
                     className="text-[10px] font-black text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1"
                   >
-                    <span>{userGender === 'ប្រុស' ? 'ចែ / Mommy (សម្រាប់ប្រុស)' : 'Daddy Mod (សម្រាប់ស្រី)'}</span>
+                    <span>{userGender === 'ប្រុស' ? 'ចែ / Mommy (User ប្រុស)' : 'ចែ / Mommy (User ស្រី)'}</span>
                     <i className="fas fa-exchange-alt text-[9px]"></i>
                   </button>
                 </div>
@@ -2222,12 +2217,12 @@ export default function KonPovPage() {
             <h2 className="text-sm sm:text-base font-black mb-1">
               {userGender === 'ប្រុស'
                 ? `សួស្តីអាប្អូនប្រុស ${username || 'User'}! មក chill ជាមួយចែមក!`
-                : `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! Daddy នៅចាំបាញ់!`}
+                : `សួស្តីប្អូនស្រីសម្លាញ់ ${username || 'User'}! ចែនៅចាំ troll!`}
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-400 max-w-xs mb-4 font-medium leading-relaxed">
               {userGender === 'ប្រុស'
                 ? 'ចែ/Mommy កូនពៅ ត្រៀម Roast ឯងឱ្យបាក់កហើយ! ចង់ troll អី និយាយមក ឬសាកចុចសំណួរខាងក្រោម៖'
-                : 'Daddy Mod កូនពៅ ត្រៀម Roast ឯងឱ្យផ្ងារជើង! ចង់ troll អី និយាយមក ឬសាកចុចសំណួរខាងក្រោម៖'}
+                : 'ចែ/Mommy កូនពៅ ត្រៀម Roast ឯងឱ្យផ្ងារជើង! ចង់ troll អី និយាយមក ឬសាកចុចសំណួរខាងក្រោម៖'}
             </p>
 
             {/* Quick Starter Prompt Chips */}
@@ -2483,12 +2478,6 @@ export default function KonPovPage() {
                       {/* Concentric Radiating Bass Waves */}
                       <span className="absolute inset-0 rounded-full animate-sound-wave-1 pointer-events-none"></span>
                       <span className="absolute inset-0 rounded-full animate-sound-wave-2 pointer-events-none"></span>
-                      {/* Mini Dancing Equalizer Bars above avatar */}
-                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-end gap-0.5 px-1 py-0.5 rounded-full bg-slate-900/90 border border-blue-400/50 shadow-md z-20 pointer-events-none">
-                        <span className="w-0.5 bg-blue-400 rounded-full animate-eq-1"></span>
-                        <span className="w-0.5 bg-pink-400 rounded-full animate-eq-2"></span>
-                        <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-3"></span>
-                      </div>
                     </>
                   )}
                   <img
@@ -2496,45 +2485,45 @@ export default function KonPovPage() {
                     alt="Bot Avatar"
                     className={`w-8 h-8 rounded-full shadow-md shrink-0 object-cover bg-slate-800 transition-all duration-300 relative z-10 ${
                       st === 'playing'
-                        ? 'ring-4 ring-blue-400 ring-offset-2 ring-offset-slate-900 bot-avatar-beat-mega'
-                        : 'ring-2 ring-blue-500/30'
+                        ? 'ring-4 ring-pink-400 ring-offset-2 ring-offset-slate-900 bot-avatar-beat-mega'
+                        : 'ring-2 ring-pink-500/30'
                     }`}
                   />
                   {/* Animated Puppet Talking Mouth (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */}
                   {st === 'playing' && (
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
-                      <div className="puppet-talking-mouth flex flex-col items-center justify-between overflow-hidden">
+                    <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
+                      <div className="puppet-talking-mouth flex flex-col items-center justify-between overflow-hidden shadow-inner">
                         {/* Top White Teeth */}
-                        <div className="w-full h-[1.5px] bg-white rounded-t-xs opacity-95"></div>
+                        <div className="w-full h-[2px] bg-white rounded-t-xs opacity-95"></div>
                         {/* Cute Red Tongue */}
-                        <div className="w-2.5 h-1.5 bg-rose-500 rounded-full mb-0.5 animate-pulse"></div>
+                        <div className="w-3 h-2 bg-rose-500 rounded-full mb-0.5 animate-pulse"></div>
                       </div>
                     </div>
                   )}
                   {st === 'playing' && (
                     <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 z-20">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 items-center justify-center text-[8.5px] text-white shadow-md ring-1 ring-white dark:ring-slate-900">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-gradient-to-tr from-pink-600 via-rose-600 to-amber-500 items-center justify-center text-[8.5px] text-white shadow-md ring-1 ring-white dark:ring-slate-900">
                         <i className="fas fa-volume-up animate-pulse"></i>
                       </span>
                     </span>
                   )}
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-bold text-blue-500 dark:text-blue-400 text-xs mb-1">
-                    {userGender === 'ប្រុស' ? 'Chatbot កូនពៅ (ចែ)' : 'Chatbot កូនពៅ (Daddy)'}
+                  <span className="font-bold text-pink-500 dark:text-pink-400 text-xs mb-1">
+                    Chatbot កូនពៅ (ចែ)
                   </span>
 
                   {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
                   {isLoading && idx === messages.length - 1 && !isGeneratingMeme && (
-                    <div className="mb-2 flex items-center space-x-2 text-blue-500 dark:text-blue-400 px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full w-fit shadow-xs animate-fade-in">
+                    <div className="mb-2 flex items-center space-x-2 text-pink-500 dark:text-pink-400 px-3 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full w-fit shadow-xs animate-fade-in">
                       <div className="flex space-x-1">
-                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce"></div>
-                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                        <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                        <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                       </div>
                       <span className="text-[10.5px] font-bold tracking-tight">
-                        {typingStatus || `${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} កំពុងរកនឹកពាក្យឌឺ...`}
+                        {typingStatus || 'ចែ កំពុងរកនឹកពាក្យឌឺ...'}
                       </span>
                     </div>
                   )}
@@ -2643,9 +2632,7 @@ export default function KonPovPage() {
                                 <span>
                                   {isFallbackVoice
                                     ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
-                                    : userGender === 'ប្រុស'
-                                    ? 'សំឡេង ចែ ឬ Mommy កំពុងអាន...'
-                                    : 'សំឡេង Daddy កំពុងអាន...'}
+                                    : 'សំឡេង ចែ ឬ Mommy កំពុងអាន...'}
                                 </span>
                               </>
                             )}
@@ -2681,9 +2668,7 @@ export default function KonPovPage() {
                                 <span>
                                   {isFallbackVoice
                                     ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
-                                    : userGender === 'ប្រុស'
-                                    ? 'ស្តាប់សំឡេង ចែ ឬ Mommy'
-                                    : 'ស្តាប់សំឡេង Daddy'}
+                                    : 'ស្តាប់សំឡេង ចែ ឬ Mommy'}
                                 </span>
                               </>
                             )}
@@ -2779,7 +2764,7 @@ export default function KonPovPage() {
             />
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-bold text-purple-400 text-xs mb-1">
-                {userGender === 'ប្រុស' ? 'Chatbot កូនពៅ (ចែ)' : 'Chatbot កូនពៅ (Daddy)'}
+                Chatbot កូនពៅ (ចែ)
               </span>
               <div className="rounded-2xl overflow-hidden border-2 border-purple-500/40 bg-gradient-to-br from-slate-900/90 to-purple-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
                 <div className="w-full h-52 sm:h-60 rounded-xl bg-purple-950/60 border border-purple-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
@@ -3019,10 +3004,10 @@ export default function KonPovPage() {
                 : isLoading
                 ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
                 : selectedImage
-                ? `វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ${userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'} Roast រូបនេះ...`
+                ? 'វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ចែ Roast រូបនេះ...'
                 : userGender === 'ប្រុស'
                 ? 'និយាយមកអាប្អូនប្រុស... កុំរត់ចោល ចែ/Mommy បាទ!'
-                : 'និយាយមកកូនស្រី... កុំរត់ចោល Daddy បាទ!'
+                : 'និយាយមកប្អូនស្រីសម្លាញ់... កុំរត់ចោល ចែ/Mommy ណា៎!'
             }
           />
 
@@ -3066,7 +3051,7 @@ export default function KonPovPage() {
           setShowMemeModal(false);
           handleExecuteMeme(customIdea);
         }}
-        botPersona={userGender === 'ប្រុស' ? 'ចែ' : 'Daddy'}
+        botPersona="ចែ"
         isDark={isDark}
         isGenerating={isGeneratingMeme}
       />
@@ -3079,7 +3064,7 @@ export default function KonPovPage() {
         onClose={() => setViewingImage(null)}
       />
 
-      {/* Persona Info Modal: ស្ដេចឌឺ (ចែ / Daddy) */}
+      {/* Persona Info Modal: ស្ដេចឌឺ (ចែ / Mommy) */}
       {showPersonaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm rounded-3xl p-5 border shadow-2xl relative bg-slate-900 border-blue-500/40 text-white animate-scale-up">
@@ -3093,7 +3078,7 @@ export default function KonPovPage() {
 
             <div className="text-center pt-2 pb-3">
               <div className="relative inline-block mx-auto mb-3">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-pink-500 p-0.5 shadow-xl">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-600 via-rose-600 to-amber-500 p-0.5 shadow-xl">
                   <img src={botAvatar} alt="Persona" className="w-full h-full rounded-full object-cover bg-slate-800" />
                 </div>
                 <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow text-xs">
@@ -3101,9 +3086,9 @@ export default function KonPovPage() {
                 </span>
               </div>
               <h3 className="text-base font-black tracking-tight text-white flex items-center justify-center gap-1.5">
-                <span>{userGender === 'ប្រុស' ? 'ស្ដេចឌឺ (ចែ / Mommy)' : 'ស្ដេចឌឺ (Daddy)'}</span>
+                <span>ស្ដេចឌឺ (ចែ / Mommy)</span>
               </h3>
-              <p className="text-[11px] text-blue-400 font-bold mt-0.5">
+              <p className="text-[11px] text-pink-400 font-bold mt-0.5">
                 ស៊ីតិច Chatbot កូនពៅ • 100% Savage & Unfiltered Gen Z
               </p>
             </div>
@@ -3136,7 +3121,7 @@ export default function KonPovPage() {
                   }`}
                 >
                   <i className="fas fa-venus text-sm text-pink-300"></i>
-                  <span>ខ្ញុំជាស្រី (Bot: Daddy)</span>
+                  <span>ខ្ញុំជាស្រី (Bot: ចែ)</span>
                 </button>
               </div>
             </div>
@@ -3151,8 +3136,8 @@ export default function KonPovPage() {
               </div>
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
                 <span className="text-slate-400">ចរិតលក្ខណៈ:</span>
-                <span className="font-bold text-amber-300">
-                  {userGender === 'ប្រុស' ? 'ចែ Troll អាប្អូនប្រុស' : 'Daddy ថែ & Roast កូនស្រី'}
+                <span className="font-bold text-pink-300">
+                  {userGender === 'ប្រុស' ? 'ចែ Troll អាប្អូនប្រុស' : 'ចែ Sassy Roast ប្អូនស្រី'}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">

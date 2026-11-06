@@ -2273,12 +2273,6 @@ export default function KonBongPage() {
                       {/* Concentric Radiating Bass Waves */}
                       <span className="absolute inset-0 rounded-full animate-sound-wave-1 pointer-events-none"></span>
                       <span className="absolute inset-0 rounded-full animate-sound-wave-2 pointer-events-none"></span>
-                      {/* Mini Dancing Equalizer Bars above avatar */}
-                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-end gap-0.5 px-1 py-0.5 rounded-full bg-slate-900/90 border border-cyan-400/50 shadow-md z-20 pointer-events-none">
-                        <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-1"></span>
-                        <span className="w-0.5 bg-emerald-400 rounded-full animate-eq-2"></span>
-                        <span className="w-0.5 bg-sky-400 rounded-full animate-eq-3"></span>
-                      </div>
                     </>
                   )}
                   <img
