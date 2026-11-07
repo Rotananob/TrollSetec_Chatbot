@@ -16,6 +16,13 @@ import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage'
 import { initSecurityShield } from '../utils/securityShield';
 import { buildKonPovSystemInstruction } from '../prompts/konPovPrompt';
 import {
+  getLiveSessionState,
+  touchLiveSession,
+  setServerCooldownLock,
+  formatCountdown
+} from '../utils/chatSessionLimit';
+import SessionBreakModal from '@/components/SessionBreakModal';
+import {
   validateBypassToken,
   getLiveSession,
   updateLiveSessionState,
@@ -111,6 +118,15 @@ export default function KonPovPage() {
   const [username, setUsername] = useState('User');
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
+
+  // 15-Minute Live Chat Session & 20-Minute Cooldown Manager State (Anti-Bypass)
+  const [sessionState, setSessionState] = useState({
+    sessionStart: null,
+    cooldownUntil: null,
+    isLocked: false,
+    remainingSessionSec: 900,
+    remainingCooldownSec: 0
+  });
 
   const chatBottomRef = useRef(null);
   const audioPlayerRef = useRef(null);
@@ -211,7 +227,7 @@ export default function KonPovPage() {
       if (!speechText) return null;
       const deviceId = getDeviceId();
       const endpoint = getApiEndpoint('/api/chat');
-      const voiceName = gender === 'ប្រុស' ? 'Aoede' : 'Puck';
+      const voiceName = 'Aoede';
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -356,6 +372,37 @@ export default function KonPovPage() {
     loadSessions();
   }, []);
 
+  // 15-Minute Live Chat Session & 20-Minute Cooldown Controller (Anti-Bypass)
+  useEffect(() => {
+    touchLiveSession();
+    const updateState = () => {
+      const st = getLiveSessionState();
+      setSessionState(st);
+    };
+    updateState();
+    const interval = setInterval(updateState, 1000);
+
+    // Background sync with server to prevent browser tampering/clearing bypass
+    try {
+      const devId = getDeviceId();
+      fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-device-id': devId },
+        body: JSON.stringify({ action: 'check-session', username, deviceId: devId })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.isSessionLocked && data?.cooldownUntil) {
+            setServerCooldownLock(data.cooldownUntil);
+            setSessionState(getLiveSessionState());
+          }
+        })
+        .catch(() => {});
+    } catch {}
+
+    return () => clearInterval(interval);
+  }, [username]);
+
   // 180s Countdown controller for User waiting for Rotana
   const startCountdown180s = () => {
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
@@ -390,10 +437,15 @@ export default function KonPovPage() {
     });
   };
 
-  // Realtime Live Session Synchronizer (For both Rotana Intervention and User)
+  // Realtime Live Session Synchronizer (Strictly for active 1-1 Live Intervention session only)
   useEffect(() => {
-    const sessionToWatch = activeLiveSessionId || currentSessionId;
-    if (!sessionToWatch) return;
+    // Only subscribe to live synchronization if there is an active intervention session
+    const sessionToWatch = activeLiveSessionId;
+    if (!sessionToWatch) {
+      setIsRotanaOnline(false);
+      setIsBotPaused(false);
+      return;
+    }
 
     const unsubscribe = subscribeToLiveSession(sessionToWatch, (sessionData) => {
       if (!sessionData) return;
@@ -1235,6 +1287,17 @@ export default function KonPovPage() {
   // Handle Send or ToDo Queue (allows typing while AI is thinking, holds/queues prompt)
   const handleSendMessageOrQueue = () => {
     if (isGeneratingMeme) return;
+
+    // Check if Live Chat 15-min Session is locked under 20-min break (Rotana NOB Creator is exempt)
+    if (!isRotanaAdmin) {
+      const sessionCheck = getLiveSessionState();
+      if (sessionCheck.isLocked) {
+        setSessionState(sessionCheck);
+        return;
+      }
+      touchLiveSession();
+    }
+
     if (!hasAgreed) {
       setHasAgreed(true);
     }
@@ -1264,6 +1327,15 @@ export default function KonPovPage() {
 
   // Main Chat Handler (Real-time ChatGPT streaming preview + zero lag)
   const handleChat = async (overrideText, overrideImg) => {
+    if (!isRotanaAdmin) {
+      const sessionCheck = getLiveSessionState();
+      if (sessionCheck.isLocked) {
+        setSessionState(sessionCheck);
+        return;
+      }
+      touchLiveSession();
+    }
+
     const deviceId = getDeviceId();
     const promptText = typeof overrideText === 'string' ? overrideText : inputText;
     const currentImg = overrideImg !== undefined ? overrideImg : selectedImage;
@@ -1304,16 +1376,18 @@ export default function KonPovPage() {
       avatar: avatar
     };
 
-    // If Rotana has paused the bot (Live 1-1 Intervention Mode):
+    // If Rotana has specifically paused the bot in this 1 session (Live 1-1 Intervention Mode):
     // DO NOT invoke Gemini AI! Deliver message directly to Rotana in real-time.
-    if (isBotPaused || isRotanaOnline) {
+    // NOTE: This strictly pauses ONLY the 1 session that was bypassed, never affecting other users!
+    const isLiveInterventionPaused = Boolean(activeLiveSessionId && isBotPaused);
+    if (isLiveInterventionPaused) {
       const updatedMessages = [...messages, userMsg];
       setMessages(updatedMessages);
       saveCurrentSessionMessages(updatedMessages);
-      if (activeLiveSessionId || currentSessionId) {
-        await sendLiveMessage(activeLiveSessionId || currentSessionId, userMsg);
+      if (activeLiveSessionId) {
+        await sendLiveMessage(activeLiveSessionId, userMsg);
       }
-      return; // Stop here! AI is completely disabled while Rotana is chatting!
+      return; // Stop here! AI is paused ONLY for this specific 1 session!
     }
 
     // Pre-insert bot message for real-time streaming preview
@@ -1325,6 +1399,8 @@ export default function KonPovPage() {
     setTypingStatus(dynamicTypingText);
 
     try {
+      const isMaleUser = userGender === 'ប្រុស';
+      const userNameStr = username || 'User';
       const systemInstruction = buildKonPovSystemInstruction({
         promptText,
         username,
@@ -1381,6 +1457,13 @@ export default function KonPovPage() {
 
         if (response.status === 429) {
           const errData = await response.json();
+          if (errData?.isSessionLocked && errData?.cooldownUntil) {
+            setServerCooldownLock(errData.cooldownUntil);
+            setSessionState(getLiveSessionState());
+            setIsLoading(false);
+            setMessages((prev) => prev.slice(0, prev.length - 1));
+            return;
+          }
           setSpamInfo({
             ip: errData.ip || '172.20.10.2 / Client IP',
             device: errData.device || (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'),
@@ -1514,6 +1597,7 @@ export default function KonPovPage() {
       botText = limitEmojis(botText, 7);
       const finalMessages = [...updatedMessages];
       finalMessages[finalMessages.length - 1] = { role: 'bot', text: botText, isError: isErrorResponse };
+      setMessages(finalMessages);
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
@@ -1535,6 +1619,7 @@ export default function KonPovPage() {
       console.error(e);
       setIsLoading(false);
       const isMaleUser = userGender === 'ប្រុស';
+      const userNameStr = username || 'User';
       const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
 
       let fallbackText = `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក Server គាំងបាត់ហើយ! ចែ សុំសម្រាក ១០ នាទីសិន!`;
@@ -1559,6 +1644,7 @@ export default function KonPovPage() {
           isError: isErr
         }
       ];
+      setMessages(fallbackMessages);
       saveCurrentSessionMessages(fallbackMessages);
       if (isCurseWord) {
         setTimeout(() => {
@@ -1928,13 +2014,13 @@ export default function KonPovPage() {
                   onClick={() => setShowPersonaModal(true)}
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black tracking-tight transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
                     isDark
-                      ? 'bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-purple-500/20 border-blue-400/40 text-blue-300 hover:border-blue-400/70 hover:shadow-blue-500/20'
-                      : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-300 text-blue-700 hover:bg-blue-100'
+                      ? 'bg-gradient-to-r from-pink-500/20 via-rose-500/20 to-purple-500/20 border-pink-400/40 text-pink-300 hover:border-pink-400/70 hover:shadow-pink-500/20'
+                      : 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-300 text-pink-700 hover:bg-pink-100'
                   }`}
-                  title="ចុចដើម្បីមើលព័ត៌មានស្ដេចឌឺ (ចែ)"
+                  title="ចុចដើម្បីមើលព័ត៌មានកូនពៅ (ចែ)"
                 >
-                  <i className="fas fa-crown text-[8.5px] text-amber-400"></i>
-                  <span>ស្ដេចឌឺ (ចែ)</span>
+                  <i className="fas fa-heart text-[8.5px] text-pink-400"></i>
+                  <span>កូនពៅ (ចែ)</span>
                 </button>
               )}
             </div>
@@ -1949,6 +2035,24 @@ export default function KonPovPage() {
 
         {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
+          {/* 15-Minute Live Session Countdown Pill Badge */}
+          <div
+            title="កម្រិតម៉ោងជជែក ១៥ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)"
+            className={`px-2 sm:px-2.5 py-1 rounded-full text-[10.5px] font-black border flex items-center gap-1.5 transition select-none ${
+              sessionState.remainingSessionSec <= 120
+                ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
+                : sessionState.remainingSessionSec <= 300
+                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                : isDark
+                ? 'bg-pink-500/10 text-pink-400 border-pink-500/20'
+                : 'bg-pink-50 text-pink-700 border-pink-200'
+            }`}
+          >
+            <i className={`fas fa-stopwatch ${sessionState.remainingSessionSec <= 120 ? 'text-rose-400 animate-spin' : 'text-pink-400'}`}></i>
+            <span className="hidden xs:inline">ម៉ោងលេង: </span>
+            <span>{formatCountdown(sessionState.remainingSessionSec)}</span>
+          </div>
+
           {/* AI Mode Selector: Interactive Animated Pill with clear dropdown cue */}
           <button
             type="button"
@@ -2545,7 +2649,7 @@ export default function KonPovPage() {
                   />
                   {/* Animated Puppet Talking Mouth (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */}
                   {isThisItemPlaying && (
-                    <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
                       <div className="puppet-talking-mouth flex flex-col items-center justify-between overflow-hidden shadow-inner">
                         {/* Top White Teeth */}
                         <div className="w-full h-[2px] bg-white rounded-t-xs opacity-95"></div>
@@ -3039,7 +3143,7 @@ export default function KonPovPage() {
           {/* Text Input */}
           <input
             type="text"
-            disabled={!isRotanaAdmin && (!hasAgreed || isGeneratingMeme)}
+            disabled={!isRotanaAdmin && (!hasAgreed || isGeneratingMeme || sessionState.isLocked)}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => {
@@ -3050,7 +3154,9 @@ export default function KonPovPage() {
             }}
             className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             placeholder={
-              isRotanaAdmin
+              !isRotanaAdmin && sessionState.isLocked
+                ? `🔒 ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ២០ នាទី (នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)})...`
+                : isRotanaAdmin
                 ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
                 : isBotPaused
                 ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបង Rotana...'
@@ -3069,9 +3175,11 @@ export default function KonPovPage() {
           {/* Send / Queue button */}
           <button
             onClick={handleSendMessageOrQueue}
-            disabled={(!isRotanaAdmin && !hasAgreed) || isGeneratingMeme || (!inputText.trim() && !selectedImage && !queuedPrompt)}
+            disabled={(!isRotanaAdmin && !hasAgreed) || isGeneratingMeme || (!isRotanaAdmin && sessionState.isLocked) || (!inputText.trim() && !selectedImage && !queuedPrompt)}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 ${
-              (!isRotanaAdmin && !hasAgreed) || (!inputText.trim() && !selectedImage && !queuedPrompt)
+              !isRotanaAdmin && sessionState.isLocked
+                ? 'bg-slate-800 text-amber-400 cursor-not-allowed opacity-80 border border-amber-500/30'
+                : (!isRotanaAdmin && !hasAgreed) || (!inputText.trim() && !selectedImage && !queuedPrompt)
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-40'
                 : isRotanaAdmin
                 ? 'bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-600 hover:brightness-110 text-white shadow-amber-500/30 cursor-pointer'
@@ -3080,14 +3188,18 @@ export default function KonPovPage() {
                 : 'bg-gradient-to-tr from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-500/25 cursor-pointer'
             }`}
             title={
-              isRotanaAdmin
+              !isRotanaAdmin && sessionState.isLocked
+                ? 'ម៉ោងសម្រាក Cooldown កំពុងសកម្ម'
+                : isRotanaAdmin
                 ? `ផ្ញើសារក្នុងនាម Rotana NOB ទៅកាន់ ${clientUsername}`
                 : isLoading
                 ? 'ចុចដើម្បីដាក់ចូល ToDo (ត្រៀមផ្ញើស្វ័យប្រវត្តពេល AI ឆ្លើយចប់)'
                 : 'ផ្ញើសារ'
             }
           >
-            {isRotanaAdmin ? (
+            {!isRotanaAdmin && sessionState.isLocked ? (
+              <i className="fas fa-lock text-xs text-amber-400"></i>
+            ) : isRotanaAdmin ? (
               <i className="fas fa-paper-plane text-xs"></i>
             ) : isLoading ? (
               <i className="fas fa-clock animate-pulse text-xs"></i>
@@ -3263,6 +3375,18 @@ export default function KonPovPage() {
         title={deleteModalConfig?.title || 'តើអ្នកពិតជាចង់លុបមែនទេ?'}
         description={deleteModalConfig?.description || 'រាល់សារ និងប្រវត្តិជជែកទាំងអស់នឹងត្រូវលុបចេញជារៀងរហូត!'}
         isDark={isDark}
+      />
+
+      {/* 15-Minute Live Chat Session Limit & 20-Minute Cooldown Modal (Unclosable Anti-Bypass) */}
+      <SessionBreakModal
+        isOpen={!isRotanaAdmin && sessionState.isLocked}
+        remainingSeconds={sessionState.remainingCooldownSec}
+        cooldownUntil={sessionState.cooldownUntil}
+        botName="កូនពៅ (ចែ)"
+        theme={theme}
+        onUnlock={() => {
+          setSessionState(getLiveSessionState());
+        }}
       />
 
       {/* Interactive Falling Emoji Shower when Bot Audio Finishes */}

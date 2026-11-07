@@ -364,23 +364,23 @@ html, body {
 /* Puppet Talking Mouth Animation (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */
 @keyframes puppetMouthTalk {
   0%, 100% {
-    width: 9px;
-    height: 3px;
+    width: 10px;
+    height: 3.5px;
     border-radius: 9999px;
     background-color: #2b0404;
     border: 1px solid #e11d48;
-    transform: scale(1);
+    transform: scale(0.9);
   }
   20% {
-    width: 13px;
-    height: 8px;
+    width: 15px;
+    height: 9px;
     border-radius: 4px 4px 10px 10px;
     background-color: #1a0202;
     border: 1.5px solid #f43f5e;
-    transform: scale(1.1, 1.25);
+    transform: scale(1.1, 1.2);
   }
   40% {
-    width: 10px;
+    width: 11px;
     height: 4px;
     border-radius: 9999px;
     background-color: #2b0404;
@@ -388,17 +388,17 @@ html, body {
     transform: scale(0.95);
   }
   60% {
-    width: 16px;
-    height: 12px; /* ហាមាត់ធំៗ Extra Wide Open Mouth! */
-    border-radius: 5px 5px 12px 12px;
-    background-color: #100101;
+    width: 17px;
+    height: 13px; /* ហាមាត់ធំៗ Extra Wide Open Mouth! */
+    border-radius: 4px 4px 12px 12px;
+    background-color: #0d0101;
     border: 2px solid #fb7185;
-    transform: scale(1.2, 1.4);
+    transform: scale(1.25, 1.4);
   }
   80% {
-    width: 12px;
-    height: 6px;
-    border-radius: 6px;
+    width: 13px;
+    height: 7px;
+    border-radius: 5px;
     background-color: #1f0303;
     border: 1.5px solid #f43f5e;
     transform: scale(1.05);

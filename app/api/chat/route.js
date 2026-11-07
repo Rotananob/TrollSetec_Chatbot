@@ -10,6 +10,7 @@ import {
 import {
   checkDDoSFirewall,
   checkChatLimit,
+  checkChatSessionLimit,
   getClientIp
 } from '../../../lib/rateLimit';
 
@@ -24,6 +25,21 @@ const corsHeaders = {
 
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: corsHeaders });
+}
+
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const action = searchParams.get('action');
+  const deviceId = req.headers.get('x-device-id') || searchParams.get('deviceId') || '';
+  const username = searchParams.get('username') || '';
+  const ip = getClientIp(req);
+
+  if (action === 'check-session') {
+    const sessionStatus = checkChatSessionLimit(ip, deviceId, username);
+    return Response.json(sessionStatus, { status: 200, headers: corsHeaders });
+  }
+
+  return Response.json({ ok: true, serverTime: Date.now() }, { headers: corsHeaders });
 }
 
 // Active ultra-fast models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
@@ -115,6 +131,55 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 20000
   }
 
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
+}
+
+// Native Gemini TTS via /v1beta/interactions with gemini-3.8-flash-tts
+async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 12000) {
+  const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
+  for (const key of keys) {
+    if (!key) continue;
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'x-goog-api-key': key,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gemini-3.8-flash-tts',
+          input: [
+            {
+              type: 'user_input',
+              content: [
+                {
+                  type: 'text',
+                  text
+                }
+              ]
+            }
+          ],
+          response_format: { type: 'audio' },
+          generation_config: {
+            speech_config: [{ voice: voiceName }]
+          }
+        }),
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const step = data.steps?.[0];
+        const audioPart = step?.content?.find((c) => c.data || c.type === 'audio');
+        const b64Data = audioPart?.data;
+        if (b64Data) {
+          return { ok: true, data: b64Data, mimeType: 'audio/wav' };
+        }
+      }
+    } catch (err) {
+      console.warn('[Gemini TTS] error with key:', err.message);
+    }
+  }
+  return { ok: false };
 }
 
 // Fast streaming with SSE fallback for real-time ChatGPT-like preview
@@ -271,9 +336,40 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender } = body;
+    const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender, action } = body;
     reqBot = bot;
     reqUsername = username;
+
+    const deviceIdHeader = req.headers.get('x-device-id') || body.deviceId || '';
+
+    // Handle session status check ping
+    if (action === 'check-session') {
+      const sessionStatus = checkChatSessionLimit(clientIp, deviceIdHeader, username);
+      return Response.json(sessionStatus, { status: 200, headers: corsHeaders });
+    }
+
+    // 0.5. Live Chat 15-Minute Session Lockout & 20-Minute Cooldown Check (Server-Enforced Anti-Bypass)
+    if (!audio) {
+      const sessionCheck = checkChatSessionLimit(clientIp, deviceIdHeader, username);
+      if (!sessionCheck.allowed && sessionCheck.isSessionLocked) {
+        return Response.json(
+          {
+            error: 'Session Expired',
+            isSessionLocked: true,
+            cooldownUntil: sessionCheck.cooldownUntil,
+            remainingCooldownSeconds: sessionCheck.remainingCooldownSeconds,
+            message: sessionCheck.message
+          },
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              'Retry-After': String(sessionCheck.remainingCooldownSeconds)
+            }
+          }
+        );
+      }
+    }
 
     // 1. Anti-Spam Rate Limiting (Tracked strictly per username, never locking the device permanently)
     // Internal audio synthesis requests do not consume the chat message quota
@@ -353,30 +449,28 @@ export async function POST(req) {
         audioPromptText = comicIntro + audioPromptText;
       }
 
-      // 1. Primary AI Voice: Call Gemini TTS (Aoede for KonPov female voice / Puck for KonBong male voice)
-      const audioContents = [{ parts: [{ text: audioPromptText }] }];
+      // 1. Primary AI Voice: Call Gemini Native TTS (Aoede for KonPov female voice / Puck for KonBong male voice)
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
         (bot === 'konpov' ? 'Aoede' : 'Puck');
-      const audioGenConfig = {
-        responseModalities: ['AUDIO'],
-        speechConfig: {
-          voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName
-            }
-          }
-        }
-      };
-      requestPayload = {
-        contents: audioContents,
-        generationConfig: audioGenConfig
-      };
-      const result = await callModelWithFallback(AUDIO_MODELS, apiKeys, requestPayload, 8500);
-      if (result.ok && result.data?.candidates?.[0]?.content?.parts?.some((p) => p.inlineData?.data)) {
+      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 12000);
+      if (ttsResult.ok && ttsResult.data) {
         return Response.json(
           {
-            ...sanitizeResponse(result.data),
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      inlineData: {
+                        mimeType: ttsResult.mimeType || 'audio/wav',
+                        data: ttsResult.data
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
             isFallbackBotVoice: false
           },
           { status: 200, headers: corsHeaders }
