@@ -1537,6 +1537,9 @@ export default function KonPovPage() {
           }
         } else if (response.ok) {
           const res = await response.json();
+          if (res.isMasterAuthenticated) {
+            setIsRotanaMasterBypass(true);
+          }
           const fullText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
           if (fullText) {
             // High-speed real-time typewriter preview (12-16ms)
@@ -1583,6 +1586,9 @@ export default function KonPovPage() {
           });
           if (fallbackRes.ok) {
             const resJson = await fallbackRes.json();
+            if (resJson.isMasterAuthenticated) {
+              setIsRotanaMasterBypass(true);
+            }
             const fullText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
             if (fullText) {
               botText = fullText;

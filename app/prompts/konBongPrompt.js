@@ -2,6 +2,7 @@
 // Strictly preserves all existing persona rules, lore, and continuously appends training data.
 
 import { getFullCommunityLoreText } from './communityLore.js';
+import { verifyRotanaMasterCode } from '../../lib/masterAuth.js';
 
 export function buildKonBongSystemInstruction({
   promptText = '',
@@ -13,10 +14,10 @@ export function buildKonBongSystemInstruction({
 }) {
   const userNameStr = username || 'User';
 
-  // Detect Supreme Creator Rotana NOB Master Authentication with Passcode 180703
+  // Detect Supreme Creator Rotana NOB Master Authentication with Passcode from Env
   const lowerPrompt = promptText.toLowerCase();
   const mentionsRotana = lowerPrompt.includes('rotana') && lowerPrompt.includes('nob');
-  const hasPasscode = promptText.includes('180703');
+  const hasPasscode = verifyRotanaMasterCode(promptText);
   const triggersMasterAuth = mentionsRotana && hasPasscode;
 
   if (triggersMasterAuth && !isRotanaMasterBypass && setIsRotanaMasterBypass) {

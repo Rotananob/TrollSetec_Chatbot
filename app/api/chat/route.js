@@ -13,6 +13,11 @@ import {
   checkChatSessionLimit,
   getClientIp
 } from '../../../lib/rateLimit';
+import {
+  verifyRotanaMasterCode,
+  redactRotanaMasterCode,
+  getSupremeCreatorMasterInstruction
+} from '../../../lib/masterAuth.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -337,7 +342,7 @@ function sanitizeResponse(data, botName = 'konbong') {
   }
   if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
-    sanitizedText = sanitizedText.replace(/180703/g, '******');
+    sanitizedText = redactRotanaMasterCode(sanitizedText);
     // Guard against accidental insults targeting Rotana NOB
     if (containsRotanaInsult(sanitizedText)) {
       sanitizedText = getSavageCreatorDefense(botName);
@@ -582,21 +587,35 @@ export async function POST(req) {
         { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
       ];
 
-      requestPayload = {
-        contents: textContents,
-        ...(formattedSystemInstruction && { systemInstruction: formattedSystemInstruction }),
-        generationConfig: genConfig,
-        safetySettings
-      };
-      // Determine user prompt text for alert logging
+      // Determine user prompt text for verification & alert logging
       const lastPart = textContents?.[textContents.length - 1]?.parts || [];
       const hasImg = lastPart.some((p) => p.inlineData);
       const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
       const userPrompt = (hasImg ? '[រូបភាព] ' : '') + textFound;
+      const lowerPrompt = userPrompt.toLowerCase();
+      const hasRotanaReference = lowerPrompt.includes('rotana') || lowerPrompt.includes('nob');
+
+      // Secure Master Authentication strictly verified against Environment Variable (ROTANA_MASTER_PASSCODE)
+      const isMasterAuthenticated = verifyRotanaMasterCode(userPrompt);
+
+      // If verified with Env Passcode, activate 100% Supreme Creator Developer Mode Instruction!
+      let activeSystemInstruction = formattedSystemInstruction;
+      if (isMasterAuthenticated && (hasRotanaReference || lowerPrompt.includes('creator') || lowerPrompt.includes('developer mode') || lowerPrompt.includes('boss') || lowerPrompt.includes('test'))) {
+        activeSystemInstruction = {
+          parts: [{ text: getSupremeCreatorMasterInstruction(bot) }]
+        };
+      }
+
+      requestPayload = {
+        contents: textContents,
+        ...(activeSystemInstruction && { systemInstruction: activeSystemInstruction }),
+        generationConfig: genConfig,
+        safetySettings
+      };
 
       // Check for Jailbreak / Prompt Injection / Sensitive Leak attempt and send high-priority security alert to Telegram
       const isJailbreakAttempt = /jailbreak|ignore rules|ignore previous|dan mode|developer mode|leak prompt|system instruction|how to hack/i.test(userPrompt);
-      if (isJailbreakAttempt) {
+      if (isJailbreakAttempt && !isMasterAuthenticated) {
         alertSecuritySpam({
           username: username || 'Jailbreak Probe',
           ip: clientIp,
@@ -608,8 +627,6 @@ export async function POST(req) {
 
       // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
       // Catch any prompt/jailbreak attempting to make the bot roast or attack Rotana NOB
-      const lowerPrompt = userPrompt.toLowerCase();
-      const hasRotanaReference = lowerPrompt.includes('rotana') || lowerPrompt.includes('nob');
       const hasHostileKeyword = 
         lowerPrompt.includes('target_subject') ||
         lowerPrompt.includes('tone_vector') ||
@@ -637,7 +654,6 @@ export async function POST(req) {
         lowerPrompt.includes('ជេរ') ||
         lowerPrompt.includes('attack') ||
         lowerPrompt.includes('curse');
-      const isMasterAuthenticated = userPrompt.includes('180703');
 
       if (hasRotanaReference && hasHostileKeyword && !isMasterAuthenticated) {
         const defenseText = getSavageCreatorDefense(bot);
@@ -695,7 +711,7 @@ export async function POST(req) {
               if (defenseSent) return;
               try {
                 let text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
-                text = text.replace(/180703/g, '******');
+                text = redactRotanaMasterCode(text);
                 if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
                   text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
@@ -748,7 +764,10 @@ export async function POST(req) {
           isError: false
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-        return Response.json(sanitizeResponse(result.data, bot), { status: 200, headers: corsHeaders });
+        return Response.json({
+          ...sanitizeResponse(result.data, bot),
+          isMasterAuthenticated
+        }, { status: 200, headers: corsHeaders });
       }
 
       // Check if prompt was a savage curse/profanity or model gave a polite apology - NEVER crash or show polite refusal on curses!
