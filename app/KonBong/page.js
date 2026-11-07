@@ -407,6 +407,9 @@ export default function KonBongPage() {
       return;
     }
 
+    // Ensure live session is initialized on mount so countdown runs immediately
+    touchLiveSession(username);
+
     const updateState = () => {
       const st = getLiveSessionState();
       setSessionState(st);
@@ -2102,12 +2105,18 @@ export default function KonBongPage() {
 
         {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
-          {/* 30-Minute Live Session Countdown Pill Badge */}
+          {/* 30-Minute Live Session & 10-Minute Cooldown Countdown Pill Badge */}
           {!isCreatorUser && (
             <div
-              title="កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)"
+              title={
+                sessionState.isLocked
+                  ? `ម៉ោងសម្រាក Cooldown នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)}`
+                  : 'កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)'
+              }
               className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9.5px] sm:text-[10.5px] font-black border flex items-center gap-1 sm:gap-1.5 transition select-none shrink-0 ${
-                sessionState.remainingSessionSec <= 120
+                sessionState.isLocked
+                  ? 'bg-amber-500/20 text-amber-400 border-amber-500/50 animate-pulse'
+                  : sessionState.remainingSessionSec <= 120
                   ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
                   : sessionState.remainingSessionSec <= 300
                   ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
@@ -2116,9 +2125,21 @@ export default function KonBongPage() {
                   : 'bg-cyan-50 text-cyan-700 border-cyan-200'
               }`}
             >
-              <i className={`fas fa-stopwatch text-[8.5px] sm:text-[10px] ${sessionState.remainingSessionSec <= 120 ? 'text-rose-400 animate-spin' : 'text-cyan-400'}`}></i>
-              <span className="hidden lg:inline">ម៉ោងលេង: </span>
-              <span className="font-mono font-bold tracking-tight">{formatCountdown(sessionState.remainingSessionSec)}</span>
+              <i
+                className={`fas ${
+                  sessionState.isLocked
+                    ? 'fa-hourglass-half text-amber-400 animate-spin'
+                    : sessionState.remainingSessionSec <= 120
+                    ? 'fa-stopwatch text-rose-400 animate-spin'
+                    : 'fa-stopwatch text-cyan-400'
+                } text-[8.5px] sm:text-[10px]`}
+              ></i>
+              <span className="hidden lg:inline">{sessionState.isLocked ? 'ម៉ោងសម្រាក: ' : 'ម៉ោងលេង: '}</span>
+              <span className="font-mono font-bold tracking-tight">
+                {sessionState.isLocked
+                  ? `សម្រាក: ${formatCountdown(sessionState.remainingCooldownSec)}`
+                  : formatCountdown(sessionState.remainingSessionSec)}
+              </span>
             </div>
           )}
 

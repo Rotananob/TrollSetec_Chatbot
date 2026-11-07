@@ -170,21 +170,40 @@ export function getLiveSessionState() {
   // 5. Active Session Time Check
   if (sessionStart) {
     const elapsedSinceStart = now - sessionStart;
-    const elapsedSinceActive = lastActive ? now - lastActive : 0;
-
-    // A) INACTIVITY CHECK: If user was away/inactive for >= 2 minutes (120s),
-    // or if >= 30 minutes elapsed since session began without an active lockout,
-    // they were not chatting continuously — reset to a fresh session immediately!
     const sessionLimitMs = SESSION_LIMIT_SECONDS * 1000;
-    if (
-      elapsedSinceActive >= 2 * 60 * 1000 ||
-      elapsedSinceStart >= sessionLimitMs
-    ) {
+
+    // A) 30-minute session elapsed: Trigger 10-minute Cooldown Rest (ម៉ោងសម្រាក)!
+    if (elapsedSinceStart >= sessionLimitMs) {
+      const safeCooldownUntil = now + COOLDOWN_SECONDS * 1000;
+      setCookie(COOKIE_NAME, String(safeCooldownUntil), COOLDOWN_SECONDS + 60);
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            sessionStart: null,
+            lastActive: now,
+            cooldownUntil: safeCooldownUntil
+          })
+        );
+      } catch {}
+      return {
+        sessionStart: null,
+        lastActive: now,
+        cooldownUntil: safeCooldownUntil,
+        isLocked: true,
+        remainingSessionSec: 0,
+        remainingCooldownSec: COOLDOWN_SECONDS
+      };
+    }
+
+    // B) INACTIVITY CHECK: Only reset if completely abandoned for >= 20 minutes (1200s)
+    const elapsedSinceActive = lastActive ? now - lastActive : 0;
+    if (elapsedSinceActive >= 20 * 60 * 1000) {
       clearLiveSession();
       return freshState();
     }
 
-    // B) SESSION STILL VALID: within 30 minutes and actively engaged
+    // C) SESSION STILL VALID: within 30 minutes and actively engaged
     const remainingSessionSec = Math.max(0, Math.ceil((sessionLimitMs - elapsedSinceStart) / 1000));
     return {
       sessionStart,
@@ -237,17 +256,19 @@ export function touchLiveSession(customUsername = '') {
     };
   }
 
-  // Session already running: keep sessionStart, update lastActive
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        sessionStart: state.sessionStart,
-        lastActive: now,
-        cooldownUntil: null
-      })
-    );
-  } catch {}
+  // Session already running: keep sessionStart, update lastActive throttled to every 10s
+  if (!state.lastActive || now - state.lastActive >= 10000) {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          sessionStart: state.sessionStart,
+          lastActive: now,
+          cooldownUntil: null
+        })
+      );
+    } catch {}
+  }
 
   return {
     ...state,
