@@ -172,53 +172,19 @@ export function getLiveSessionState() {
     const elapsedSinceStart = now - sessionStart;
     const elapsedSinceActive = lastActive ? now - lastActive : 0;
 
-    // A) IDLE / AWAY CHECK: If user was away/inactive for >= 10 mins (COOLDOWN_SECONDS),
-    // they ALREADY rested while away! Reset session to fresh immediately.
-    // B) TOTAL CYCLE CHECK: If >= 40 mins (30m play + 10m rest) elapsed since session started, reset.
-    const fullCycleMs = (SESSION_LIMIT_SECONDS + COOLDOWN_SECONDS) * 1000;
+    // A) INACTIVITY CHECK: If user was away/inactive for >= 2 minutes (120s),
+    // or if >= 30 minutes elapsed since session began without an active lockout,
+    // they were not chatting continuously — reset to a fresh session immediately!
+    const sessionLimitMs = SESSION_LIMIT_SECONDS * 1000;
     if (
-      elapsedSinceActive >= COOLDOWN_SECONDS * 1000 ||
-      elapsedSinceStart >= fullCycleMs
+      elapsedSinceActive >= 2 * 60 * 1000 ||
+      elapsedSinceStart >= sessionLimitMs
     ) {
       clearLiveSession();
       return freshState();
     }
 
-    const sessionLimitMs = SESSION_LIMIT_SECONDS * 1000;
-
-    // C) SESSION EXPIRED: User reached 30 minutes of chat!
-    // Cooldown strictly ends at (sessionStart + 40 mins) — NEVER resets to a fresh 10 mins upon opening!
-    if (elapsedSinceStart >= sessionLimitMs) {
-      const scheduledCooldownUntil = sessionStart + fullCycleMs;
-      if (now >= scheduledCooldownUntil) {
-        clearLiveSession();
-        return freshState();
-      }
-
-      const remainingCooldownSec = Math.min(
-        COOLDOWN_SECONDS,
-        Math.max(1, Math.ceil((scheduledCooldownUntil - now) / 1000))
-      );
-
-      setCookie(COOKIE_NAME, String(scheduledCooldownUntil), remainingCooldownSec + 60);
-      try {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({ sessionStart, lastActive: now, cooldownUntil: scheduledCooldownUntil })
-        );
-      } catch {}
-
-      return {
-        sessionStart,
-        lastActive: now,
-        cooldownUntil: scheduledCooldownUntil,
-        isLocked: true,
-        remainingSessionSec: 0,
-        remainingCooldownSec
-      };
-    }
-
-    // D) SESSION STILL VALID: within 30 minutes
+    // B) SESSION STILL VALID: within 30 minutes and actively engaged
     const remainingSessionSec = Math.max(0, Math.ceil((sessionLimitMs - elapsedSinceStart) / 1000));
     return {
       sessionStart,

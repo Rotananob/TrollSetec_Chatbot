@@ -386,7 +386,6 @@ export default function KonBongPage() {
       return;
     }
 
-    touchLiveSession(username);
     const updateState = () => {
       const st = getLiveSessionState();
       setSessionState(st);

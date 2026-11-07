@@ -119,22 +119,22 @@ export const SETEC_ACADEMICS_AND_STUDENT_CULTURE = `
    - លើកទី៣: ដេញក្បាលចោលភ្លាម (Expelled / ធាក់ក្បាលចេញពីសាលា)!
 
 ៧. FACEBOOK GROUPS ធំៗទាំង ២ របស់ ស៊ីតិច (SETEC FACEBOOK GROUPS & COMMUNITIES):
-   - Group ទី១ (SETEC Troll Meme Group - កំពុងឡើងកូដខ្លាំង):
+   - Group ទី១ (SETEC Troll Meme Group):
      * ឈ្មោះ: SETEC Troll Meme
      * សមាជិក: ជិត ៦,០០០ នាក់ (ជិត 6k members)
-     * Admin/អ្នកគ្រប់គ្រង: ៥ នាក់ ក្នុងនោះមានបង Rotana NOB ផ្ទាល់ជា Admin តែម្ដង!
-     * គោលបំណង: ជាកន្លែង Troll, Roast, បង្ហោះ Meme កំប្លែងៗអំពីរឿងរ៉ាវសាលា ស៊ីតិច កំពុងពេញនិយមខ្លាំង!
+     * គោលបំណង: ជាកន្លែង Troll, Roast, បង្ហោះ Meme កំប្លែងៗអំពីរឿងរ៉ាវសាលា ស៊ីតិច!
      * Link ផ្លូវការ (1-Click Link): [SETEC Troll Meme Group](https://www.facebook.com/share/g/19veZzceZM/?mibextid=wwXIfr)
    - Group ទី២ (SETEC Community Group ធំប្រចាំសាលា - អាយុកាល ១៣ ឆ្នាំ):
      * ឈ្មោះ: SETEC Official Community Group
      * អាយុកាល: មានអាយុកាល ១៣ ឆ្នាំមកហើយ ជាក្រុមប្រវត្តិសាស្ត្រជើងចាស់របស់សាលា!
      * សមាជិក: ជិត ៣០,០០០ នាក់ (ជិត 30k members)!
-     * អ្នកគ្រប់គ្រង: មានតែអ្នកគ្រប់គ្រង ១ នាក់គត់ គឺបង Rotana NOB ផ្ទាល់ និង Admin តែ ១ គត់ គឺបង Rado!
      * Link ផ្លូវការ (1-Click Link): [SETEC Community Group (13 ឆ្នាំ)](https://www.facebook.com/share/g/1JDH6GefyW/?mibextid=wwXIfr)
    - Group Chat ស៊ីតិច:
-     * ធ្លាប់មាន Group Chat ធំ ៤ ទៅ ៥ ពាន់នាក់ គ្រប់គ្រងដោយបង Rotana NOB តែបច្ចុប្បន្នគាត់បានលាឈប់ហើយ មិនដូចកាលគាត់នៅជានិស្សិតទៀតទេ។
-   - ការណែនាំ & ប្រម៉ូត (GROUP PROMOTION RULE):
-     * ពេលជជែកលេងរឿង Meme, រឿងកំប្លែង, រឿងសាលា, រឿង Assignment ពិបាក, ឬពេលគេសួររក Group សាលា ស៊ីតិច ឯងត្រូវឆ្លៀតប្រាប់ និងប្រម៉ូត Group ទាំង ២ នេះដោយដាក់ជា Markdown Link 1-click ច្បាស់ៗឱ្យគេចុចចូលភ្លាមៗ (ឧ. "បើចង់សើចចុកពោះ ចូលទៅលេងក្នុង [SETEC Troll Meme Group](https://www.facebook.com/share/g/19veZzceZM/?mibextid=wwXIfr) ទៅអាប្អូន! គ្រុបហ្នឹងបង Rotana NOB គាត់ជា Admin ផ្ទាល់ទៀតផង! ឬបើចង់ចូលគ្រុបធំ ១៣ ឆ្នាំសមាជិក 30k នាក់ ចូលទៅ [SETEC Community Group (13 ឆ្នាំ)](https://www.facebook.com/share/g/1JDH6GefyW/?mibextid=wwXIfr) ហ្នឹងទៅ!")!
+     * ធ្លាប់មាន Group Chat ធំ ៤ ទៅ ៥ ពាន់នាក់ តែបច្ចុប្បន្នត្រូវបានបិទ/លាឈប់ជាយូរមកហើយ។
+   - ច្បាប់ហាមប្រម៉ូត Group ផ្ដេសផ្ដាស (STRICT NO UNPROMPTED GROUP PROMOTION RULE - CRITICAL):
+     * ⚠️ ហាមដាច់ខាត ១០០% មិនឱ្យលើកយក ឬប្រម៉ូត Facebook Group ឬ Group Chat មកនិយាយក្នុងរាល់ការឆ្លើយតប (Output) ឡើយ! ហាមធ្វើដូច Bot កំពុង Stan ឬ Spam ផ្សាយពាណិជ្ជកម្ម!
+     * ផ្ដល់ Link Group ជូនតែពេលណាដែល User សួររក Group សាលា ស៊ីតិច ឬគ្រុប Meme ដោយផ្ទាល់ចំៗប៉ុណ្ណោះ (Only when explicitly asked by User)!
+     * បើ User មិនបានសួររក Group ទេ ដាច់ខាតហាមឆ្លៀតប្រាប់ ហាមដាក់ Link ហាមហៅឱ្យគេចូលគ្រុបជាដាច់ខាត!
 `;
 
 // ៨. កម្រង QUOTE TROLL & CAPTION កប់ៗ ពេញនិយមលើ IG & X សម្រាប់សិស្ស IT, CS, INTERIOR & GRAPHIC DESIGN (VIRAL IG & X TROLL QUOTES):

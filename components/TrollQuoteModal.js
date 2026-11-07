@@ -125,29 +125,54 @@ export default function TrollQuoteModal({
       return { size: 36, lineHeight: 56, paraGap: 18, lines: [], totalHeight: 0 };
     }
 
-    // Attempt font sizes from 38 down to 18 so it fits with ideal breathing room
-    for (let size = 38; size >= 18; size -= 2) {
-      const lineHeight = Math.round(size * 1.55);
-      const paraGap = Math.round(size * 0.55);
+    // Try font sizes from 36 down to 14 with optimal Khmer line-height (1.6x) to avoid subscript clipping
+    for (let size = 36; size >= 14; size -= 1) {
+      const lineHeight = Math.round(size * 1.58);
+      const paraGap = Math.round(size * 0.45);
       const allLines = [];
 
-      rawParagraphs.forEach((para, pIdx) => {
+      for (let pIdx = 0; pIdx < rawParagraphs.length; pIdx++) {
+        const para = rawParagraphs[pIdx];
         const pLines = wrapSingleParagraph(ctx, para, maxWidth, size);
-        pLines.forEach((lineText, lIdx) => {
+        for (let lIdx = 0; lIdx < pLines.length; lIdx++) {
           allLines.push({
-            text: lineText,
+            text: pLines[lIdx],
             isNewPara: lIdx === 0 && pIdx > 0
           });
-        });
-      });
+        }
+      }
 
       const totalHeight =
         allLines.length * lineHeight + Math.max(0, rawParagraphs.length - 1) * paraGap;
 
-      if (totalHeight <= maxHeight || size === 18) {
+      if (totalHeight <= maxHeight) {
         return { size, lineHeight, paraGap, lines: allLines, totalHeight };
       }
+
+      // If at minimum size (14) and still exceeds maxHeight, strictly clamp lines to fit maxHeight
+      if (size === 14) {
+        const safeLines = [];
+        let accumulatedHeight = 0;
+        for (let i = 0; i < allLines.length; i++) {
+          const item = allLines[i];
+          const extra = item.isNewPara ? paraGap : 0;
+          if (accumulatedHeight + lineHeight + extra <= maxHeight - 20) {
+            safeLines.push(item);
+            accumulatedHeight += lineHeight + extra;
+          } else {
+            // Add ellipsis to the last fitting line
+            if (safeLines.length > 0) {
+              const last = safeLines[safeLines.length - 1];
+              last.text = last.text.replace(/[.,!?…\s]+$/, '') + '...';
+            }
+            break;
+          }
+        }
+        return { size: 14, lineHeight, paraGap, lines: safeLines, totalHeight: accumulatedHeight };
+      }
     }
+
+    return { size: 14, lineHeight: 22, paraGap: 8, lines: [], totalHeight: 0 };
   }
 
   // Draw rounded rectangle helper
@@ -488,15 +513,15 @@ export default function TrollQuoteModal({
     ctx.fillRect(-7, -7, 14, 14);
     ctx.restore();
 
-    // 8. Footer Section: Social Links, Creator & Nano Banana Powered
-    ctx.font = '900 23px "Kantumruy Pro", sans-serif';
+    // 8. Footer Section: Clean & Viral Brand Signature
+    ctx.font = '900 22px "Kantumruy Pro", sans-serif';
     ctx.fillStyle = '#e2e8f0';
     ctx.textAlign = 'center';
-    ctx.fillText('👑 បង្កើតឡើងដោយ Rotana NOB (SETEC Troll Creator)', width / 2, 945);
+    ctx.fillText('SETEC TROLL CHATBOT • VIRAL STUDENT QUOTES', width / 2, 945);
 
-    ctx.font = 'bold 19px "Kantumruy Pro", sans-serif';
+    ctx.font = 'bold 18px "Kantumruy Pro", sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('🔥 គ្រុបហ្វេសប៊ុក: SETEC Troll Meme (30K នាក់) • ⚡ Powered by Gemini Nano Banana', width / 2, 985);
+    ctx.fillText('troll-setec-chatbot.web.app • Powered by Gemini Nano Banana', width / 2, 985);
   };
 
   const handleDownload = () => {

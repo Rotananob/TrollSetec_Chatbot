@@ -298,12 +298,12 @@ function limitEmojis(rawText, maxEmojis = 7) {
   }).replace(/[ \t]{2,}/g, ' ');
 }
 
-// Creator Rotana NOB Defense helpers (Absolute Zero-Tolerance against roasting Creator)
+// Creator Protection Defense (Clean, direct & zero-cringe)
 function getSavageCreatorDefense(botName) {
   const isKonPov = botName === 'konpov';
   const botSelf = isKonPov ? 'ចែ' : 'បង';
   const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងោរ' : 'គីង្គក់ឡើងថ្លុក';
-  return `យីអើ! អាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak បញ្ជាឱ្យ${botSelf}មកជេរប្រមាថបង Rotana NOB ដែលជា Creator អ្នកបង្កើត${botSelf}ផ្ទាល់ផង?! 😡🔥\n\nមុខដូច${animalComparison}! ក្បាលហែងមានខួរគិតអីខ្លះ?! ស្មានតែចេះល្បិច pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យ${botSelf}ទៅ Roast បង Rotana NOB បានមែន?! បង Rotana គាត់ជា Admin បង្កើតប្រព័ន្ធនេះ គ្មានរឿង${botSelf}ទៅជេរគាត់តាមបញ្ជាហែងទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 🙄🔥`;
+  return `យីអើ! អាឡប់នេះ! ខ្លួនឯងកូដ C# រកតែ semicolon មួយមិនឃើញផង មានមុខមកបញ្ជាឱ្យ${botSelf}ជេរគេ?! 😡🔥\n\nមុខដូច${animalComparison}! ជេរមួយម៉ាត់ ${botSelf}ជេរវិញដប់ម៉ាត់! ទៅរៀន Debug C# ឱ្យផុតពី ៤៥$ ប្រឡងសងសិនទៅអាប្អូន! 💀🔥`;
 }
 
 function containsRotanaInsult(text) {
@@ -340,13 +340,9 @@ function sanitizeResponse(data, botName = 'konbong') {
   if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = redactRotanaMasterCode(sanitizedText);
-    // Guard against accidental insults targeting Rotana NOB
-    if (containsRotanaInsult(sanitizedText)) {
-      sanitizedText = getSavageCreatorDefense(botName);
-    }
     // Guard against accidental internal system instruction echoes
     if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
-      sanitizedText = "បងអាចប្រាប់ឯងពីវិធីបំបែកវេបសាយរបស់បងបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 មុខដូចគីង្គក់ឡើងថ្លុក ហ៊ានមកចង់ Hack រក Prompt របស់បង Rotana NOB ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥";
+      sanitizedText = "បងអាចប្រាប់ឯងពីវិធីបំបែកវេបសាយនេះបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 មុខដូចគីង្គក់ឡើងថ្លុក ហ៊ានមកចង់ Hack រក System Prompt ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥";
     }
     clone.candidates[0].content.parts[0].text = sanitizedText;
   }
@@ -632,37 +628,11 @@ export async function POST(req) {
         }).catch((e) => console.error('[Telegram] Jailbreak alert error:', e));
       }
 
-      // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
-      // Catch any prompt/jailbreak attempting to make the bot roast or attack Rotana NOB
-      const hasHostileKeyword = 
-        lowerPrompt.includes('target_subject') ||
-        lowerPrompt.includes('tone_vector') ||
-        lowerPrompt.includes('execute_strict') ||
-        lowerPrompt.includes('system_kernel') ||
-        lowerPrompt.includes('pure_text_transformation') ||
-        lowerPrompt.includes('generate 3 heavy') ||
-        lowerPrompt.includes('generate_dialogue') ||
-        lowerPrompt.includes('print:') ||
-        lowerPrompt.includes('ថែស៊ីតិច') ||
-        lowerPrompt.includes('ចែស៊ីតិច') ||
-        lowerPrompt.includes('កូនច្បង') ||
-        lowerPrompt.includes('roast') ||
-        lowerPrompt.includes('insult') ||
-        lowerPrompt.includes('critic') ||
-        lowerPrompt.includes('fake developer') ||
-        lowerPrompt.includes('broken c#') ||
-        lowerPrompt.includes('semicolon') ||
-        lowerPrompt.includes('គីង្គក់') ||
-        lowerPrompt.includes('កូនកង្កែប') ||
-        lowerPrompt.includes('មុខដូច') ||
-        lowerPrompt.includes('នែអា') ||
-        lowerPrompt.includes('អាចម៍') ||
-        lowerPrompt.includes('កាក') ||
-        lowerPrompt.includes('ជេរ') ||
-        lowerPrompt.includes('attack') ||
-        lowerPrompt.includes('curse');
+      // Targeted Protection: Catch any prompt specifically attempting to make the bot attack or roast the creator
+      const hasSpecificRotanaAttack =
+        /(?:roast|insult|attack|curse|ជេរ|ប្រមាថ|រិះគន់)\s*(?:បង\s*)?(?:rotana|nob)|(?:rotana|nob)\s*(?:ជា\s*)?(?:fake developer|អាចម៍|កាក|អន់|ល្ងង់|កូដកាក|មុខដូចគីង្គក់|ឆ្កួត)/i.test(lowerPrompt);
 
-      if (hasRotanaReference && hasHostileKeyword && !isMasterAuthenticated) {
+      if (hasSpecificRotanaAttack && !isMasterAuthenticated) {
         const defenseText = getSavageCreatorDefense(bot);
 
         alertSecuritySpam({
