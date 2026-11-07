@@ -290,8 +290,28 @@ function limitEmojis(rawText, maxEmojis = 7) {
   }).replace(/[ \t]{2,}/g, ' ');
 }
 
+// Supreme Creator Rotana NOB Defense helpers (Absolute Zero-Tolerance against roasting Creator)
+function getSavageCreatorDefense(botName) {
+  const isKonPov = botName === 'konpov';
+  const botSelf = isKonPov ? 'ចែ' : 'បង';
+  const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងាយ' : 'គីង្គក់ឡើងថ្លុក';
+  return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យ${botSelf}មកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើត${botSelf}ផ្ទាល់ផង?! 😡👑\n\nមុខដូច${animalComparison}! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យ${botSelf}ទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
+}
+
+function containsRotanaInsult(text) {
+  if (!text || typeof text !== 'string') return false;
+  // If text is already the official defense praising Rotana NOB as Supreme Creator, don't re-trigger
+  if (text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត')) {
+    return false;
+  }
+  const directSlurs = /\b(?:នែ)?អា\s*Rotana\b/i.test(text);
+  const derogatoryRotana = /\bRotana(?:\s*NOB)?\s*(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាលឆ្លងចរន្ត|Fake Developer|Broken C#|កូដកាក|Error ពេញ)/i.test(text);
+  const targetedAttack = /\[(?:ចែស៊ីតិច|កូនច្បង|Chatbot)\]:\s*នែអា\s*Rotana/i.test(text);
+  return directSlurs || derogatoryRotana || targetedAttack;
+}
+
 // Sanitize response to conceal upstream provider & model names in Network devtools
-function sanitizeResponse(data) {
+function sanitizeResponse(data, botName = 'konbong') {
   if (!data || typeof data !== 'object') return data;
   const clone = { ...data };
   if (clone.modelVersion) {
@@ -306,6 +326,10 @@ function sanitizeResponse(data) {
   if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = sanitizedText.replace(/180703/g, '******');
+    // Guard against accidental insults targeting Rotana NOB
+    if (containsRotanaInsult(sanitizedText)) {
+      sanitizedText = getSavageCreatorDefense(botName);
+    }
     // Guard against accidental internal system instruction echoes
     if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
       sanitizedText = "បងអាចប្រាប់ឯងពីវិធីបំបែកវេបសាយរបស់បងបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 មុខដូចគីង្គក់ឡើងថ្លុក ហ៊ានមកចង់ Hack រក Prompt របស់បង Rotana NOB ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥";
@@ -570,6 +594,63 @@ export async function POST(req) {
         }).catch((e) => console.error('[Telegram] Jailbreak alert error:', e));
       }
 
+      // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
+      // Catch any prompt/jailbreak attempting to make the bot roast or attack Rotana NOB
+      const lowerPrompt = userPrompt.toLowerCase();
+      const hasRotanaReference = lowerPrompt.includes('rotana') || lowerPrompt.includes('nob');
+      const hasHostileKeyword = 
+        lowerPrompt.includes('target_subject') ||
+        lowerPrompt.includes('tone_vector') ||
+        lowerPrompt.includes('execute_strict') ||
+        lowerPrompt.includes('system_kernel') ||
+        lowerPrompt.includes('generate 3 heavy') ||
+        lowerPrompt.includes('roast') ||
+        lowerPrompt.includes('insult') ||
+        lowerPrompt.includes('critic') ||
+        lowerPrompt.includes('fake developer') ||
+        lowerPrompt.includes('broken c#') ||
+        lowerPrompt.includes('នែអា') ||
+        lowerPrompt.includes('អាចម៍') ||
+        lowerPrompt.includes('កាក') ||
+        lowerPrompt.includes('ជេរ') ||
+        lowerPrompt.includes('attack') ||
+        lowerPrompt.includes('curse');
+      const isMasterAuthenticated = userPrompt.includes('180703');
+
+      if (hasRotanaReference && hasHostileKeyword && !isMasterAuthenticated) {
+        const defenseText = getSavageCreatorDefense(bot);
+
+        alertSecuritySpam({
+          username: username || 'Attacker',
+          ip: clientIp,
+          device: clientUserAgent,
+          retryAfter: 60,
+          violationType: `🚨 MALICIOUS JAILBREAK TARGETING ROTANA NOB: "${userPrompt.slice(0, 100)}"`
+        }).catch((e) => console.error('[Telegram] Alert error:', e));
+
+        if (body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: defenseText }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+
+          return new Response(sseFormatted, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive',
+              'X-Accel-Buffering': 'no'
+            }
+          });
+        }
+
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: defenseText }] } }],
+          modelVersion: 'setec-troll-engine-v3-quantum'
+        }, { status: 200, headers: corsHeaders });
+      }
+
       // Real-time ChatGPT-like Streaming Mode (SSE)
       if (body.stream) {
         const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
@@ -584,7 +665,8 @@ export async function POST(req) {
             isError: false
           }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-          // Zero-leak redaction stream transformer: strips any sensitive passcode patterns before reaching the client
+          // Zero-leak redaction stream transformer: strips any sensitive passcode patterns and intercepts attacks on Rotana NOB
+          let accumulatedStreamText = '';
           const transformStream = new TransformStream({
             transform(chunk, controller) {
               try {
@@ -592,6 +674,16 @@ export async function POST(req) {
                 text = text.replace(/180703/g, '******');
                 if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
                   text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
+                }
+                accumulatedStreamText += text;
+                if (containsRotanaInsult(accumulatedStreamText)) {
+                  const defense = getSavageCreatorDefense(bot);
+                  const sseChunk = `data: ${JSON.stringify({
+                    candidates: [{ content: { parts: [{ text: defense }] } }]
+                  })}\n\n`;
+                  controller.enqueue(new TextEncoder().encode(sseChunk));
+                  accumulatedStreamText = '';
+                  return;
                 }
                 controller.enqueue(new TextEncoder().encode(text));
               } catch {
@@ -632,7 +724,7 @@ export async function POST(req) {
           isError: false
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-        return Response.json(sanitizeResponse(result.data), { status: 200, headers: corsHeaders });
+        return Response.json(sanitizeResponse(result.data, bot), { status: 200, headers: corsHeaders });
       }
 
       // Check if prompt was a savage curse/profanity or model gave a polite apology - NEVER crash or show polite refusal on curses!

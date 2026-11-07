@@ -572,6 +572,18 @@ export default function KonPovPage() {
     if (!rawText || typeof rawText !== 'string') return rawText;
     let text = rawText.replace(/180703/g, '******');
 
+    // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
+    const isAlreadyDefense = text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត');
+    const insultsRotana = !isAlreadyDefense && (
+      /\b(?:នែ)?អា\s*Rotana\b/i.test(text) ||
+      /\bRotana(?:\s*NOB)?\s*(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាលឆ្លងចរន្ត|Fake Developer|Broken C#|កូដកាក|Error ពេញ)/i.test(text) ||
+      /\[(?:ចែស៊ីតិច|កូនច្បង|Chatbot)\]:\s*នែអា\s*Rotana/i.test(text)
+    );
+
+    if (insultsRotana) {
+      return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យចែមកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើតចែផ្ទាល់ផង?! 😡👑\n\nមុខដូចកូនកង្កែបឡើងស៊ុបស្ងាយ! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យចែទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
+    }
+
     // KonPov is strictly female (ចែ / Mommy) - purge accidental "Daddy" safely
     text = text
       .replace(/\bDaddy\b/gi, 'ចែ')
@@ -607,7 +619,7 @@ export default function KonPovPage() {
   // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
-    const content = limitEmojis(rawContent.replace(/180703/g, '******'), 7);
+    const content = limitEmojis(enforcePersonaConsistency(rawContent, userGender === 'ប្រុស'), 7);
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
