@@ -2873,6 +2873,15 @@ export default function KonBongPage() {
               </button>
 
               <button
+                onClick={() => setQuoteModalData({ text: '' })}
+                className="px-3 py-1 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-400/30 text-cyan-500 dark:text-cyan-300 font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+                title="បង្កើតរូបភាព Quote Troll សម្រាប់ផុស IG & X"
+              >
+                <i className="fas fa-quote-left text-xs text-cyan-400"></i>
+                <span>Quote Troll IG/X</span>
+              </button>
+
+              <button
                 onClick={() => handleRequestMeme()}
                 disabled={isGeneratingMeme || isLoading}
                 className="px-3 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 text-amber-500 dark:text-amber-300 font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
@@ -2914,6 +2923,9 @@ export default function KonBongPage() {
                 <span>ប្រធានបទ Troll:</span>
               </span>
               {[
+                { label: '🔥 Quote IT & CS (IG/X)', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកបង!' },
+                { label: '🏛️ Quote Interior (IG/X)', prompt: 'សុំ Quote Troll បែប IG និង X សម្រាប់សិស្ស Interior Design ទាំង 3D Render និងប្លង់មកបង!' },
+                { label: '🎨 Quote Graphic Design', prompt: 'សុំ Caption Troll ឡូយៗបែប IG/X សម្រាប់សិស្ស Graphic Design មួយឈុតមកបង!' },
                 { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលបង' },
                 { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
                 { label: '💸 ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់បង?' },

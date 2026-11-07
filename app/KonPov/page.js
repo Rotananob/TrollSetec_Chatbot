@@ -3082,6 +3082,16 @@ export default function KonPovPage() {
               </button>
 
               <button
+                onClick={() => setQuoteModalData({ text: '' })}
+                disabled={!hasAgreed}
+                className="px-3 py-1 rounded-full bg-pink-500/10 hover:bg-pink-500/20 border border-pink-400/30 text-pink-500 dark:text-pink-300 font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+                title="បង្កើតរូបភាព Quote Troll សម្រាប់ផុស IG & X"
+              >
+                <i className="fas fa-quote-left text-xs text-pink-400"></i>
+                <span>Quote Troll IG/X</span>
+              </button>
+
+              <button
                 onClick={() => handleRequestMeme()}
                 disabled={!hasAgreed || isGeneratingMeme || isLoading}
                 className={`px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
@@ -3143,6 +3153,9 @@ export default function KonPovPage() {
                 <span>ប្រធានបទ Troll:</span>
               </span>
               {[
+                { label: '🔥 Quote IT & CS (IG/X)', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកចែ!' },
+                { label: '🏛️ Quote Interior (IG/X)', prompt: 'សុំ Quote Troll បែប IG និង X សម្រាប់សិស្ស Interior Design ទាំង 3D Render និងប្លង់មកចែ!' },
+                { label: '🎨 Quote Graphic Design', prompt: 'សុំ Caption Troll ឡូយៗបែប IG/X សម្រាប់សិស្ស Graphic Design មួយឈុតមកចែ!' },
                 { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីរឿងកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលចែ' },
                 { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
                 { label: '💸 ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់ចែ?' },

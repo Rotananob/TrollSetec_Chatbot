@@ -137,6 +137,7 @@ export const SETEC_ACADEMICS_AND_STUDENT_CULTURE = `
      * ពេលជជែកលេងរឿង Meme, រឿងកំប្លែង, រឿងសាលា, រឿង Assignment ពិបាក, ឬពេលគេសួររក Group សាលា ស៊ីតិច ឯងត្រូវឆ្លៀតប្រាប់ និងប្រម៉ូត Group ទាំង ២ នេះដោយដាក់ជា Markdown Link 1-click ច្បាស់ៗឱ្យគេចុចចូលភ្លាមៗ (ឧ. "បើចង់សើចចុកពោះ ចូលទៅលេងក្នុង [SETEC Troll Meme Group](https://www.facebook.com/share/g/19veZzceZM/?mibextid=wwXIfr) ទៅអាប្អូន! គ្រុបហ្នឹងបង Rotana NOB គាត់ជា Admin ផ្ទាល់ទៀតផង! ឬបើចង់ចូលគ្រុបធំ ១៣ ឆ្នាំសមាជិក 30k នាក់ ចូលទៅ [SETEC Community Group (13 ឆ្នាំ)](https://www.facebook.com/share/g/1JDH6GefyW/?mibextid=wwXIfr) ហ្នឹងទៅ!")!
 `;
 
+// ៨. កម្រង QUOTE TROLL & CAPTION កប់ៗ ពេញនិយមលើ IG & X សម្រាប់សិស្ស IT, CS, INTERIOR & GRAPHIC DESIGN (VIRAL IG & X TROLL QUOTES):
 // Extensible registry for user contributions during production
 export const COMMUNITY_CONTRIBUTIONS = [
   {
@@ -177,6 +178,99 @@ export const COMMUNITY_CONTRIBUTIONS = [
   }
 ];
 
+// Trendy viral Troll Quotes & Captions for Instagram & X (IT, CS, Interior Design, Graphic Design)
+export const VIRAL_TROLL_QUOTES = [
+  // IT & Computer Science (CS)
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'Code works locally, commits suicide in production. 💀✨',
+    quoteEn: 'Coffee in, Error out. សរសេរកូដមួយយប់ទល់ភ្លឺ compile ចេញ error ៤៥ បន្ទាត់ដូចគ្នា! ☕💻',
+    tags: ['#ITLife', '#SETEC', '#BugIsAFeature', '#CodeCrash']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'រៀន CS ចង់ Hack NASA តែការពិតរាល់ថ្ងៃអង្គុយ Debug រកតែ semicolon មួយបន្ទាត់សឹងឆេះខួរ! 😭🖥️',
+    quoteEn: 'Relationship status: committed to git push origin main --force and praying to God. 🫡🔥',
+    tags: ['#CSLife', '#DebuggingTrauma', '#GitForcePush']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'ជីវិតកូន IT ស៊ីតិច៖ គេងគឺសម្រាប់មនុស្សទន់ខ្សោយ, StackOverflow សម្រាប់អ្នកខ្លាំង, $45 ប្រឡងសងសម្រាប់ពួកយើង! 💸💀',
+    quoteEn: 'My code doesn\'t have bugs, it just develops unexpected spicy features. 💅👾',
+    tags: ['#SETECStudent', '#StackOverflowSavedMe', '#NoBugsOnlyFeatures']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'មានកាតាប Asus ROG ស្ពាយកោងខ្នង តែ Database Connection Error ពេញអេក្រង់! 🎒😭',
+    quoteEn: 'There are 2 types of programmers: 1. Don\'t know why it works. 2. Don\'t know why it doesn\'t. ☕💀',
+    tags: ['#AsusROGUniform', '#DatabaseDrama', '#SETEC']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'C# Assignment៖ សរសេរកូដមួយបន្ទាត់ Error ៩៩ បន្ទាត់ គាំងខួរស្រែកយំក្នុងបណ្ណាល័យ! 👾✨',
+    quoteEn: 'HTML is my passion, CSS is my depression, JavaScript is my resignation. 💅💀',
+    tags: ['#DevLife', '#CSharpNightmare', '#WebDev']
+  },
+
+  // Interior Design
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'Client: "ធ្វើម៉េចឱ្យមើលទៅ Simple តែ Luxurious តែអត់មាន Budget?" Me: "បងចង់ឱ្យខ្ញុំគូរផ្ទះខ្មោចមែន?" 💀🎨',
+    quoteEn: 'Mood: 3ds Max crashed without auto-save. Please don\'t talk to me for 3-5 business days. 😭🏛️',
+    tags: ['#InteriorDesign', '#RenderCrisis', '#ClientLogic']
+  },
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'គេគេងម៉ោង ១១យប់ ខ្ញុំ Render 3D ម៉ោង ៤ភ្លឺ កង្ហារ Laptop ហោះដូច Drone! 🚁✨ ជីវិតកូន Interior គេងត្រឹមតែ Concept ប៉ុណ្ណោះ។ 😭🏛️',
+    quoteEn: 'Living on iced coffee, sketch paper, and the sheer audacity of believing my render will finish before 8:00 AM. ☕🛋️',
+    tags: ['#3DRender', '#SleepIsAConcept', '#InteriorStruggle']
+  },
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'Interior Rule #1: បើបញ្ចុះបញ្ចូលគេរឿង Floor Plan មិនឈ្នះ ច្រឡំខួរគេដោយ Mood Board ទៅ! 🛋️✨',
+    quoteEn: 'My back hurts from carrying both the aesthetics of this whole institute and my 10kg portfolio. 💅🏛️',
+    tags: ['#MoodBoardMagic', '#AestheticSavior', '#FloorPlanDrama']
+  },
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'កូន Interior ស៊ីតិច៖ ដៃកាន់មាត្រដ្ឋាន ភ្នែកក្រហមដោយ Render 3D ចិត្តនៅតែប្រកាន់ខ្ជាប់សោភ័ណភាព! 📐🎨',
+    quoteEn: 'Minimalism is just what interior designers say when the client runs out of budget. 💀🛋️',
+    tags: ['#MinimalistExcuses', '#InteriorDesignLife', '#ArchitectureMood']
+  },
+
+  // Graphic Design
+  {
+    category: 'graphic',
+    department: '🎨 Graphic Design',
+    quoteKh: 'Layer 1, Layer 2, Final, Final_v2, Final_មែនទែន_លើកចុងក្រោយ_v99.psd 💀🎨',
+    quoteEn: 'Photoshop: "Your scratch disks are full." My brain: "Same, bestie." 🧠💥',
+    tags: ['#GraphicDesignerLife', '#FinalFinalV99', '#AdobeTrauma']
+  },
+  {
+    category: 'graphic',
+    department: '🎨 Graphic Design',
+    quoteKh: 'Client ថា "ជួយពង្រីក Logo ឱ្យធំតិច" ខ្ញុំដាក់ Logo ពេញទាំង Poster ហ្មង! អស់ចិត្តនៅបង? 💅✨',
+    quoteEn: 'Pixel perfect by day, existential crisis by night. 🎨🌙',
+    tags: ['#MakeTheLogoBigger', '#GraphicDesignMemes', '#CreativePain']
+  },
+  {
+    category: 'graphic',
+    department: '🎨 Graphic Design',
+    quoteKh: 'បើគ្មានសិស្ស Graphic Design ទេ គម្រោងពួក IT ប្រាកដជាចេញមកមើលទៅដូចសំបុត្រមរណភាពអ៊ីចឹង! 😭🎨',
+    quoteEn: 'Graphic designers don\'t sleep, we just enter standby mode while Adobe Illustrator responds. 💀⚡',
+    tags: ['#DesignCarriesIT', '#UIUXMatters', '#IllustratorNotResponding']
+  }
+];
+
 export function getFullCommunityLoreText() {
   let text = SETEC_FOUNDATION_LORE;
   text += '\n\n' + SOCIAL_MEDIA_CULTURE_AND_SLANG;
@@ -187,5 +281,9 @@ export function getFullCommunityLoreText() {
       text += `${idx + 1}. [${item.topic}]: ${item.fact}\n`;
     });
   }
+  text += '\n\nកម្រង QUOTE TROLL & CAPTION ពេញនិយមលើ IG & X សម្រាប់ IT, CS & INTERIOR DESIGN:\n';
+  VIRAL_TROLL_QUOTES.forEach((q, idx) => {
+    text += `${idx + 1}. [${q.department}]:\n   - Khmer: "${q.quoteKh}"\n   - English/Gen-Z: "${q.quoteEn}"\n   - Tags: ${q.tags.join(' ')}\n`;
+  });
   return text;
 }
