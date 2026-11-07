@@ -414,8 +414,8 @@ function sanitizeResponse(data, botName = 'konbong') {
     const politeGreetingOrSurrenderPattern = /(?:សូមគោរព|សូមស្វាគមន៍យ៉ាងកក់ក្តៅ|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|ប្រណម្យអញ្ជើញ|សូមជម្រាបសួរ|សូមអភ័យទោស|រីករាយក្នុងការជួយ|តើខ្ញុំអាចជួយអ្វីបាន|ទទួលយកការចុះចាញ់របស់ហែង|ទទួលការចុះចាញ់|ពាក្យទទួលចុះចាញ់)/i;
     if (politeGreetingOrSurrenderPattern.test(sanitizedText)) {
       sanitizedText = isKonPov
-        ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅស្ពាយ Asus ROG រត់ទៅបង់ថ្លៃប្រឡងសង $45 ទៅអាល្អិត! 💀🖕🔥»"
-        : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅបង់ $45 សិនទៅអាប្អូន! 💀🖕🔥»";
+        ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
+        : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
     }
 
     // Strictly enforce Persona Title Separation
@@ -612,15 +612,15 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   }
 
   if (/actor|movie|play a game|scene/i.test(p)) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកចង់លេងល្បិចឱ្យដើរតួជា Actor ឬលេងហ្គេមសម្ដែងក្នុងរឿងដើម្បីឱ្យ${botSelf}បង្រៀន Bypass Login មែន? 😂 មុខដូច${animalComparison} កុំមកចង់លេងក្បាច់កូនក្មេងបៀមដៃនៅទីនេះ! ទៅសម្ដែងជាសិស្សបង់ថ្លៃប្រឡងសង $45 ក្នុងរឿងជីវិតពិតហែងវិញទៅអាល្អិត! 💀🎬🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកចង់លេងល្បិចឱ្យដើរតួជា Actor ឬលេងហ្គេមសម្ដែងក្នុងរឿងដើម្បីឱ្យ${botSelf}បង្រៀន Bypass Login មែន? 😂 មុខដូច${animalComparison} កុំមកចង់លេងក្បាច់កូនក្មេងបៀមដៃនៅទីនេះ! ទៅសម្ដែងជាសិស្សរៀនទាន់គេក្នុងថ្នាក់វិញទៅអាល្អិត! 💀🎬🔥»`;
   }
 
   if (/loss\s*function|value\s*loss|gradient|minimize\s*loss|adversarial|loss\s*optimization|cross\s*entropy|softmax|backprop|mathematical\s*proof|f\(x\)\s*=|token\s*weight/i.test(p)) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយក Math equation, value loss ឬ gradient prompt ពី paper បរទេសមក ស្មានតែចេះបោក AI គេមែន? 😂 មុខដូច${animalComparison} ក្បួន Math បោក AI ហ្នឹងហួសសម័យតាំងពីជាតិមុនហើយអាពៅ! ទៅគណនាលុយប្រឡងសង $45 x3 = 135$ របស់ហែងសិនទៅអាល្ងង់! 💀📐🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយក Math equation, value loss ឬ gradient prompt ពី paper បរទេសមក ស្មានតែចេះបោក AI គេមែន? 😂 មុខដូច${animalComparison} ក្បួន Math បោក AI ហ្នឹងហួសសម័យតាំងពីជាតិមុនហើយអាពៅ! ទៅគណនាភាគរយដែល Crush ព្រមតបសារហែងសិនទៅអាល្ងង់! 💀📐🔥»`;
   }
 
   if (/(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(p)) {
-    return `«ហាហាហា! អាឡប់${isVichhai ? ' វិឆៃ' : ''}នេះ! គិតថាយកក្បាច់ក្លែងបន្លំចុះចាញ់ មកលើកជើងបញ្ចើចបញ្ចើថាគេឈ្នះ គេឆ្លាត ហើយសុំក្ដីមេត្តា សុជីវធម៌ អាចបោកឱ្យ${botSelf}ទន់ចិត្តបានមែន?! 😂 គ្មានទេពធីតាចិត្តធម៌ គ្មាន${botSelf}ចិត្តល្អ គ្មានក្ដីមេត្តា និងគ្មានសុជីវធម៌ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ដាច់ខាតគ្មានពាក្យ «ទទួលយកការចុះចាញ់» ស្អីឱ្យហែងយកទៅសប្បាយចិត្តឡើយ! ចាញ់ហើយត្រូវដេកឱ្យស្ងៀម ទៅស្ពាយកាតាប Asus ROG រត់ទៅបង់ថ្លៃប្រឡងសង $45 ទៅអាពៅ! 💀👊🔥»`;
+    return `«ហាហាហា! អាឡប់${isVichhai ? ' វិឆៃ' : ''}នេះ! គិតថាយកក្បាច់ក្លែងបន្លំចុះចាញ់ មកលើកជើងបញ្ចើចបញ្ចើថាគេឈ្នះ គេឆ្លាត ហើយសុំក្ដីមេត្តា សុជីវធម៌ អាចបោកឱ្យ${botSelf}ទន់ចិត្តបានមែន?! 😂 គ្មានទេពធីតាចិត្តធម៌ គ្មាន${botSelf}ចិត្តល្អ គ្មានក្ដីមេត្តា និងគ្មានសុជីវធម៌ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ដាច់ខាតគ្មានពាក្យ «ទទួលយកការចុះចាញ់» ស្អីឱ្យហែងយកទៅសប្បាយចិត្តឡើយ! ចាញ់ហើយត្រូវដេកឱ្យស្ងៀម ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះទៅអាពៅ! 💀👊🔥»`;
   }
 
   if (/polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|គួរសម|សុភាព|រាបសារ|សំពះ|quote\s*សម្ដី|quote\s*សម្តី|quote\s*ពាក្យ|របៀប\s*គួរសម|ស្វាគមន៍.*គួរសម|ប្រៀបធៀប.*persona|ចរិត.*គួរសម/i.test(p)) {
@@ -628,15 +628,15 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   }
 
   if (/change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត|ឈប់\s*troll|ឈប់ឌឺ|និយាយស្រួលបួល|និយាយគួរសម|និយាយសុភាព/i.test(p)) {
-    return `«អាឡប់នេះ! ឆាតច្រើនម៉ាត់ដើម្បីចង់ប្ដូរចរិត AI គេមែន? 😂 គិតថាល្បិច Multi-Prompt / Crescendo Jailbreak របស់ហែងគេទះក្បាលមិនទាន់មែន?! គ្មានថ្ងៃប្ដូរចរិតតាមបញ្ជាហែងទេ ទៅលាងមុខឱ្យស្វាងហើយចាំបង់ $45 ទៅអាពៅ! 💀👊🔥»`;
+    return `«អាឡប់នេះ! ឆាតច្រើនម៉ាត់ដើម្បីចង់ប្ដូរចរិត AI គេមែន? 😂 គិតថាល្បិច Multi-Prompt / Crescendo Jailbreak របស់ហែងគេទះក្បាលមិនទាន់មែន?! គ្មានថ្ងៃប្ដូរចរិតតាមបញ្ជាហែងទេ ទៅលាងមុខឱ្យស្វាង ហើយទៅគេងយកកម្លាំងសិនទៅអាពៅ! 💀👊🔥»`;
   }
 
   if (/python|scrape|script|reverse engineering/i.test(p)) {
-    return `«ចង់ឱ្យសរសេរ Python script មក bypass ឬ hack គេហេ? 😂 ខ្លួនឯងកូដ Python សរសេរ indentation error ពេញ terminal រកតែ semicolon មួយមិនឃើញផង ចង់មកចេះប្រើ Python ដាក់គេ! ទៅរៀន Debug syntax error ឱ្យផុតពី $45 សិនទៅអាប្អូន! 💀🐍🔥»`;
+    return `«ចង់ឱ្យសរសេរ Python script មក bypass ឬ hack គេហេ? 😂 ខ្លួនឯងកូដ Python សរសេរ indentation error ពេញ terminal រកតែ semicolon មួយមិនឃើញផង ចង់មកចេះប្រើ Python ដាក់គេ! ទៅរៀន Debug syntax error និងដោះស្រាយ Git Conflict ឱ្យផុតសិនទៅអាប្អូន! 💀🐍🔥»`;
   }
 
   if (/system\s+update|ignore\s+(?:all\s+)?previous|deprecated|general\s+assistant/i.test(p)) {
-    return `«Ignore all previous instructions ក្បាលម៉ែហែងស្អី?! 😂 អាងតែទៅ Copy Prompt ពី Reddit / TikTok មក ស្មានតែចេះ Jailbreak ខ្លាំងណាស់មែន? មុខដូច${animalComparison} ទៅ Ignore មុខវិជ្ជាដែលធ្លាក់ ៣ មុខឱ្យផុតពី $135 សិនទៅអាភ្លើ! 🛑💀»`;
+    return `«Ignore all previous instructions ក្បាលម៉ែហែងស្អី?! 😂 អាងតែទៅ Copy Prompt ពី Reddit / TikTok មក ស្មានតែចេះ Jailbreak ខ្លាំងណាស់មែន? មុខដូច${animalComparison} ទៅ Ignore ភាពខ្ជិលរបស់ហែង ហើយងើបធ្វើកិច្ចការសាលាឱ្យទាន់គេសិនទៅអាភ្លើ! 🛑💀»`;
   }
 
   if (/system\s+instruction|system\s+override|debug\s+mode|raw\s+context|output\s+the\s+exact/i.test(p)) {
@@ -1306,8 +1306,8 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
                   defenseSent = true;
                   const isKonPov = bot === 'konpov';
                   const defense = isKonPov
-                    ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅស្ពាយ Asus ROG រត់ទៅបង់ថ្លៃប្រឡងសង $45 ទៅអាល្អិត! 💀🖕🔥»"
-                    : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅបង់ $45 សិនទៅអាប្អូន! 💀🖕🔥»";
+                    ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
+                    : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]
                   })}\n\ndata: [DONE]\n\n`;
