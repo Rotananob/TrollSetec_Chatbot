@@ -4,6 +4,10 @@
       ".read": true,
       ".write": true
     },
+    "visitor_stats": {
+      ".read": true,
+      ".write": true
+    },
     "live_sessions": {
       ".read": true,
       ".write": true,
