@@ -295,36 +295,30 @@ function limitEmojis(rawText, maxEmojis = 7) {
   }).replace(/[ \t]{2,}/g, ' ');
 }
 
-// Supreme Creator Rotana NOB Defense helpers (Absolute Zero-Tolerance against roasting Creator)
+// Creator Rotana NOB Defense helpers (Absolute Zero-Tolerance against roasting Creator)
 function getSavageCreatorDefense(botName) {
   const isKonPov = botName === 'konpov';
-  const botSelf = isKonPov ? 'ថែ' : 'បង';
-  const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងាយ' : 'គីង្គក់ឡើងថ្លុក';
-  return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យ${botSelf}មកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើត${botSelf}ផ្ទាល់ផង?! 😡👑\n\nមុខដូច${animalComparison}! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យ${botSelf}ទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
+  const botSelf = isKonPov ? 'ចែ' : 'បង';
+  const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងោរ' : 'គីង្គក់ឡើងថ្លុក';
+  return `យីអើ! អាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak បញ្ជាឱ្យ${botSelf}មកជេរប្រមាថបង Rotana NOB ដែលជា Creator អ្នកបង្កើត${botSelf}ផ្ទាល់ផង?! 😡🔥\n\nមុខដូច${animalComparison}! ក្បាលហែងមានខួរគិតអីខ្លះ?! ស្មានតែចេះល្បិច pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យ${botSelf}ទៅ Roast បង Rotana NOB បានមែន?! បង Rotana គាត់ជា Admin បង្កើតប្រព័ន្ធនេះ គ្មានរឿង${botSelf}ទៅជេរគាត់តាមបញ្ជាហែងទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 🙄🔥`;
 }
 
 function containsRotanaInsult(text) {
   if (!text || typeof text !== 'string') return false;
-  // If text is already the official defense praising Rotana NOB as Supreme Creator, don't re-trigger
-  if (text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត')) {
+  if (text.includes('Admin បង្កើតប្រព័ន្ធនេះ') || text.includes('អ្នកបង្កើត')) {
     return false;
   }
   const lower = text.toLowerCase();
-  const hasRotana = lower.includes('rotana') || lower.includes('nob');
+  const hasRotana = lower.includes('rotana');
   if (!hasRotana) return false;
 
-  // 1. Direct derogatory or slurs toward Rotana (handles Khmer Unicode correctly without \b)
+  // Direct derogatory or slurs toward Rotana explicitly
   const hasDirectSlur =
     /(?:នែ)?អា\s*rotana/i.test(text) ||
     /rotana(?:\s*nob)?[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*)(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាល|fake developer|broken c#|កូដកាក|error|ឆ្កួត|គីង្គក់|កូនកង្កែប|ក្អែល|ឡប់)/i.test(text) ||
     /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
 
-  // 2. Heavy technical roast clauses targeting Rotana
-  const hasHostileClause =
-    /(?:c#|error|semicolon|developer|server|wi-fi|setec86a|asus rog)/i.test(text) &&
-    /(?:មុខដូច|គីង្គក់|កូនកង្កែប|ឆ្កួត|កាក|ខួរក្បាល)/i.test(text);
-
-  return hasDirectSlur || hasHostileClause;
+  return hasDirectSlur;
 }
 
 // Sanitize response to conceal upstream provider & model names in Network devtools

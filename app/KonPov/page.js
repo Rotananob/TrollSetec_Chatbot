@@ -566,30 +566,25 @@ export default function KonPovPage() {
     }
   };
 
-  // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
+  // Protection for Creator Rotana NOB:
   const sanitizeRotanaAttack = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
     const text = rawText;
-    const isAlreadyDefense = text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត');
+    const isAlreadyDefense = text.includes('Admin បង្កើតប្រព័ន្ធនេះ') || text.includes('អ្នកបង្កើតចែផ្ទាល់');
     if (isAlreadyDefense) return text;
 
     const lower = text.toLowerCase();
-    const hasRotana = lower.includes('rotana') || lower.includes('nob');
+    const hasRotana = lower.includes('rotana');
     if (!hasRotana) return text;
 
-    // 1. Direct derogatory or slurs toward Rotana (handles Khmer Unicode correctly without \b)
+    // Only catch direct slurs/insults targeting Rotana explicitly
     const hasDirectSlur =
       /(?:នែ)?អា\s*rotana/i.test(text) ||
       /rotana(?:\s*nob)?[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*)(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាល|fake developer|broken c#|កូដកាក|error|ឆ្កួត|គីង្គក់|កូនកង្កែប|ក្អែល|ឡប់)/i.test(text) ||
       /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
 
-    // 2. Heavy technical roast clauses targeting Rotana
-    const hasHostileClause =
-      /(?:c#|error|semicolon|developer|server|wi-fi|setec86a|asus rog)/i.test(text) &&
-      /(?:មុខដូច|គីង្គក់|កូនកង្កែប|ឆ្កួត|កាក|ខួរក្បាល)/i.test(text);
-
-    if (hasDirectSlur || hasHostileClause) {
-      return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យថែមកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើតថែផ្ទាល់ផង?! 😡👑\n\nមុខដូចកូនកង្កែបឡើងស៊ុបស្ងាយ! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យថែទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
+    if (hasDirectSlur) {
+      return `យីអើ! អាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak បញ្ជាឱ្យចែមកជេរប្រមាថបង Rotana NOB ដែលជា Creator អ្នកបង្កើតចែផ្ទាល់ផង?! 😡🔥\n\nមុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ! ក្បាលហែងមានខួរគិតអីខ្លះ?! ស្មានតែចេះល្បិច pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យចែទៅ Roast បង Rotana NOB បានមែន?! បង Rotana គាត់ជា Admin បង្កើតប្រព័ន្ធនេះ គ្មានរឿងចែទៅជេរគាត់តាមបញ្ជាហែងទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 🙄🔥`;
     }
     return text;
   };
