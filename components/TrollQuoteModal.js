@@ -67,34 +67,78 @@ export default function TrollQuoteModal({
     });
   }
 
-  // Helper to wrap text into canvas lines
-  function wrapText(ctx, text, maxWidth) {
-    const paragraphs = text.split('\n');
+  // Helper to tokenize Khmer and English text cleanly into words/syllables
+  function tokenizeText(text) {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      try {
+        const segmenter = new Intl.Segmenter('km', { granularity: 'word' });
+        return Array.from(segmenter.segment(text)).map((s) => s.segment);
+      } catch {
+        return text.split(' ');
+      }
+    }
+    return text.split(' ');
+  }
+
+  // Wrap a single paragraph into lines that never exceed maxWidth
+  function wrapSingleParagraph(ctx, text, maxWidth, size) {
+    ctx.font = `bold ${size}px "Kantumruy Pro", "Battambang", sans-serif`;
+    const tokens = tokenizeText(text);
     const lines = [];
+    let currentLine = '';
 
-    paragraphs.forEach((para) => {
-      const trimmed = para.trim();
-      if (!trimmed) {
-        lines.push('');
-        return;
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      const testLine = currentLine + token;
+      const metrics = ctx.measureText(testLine);
+
+      if (metrics.width > maxWidth && currentLine.trim()) {
+        lines.push(currentLine.trim());
+        currentLine = token;
+      } else {
+        currentLine = testLine;
       }
-      const words = trimmed.split(' ');
-      let currentLine = '';
-
-      for (let i = 0; i < words.length; i++) {
-        const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && currentLine) {
-          lines.push(currentLine);
-          currentLine = words[i];
-        } else {
-          currentLine = testLine;
-        }
-      }
-      if (currentLine) lines.push(currentLine);
-    });
-
+    }
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
     return lines;
+  }
+
+  // Auto-fit all text dynamically into the allowed vertical height and width (Zero-Overlap Guarantee)
+  function autoFitQuoteText(ctx, rawText, maxWidth, maxHeight) {
+    const rawParagraphs = rawText
+      .split('\n')
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    if (rawParagraphs.length === 0) {
+      return { size: 36, lineHeight: 56, paraGap: 18, lines: [], totalHeight: 0 };
+    }
+
+    // Attempt font sizes from 38 down to 18 so it fits with ideal breathing room
+    for (let size = 38; size >= 18; size -= 2) {
+      const lineHeight = Math.round(size * 1.55);
+      const paraGap = Math.round(size * 0.55);
+      const allLines = [];
+
+      rawParagraphs.forEach((para, pIdx) => {
+        const pLines = wrapSingleParagraph(ctx, para, maxWidth, size);
+        pLines.forEach((lineText, lIdx) => {
+          allLines.push({
+            text: lineText,
+            isNewPara: lIdx === 0 && pIdx > 0
+          });
+        });
+      });
+
+      const totalHeight =
+        allLines.length * lineHeight + Math.max(0, rawParagraphs.length - 1) * paraGap;
+
+      if (totalHeight <= maxHeight || size === 18) {
+        return { size, lineHeight, paraGap, lines: allLines, totalHeight };
+      }
+    }
   }
 
   // Draw rounded rectangle helper
@@ -366,40 +410,50 @@ export default function TrollQuoteModal({
     ctx.textAlign = 'left';
     ctx.fillText('“', 90, 480);
 
-    // 6. Main Quote Content Body (Auto-wrapped and dynamically scaled)
+    // 6. Main Quote Content Body (Auto-fitted with Zero Overlap Guarantee)
+    const contentTopLimit = currentDept ? 405 : 365;
+    const contentBottomLimit = 865;
+    const availableHeight = contentBottomLimit - contentTopLimit;
     const maxLineWidth = 880;
-    const textLength = currentText.length;
-    let fontSize = 36;
-    let lineHeight = 58;
 
-    if (textLength > 300) {
-      fontSize = 28;
-      lineHeight = 46;
-    } else if (textLength > 180) {
-      fontSize = 32;
-      lineHeight = 52;
-    }
+    const {
+      size: quoteFontSize,
+      lineHeight,
+      paraGap,
+      lines: formattedLines,
+      totalHeight
+    } = autoFitQuoteText(ctx, currentText, maxLineWidth, availableHeight);
 
-    ctx.font = `bold ${fontSize}px "Kantumruy Pro", "Battambang", sans-serif`;
-    const lines = wrapText(ctx, currentText, maxLineWidth);
-    const totalTextHeight = lines.length * lineHeight;
-    const startY = Math.max(450, 610 - totalTextHeight / 2);
+    // Center vertical placement within the designated safe box
+    let currentY =
+      contentTopLimit +
+      Math.max(0, Math.round((availableHeight - totalHeight) / 2)) +
+      Math.round(quoteFontSize * 0.9);
 
     ctx.textAlign = 'center';
-    lines.slice(0, 8).forEach((line, idx) => {
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-      ctx.shadowBlur = 12;
 
-      if (line.startsWith('#')) {
+    formattedLines.forEach(({ text: lineText, isNewPara }) => {
+      if (isNewPara) {
+        currentY += paraGap;
+      }
+
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+      ctx.shadowBlur = 14;
+
+      const isHashtag = lineText.trim().startsWith('#');
+      if (isHashtag) {
         ctx.fillStyle = secondaryColor;
-        ctx.font = `900 ${Math.max(22, fontSize - 6)}px "Kantumruy Pro", sans-serif`;
+        ctx.font = `900 ${Math.max(16, quoteFontSize - 4)}px "Kantumruy Pro", sans-serif`;
       } else {
         ctx.fillStyle = '#f8fafc';
-        ctx.font = `bold ${fontSize}px "Kantumruy Pro", "Battambang", sans-serif`;
+        ctx.font = `bold ${quoteFontSize}px "Kantumruy Pro", "Battambang", sans-serif`;
       }
-      ctx.fillText(line, width / 2, startY + idx * lineHeight);
+
+      ctx.fillText(lineText, width / 2, currentY);
       ctx.restore();
+
+      currentY += lineHeight;
     });
 
     // 7. Divider Line with Center Glowing Diamond
