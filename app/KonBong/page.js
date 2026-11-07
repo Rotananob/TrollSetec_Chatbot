@@ -19,7 +19,8 @@ import {
   getLiveSessionState,
   touchLiveSession,
   setServerCooldownLock,
-  formatCountdown
+  formatCountdown,
+  isCreatorUsername
 } from '../utils/chatSessionLimit';
 import SessionBreakModal from '@/components/SessionBreakModal';
 import SetecSurvivalModal from '@/components/SetecSurvivalModal';
@@ -105,6 +106,7 @@ export default function KonBongPage() {
   const [showMemeModal, setShowMemeModal] = useState(false);
 
   const [username, setUsername] = useState('User');
+  const isCreatorUser = isRotanaAdmin || isCreatorUsername(username);
   const [userGender, setUserGender] = useState('');
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
@@ -353,9 +355,9 @@ export default function KonBongPage() {
     loadSessions();
   }, []);
 
-  // 15-Minute Live Chat Session & 20-Minute Cooldown Controller (Anti-Bypass)
+  // 30-Minute Live Chat Session & 10-Minute Cooldown Controller (Anti-Bypass)
   useEffect(() => {
-    touchLiveSession();
+    touchLiveSession(username);
     const updateState = () => {
       const st = getLiveSessionState();
       setSessionState(st);
@@ -364,22 +366,24 @@ export default function KonBongPage() {
     const interval = setInterval(updateState, 1000);
 
     // Background sync with server to prevent browser tampering/clearing bypass
-    try {
-      const devId = getDeviceId();
-      fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-device-id': devId },
-        body: JSON.stringify({ action: 'check-session', username, deviceId: devId })
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data?.isSessionLocked && data?.cooldownUntil) {
-            setServerCooldownLock(data.cooldownUntil);
-            setSessionState(getLiveSessionState());
-          }
+    if (!isCreatorUsername(username)) {
+      try {
+        const devId = getDeviceId();
+        fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-device-id': devId },
+          body: JSON.stringify({ action: 'check-session', username, deviceId: devId })
         })
-        .catch(() => {});
-    } catch {}
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.isSessionLocked && data?.cooldownUntil) {
+              setServerCooldownLock(data.cooldownUntil, username);
+              setSessionState(getLiveSessionState());
+            }
+          })
+          .catch(() => {});
+      } catch {}
+    }
 
     return () => clearInterval(interval);
   }, [username]);
@@ -915,14 +919,14 @@ export default function KonBongPage() {
   const handleSendMessageOrQueue = () => {
     if (isGeneratingMeme) return;
 
-    // Check if Live Chat 15-min Session is locked under 20-min break (Rotana NOB Creator is exempt)
-    if (!isRotanaAdmin) {
+    // Check if Live Chat 30-min Session is locked under 10-min break (Rotana NOB Creator is exempt)
+    if (!isCreatorUser) {
       const sessionCheck = getLiveSessionState();
       if (sessionCheck.isLocked) {
         setSessionState(sessionCheck);
         return;
       }
-      touchLiveSession();
+      touchLiveSession(username);
     }
 
     const currentText = inputText.trim();
@@ -951,13 +955,13 @@ export default function KonBongPage() {
 
   // Main Chat Handler (supports multimodal image + text + real-time streaming)
   const handleChat = async (overrideText, overrideImg) => {
-    if (!isRotanaAdmin) {
+    if (!isCreatorUser) {
       const sessionCheck = getLiveSessionState();
       if (sessionCheck.isLocked) {
         setSessionState(sessionCheck);
         return;
       }
-      touchLiveSession();
+      touchLiveSession(username);
     }
 
     const deviceId = getDeviceId();
@@ -2995,7 +2999,7 @@ export default function KonBongPage() {
           {/* Text Input */}
           <input
             type="text"
-            disabled={isGeneratingMeme || (!isRotanaAdmin && sessionState.isLocked)}
+            disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked)}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => {
@@ -3006,7 +3010,7 @@ export default function KonBongPage() {
             }}
             className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             placeholder={
-              !isRotanaAdmin && sessionState.isLocked
+              !isCreatorUser && sessionState.isLocked
                 ? `🔒 ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ១០ នាទី (នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)})...`
                 : isRotanaAdmin
                 ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
@@ -3023,9 +3027,9 @@ export default function KonBongPage() {
           {/* Send / Queue button */}
           <button
             onClick={handleSendMessageOrQueue}
-            disabled={isGeneratingMeme || (!isRotanaAdmin && sessionState.isLocked) || (!inputText.trim() && !selectedImage && !queuedPrompt)}
+            disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked) || (!inputText.trim() && !selectedImage && !queuedPrompt)}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 cursor-pointer ${
-              !isRotanaAdmin && sessionState.isLocked
+              !isCreatorUser && sessionState.isLocked
                 ? 'bg-slate-800 text-amber-400 cursor-not-allowed opacity-80 border border-amber-500/30'
                 : !inputText.trim() && !selectedImage && !queuedPrompt
                 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-40'
@@ -3036,7 +3040,7 @@ export default function KonBongPage() {
                 : 'bg-gradient-to-tr from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-cyan-500/25'
             }`}
             title={
-              !isRotanaAdmin && sessionState.isLocked
+              !isCreatorUser && sessionState.isLocked
                 ? 'ម៉ោងសម្រាក Cooldown កំពុងសកម្ម'
                 : isRotanaAdmin
                 ? `ផ្ញើសារក្នុងនាម Rotana NOB ទៅកាន់ ${clientUsername}`
@@ -3045,7 +3049,7 @@ export default function KonBongPage() {
                 : 'ផ្ញើសារ'
             }
           >
-            {!isRotanaAdmin && sessionState.isLocked ? (
+            {!isCreatorUser && sessionState.isLocked ? (
               <i className="fas fa-lock text-xs text-amber-400"></i>
             ) : isRotanaAdmin ? (
               <i className="fas fa-paper-plane text-xs"></i>
@@ -3226,9 +3230,9 @@ export default function KonBongPage() {
         isDark={isDark}
       />
 
-      {/* 15-Minute Live Chat Session Limit & 20-Minute Cooldown Modal (Unclosable Anti-Bypass) */}
+      {/* 30-Minute Live Chat Session Limit & 10-Minute Cooldown Modal (Unclosable Anti-Bypass) */}
       <SessionBreakModal
-        isOpen={!isRotanaAdmin && sessionState.isLocked}
+        isOpen={!isCreatorUser && sessionState.isLocked}
         remainingSeconds={sessionState.remainingCooldownSec}
         cooldownUntil={sessionState.cooldownUntil}
         botName="កូនច្បង"

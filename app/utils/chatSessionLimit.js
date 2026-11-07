@@ -1,12 +1,35 @@
 // app/utils/chatSessionLimit.js
 // Client & Server Coordinated 30-Minute Live Chat Session & 10-Minute Cooldown Manager
 // Enforces strict Anti-Bypass via combined localStorage + Persistent Cookie + Server Sync
+// Features Idle/Away auto-reset so opening the app after being away NEVER falsely triggers cooldown!
 
 export const SESSION_LIMIT_SECONDS = 30 * 60; // 30 minutes = 1800 seconds
 export const COOLDOWN_SECONDS = 10 * 60;      // 10 minutes = 600 seconds
 
-const STORAGE_KEY = 'setec_live_chat_session_v2';
-const COOKIE_NAME = 'setec_live_chat_cooldown_v2';
+const STORAGE_KEY = 'setec_live_chat_session_v3';
+const COOKIE_NAME = 'setec_live_chat_cooldown_v3';
+
+// Helper to check if a user is the Creator Rotana NOB (Permanent 100% Exemption)
+export function isCreatorUsername(name) {
+  if (!name || typeof name !== 'string') {
+    if (typeof window !== 'undefined') {
+      try {
+        name = localStorage.getItem('chatbot_username') || '';
+      } catch {
+        name = '';
+      }
+    } else {
+      return false;
+    }
+  }
+  const clean = name.trim().toLowerCase();
+  return (
+    clean === 'rotana' ||
+    clean === 'rotana nob' ||
+    clean === 'rotananob' ||
+    clean === 'rotana_nob'
+  );
+}
 
 // Format seconds into MM:SS
 export function formatCountdown(totalSeconds) {
@@ -35,13 +58,44 @@ function removeCookie(name) {
   document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
 }
 
+// Complete session cleanup helper
+export function clearLiveSession() {
+  if (typeof window === 'undefined') return;
+  removeCookie(COOKIE_NAME);
+  removeCookie('setec_live_chat_cooldown_v2');
+  removeCookie('setec_live_chat_cooldown_v1');
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('setec_live_chat_session_v2');
+    localStorage.removeItem('setec_live_chat_session_v1');
+  } catch {}
+}
+
+function freshState() {
+  return {
+    sessionStart: null,
+    lastActive: null,
+    cooldownUntil: null,
+    isLocked: false,
+    remainingSessionSec: SESSION_LIMIT_SECONDS,
+    remainingCooldownSec: 0
+  };
+}
+
 // Get current live chat session & cooldown state
 export function getLiveSessionState() {
   if (typeof window === 'undefined') {
+    return freshState();
+  }
+
+  // Creator Rotana NOB is ALWAYS 100% exempt from any lockout
+  if (isCreatorUsername()) {
     return {
-      sessionStart: null,
+      sessionStart: Date.now(),
+      lastActive: Date.now(),
       cooldownUntil: null,
       isLocked: false,
+      isCreator: true,
       remainingSessionSec: SESSION_LIMIT_SECONDS,
       remainingCooldownSec: 0
     };
@@ -49,10 +103,12 @@ export function getLiveSessionState() {
 
   const now = Date.now();
 
-  // Clean up legacy v1 keys from previous 20-minute config if present
+  // Clean up legacy v1 and v2 keys from earlier sessions to immediately clear false locks
   try {
     removeCookie('setec_live_chat_cooldown_v1');
+    removeCookie('setec_live_chat_cooldown_v2');
     localStorage.removeItem('setec_live_chat_session_v1');
+    localStorage.removeItem('setec_live_chat_session_v2');
   } catch {}
 
   // 1. Check persistent cookie first (Anti-Bypass: persists even if localStorage is cleared)
@@ -75,6 +131,7 @@ export function getLiveSessionState() {
   } catch {}
 
   let sessionStart = stored?.sessionStart || null;
+  let lastActive = stored?.lastActive || sessionStart || null;
   let cooldownUntil = stored?.cooldownUntil || null;
 
   // Sync cookie with storage if cookie has active cooldown
@@ -87,7 +144,7 @@ export function getLiveSessionState() {
     cooldownUntil = now + COOLDOWN_SECONDS * 1000;
   }
 
-  // 3. Cooldown Active Check
+  // 3. Cooldown Active Check: Is user legitimately in the 10-minute cooldown?
   if (cooldownUntil && now < cooldownUntil) {
     const remainingCooldownSec = Math.min(
       COOLDOWN_SECONDS,
@@ -97,6 +154,7 @@ export function getLiveSessionState() {
     setCookie(COOKIE_NAME, String(cooldownUntil), remainingCooldownSec + 60);
     return {
       sessionStart,
+      lastActive,
       cooldownUntil,
       isLocked: true,
       remainingSessionSec: 0,
@@ -104,41 +162,44 @@ export function getLiveSessionState() {
     };
   }
 
-  // 4. Cooldown Expired: Reset and allow new session
+  // 4. Cooldown Expired: If cooldown was active and has now elapsed, reset completely!
   if (cooldownUntil && now >= cooldownUntil) {
-    cooldownUntil = null;
-    sessionStart = null;
-    removeCookie(COOKIE_NAME);
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {}
-    return {
-      sessionStart: null,
-      cooldownUntil: null,
-      isLocked: false,
-      remainingSessionSec: SESSION_LIMIT_SECONDS,
-      remainingCooldownSec: 0
-    };
+    clearLiveSession();
+    return freshState();
   }
 
   // 5. Active Session Time Check
   if (sessionStart) {
-    const elapsedMs = now - sessionStart;
+    const elapsedSinceStart = now - sessionStart;
+    const elapsedSinceActive = lastActive ? now - lastActive : 0;
+
+    // A) IDLE / AWAY CHECK: If user was away/inactive for >= 10 mins (COOLDOWN_SECONDS),
+    // they ALREADY rested while away! Reset session to fresh immediately.
+    // B) TOTAL CYCLE CHECK: If >= 40 mins (30m play + 10m rest) elapsed since session started, reset.
+    if (
+      elapsedSinceActive >= COOLDOWN_SECONDS * 1000 ||
+      elapsedSinceStart >= (SESSION_LIMIT_SECONDS + COOLDOWN_SECONDS) * 1000
+    ) {
+      clearLiveSession();
+      return freshState();
+    }
+
     const sessionLimitMs = SESSION_LIMIT_SECONDS * 1000;
 
-    if (elapsedMs >= sessionLimitMs) {
-      // 30-minute session expired! Trigger 10-minute cooldown immediately
+    // C) SESSION EXPIRED: User actively chatted up to 30 minutes! Trigger 10-minute cooldown
+    if (elapsedSinceStart >= sessionLimitMs) {
       const newCooldownUntil = now + COOLDOWN_SECONDS * 1000;
       setCookie(COOKIE_NAME, String(newCooldownUntil), COOLDOWN_SECONDS + 60);
       try {
         localStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({ sessionStart, cooldownUntil: newCooldownUntil })
+          JSON.stringify({ sessionStart, lastActive: now, cooldownUntil: newCooldownUntil })
         );
       } catch {}
 
       return {
         sessionStart,
+        lastActive: now,
         cooldownUntil: newCooldownUntil,
         isLocked: true,
         remainingSessionSec: 0,
@@ -146,9 +207,11 @@ export function getLiveSessionState() {
       };
     }
 
-    const remainingSessionSec = Math.max(0, Math.ceil((sessionLimitMs - elapsedMs) / 1000));
+    // D) SESSION STILL VALID: within 30 minutes
+    const remainingSessionSec = Math.max(0, Math.ceil((sessionLimitMs - elapsedSinceStart) / 1000));
     return {
       sessionStart,
+      lastActive,
       cooldownUntil: null,
       isLocked: false,
       remainingSessionSec,
@@ -156,19 +219,25 @@ export function getLiveSessionState() {
     };
   }
 
-  // Fresh session not yet started
-  return {
-    sessionStart: null,
-    cooldownUntil: null,
-    isLocked: false,
-    remainingSessionSec: SESSION_LIMIT_SECONDS,
-    remainingCooldownSec: 0
-  };
+  // 6. Fresh session not yet started
+  return freshState();
 }
 
 // Start or touch active live chat session (called when user enters chat or types message)
-export function touchLiveSession() {
-  if (typeof window === 'undefined') return getLiveSessionState();
+export function touchLiveSession(customUsername = '') {
+  if (typeof window === 'undefined') return freshState();
+
+  if (isCreatorUsername(customUsername)) {
+    return {
+      sessionStart: Date.now(),
+      lastActive: Date.now(),
+      cooldownUntil: null,
+      isLocked: false,
+      isCreator: true,
+      remainingSessionSec: SESSION_LIMIT_SECONDS,
+      remainingCooldownSec: 0
+    };
+  }
 
   const state = getLiveSessionState();
   if (state.isLocked) return state;
@@ -177,6 +246,7 @@ export function touchLiveSession() {
   if (!state.sessionStart) {
     const newState = {
       sessionStart: now,
+      lastActive: now,
       cooldownUntil: null
     };
     try {
@@ -190,12 +260,29 @@ export function touchLiveSession() {
     };
   }
 
-  return state;
+  // Session already running: keep sessionStart, update lastActive
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        sessionStart: state.sessionStart,
+        lastActive: now,
+        cooldownUntil: null
+      })
+    );
+  } catch {}
+
+  return {
+    ...state,
+    lastActive: now
+  };
 }
 
 // Set cooldown lock directly from server response (Server-Enforced Lockout, clamped to 10 min max)
-export function setServerCooldownLock(cooldownUntilMs) {
+export function setServerCooldownLock(cooldownUntilMs, customUsername = '') {
   if (typeof window === 'undefined') return;
+  if (isCreatorUsername(customUsername)) return; // Creator is never locked
+
   const now = Date.now();
   let safeUntil = cooldownUntilMs || (now + COOLDOWN_SECONDS * 1000);
   if (safeUntil - now > COOLDOWN_SECONDS * 1000) {
@@ -207,7 +294,7 @@ export function setServerCooldownLock(cooldownUntilMs) {
   try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ sessionStart: null, cooldownUntil: safeUntil })
+      JSON.stringify({ sessionStart: null, lastActive: now, cooldownUntil: safeUntil })
     );
   } catch {}
 }
