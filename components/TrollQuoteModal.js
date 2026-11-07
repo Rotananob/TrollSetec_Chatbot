@@ -1,0 +1,230 @@
+'use client';
+
+import React, { useRef, useState, useEffect } from 'react';
+
+export default function TrollQuoteModal({
+  isOpen,
+  onClose,
+  quoteText = '',
+  botPersona = 'កូនច្បង',
+  theme = 'dark'
+}) {
+  const canvasRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !quoteText) return;
+    renderCardToCanvas();
+  }, [isOpen, quoteText, botPersona, theme]);
+
+  if (!isOpen) return null;
+
+  const cleanText = (quoteText || '').replace(/[\r\n]+/g, ' ').trim();
+
+  // Helper to wrap text into canvas lines
+  function wrapText(ctx, text, maxWidth) {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = currentLine ? `${currentLine} ${words[i]}` : words[i];
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = words[i];
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  }
+
+  const renderCardToCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = 1080;
+    const height = 1080;
+    canvas.width = width;
+    canvas.height = height;
+
+    // Background Gradient (Dark Cyber SETEC style)
+    const isKonBong = botPersona.includes('កូនច្បង');
+    const grad = ctx.createLinearGradient(0, 0, width, height);
+    if (isKonBong) {
+      grad.addColorStop(0, '#060d1a');
+      grad.addColorStop(0.5, '#0a1628');
+      grad.addColorStop(1, '#020610');
+    } else {
+      grad.addColorStop(0, '#190615');
+      grad.addColorStop(0.5, '#22081c');
+      grad.addColorStop(1, '#0c020d');
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, width, height);
+
+    // Decorative Glowing Neon Border
+    ctx.strokeStyle = isKonBong ? 'rgba(6, 182, 212, 0.4)' : 'rgba(236, 72, 153, 0.4)';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(36, 36, width - 72, height - 72);
+
+    // Subtle Corner Accents
+    ctx.fillStyle = isKonBong ? '#22d3ee' : '#f472b6';
+    const accentLen = 48;
+    // Top-left
+    ctx.fillRect(36, 36, accentLen, 12);
+    ctx.fillRect(36, 36, 12, accentLen);
+    // Top-right
+    ctx.fillRect(width - 36 - accentLen, 36, accentLen, 12);
+    ctx.fillRect(width - 48, 36, 12, accentLen);
+    // Bottom-left
+    ctx.fillRect(36, height - 48, accentLen, 12);
+    ctx.fillRect(36, height - 36 - accentLen, 12, accentLen);
+    // Bottom-right
+    ctx.fillRect(width - 36 - accentLen, height - 48, accentLen, 12);
+    ctx.fillRect(width - 48, height - 36 - accentLen, 12, accentLen);
+
+    // Header Badge: "SETEC TROLL CHATBOT • QUOTE OF THE DAY"
+    ctx.font = 'bold 26px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = isKonBong ? '#38bdf8' : '#f472b6';
+    ctx.textAlign = 'center';
+    ctx.fillText(`⚡ SETEC TROLL CHATBOT • PUNCHLINE ⚡`, width / 2, 140);
+
+    // Persona Name
+    ctx.font = '900 48px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(`ស្ដេចឌឺ (${botPersona})`, width / 2, 210);
+
+    // Big Decorative Quotation Mark
+    ctx.font = 'bold 160px serif';
+    ctx.fillStyle = isKonBong ? 'rgba(56, 189, 248, 0.15)' : 'rgba(244, 114, 182, 0.15)';
+    ctx.fillText('“', 160, 360);
+
+    // Quote Content (Wrapped)
+    ctx.font = 'bold 40px "Kantumruy Pro", "Battambang", sans-serif';
+    ctx.fillStyle = '#f1f5f9';
+    ctx.textAlign = 'center';
+
+    const maxLineWidth = 820;
+    const lines = wrapText(ctx, cleanText, maxLineWidth);
+    const startY = 380 + Math.max(0, (500 - lines.length * 62) / 2);
+
+    lines.slice(0, 7).forEach((line, idx) => {
+      ctx.fillText(line, width / 2, startY + idx * 64);
+    });
+
+    // Divider Line
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(180, 880);
+    ctx.lineTo(width - 180, 880);
+    ctx.stroke();
+
+    // Footer Watermark & Links
+    ctx.font = 'bold 24px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌐 troll-setec-chatbot.web.app • Facebook: SETEC Troll Meme', width / 2, 940);
+
+    ctx.font = 'bold 20px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('បង្កើតឡើងដោយ Rotana NOB (Creator)', width / 2, 980);
+  };
+
+  const handleDownload = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    setIsGenerating(true);
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `SETEC_Troll_Quote_${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (e) {
+      console.warn('Canvas download error:', e);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleCopy = () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cleanText);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md sm:max-w-lg rounded-3xl p-5 border border-cyan-500/30 bg-slate-900 text-white shadow-2xl relative overflow-hidden animate-scale-up"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm">
+              📸
+            </span>
+            <h3 className="font-black text-sm sm:text-base text-cyan-200">
+              ទាញយករូបភាព Quote Troll
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+          >
+            <i className="fas fa-times text-xs"></i>
+          </button>
+        </div>
+
+        {/* Live Canvas Preview */}
+        <div className="w-full aspect-square rounded-2xl overflow-hidden border border-slate-700/60 bg-black flex items-center justify-center mb-4 shadow-inner">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full object-contain"
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={isGenerating}
+            className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-black text-xs transition active:scale-95 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i className="fas fa-download"></i>
+            <span>{isGenerating ? 'កំពុងទាញយក...' : 'ទាញយករូបភាព PNG'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition active:scale-95 border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+          >
+            <i className={`fas ${copied ? 'fa-check text-emerald-400' : 'fa-copy'}`}></i>
+            <span>{copied ? 'បានចម្លង!' : 'ចម្លងអក្សរ'}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

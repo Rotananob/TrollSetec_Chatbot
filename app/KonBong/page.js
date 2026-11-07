@@ -22,6 +22,8 @@ import {
   formatCountdown
 } from '../utils/chatSessionLimit';
 import SessionBreakModal from '@/components/SessionBreakModal';
+import SetecSurvivalModal from '@/components/SetecSurvivalModal';
+import TrollQuoteModal from '@/components/TrollQuoteModal';
 import {
   validateBypassToken,
   getLiveSession,
@@ -84,6 +86,8 @@ export default function KonBongPage() {
   const [errorReportModalOpen, setErrorReportModalOpen] = useState(false);
   const [errorReportInitialText, setErrorReportInitialText] = useState('');
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
+  const [isSurvivalModalOpen, setIsSurvivalModalOpen] = useState(false);
+  const [quoteModalData, setQuoteModalData] = useState(null);
 
   // ToDo / Queued Prompt State (allows typing and queuing while AI is thinking)
   const [queuedPrompt, setQueuedPrompt] = useState(null); // { text, image }
@@ -2572,13 +2576,11 @@ export default function KonBongPage() {
                             )}
                             {isThisItemPlaying && (
                               <>
-                                <i
-                                  className={`${
-                                    isFallbackVoice
-                                      ? 'fas fa-robot animate-bounce text-amber-400 text-xs'
-                                      : 'fas fa-headset animate-pulse text-cyan-400'
-                                  }`}
-                                ></i>{' '}
+                                <div className="flex items-end gap-0.5 h-3 px-0.5">
+                                  <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-1 inline-block"></span>
+                                  <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-2 inline-block"></span>
+                                  <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-3 inline-block"></span>
+                                </div>
                                 <span>
                                   {isFallbackVoice
                                     ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
@@ -2654,6 +2656,21 @@ export default function KonBongPage() {
                           >
                             <i className={copiedIndex === idx ? 'fas fa-check text-emerald-400' : 'fas fa-copy text-slate-400'}></i>
                             <span>{copiedIndex === idx ? 'ចម្លងរួច' : 'ចម្លង'}</span>
+                          </button>
+
+                          {/* Shareable Troll Quote Card Button */}
+                          <button
+                            type="button"
+                            onClick={() => setQuoteModalData({ text: msg.text, persona: 'កូនច្បង' })}
+                            className={`px-2.5 py-1.5 rounded-xl text-[10.5px] font-bold border flex items-center gap-1 transition cursor-pointer select-none active:scale-95 ${
+                              isDark
+                                ? 'bg-slate-800 text-cyan-300 border-slate-700 hover:bg-slate-700'
+                                : 'bg-slate-100 text-cyan-700 border-slate-200 hover:bg-slate-200'
+                            }`}
+                            title="ទាញយករូបភាព Quote Troll ទុកចែករំលែក"
+                          >
+                            <i className="fas fa-camera text-cyan-400 text-[10px]"></i>
+                            <span>Quote</span>
                           </button>
                         </div>
                       );
@@ -2809,48 +2826,86 @@ export default function KonBongPage() {
             ))}
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
-            <button
-              onClick={() => setContributeModalOpen(true)}
-              className="px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-400/30 text-indigo-400"
-            >
-              <i className="fas fa-brain text-xs text-amber-300"></i>
-              <span>ចូលរួមបង្រៀន AI</span>
-            </button>
+          <div className="space-y-1.5 mb-2">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] no-scrollbar">
+              <button
+                type="button"
+                onClick={() => setIsSurvivalModalOpen(true)}
+                className="px-3 py-1 rounded-full border font-black flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-purple-500/15 hover:from-amber-500/25 hover:to-purple-500/25 border-amber-400/40 text-amber-300 ring-1 ring-amber-400/30"
+              >
+                <i className="fas fa-calculator text-xs text-amber-400"></i>
+                <span>🎒 SETEC Survival ($45 & Sound)</span>
+              </button>
 
-            <button
-              onClick={() => handleRequestMeme()}
-              disabled={isGeneratingMeme || isLoading}
-              className="px-3 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 text-amber-500 dark:text-amber-300 font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
-            >
-              <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
-              <span>សុំ Meme ៥ សន្លឹក</span>
-            </button>
+              <button
+                onClick={() => setContributeModalOpen(true)}
+                className="px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-400/30 text-indigo-400"
+              >
+                <i className="fas fa-brain text-xs text-amber-300"></i>
+                <span>ចូលរួមបង្រៀន AI</span>
+              </button>
 
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-cyan-500/10 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-cyan-400 font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
-            >
-              <i className="fas fa-camera text-xs text-cyan-400"></i>
-              <span>វិភាគរូបភាព</span>
-            </button>
+              <button
+                onClick={() => handleRequestMeme()}
+                disabled={isGeneratingMeme || isLoading}
+                className="px-3 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/30 text-amber-500 dark:text-amber-300 font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+              >
+                <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
+                <span>សុំ Meme ៥ សន្លឹក</span>
+              </button>
 
-            <button
-              onClick={() => handleChat('ជួយពន្យល់ពីគន្លឹះរៀន Coding នៅ SETEC ឱ្យឆាប់ចេះតិចមើលបង')}
-              disabled={isLoading}
-              className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-cyan-500/10 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-cyan-400 font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
-            >
-              <i className="fas fa-code text-xs text-blue-400"></i>
-              <span>គន្លឹះរៀន IT</span>
-            </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-cyan-500/10 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-cyan-400 font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+              >
+                <i className="fas fa-camera text-xs text-cyan-400"></i>
+                <span>វិភាគរូបភាព</span>
+              </button>
 
-            <button
-              onClick={() => createNewSession()}
-              className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-400 font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
-            >
-              <i className="fas fa-rotate text-xs"></i>
-              <span>ជជែកថ្មី</span>
-            </button>
+              <button
+                onClick={() => handleChat('ជួយពន្យល់ពីគន្លឹះរៀន Coding នៅ SETEC ឱ្យឆាប់ចេះតិចមើលបង')}
+                disabled={isLoading}
+                className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-cyan-500/10 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-cyan-400 font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+              >
+                <i className="fas fa-code text-xs text-blue-400"></i>
+                <span>គន្លឹះរៀន IT</span>
+              </button>
+
+              <button
+                onClick={() => createNewSession()}
+                className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-400 font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
+              >
+                <i className="fas fa-rotate text-xs"></i>
+                <span>ជជែកថ្មី</span>
+              </button>
+            </div>
+
+            {/* SETEC Hot Topics Quick Chips Bar */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar">
+              <span className="text-[10px] text-cyan-400 font-bold shrink-0 flex items-center gap-1 px-1">
+                <i className="fas fa-fire text-amber-400 text-xs animate-pulse"></i>
+                <span>ប្រធានបទ Troll:</span>
+              </span>
+              {[
+                { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលបង' },
+                { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
+                { label: '💸 ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់បង?' },
+                { label: '📚 បណ្ណាល័យ Design', prompt: 'ហេតុអីបានជាគ្មានអ្នកចូលបណ្ណាល័យស៊ីតិចទាន់សិស្ស Design?' },
+                { label: '☕ ញៀនកាហ្វេ', prompt: 'ឮថាសិស្សស៊ីតិចញៀនកាហ្វេខ្លាំងណាស់មែន?' },
+                { label: '💇‍♂️ សក់ K-Pop', prompt: 'ម៉ូដសក់ក្រញាញ់ និងពុះកណ្ដាលដូចតារា K-Pop នៅស៊ីតិចម៉េចដែរ?' },
+                { label: '👥 គ្រុប Meme ទាំង ២', prompt: 'ជួយណែនាំពី Facebook Group ធំៗទាំង ២ របស់ស៊ីតិចបន្តិចមើល' }
+              ].map((topic, tIdx) => (
+                <button
+                  key={tIdx}
+                  type="button"
+                  onClick={() => handleChat(topic.prompt)}
+                  disabled={isLoading}
+                  className="px-2.5 py-1 rounded-full bg-slate-900/80 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-700/80 hover:border-cyan-400/50 font-bold text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-xs"
+                >
+                  {topic.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -3147,6 +3202,24 @@ export default function KonBongPage() {
         onUnlock={() => {
           setSessionState(getLiveSessionState());
         }}
+      />
+
+      {/* SETEC Survival Suite Modal ($45 x3 Retake Calculator, Attendance Blacklist, & Soundboard) */}
+      <SetecSurvivalModal
+        isOpen={isSurvivalModalOpen}
+        onClose={() => setIsSurvivalModalOpen(false)}
+        onSendToChat={(text) => handleChat(text)}
+        botPersona="កូនច្បង"
+        theme={theme}
+      />
+
+      {/* Shareable Troll Quote Card Modal (PNG Download) */}
+      <TrollQuoteModal
+        isOpen={!!quoteModalData}
+        onClose={() => setQuoteModalData(null)}
+        quoteText={quoteModalData?.text || ''}
+        botPersona="កូនច្បង"
+        theme={theme}
       />
 
       {/* Interactive Falling Emoji Shower when Bot Audio Finishes */}

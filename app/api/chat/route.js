@@ -6,7 +6,7 @@ import {
   alertChatActivity,
   alertSecuritySpam,
   alertSystemError
-} from '../../../lib/telegram';
+} from '../../../lib/telegram.js';
 import {
   checkDDoSFirewall,
   checkChatLimit,
