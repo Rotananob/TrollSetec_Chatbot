@@ -42,3 +42,12 @@ Thumbs.db
 /tukjorl/
 /img/
 public/img/**/*.html
+
+# Forensic Reports, Audit Logs & Incident Investigation (Strictly Confidential)
+forensics/
+reports/
+scratch/
+*FORENSIC*
+*forensic*
+*.doc
+*.docx
