@@ -569,7 +569,7 @@ export default function KonPovPage() {
   // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
   const sanitizeRotanaAttack = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    const text = rawText.replace(/180703/g, '******');
+    const text = rawText;
     const isAlreadyDefense = text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត');
     if (isAlreadyDefense) return text;
 
@@ -1058,7 +1058,7 @@ export default function KonPovPage() {
 
   const triggerAudio = async (rawAudioText, index, autoPlay = false) => {
     if (!rawAudioText) return;
-    const text = String(rawAudioText).replace(/180703/g, '');
+    const text = String(rawAudioText);
     if (!audioPlayerRef.current && typeof window !== 'undefined') {
       audioPlayerRef.current = new Audio();
     }
@@ -1624,7 +1624,7 @@ export default function KonPovPage() {
         botText = enforcePersonaConsistency(botText, isMaleUser);
       }
 
-      botText = limitEmojis(sanitizeRotanaAttack(botText.replace(/180703/g, '******')), 7);
+      botText = limitEmojis(sanitizeRotanaAttack(botText), 7);
       const finalMessages = [...updatedMessages];
       finalMessages[finalMessages.length - 1] = { role: 'bot', text: botText, isError: isErrorResponse };
       setMessages(finalMessages);
@@ -3146,7 +3146,7 @@ export default function KonPovPage() {
                 { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីរឿងកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលចែ' },
                 { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
                 { label: '💸 ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់ចែ?' },
-                { label: '📚 បណ្ណាល័យ Design', prompt: 'ហេតុអីបានជាគ្មានអ្នកចូលបណ្ណាល័យស៊ីតិចទាន់សិស្ស Design?' },
+                { label: '🎨 សិស្ស Design & បណ្ណាល័យ', prompt: 'តើសិស្ស Graphic Design និង IT នៅស៊ីតិចមានបរិយាកាសស្និទ្ធស្នាលគ្នាយ៉ាងម៉េចខ្លះក្នុងបណ្ណាល័យ?' },
                 { label: '☕ ញៀនកាហ្វេ', prompt: 'ឮថាសិស្សស៊ីតិចញៀនកាហ្វេខ្លាំងណាស់មែន?' },
                 { label: '💇‍♂️ សក់ K-Pop', prompt: 'ម៉ូដសក់ក្រញាញ់ និងពុះកណ្ដាលដូចតារា K-Pop នៅស៊ីតិចម៉េចដែរ?' },
                 { label: '👥 គ្រុប Meme ទាំង ២', prompt: 'ជួយណែនាំពី Facebook Group ធំៗទាំង ២ របស់ស៊ីតិចបន្តិចមើល' }
