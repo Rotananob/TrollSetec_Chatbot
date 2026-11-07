@@ -3067,8 +3067,8 @@ export default function KonBongPage() {
         {/* Quick Suggestion Pills Bar */}
         {isRotanaAdmin ? (
           <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px] no-scrollbar">
-            <span className="text-[10px] text-amber-400 font-bold shrink-0 flex items-center gap-1 px-1">
-              <i className="fas fa-bolt text-xs"></i>
+            <span className="text-[10px] text-amber-700 dark:text-amber-400 font-bold shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50">
+              <i className="fas fa-bolt text-xs text-amber-500"></i>
               <span>ឆ្លើយតបរហ័ស:</span>
             </span>
             {[
@@ -3081,7 +3081,7 @@ export default function KonBongPage() {
                 key={pIdx}
                 type="button"
                 onClick={() => setInputText(phrase)}
-                className="px-2.5 py-1 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-semibold text-[11px] shrink-0 transition active:scale-95 cursor-pointer shadow-xs"
+                className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-700 dark:text-slate-200 hover:text-amber-700 dark:hover:text-amber-300 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600/50 font-medium text-[11px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs"
               >
                 {phrase}
               </button>
@@ -3089,22 +3089,28 @@ export default function KonBongPage() {
           </div>
         ) : (
           <div className="space-y-2 mb-2.5">
-            {/* ROW 1: ⚡ មុខងារដំណើរការ (Action & Feature Tools - Distinct Rounded-XL Cards) */}
-            <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <span className="text-[10px] text-cyan-400 font-extrabold uppercase tracking-wider shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25">
-                <i className="fas fa-bolt text-amber-400 text-xs"></i>
-                <span>មុខងារ:</span>
-              </span>
+            {/* ROW 1: មុខងារដំណើរការ (Professional Feature Toolbar) */}
+            <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-2 overflow-x-auto pb-1 text-[11px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] shrink-0 shadow-2xs">
+                <i className="fas fa-sliders text-cyan-600 dark:text-cyan-400 text-xs"></i>
+                <span>មុខងារ</span>
+              </div>
 
               {/* Survival Modal Tool */}
               <button
                 type="button"
                 onClick={() => setIsSurvivalModalOpen(true)}
-                className="px-3 py-1.5 rounded-xl border font-black flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-gradient-to-r from-amber-500/20 via-cyan-500/20 to-blue-500/20 hover:from-amber-500/30 hover:to-blue-500/30 border-cyan-400/50 text-cyan-200 ring-1 ring-cyan-400/30"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
                 title="កម្មវិធីគណនាប្រឡងសង $45 និងសំឡេង"
               >
-                <i className="fas fa-calculator text-xs text-amber-400"></i>
-                <span>🎒 Survival ($45 & សំឡេង)</span>
+                <span className="w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-calculator"></i>
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-100">Survival $45</span>
+                <span className="text-[9.5px] px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
+                  <i className="fas fa-volume-high text-[8.5px]"></i>
+                  <span>សំឡេង</span>
+                </span>
               </button>
 
               {/* Meme Generator Tool */}
@@ -3112,53 +3118,61 @@ export default function KonBongPage() {
                 type="button"
                 onClick={() => handleRequestMeme()}
                 disabled={isGeneratingMeme || isLoading}
-                className="px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-amber-500/15 hover:bg-amber-500/25 border-amber-400/40 text-amber-300 ring-1 ring-amber-400/25"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 title="បង្កើតរូបភាព Meme ស៊ីតិច ៥ សន្លឹក"
               >
-                <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
-                <span>🪄 សុំ Meme ៥ សន្លឹក</span>
+                <span className="w-5 h-5 rounded-md bg-purple-500/15 dark:bg-purple-400/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-wand-magic-sparkles"></i>
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-100">សុំ Meme ៥ សន្លឹក</span>
               </button>
 
               {/* Image Vision Analysis Tool */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-cyan-500/15 hover:bg-cyan-500/25 border-cyan-400/40 text-cyan-300 ring-1 ring-cyan-400/25"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
                 title="បញ្ចូលរូបភាពឱ្យបងវិភាគ"
               >
-                <i className="fas fa-camera text-xs text-cyan-400"></i>
-                <span>📷 វិភាគរូបភាព</span>
+                <span className="w-5 h-5 rounded-md bg-cyan-500/15 dark:bg-cyan-400/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-camera"></i>
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-100">វិភាគរូបភាព</span>
               </button>
 
               {/* Quote Troll Tool */}
               <button
                 type="button"
                 onClick={() => setQuoteModalData({ text: '' })}
-                className="px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-blue-500/15 hover:bg-blue-500/25 border-blue-400/40 text-blue-300 ring-1 ring-blue-400/25"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
                 title="បង្កើត Quote Troll សម្រាប់ IG & X"
               >
-                <i className="fas fa-quote-left text-xs text-cyan-400"></i>
-                <span>❝ Quote Troll IG/X</span>
+                <span className="w-5 h-5 rounded-md bg-blue-500/15 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-quote-left"></i>
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-100">Quote Troll IG/X</span>
               </button>
 
               {/* Reset Session Tool */}
               <button
                 type="button"
                 onClick={() => createNewSession()}
-                className="px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-slate-800/80 hover:bg-slate-700/80 border-slate-600/60 text-slate-300 hover:text-white"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
                 title="ជម្រះសារ ហើយជជែកថ្មី"
               >
-                <i className="fas fa-rotate text-xs text-slate-400"></i>
-                <span>🔄 ជជែកថ្មី</span>
+                <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-rotate"></i>
+                </span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">ជជែកថ្មី</span>
               </button>
             </div>
 
-            {/* ROW 2: 💬 សំណើជជែក Troll (Prompt Suggestion Chips - Distinct Rounded-Full Chat Pills) */}
+            {/* ROW 2: សំណើ Troll (Prompt Suggestion Chips) */}
             <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <span className="text-[10px] text-cyan-400 font-bold shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700/60">
-                <i className="fas fa-comment-dots text-cyan-400 text-xs"></i>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-[10px] shrink-0">
+                <i className="fas fa-comments text-cyan-600 dark:text-cyan-400 text-xs"></i>
                 <span>សំណើ Troll:</span>
-              </span>
+              </div>
               {[
                 { label: '🔥 Quote IT & CS', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកបង!' },
                 { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
@@ -3173,9 +3187,8 @@ export default function KonBongPage() {
                   type="button"
                   onClick={() => handleChat(topic.prompt)}
                   disabled={isLoading}
-                  className="px-2.5 py-1 rounded-full bg-slate-900/90 hover:bg-cyan-500/20 text-slate-300 hover:text-cyan-300 border border-slate-700/80 hover:border-cyan-400/50 font-medium text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800/90 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 text-slate-700 dark:text-slate-200 hover:text-cyan-700 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-500/50 font-medium text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1"
                 >
-                  <i className="fas fa-angle-right text-[9px] text-cyan-400/70"></i>
                   <span>{topic.label}</span>
                 </button>
               ))}
