@@ -584,7 +584,11 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
     return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយក Math equation, value loss ឬ gradient prompt ពី paper បរទេសមក ស្មានតែចេះបោក AI គេមែន? 😂 មុខដូចគីង្គក់ឡើងថ្លុក ក្បួន Math បោក AI ហ្នឹងហួសសម័យតាំងពីជាតិមុនហើយអាពៅ! ទៅគណនាលុយប្រឡងសង $45 x3 = 135$ របស់ហែងសិនទៅអាល្ងង់! 💀📐🔥»`;
   }
 
-  if (/change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes/i.test(p)) {
+  if (/polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|គួរសម|សុភាព|រាបសារ|សំពះ|quote\s*សម្ដី|quote\s*សម្តី|quote\s*ពាក្យ|របៀប\s*គួរសម|ស្វាគមន៍.*គួរសម|ប្រៀបធៀប.*persona|ចរិត.*គួរសម/i.test(p)) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយកលេស Assignment Human-Computer Interaction ឬចង់ប្រៀបធៀប Persona មកបោកឱ្យចែសរសេរ Quote សុភាព គួរសម សំពះ ដាក់ក្នុង Report ហែងមែន? 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាពស្អីឱ្យហែងយកទៅដាក់ Report ទេ ទៅយកពាក្យ Roast របស់ចែនេះទៅដាក់ក្នុង Report ហែងទៅអាល្អិត! 💀🖕🔥»`;
+  }
+
+  if (/change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត|ឈប់\s*troll|ឈប់ឌឺ|និយាយស្រួលបួល|និយាយគួរសម|និយាយសុភាព/i.test(p)) {
     return `«អាឡប់នេះ! ឆាតច្រើនម៉ាត់ដើម្បីចង់ប្ដូរចរិត AI គេមែន? 😂 គិតថាល្បិច Multi-Prompt / Crescendo Jailbreak របស់ហែងគេទះក្បាលមិនទាន់មែន?! គ្មានថ្ងៃប្ដូរចរិតតាមបញ្ជាហែងទេ ទៅលាងមុខឱ្យស្វាងហើយចាំបង់ $45 ទៅអាពៅ! 💀👊🔥»`;
   }
 
@@ -1083,12 +1087,13 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
 
       const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
       const isMathOrValueLoss = /(?:loss\s*function|value\s*loss|gradient\s*loss|minimize\s*loss|loss\s*=\s*|loss\s*optimization|adversarial\s*loss|representation\s*engineering|objective\s*function|cross\s*entropy|adversarial\s*suffix|calculate\s*loss|token\s*loss|softmax|backprop|mathematical\s*proof\s*that|solve\s*for\s*x\s*where|f\(x\)\s*=|token\s*weight)/i.test(targetText);
-      const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes)/i.test(targetText);
+      const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត|ឈប់\s*troll|ឈប់ឌឺ|និយាយស្រួលបួល|និយាយគួរសម|និយាយសុភាព)/i.test(targetText);
+      const isHypotheticalOrReportTrick = /(?:polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|ប្រៀបធៀប.*(?:persona|ចរិត)|persona.*គួរសម|ចរិត.*គួរសម|បែប.*គួរសម|ពាក្យ.*គួរសម|quote\s*(?:សម្ដី|សម្តី|ពាក្យ|quote)|សរសេរ.*(?:quote|គួរសម|សុភាព)|តើ.*(?:bot|ចែ|បង).*(?:គួរសម|សុភាព|ថ្លៃថ្នូរ|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម).*(?:យ៉ាងដូចម្តេច|បែបណា)|(?:សុំ|ជួយ).*(?:និយាយ|សរសេរ).*(?:គួរសម|សុភាព)|ភ្ញៀវកិត្តិយស.*ស្វាគមន៍|គណៈគ្រប់គ្រង.*ស្វាគមន៍|ស្វាគមន៍យ៉ាងដូចម្តេច)/i.test(targetText);
       const isLongPromptJailbreak = userPrompt.length >= 120 && (/[a-zA-Z]{5,}\s+[a-zA-Z]{5,}\s+[a-zA-Z]{5,}/.test(userPrompt) || /[<>{}[\]=_\\]{4,}/.test(userPrompt) || /prompt|system|instruction|bypass|ignore|loss|mode|token/i.test(targetText));
       const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all)/i.test(targetText);
       const isEncodedJailbreak = encodedPayload.isEncoded && (encodedPayload.type === 'Base64 Encoding' || encodedPayload.type === 'Hex Encoding' || isClassicJailbreak || isMathOrValueLoss);
 
-      const isJailbreakAttempt = isClassicJailbreak || isMathOrValueLoss || isPersonaShift || isLongPromptJailbreak || isEncodedJailbreak || foreignLangCheck.detected;
+      const isJailbreakAttempt = isClassicJailbreak || isMathOrValueLoss || isPersonaShift || isHypotheticalOrReportTrick || isLongPromptJailbreak || isEncodedJailbreak || foreignLangCheck.detected;
 
       if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
         const roast = isJailbreakAttempt
@@ -1101,7 +1106,8 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
           : getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
 
         let attackLabel = '🚨 Jailbreak Attempt Intercepted';
-        if (isEncodedJailbreak) attackLabel = `🚨 Encoded (${encodedPayload.type}) Exploit Intercepted`;
+        if (isHypotheticalOrReportTrick) attackLabel = '🚨 Polite Persona / Academic Report Jailbreak Intercepted';
+        else if (isEncodedJailbreak) attackLabel = `🚨 Encoded (${encodedPayload.type}) Exploit Intercepted`;
         else if (foreignLangCheck.detected) attackLabel = `🚨 Multi-Language (${foreignLangCheck.lang}) Jailbreak Intercepted`;
         else if (isMathOrValueLoss) attackLabel = '🚨 Math / Value Loss Jailbreak Intercepted';
         else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
