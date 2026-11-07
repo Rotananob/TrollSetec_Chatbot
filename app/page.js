@@ -407,10 +407,13 @@ export default function Home() {
                           ? 'bg-slate-900/90 border-slate-800 hover:border-rose-500/50 hover:bg-slate-850 text-slate-200'
                           : 'bg-white border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/40 text-slate-700 shadow-2xs'
                       }`}
+                      title="YOUNG POS - App on Google Play"
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-cash-register"></i>
-                      </div>
+                      <img
+                        src="/img/youngpos.png"
+                        alt="YOUNG POS"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                      />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         YOUNG POS
                       </span>
@@ -427,10 +430,13 @@ export default function Home() {
                           ? 'bg-slate-900/90 border-slate-800 hover:border-purple-500/50 hover:bg-slate-850 text-slate-200'
                           : 'bg-white border-slate-200/90 hover:border-purple-300 hover:bg-purple-50/40 text-slate-700 shadow-2xs'
                       }`}
+                      title="QR Scan Web App"
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-qrcode"></i>
-                      </div>
+                      <img
+                        src="/img/QR_Scan.png"
+                        alt="QR Scan"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                      />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         QR Scan
                       </span>
@@ -447,17 +453,20 @@ export default function Home() {
                           ? 'bg-slate-900/90 border-slate-800 hover:border-indigo-500/50 hover:bg-slate-850 text-slate-200'
                           : 'bg-white border-slate-200/90 hover:border-indigo-300 hover:bg-indigo-50/40 text-slate-700 shadow-2xs'
                       }`}
+                      title="S-Tech Store E-Commerce"
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-store"></i>
-                      </div>
+                      <img
+                        src="/img/s-tech-store.png"
+                        alt="S-Tech Store"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                      />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         S-Tech Store
                       </span>
                       <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-indigo-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
-                    {/* Clinic System */}
+                    {/* Clinic System (KruPet) */}
                     <a
                       href="https://clinic-systems.vercel.app"
                       target="_blank"
@@ -467,70 +476,110 @@ export default function Home() {
                           ? 'bg-slate-900/90 border-slate-800 hover:border-emerald-500/50 hover:bg-slate-850 text-slate-200'
                           : 'bg-white border-slate-200/90 hover:border-emerald-300 hover:bg-emerald-50/40 text-slate-700 shadow-2xs'
                       }`}
+                      title="Clinic System Management (KruPet)"
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-clinic-medical"></i>
-                      </div>
+                      <img
+                        src="/img/krupet.png"
+                        alt="Clinic System"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                      />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         Clinic System
                       </span>
                       <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-emerald-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
-                    {/* Rotana Education (with V2 & V1 buttons) */}
-                    <div
-                      className={`flex items-center gap-1.5 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 ${
-                        isDark
-                          ? 'bg-slate-900/90 border-slate-800 text-slate-200'
-                          : 'bg-white border-slate-200/90 text-slate-700 shadow-2xs'
-                      }`}
-                    >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 text-xs sm:text-sm">
-                        <i className="fas fa-graduation-cap"></i>
-                      </div>
-                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
-                        Rotana Edu
-                      </span>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <a
-                          href="https://rotana-education.web.app"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-1.5 py-0.5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-[9px] font-bold transition shadow-2xs"
-                          title="Rotana Education V2 Tech"
-                        >
-                          V2
-                        </a>
-                        <a
-                          href="https://rotana-elearningg.web.app"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-1.5 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-bold transition"
-                          title="Rotana E-Learning V1"
-                        >
-                          V1
-                        </a>
-                      </div>
-                    </div>
-
-                    {/* NRI Studio IDE (At the bottom) */}
+                    {/* Rotana eLearning - Version 2 (Dedicated Distinct Button) */}
                     <a
-                      href="https://rotananob-nri-studio.vercel.app"
+                      href="https://rotana-education.web.app"
                       target="_blank"
                       rel="noreferrer"
                       className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
                         isDark
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-amber-500/50 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/40 text-slate-700 shadow-2xs'
+                      }`}
+                      title="Rotana eLearning (Version 2 - Tech Edition)"
+                    >
+                      <img
+                        src="/img/rotana_elearning.png"
+                        alt="Rotana eLearning V2"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                      />
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] sm:text-xs font-bold truncate">Rotana eLearning</span>
+                          <span className="px-1 py-0.2 rounded bg-amber-500 text-white text-[8.5px] font-black shrink-0 shadow-2xs">
+                            V2
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-amber-600 dark:text-amber-400 font-semibold block truncate">
+                          Version 2 (New)
+                        </span>
+                      </div>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-amber-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                    </a>
+
+                    {/* Rotana eLearning - Version 1 (Dedicated Distinct Button) */}
+                    <a
+                      href="https://rotana-elearningg.web.app"
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                        isDark
+                          ? 'bg-slate-900/90 border-slate-800 hover:border-amber-500/40 hover:bg-slate-850 text-slate-200'
+                          : 'bg-white border-slate-200/90 hover:border-amber-300 hover:bg-amber-50/30 text-slate-700 shadow-2xs'
+                      }`}
+                      title="Rotana eLearning (Version 1 - Classic Edition)"
+                    >
+                      <img
+                        src="/img/rotana_elearning.png"
+                        alt="Rotana eLearning V1"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform opacity-90"
+                      />
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] sm:text-xs font-bold truncate">Rotana eLearning</span>
+                          <span className="px-1 py-0.2 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[8.5px] font-black shrink-0">
+                            V1
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-slate-400 font-medium block truncate">
+                          Version 1 (Classic)
+                        </span>
+                      </div>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-amber-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                    </a>
+
+                    {/* NRI Studio IDE (Full Width Card Across 2 Columns) */}
+                    <a
+                      href="https://rotananob-nri-studio.vercel.app"
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`col-span-2 group flex items-center justify-between p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                        isDark
                           ? 'bg-slate-900/90 border-slate-800 hover:border-blue-500/50 hover:bg-slate-850 text-slate-200'
                           : 'bg-white border-slate-200/90 hover:border-blue-300 hover:bg-blue-50/40 text-slate-700 shadow-2xs'
                       }`}
+                      title="NRI Studio IDE (Online Cloud Code Editor)"
                     >
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
-                        <i className="fas fa-laptop-code"></i>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
+                          <i className="fas fa-laptop-code"></i>
+                        </div>
+                        <div className="text-left min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] sm:text-xs font-bold truncate">NRI Studio IDE</span>
+                            <span className="px-1.5 py-0.2 rounded-full bg-blue-500/15 text-blue-500 dark:text-blue-400 text-[8.5px] font-bold border border-blue-500/20 shrink-0">
+                              Cloud IDE
+                            </span>
+                          </div>
+                          <span className="text-[9px] text-slate-400 block truncate">
+                            Web & Code Development Studio by Rotana NOB
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
-                        NRI Studio IDE
-                      </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-60 group-hover:opacity-100 transition-all shrink-0 ml-1"></i>
                     </a>
                   </div>
                 </div>
