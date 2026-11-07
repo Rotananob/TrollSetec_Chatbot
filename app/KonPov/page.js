@@ -567,37 +567,28 @@ export default function KonPovPage() {
   };
 
   // Strictly enforce 100% Persona Gender Consistency (KonPov is ALWAYS "ចែ / Mommy", NEVER "Daddy")
+  // Safe replacements that NEVER corrupt natural Khmer words like "ប៉ះ", "ប៉ាន់ស្មាន", "ស្រីស្អាត", etc.
   const enforcePersonaConsistency = (rawText, isMale) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
     let text = rawText;
 
-    // KonPov is strictly female (ចែ / Mommy) - purge ANY accidental "Daddy"
+    // KonPov is strictly female (ចែ / Mommy) - purge accidental "Daddy" safely
     text = text
-      .replace(/Daddy/gi, 'ចែ')
+      .replace(/\bDaddy\b/gi, 'ចែ')
       .replace(/ដាឌី/g, 'ចែ')
       .replace(/លោកប៉ា/g, 'ចែ')
-      .replace(/ប៉ា/g, 'ចែ');
+      .replace(/ប៉ាៗ/g, 'ចែៗ')
+      .replace(/(?:^|\s)ប៉ា(?=\s|[!?~,។៕]|$)/g, ' ចែ ');
 
     if (isMale) {
       // User is Male ('ប្រុស') -> Bot calls user "អាប្អូនប្រុស"
       text = text
         .replace(/កូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
-        .replace(/កូនស្រីមួយនេះ/g, 'អាប្អូនប្រុសមួយនេះ')
-        .replace(/កូនស្រី/g, 'អាប្អូនប្រុស')
-        .replace(/ប្អូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
-        .replace(/ប្អូនស្រីមួយនេះ/g, 'អាប្អូនប្រុសមួយនេះ')
-        .replace(/ប្អូនស្រី/g, 'អាប្អូនប្រុស')
-        .replace(/ស្រីស្អាតរបស់\s*(?:Daddy|ចែ)?/gi, 'អាប្អូនប្រុស')
-        .replace(/ស្រីស្អាត/g, 'អាប្អូនប្រុស');
+        .replace(/ប្អូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់');
     } else {
-      // User is Female ('ស្រី') -> Bot calls user "ប្អូនស្រី" / "មីប្អូនស្រី" / "ស្រីស្អាត"
+      // User is Female ('ស្រី') -> Bot calls user "ប្អូនស្រី"
       text = text
-        .replace(/អាប្អូនប្រុសមួយនេះ/g, 'ប្អូនស្រីមួយនេះ')
-        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'ប្អូនស្រីសម្លាញ់')
-        .replace(/អាប្អូនប្រុស/g, 'ប្អូនស្រី')
-        .replace(/អាប្អូន/g, 'ប្អូនស្រី')
-        .replace(/អាម៉ូយ/g, 'មីអូន')
-        .replace(/អាហែង/g, 'មីហែង');
+        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'ប្អូនស្រីសម្លាញ់');
     }
     return text;
   };
@@ -1452,8 +1443,8 @@ export default function KonPovPage() {
             username: userNameStr,
             gender: userGender,
             generationConfig: {
-              temperature: 0.88,
-              topP: 0.95
+              temperature: 0.68,
+              topP: 0.90
             },
             stream: true
           })
@@ -1555,8 +1546,8 @@ export default function KonPovPage() {
               username: userNameStr,
               gender: userGender,
               generationConfig: {
-                temperature: 0.88,
-                topP: 0.95
+                temperature: 0.68,
+                topP: 0.90
               },
               stream: false
             })

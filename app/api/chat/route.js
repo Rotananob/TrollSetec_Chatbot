@@ -527,8 +527,8 @@ export async function POST(req) {
         : undefined;
 
       const genConfig = {
-        temperature: generationConfig?.temperature ?? 0.88,
-        topP: generationConfig?.topP ?? 0.95,
+        temperature: generationConfig?.temperature ?? 0.68,
+        topP: generationConfig?.topP ?? 0.90,
         maxOutputTokens: 550,
         ...generationConfig
       };

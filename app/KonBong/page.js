@@ -1078,8 +1078,8 @@ export default function KonBongPage() {
             bot: 'konbong',
             username: userNameStr,
             generationConfig: {
-              temperature: 0.88,
-              topP: 0.95
+              temperature: 0.68,
+              topP: 0.90
             },
             stream: true
           })
@@ -1180,8 +1180,8 @@ export default function KonBongPage() {
               bot: 'konbong',
               username: userNameStr,
               generationConfig: {
-                temperature: 0.88,
-                topP: 0.95
+                temperature: 0.68,
+                topP: 0.90
               },
               stream: false
             })
