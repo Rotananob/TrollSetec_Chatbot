@@ -1,6 +1,7 @@
 import Script from 'next/script';
 import VisitorTracker from '../components/VisitorTracker';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
+import SystemBroadcast from '../components/SystemBroadcast';
 import './globals.css';
 
 export const metadata = {
@@ -81,6 +82,7 @@ export default function RootLayout({ children }) {
       <body className="antialiased selection:bg-indigo-500 selection:text-white">
         <VisitorTracker />
         <PwaInstallPrompt />
+        <SystemBroadcast />
         {children}
         {/* Service Worker Registration for PWA Installability */}
         <Script id="service-worker-register" strategy="afterInteractive">

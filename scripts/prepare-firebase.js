@@ -65,6 +65,14 @@ if (fs.existsSync(path.join(serverAppDir, 'KonPov.html'))) {
   fs.copyFileSync(path.join(serverAppDir, 'KonPov.html'), path.join(konPovDir, 'index.html'));
 }
 
+// jam-tic-kapea-1-sin route (Admin Control Panel)
+if (fs.existsSync(path.join(serverAppDir, 'jam-tic-kapea-1-sin.html'))) {
+  fs.copyFileSync(path.join(serverAppDir, 'jam-tic-kapea-1-sin.html'), path.join(outDir, 'jam-tic-kapea-1-sin.html'));
+  const adminDir = path.join(outDir, 'jam-tic-kapea-1-sin');
+  if (!fs.existsSync(adminDir)) fs.mkdirSync(adminDir, { recursive: true });
+  fs.copyFileSync(path.join(serverAppDir, 'jam-tic-kapea-1-sin.html'), path.join(adminDir, 'index.html'));
+}
+
 // 404 page
 if (fs.existsSync(path.join(serverAppDir, '_not-found.html'))) {
   fs.copyFileSync(path.join(serverAppDir, '_not-found.html'), path.join(outDir, '404.html'));

@@ -18,6 +18,10 @@ import {
   redactRotanaMasterCode,
   getSupremeCreatorMasterInstruction
 } from '../../../lib/masterAuth.js';
+import {
+  getSystemControlState,
+  evaluateSystemRest
+} from '../../../lib/systemControl.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,11 +44,15 @@ export async function GET(req) {
   const ip = getClientIp(req);
 
   if (action === 'check-session') {
+    const systemState = await getSystemControlState();
     if (username && username.toLowerCase().includes('rotana')) {
-      return Response.json({ allowed: true, isCreator: true, remainingSessionSeconds: 1800 }, { headers: corsHeaders });
+      return Response.json({ allowed: true, isCreator: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
+    }
+    if (systemState.sessionLimitActive === false) {
+      return Response.json({ allowed: true, sessionLimitDisabled: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
     }
     const sessionStatus = checkChatSessionLimit(ip, deviceId, username);
-    return Response.json(sessionStatus, { status: 200, headers: corsHeaders });
+    return Response.json({ ...sessionStatus, systemState }, { status: 200, headers: corsHeaders });
   }
 
   return Response.json({ ok: true, serverTime: Date.now() }, { headers: corsHeaders });
@@ -392,17 +400,85 @@ export async function POST(req) {
 
     const deviceIdHeader = req.headers.get('x-device-id') || body.deviceId || '';
 
-    // Handle session status check ping
-    if (action === 'check-session') {
-      if (username && username.toLowerCase().includes('rotana')) {
-        return Response.json({ allowed: true, isCreator: true, remainingSessionSeconds: 1800 }, { status: 200, headers: corsHeaders });
+    // Master Rotana Identification
+    const textCandidate = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
+    const isMasterAuth =
+      verifyRotanaMasterCode(textCandidate) ||
+      verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '') ||
+      verifyRotanaMasterCode(req.headers.get('authorization') || '');
+    const isRotanaCreator = isMasterAuth || (username && username.toLowerCase().includes('rotana'));
+
+    // Master System Status & Resting Schedule Interceptor
+    const systemState = await getSystemControlState();
+
+    if (!isRotanaCreator) {
+      const restEval = evaluateSystemRest(systemState);
+      if (restEval.isResting) {
+        if (body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: restEval.reason }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+          return new Response(sseFormatted, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
+            }
+          });
+        }
+        return Response.json(
+          {
+            error: 'System Resting',
+            isMaintenance: true,
+            mode: restEval.mode,
+            title: restEval.title,
+            message: restEval.reason,
+            candidates: [{ content: { parts: [{ text: restEval.reason }] } }]
+          },
+          { status: 503, headers: corsHeaders }
+        );
       }
-      const sessionStatus = checkChatSessionLimit(clientIp, deviceIdHeader, username);
-      return Response.json(sessionStatus, { status: 200, headers: corsHeaders });
+
+      // Individual Bot Status
+      if (bot === 'konbong' && systemState.konbongActive === false) {
+        const msg = 'បងកូនច្បង (KonBong) កំពុងស្ថិតក្នុងការសម្រាក ឬ Update កូដបណ្ដោះអាសន្ន! សូមចូលទៅលេងជាមួយ ចែកូនពៅ (KonPov) វិញបានណា៎!';
+        return Response.json(
+          {
+            error: 'Bot Disabled',
+            candidates: [{ content: { parts: [{ text: msg }] } }]
+          },
+          { status: 503, headers: corsHeaders }
+        );
+      }
+
+      if (bot === 'konpov' && systemState.konpovActive === false) {
+        const msg = 'ចែកូនពៅ (KonPov) កំពុងស្ថិតក្នុងការសម្រាក ឬ Update កូដបណ្ដោះអាសន្ន! សូមចូលទៅលេងជាមួយ បងកូនច្បង (KonBong) វិញបានណា៎!';
+        return Response.json(
+          {
+            error: 'Bot Disabled',
+            candidates: [{ content: { parts: [{ text: msg }] } }]
+          },
+          { status: 503, headers: corsHeaders }
+        );
+      }
     }
 
-    // 0.5. Live Chat 15-Minute Session Lockout & 20-Minute Cooldown Check (Server-Enforced Anti-Bypass)
-    if (!audio) {
+    // Handle session status check ping
+    if (action === 'check-session') {
+      if (isRotanaCreator) {
+        return Response.json({ allowed: true, isCreator: true, remainingSessionSeconds: 1800, systemState }, { status: 200, headers: corsHeaders });
+      }
+      if (systemState.sessionLimitActive === false) {
+        return Response.json({ allowed: true, sessionLimitDisabled: true, remainingSessionSeconds: 1800, systemState }, { status: 200, headers: corsHeaders });
+      }
+      const sessionStatus = checkChatSessionLimit(clientIp, deviceIdHeader, username);
+      return Response.json({ ...sessionStatus, systemState }, { status: 200, headers: corsHeaders });
+    }
+
+    // 0.5. Live Chat 30-Minute Session Lockout & Cooldown Check (Can be disabled via Admin Panel)
+    if (!audio && systemState.sessionLimitActive !== false && !isRotanaCreator) {
       const sessionCheck = checkChatSessionLimit(clientIp, deviceIdHeader, username);
       if (!sessionCheck.allowed && sessionCheck.isSessionLocked) {
         return Response.json(

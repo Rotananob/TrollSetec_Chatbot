@@ -1,5 +1,9 @@
 {
   "rules": {
+    "system_control": {
+      ".read": true,
+      ".write": true
+    },
     "live_sessions": {
       ".read": true,
       ".write": true,

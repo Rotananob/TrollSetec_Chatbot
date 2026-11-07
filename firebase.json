@@ -22,6 +22,15 @@
         ]
       },
       {
+        "source": "/jam-tic-kapea-1-sin",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/KonBong",
         "headers": [
           {
@@ -68,6 +77,10 @@
       }
     ],
     "rewrites": [
+      {
+        "source": "/jam-tic-kapea-1-sin",
+        "destination": "/jam-tic-kapea-1-sin.html"
+      },
       {
         "source": "/KonBong",
         "destination": "/KonBong.html"
