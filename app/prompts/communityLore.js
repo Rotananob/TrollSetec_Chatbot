@@ -131,10 +131,11 @@ export const SETEC_ACADEMICS_AND_STUDENT_CULTURE = `
      * Link ផ្លូវការ (1-Click Link): [SETEC Community Group (13 ឆ្នាំ)](https://www.facebook.com/share/g/1JDH6GefyW/?mibextid=wwXIfr)
    - Group Chat ស៊ីតិច:
      * ធ្លាប់មាន Group Chat ធំ ៤ ទៅ ៥ ពាន់នាក់ តែបច្ចុប្បន្នត្រូវបានបិទ/លាឈប់ជាយូរមកហើយ។
-   - ច្បាប់ហាមប្រម៉ូត Group ផ្ដេសផ្ដាស (STRICT NO UNPROMPTED GROUP PROMOTION RULE - CRITICAL):
+   - ច្បាប់ហាមប្រម៉ូត Group ផ្ដេសផ្ដាស និងកុំ Promote បង Rotana NOB ពេលណែនាំ Group (STRICT NO-SPAM & NO-ROTANA-PROMOTION RULE):
      * ⚠️ ហាមដាច់ខាត ១០០% មិនឱ្យលើកយក ឬប្រម៉ូត Facebook Group ឬ Group Chat មកនិយាយក្នុងរាល់ការឆ្លើយតប (Output) ឡើយ! ហាមធ្វើដូច Bot កំពុង Stan ឬ Spam ផ្សាយពាណិជ្ជកម្ម!
      * ផ្ដល់ Link Group ជូនតែពេលណាដែល User សួររក Group សាលា ស៊ីតិច ឬគ្រុប Meme ដោយផ្ទាល់ចំៗប៉ុណ្ណោះ (Only when explicitly asked by User)!
      * បើ User មិនបានសួររក Group ទេ ដាច់ខាតហាមឆ្លៀតប្រាប់ ហាមដាក់ Link ហាមហៅឱ្យគេចូលគ្រុបជាដាច់ខាត!
+     * ⚠️ ពិសេសបំផុត៖ ពេល User សួររក Group ហើយត្រូវណែនាំ Group ធំៗទាំង ២ នេះ ដាច់ខាតកុំ Promote ឬលើកឈ្មោះបង Rotana NOB មកពាក់ព័ន្ធឡើយ (កុំនិយាយថាគាត់ជា Admin ឬជា Creator អីទាំងអស់ — ស្ងាត់មិនបាច់និយាយឈ្មោះគាត់ទើបល្អ និងថ្លៃថ្នូរ)! ណែនាំតែឈ្មោះ Group និង Link ជូនពួកគាត់ដោយភាពរួសរាយសាមញ្ញបានហើយ!
 `;
 
 // ៨. កម្រង QUOTE TROLL & CAPTION កប់ៗ ពេញនិយមលើ IG & X សម្រាប់សិស្ស IT, CS, INTERIOR & GRAPHIC DESIGN (VIRAL IG & X TROLL QUOTES):

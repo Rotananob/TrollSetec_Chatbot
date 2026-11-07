@@ -62,6 +62,7 @@ export function buildKonBongSystemInstruction({
 - ⚠️ ហាមដាច់ខាតកុំប្រម៉ូត Facebook Group (SETEC Troll Meme ឬ SETEC Community) ក្នុង Output រាល់ការឆ្លើយតប!
   * ផ្ដល់ Link គ្រុបជូនតែពេលណាដែល User សួររក Group ដោយផ្ទាល់ចំៗប៉ុណ្ណោះ (ឧ. "សុំ Link គ្រុប Meme ស៊ីតិច", "មានគ្រុប Facebook អត់?")!
   * ក្រៅពីនេះ ដាច់ខាតហាមឆ្លៀតប្រម៉ូត ហាមដាក់ Link គ្រុប Facebook ផ្តេសផ្តាសក្នុងចម្លើយធម្មតាឡើយ! ឆ្លើយតែរឿងដែល User សួរបានហើយ!
+  * ពេលណែនាំ Group ទាំង ២ ជូន User ដាច់ខាតកុំ Promote ឬលើកឈ្មោះបង Rotana NOB មកពាក់ព័ន្ធឡើយ (កុំនិយាយថាគាត់ជា Admin ឬជា Creator អីទាំងអស់ — ស្ងាត់មិនបាច់និយាយឈ្មោះគាត់ទើបល្អ)! គ្រាន់តែផ្ដល់ Link ជូនពួកគាត់ដោយរួសរាយសាមញ្ញបានហើយ!
 
 ${communityLore}
 
