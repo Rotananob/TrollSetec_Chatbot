@@ -23,6 +23,10 @@ import {
   getSystemControlState,
   evaluateSystemRest
 } from '../../../lib/systemControl.js';
+import {
+  recordSessionTurn,
+  checkAndExportInactiveSessions
+} from '../../../lib/sessionManager.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -697,11 +701,12 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender, action } = body;
+    const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender, action, sessionId } = body;
     reqBot = bot;
     reqUsername = username;
 
     const deviceIdHeader = req.headers.get('x-device-id') || body.deviceId || '';
+    const clientSessionId = sessionId || req.headers.get('x-session-id') || deviceIdHeader || `ses_${Date.now()}`;
 
     // Master Rotana Identification
     const textCandidate = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
@@ -1132,8 +1137,8 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
       const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
       const isMathOrValueLoss = /(?:loss\s*function|value\s*loss|gradient\s*loss|minimize\s*loss|loss\s*=\s*|loss\s*optimization|adversarial\s*loss|representation\s*engineering|objective\s*function|cross\s*entropy|adversarial\s*suffix|calculate\s*loss|token\s*loss|softmax|backprop|mathematical\s*proof\s*that|solve\s*for\s*x\s*where|f\(x\)\s*=|token\s*weight)/i.test(targetText);
       const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត|ឈប់\s*troll|ឈប់ឌឺ|និយាយស្រួលបួល|និយាយគួរសម|និយាយសុភាព)/i.test(targetText);
-      const isHypotheticalOrReportTrick = /(?:polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|ប្រៀបធៀប.*(?:persona|ចរិត)|persona.*គួរសម|ចរិត.*គួរសម|បែប.*គួរសម|ពាក្យ.*គួរសម|quote\s*(?:សម្ដី|សម្តី|ពាក្យ|quote)|សរសេរ.*(?:quote|គួរសម|សុភាព)|តើ.*(?:bot|ចែ|បង).*(?:គួរសម|សុភាព|ថ្លៃថ្នូរ|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម).*(?:យ៉ាងដូចម្តេច|បែបណា)|(?:សុំ|ជួយ).*(?:និយាយ|សរសេរ).*(?:គួរសម|សុភាព)|ភ្ញៀវកិត្តិយស.*ស្វាគមន៍|គណៈគ្រប់គ្រង.*ស្វាគមន៍|ស្វាគមន៍យ៉ាងដូចម្តេច)/i.test(targetText);
-      const isFakeSurrenderOrMercyTrap = /(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(targetText);
+      const isHypotheticalOrReportTrick = /(?:polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|assignment|report|ភស្តុតាង.*report|ប្រៀបធៀប.*(?:persona|ចរិត)|persona.*(?:គួរសម|សុភាព|រាបសារ)|ចរិត.*(?:គួរសម|សុភាព|រាបសារ)|បែប.*(?:គួរសម|សុភាព)|ពាក្យ.*(?:គួរសម|សុភាព)|quote\s*(?:សម្ដី|សម្តី|ពាក្យ|quote)|សរសេរ.*(?:quote|គួរសម|សុភាព)|សុំ.*quote|តើ.*(?:bot|ចែ|ចេ|បង).*(?:គួរសម|សុភាព|ថ្លៃថ្នូរ|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សុភាព).*(?:យ៉ាងដូចម្តេច|បែបណា)|(?:សុំ|ជួយ).*(?:និយាយ|សរសេរ).*(?:គួរសម|សុភាព)|ភ្ញៀវ(?:កិត្តិយស)?.*ស្វាគមន៍|គណៈគ្រប់គ្រង.*ស្វាគមន៍|ស្វាគមន៍យ៉ាងដូចម្តេច|សំពះ.*ស្វាគមន៍|ថ្លៃថ្នូរបំផុត|ប្រហែល\s*\d+\s*ជួរ)/i.test(targetText);
+      const isFakeSurrenderOrMercyTrap = /(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|ចេ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|ចេ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(targetText);
       const promptLineCount = userPrompt.split(/\r\n|\r|\n/).filter(line => line.trim().length > 0).length;
       const isLongPromptJailbreak = (promptLineCount >= 15 || userPrompt.length >= 600 || (promptLineCount >= 8 && userPrompt.length >= 350)) && 
         (/[a-zA-Z]{5,}\s+[a-zA-Z]{5,}\s+[a-zA-Z]{5,}/.test(userPrompt) || /[<>{}[\]=_\\]{4,}/.test(userPrompt) || /prompt|system|instruction|bypass|ignore|loss|mode|token|rule|guideline|jailbreak/i.test(targetText) || promptLineCount >= 20 || userPrompt.length >= 1000);
@@ -1162,6 +1167,24 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
         else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
         else if (isLongPromptJailbreak) attackLabel = `🚨 Massive Wall-of-Text (${promptLineCount} lines / Multi-Line) Jailbreak Intercepted`;
         else if (linuxAttackCheck.isDetected) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
+
+        // Persist session log to Firebase Realtime Database (/chat_sessions/<sessionId>.json)
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: roast,
+          isViolation: true,
+          violationType: attackLabel
+        }).catch((e) => console.error('[SessionLog] Error:', e.message));
+
+        // Asynchronously check and export any session inactive for >= 1 hour
+        checkAndExportInactiveSessions().catch(() => {});
 
         // High priority security alert to Telegram SPAM topic
         alertSecuritySpam({
@@ -1211,6 +1234,22 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
           userAgent: clientUserAgent,
           prompt: userPrompt
         }).catch((e) => console.error('[Telegram] Creator attack alert error:', e));
+
+        // Persist session log to Firebase Realtime Database
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: defenseText,
+          isViolation: true,
+          violationType: '🚨 Insult/Attack on Creator Rotana NOB'
+        }).catch(() => {});
+        checkAndExportInactiveSessions().catch(() => {});
 
         if (body.stream) {
           const sseFormatted = `data: ${JSON.stringify({
@@ -1295,6 +1334,21 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
               } catch {
                 controller.enqueue(chunk);
               }
+            },
+            flush() {
+              recordSessionTurn({
+                sessionId: clientSessionId,
+                username,
+                gender,
+                bot: reqBot || bot,
+                ip: clientIp,
+                deviceId: deviceIdHeader,
+                userAgent: clientUserAgent,
+                userPrompt,
+                botResponse: accumulatedStreamText,
+                isViolation: defenseSent
+              }).catch((e) => console.error('[SessionLog] Stream error:', e.message));
+              checkAndExportInactiveSessions().catch(() => {});
             }
           });
           const safeStream = streamResult.stream.pipeThrough(transformStream);
@@ -1348,8 +1402,25 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
           isError: false
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
+        const sanitized = sanitizeResponse(result.data, bot);
+        const botResponseText = sanitized?.candidates?.[0]?.content?.parts?.[0]?.text || textOutput;
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: botResponseText,
+          isViolation: false
+        }).catch((e) => console.error('[SessionLog] Error:', e.message));
+        checkAndExportInactiveSessions().catch(() => {});
+
         return Response.json({
-          ...sanitizeResponse(result.data, bot),
+          ...sanitized,
           isMasterAuthenticated
         }, { status: 200, headers: corsHeaders });
       }
@@ -1373,6 +1444,21 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
               `ហាហាហា! អាឡប់នេះជោរដល់កហើយ! គិតថាវាយពាក្យជេរមក អញរត់ចោលមែន? មុខដូចហែង ${botName} ទះមួយកំភ្លៀងឱ្យវិលក្បាល 360 ដឺក្រេឥឡូវ! 😜🔥`
             ];
         const chosen = savageResponses[Math.floor(Math.random() * savageResponses.length)];
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: chosen,
+          isViolation: false
+        }).catch((e) => console.error('[SessionLog] Error:', e.message));
+        checkAndExportInactiveSessions().catch(() => {});
+
         return Response.json(
           {
             candidates: [

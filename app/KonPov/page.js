@@ -1611,7 +1611,8 @@ export default function KonPovPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-device-id': deviceId
+            'x-device-id': deviceId,
+            'x-session-id': currentSessionId || ''
           },
           body: JSON.stringify({
             contents: formattedContents,
@@ -1619,6 +1620,7 @@ export default function KonPovPage() {
             bot: 'konpov',
             username: userNameStr,
             gender: userGender,
+            sessionId: currentSessionId || '',
             generationConfig: {
               temperature: 0.68,
               topP: 0.90
@@ -1731,7 +1733,8 @@ export default function KonPovPage() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-device-id': deviceId
+              'x-device-id': deviceId,
+              'x-session-id': currentSessionId || ''
             },
             body: JSON.stringify({
               contents: formattedContents,
@@ -1739,6 +1742,7 @@ export default function KonPovPage() {
               bot: 'konpov',
               username: userNameStr,
               gender: userGender,
+              sessionId: currentSessionId || '',
               generationConfig: {
                 temperature: 0.68,
                 topP: 0.90
@@ -3263,7 +3267,7 @@ export default function KonPovPage() {
         ) : (
           <div className="space-y-2 mb-2.5">
             {/* ROW 1: ⚡ មុខងារដំណើរការ (Action & Feature Tools - Distinct Rounded-XL Cards) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <span className="text-[10px] text-pink-400 font-extrabold shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/25">
                 <i className="fas fa-bolt text-amber-400 text-xs"></i>
                 <span>មុខងារ:</span>
@@ -3344,7 +3348,7 @@ export default function KonPovPage() {
             </div>
 
             {/* ROW 2: 💬 សំណើជជែក Troll (Prompt Suggestion Chips - Distinct Rounded-Full Chat Pills) */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
               <span className="text-[10px] text-pink-400 font-bold shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700/60">
                 <i className="fas fa-comment-dots text-pink-400 text-xs"></i>
                 <span>សំណើ Troll:</span>
