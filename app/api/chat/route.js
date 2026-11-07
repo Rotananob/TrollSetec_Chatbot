@@ -662,10 +662,19 @@ export async function POST(req) {
   let clientUserAgent = 'Unknown';
 
   try {
+    // 0a. Payload Size Guard (Anti-Memory Exhaustion / Buffer Bomb)
+    const contentLength = parseInt(req.headers.get('content-length') || '0', 10);
+    if (contentLength > 3 * 1024 * 1024) {
+      return Response.json(
+        { error: 'Payload Too Large', message: 'សំណើមានទំហំធំជ្រុល (Max allowed is 3MB)' },
+        { status: 413, headers: corsHeaders }
+      );
+    }
+
     clientIp = getClientIp(req);
     clientUserAgent = req.headers.get('user-agent') || 'Unknown';
 
-    // 0. Anti-DDoS and Burst Flooding Firewall Check
+    // 0b. Anti-DDoS and Burst Flooding Firewall Check
     const ddosCheck = checkDDoSFirewall(req, 'chat');
     const linuxToolCheck = checkIsLinuxOrHackerTool(clientUserAgent, '');
     if (!ddosCheck.allowed || (linuxToolCheck.isHackerTool && !ddosCheck.allowed)) {
@@ -675,22 +684,22 @@ export async function POST(req) {
         : getKonPovSpamRoast('DDoS Flooder', retrySec);
 
       alertSecuritySpam({
-        username: linuxToolCheck.isDetected ? 'Linux / Tool Attacker' : 'Headless / Bot Spammer',
+        username: linuxToolCheck.isDetected ? 'Linux / Tool Attacker' : 'DDoS / Bot Spammer',
         ip: clientIp,
         userAgent: clientUserAgent,
         bot: 'konpov',
         retryAfter: retrySec,
-        prompt: linuxToolCheck.isDetected ? `Linux/Hacker tool probe: ${clientUserAgent}` : 'Headless flood attack blocked by DDoS firewall',
-        violationType: linuxToolCheck.isDetected ? '🚨 Linux Tool / Automated Attack Intercepted (429)' : '🚨 Anti-DDoS Headless Flood Triggered (429)'
+        prompt: linuxToolCheck.isDetected ? `Linux/Hacker tool probe: ${clientUserAgent}` : `DDoS flood attack (${ddosCheck.reason || 'Rate limit exceeded'})`,
+        violationType: linuxToolCheck.isDetected ? '🚨 Linux Tool / Automated Attack Intercepted (429)' : '🚨 Anti-DDoS Firewall Flood Intercepted (429)'
       }).catch((e) => console.error('[Telegram] DDoS alert error:', e));
 
       return Response.json(
         {
           error: 'Too Many Requests',
           isSpamAttack: true,
-          isLinuxAttack: linuxToolCheck.isDetected,
-          message: roast,
-          candidates: [{ content: { parts: [{ text: roast }] } }],
+          isDdosBlocked: true,
+          message: ddosCheck.message || roast,
+          candidates: [{ content: { parts: [{ text: ddosCheck.message || roast }] } }],
           retryAfter: retrySec
         },
         {

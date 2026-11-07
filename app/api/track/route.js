@@ -162,10 +162,19 @@ async function checkDayRollover() {
 
 export async function POST(req) {
   try {
+    // 0a. Payload Size Guard
+    const contentLength = parseInt(req.headers.get('content-length') || '0', 10);
+    if (contentLength > 512 * 1024) {
+      return Response.json(
+        { counted: false, reason: 'payload_too_large' },
+        { status: 413, headers: corsHeaders }
+      );
+    }
+
     const ip = getClientIp(req);
     const userAgent = req.headers.get('user-agent') || 'Unknown';
 
-    // 0. Anti-DDoS and Burst Flooding Firewall
+    // 0b. Anti-DDoS and Burst Flooding Firewall
     const ddosCheck = checkDDoSFirewall(req, 'track');
     if (!ddosCheck.allowed) {
       return Response.json(

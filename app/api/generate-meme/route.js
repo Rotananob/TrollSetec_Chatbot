@@ -20,11 +20,20 @@ export async function OPTIONS() {
 
 export async function POST(req) {
   try {
+    // 0a. Payload Size Guard
+    const contentLength = parseInt(req.headers.get('content-length') || '0', 10);
+    if (contentLength > 1 * 1024 * 1024) {
+      return Response.json(
+        { success: false, error: 'Payload Too Large' },
+        { status: 413, headers: corsHeaders }
+      );
+    }
+
     const clientIp = getClientIp(req);
     const clientUserAgent = req.headers.get('user-agent') || 'Unknown';
     const deviceId = req.headers.get('x-device-id') || clientIp;
 
-    // 0. Anti-DDoS and Burst Flooding Firewall
+    // 0b. Anti-DDoS and Burst Flooding Firewall
     const ddosCheck = checkDDoSFirewall(req, 'generate-meme');
     if (!ddosCheck.allowed) {
       return Response.json(
