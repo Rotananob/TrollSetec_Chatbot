@@ -263,7 +263,8 @@ export default function KonPovPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-device-id': deviceId
+          'x-device-id': deviceId,
+          ...(typeof window !== 'undefined' && sessionStorage.getItem('rotana_admin_passcode') ? { 'x-rotana-passcode': sessionStorage.getItem('rotana_admin_passcode') } : {})
         },
         body: JSON.stringify({
           prompt: speechText,
@@ -1168,8 +1169,10 @@ export default function KonPovPage() {
       return next;
     });
 
-    const voiceGenderKey = 'female';
-    const hash = hashText(text) + '_' + voiceGenderKey;
+    const activeGender = userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ស្រី';
+    const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
+    const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
+    const hash = hashText(text) + '_' + voiceTag;
 
     // Instant replay check: if player already loaded this sound, play immediately with 0ms delay (No API call)
     const cachedUrl = audioCacheRef.current.get(hash);

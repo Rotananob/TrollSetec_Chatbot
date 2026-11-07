@@ -408,10 +408,10 @@ export async function POST(req) {
       verifyRotanaMasterCode(req.headers.get('authorization') || '');
     const isRotanaCreator = isMasterAuth || (username && username.toLowerCase().includes('rotana'));
 
-    // Master System Status & Resting Schedule Interceptor
+    // Master System Status & Resting Schedule Interceptor (Audio synthesis requests are exempt)
     const systemState = await getSystemControlState();
 
-    if (!isRotanaCreator) {
+    if (!isRotanaCreator && !audio) {
       const restEval = evaluateSystemRest(systemState);
       if (restEval.isResting) {
         if (body.stream) {
@@ -596,7 +596,7 @@ export async function POST(req) {
       }
 
       // 1. Primary AI Voice: Call Gemini Native TTS (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
-      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 3500);
+      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 1500);
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(
           {
