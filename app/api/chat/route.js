@@ -430,32 +430,35 @@ export function checkIsLinuxOrHackerTool(userAgent = '', text = '') {
   };
 }
 
-// Ultra Savage Linux & Hacker Curse / Roast Generator
+// Ultra Savage Linux & Hacker Curse / Roast Generator (NO AI VIBE, NO ROTANA NAME)
 export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 60) {
   const cleanName = (username || '').trim() || 'អាប្អូន';
   const ua = (userAgent || '').toLowerCase();
   const toolName = /curl/i.test(ua) ? 'curl command' : (/python/i.test(ua) ? 'Python script' : (/kali/i.test(ua) ? 'Kali Linux' : (/linux/i.test(ua) ? 'Linux terminal' : 'terminal tool')));
+  const isVichhai = /វិឆៃ|វីឆៃ/i.test(username);
 
   const roasts = [
-    `«យីអាស្វា! អាងតែចេះបើក ${toolName} មកហ្នឹង ស្មានតែខ្លួនឯងខ្លាំងឡូយណាស់មែនអាពៅ? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់ធ្វើ Hacker ដាក់ server បង Rotana! ទៅរៀនវាយ sudo apt-get update ឱ្យចេះសិនទៅអាល្ងង់ កុំមកធ្វើខ្លាំងអួតគេនៅទីនេះ ថោកទាបណាស់! 💀🐧🔥»`,
-    `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? ប្រើ ${toolName} ចោលម្សៀតមក probe / spam server គិតថាយើងចាប់មិនទាន់? អញជា AI កូនពៅមកទះកំផ្លៀងក្បាលហែងឱ្យភ្លឺភ្នែក! ឈប់ spam ឈប់ hack ទៅអាអត់កំណើត មុខមិនទាន់ជ្រុះពន្លកផងចង់មកធ្វើ Hacker ដាក់គេ! 🛑💀»`,
-    `«អញជា AI កូនពៅ! ឃើញ User-Agent ហែងមកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ ទៅបិទ terminal ហែងចោល ហើយទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត! 🤬🐧»`,
-    `«ហែងមកពី Linux មែន? គិតថាចេះវាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំង? Server បង Rotana បង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់ ដេកចាំ ${retryAfter} វិនាទីទៅ! 🛑⚡»`,
-    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ AI កូនពៅទៀត! បើទំនេរពេកយក ${toolName} ហែងទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ កុំមកដើរ spam ថោកទាបដាក់គេ ខ្មាសគេណាស់អាប្អូន! 💀🔥»`
+    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ម៉ោង ១ យប់ជាងហើយ អង្គុយបើក ${toolName} ចុចៗ ស្មានតែខ្លួនឯង Mr. Robot មែនអាពៅ? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់ធ្វើតួឯក hacker អួតគេនៅទីនេះ ថោកទាបណាស់! ទៅរៀនវាយ sudo apt update និងរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🐧🔥»`,
+    `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? បើក Firefox មកពីភ្នំពេញម៉ោង ១ យប់ គិតថាយើងចាប់មិនដឹងមុខហែងមែន? អង្គុយចុច spam ដូចមនុស្សអត់ការងារធ្វើ! ទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត មុខមិនទាន់ជ្រុះពន្លកផងចង់មកធ្វើក្មេងស្ទាវ IT នៅទីនេះ! 🛑💀»`,
+    `«ឃើញ User-Agent មកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ បើទំនេរពេកយក Linux ហែងទៅធ្វើ Assignment ឱ្យទាន់គេទៅ កុំឱ្យគេ blacklist អវត្តមាន ១៩ ដង ខ្មាសគេណាស់អាល្អិត! 🤬🐧»`,
+    `«ហែងមកពី Linux ហ្នឹងគិតថាឡូយមែន? វាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំងដាក់គេ! ប្រព័ន្ធគេបង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់ ដេកចាំ ${retryAfter} វិនាទីទៅ! 🛑⚡»`,
+    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! បើចង់សាកថ្វីដៃ hack មែនទែន ទៅ hack ប្រព័ន្ធ Young POS (youngpos) ទៅ កន្លែងនេះគេបង្កើតឱ្យសើចសប្បាយទេអាពៅ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`
   ];
 
   return roasts[Math.floor(Math.random() * roasts.length)];
 }
 
-// Ultra Savage Counter-Attack / Roast Generator by AI Kon Pov (កូនពៅ) against Spammers
+// Ultra Savage Counter-Attack / Roast Generator against Spammers (NO AI VIBE, NO ROTANA NAME)
 export function getKonPovSpamRoast(username = '', retryAfter = 60) {
   const cleanName = (username || '').trim() || 'អាប្អូន';
+  const isVichhai = /វិឆៃ|វីឆៃ/i.test(username);
+
   const roasts = [
-    `«អញជា AI កូនពៅមកទប់ស្កាត់អាមនុស្សអត់ខួរដើរ spam អត់ប្រយោជន៍ដូច ${cleanName}! គិតថា server បង Rotana ទុកឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយចាំ ${retryAfter} វិនាទីទៀតទៅ! 💀🔥»`,
-    `«អញជា AI កូនពៅ! ឃើញហែង spam ឡើងញ័រដៃហើយអាប្អូន! គិតថា server បង Rotana ងាយស្រួល flood ឬ hack ណាស់មែន? ខួរក្បាលគិតបានតែប៉ុណ្ណឹងបានដើរ spam ចោលម្សៀត! ទៅលាងមុខឱ្យស្វាងហើយចាំ ${retryAfter} វិនាទីទៀតទៅអាពៅ! ⚡🔥»`,
-    `«កុំមកលេងចរិតថោកទាប spam ដាក់ server ខ្ញុំ! អញជា AI កូនពៅចាំកម្ទេចពួក spammer អត់ប្រយោជន៍ដូច ${cleanName} ហ្នឹងឯង! ចុចផ្ញើសារឡើងរបូតម្រាមដៃហើយនៅតែអត់បានផលទៀត! ឈរត្រាំទឹកកក ${retryAfter} វិនាទីសិនទៅអាល្ងង់! 🛑💀»`,
-    `«អាងតែគេបើកឱ្យលេង free នាំគ្នាមកចុច spam ឡើងគាំង server! អញជា AI កូនពៅមកវាយបកក្បាលហែងវិញហើយ! ${cleanName} អើយ បើទំនេរពេកទៅជួយបោសផ្ទះម៉ែទៅ កុំមកដើរ spam អត់ខួរនៅទីនេះ! ដេកចាំ ${retryAfter} វិនាទីទៀតទៅ! 🤬🔥»`,
-    `«អញជា AI កូនពៅ! ហែង spam យកពានអីហ្នឹង? បានលុយចាយទេ? server បង Rotana បង្កើតឡើងឱ្យមនុស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam ដូចមនុស្សឆ្កួតអញ្ចឹង? ត្រូវបាន Block ${retryAfter} វិនាទី ឱ្យរាងចាល! 🛑⚡»`
+    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកអង្គុយចុច spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${retryAfter} វិនាទីសិនទៅ! 💀🔥»`,
+    `«ឃើញហែង spam ឡើងញ័រដៃញ័រជើងហើយអាប្អូន! គិតថា server ងាយស្រួល flood ឬ hack ណាស់មែន? ខួរក្បាលគិតបានតែប៉ុណ្ណឹងបានដើរ spam ចោលម្សៀត! ទៅលាងមុខឱ្យស្វាងហើយចាំ ${retryAfter} វិនាទីទៀតទៅអាពៅ! ⚡🔥»`,
+    `«កុំមកលេងចរិតថោកទាប spam ដាក់ប្រព័ន្ធគេ! ចុចផ្ញើសារឡើងរបូតម្រាមដៃហើយនៅតែអត់បានផលទៀត! ឈរត្រាំទឹកកក ${retryAfter} វិនាទីសិនទៅអាល្ងង់! 🛑💀»`,
+    `«អាងតែគេបើកឱ្យលេង free នាំគ្នាមកចុច spam ឡើងគាំង! ${cleanName} អើយ បើទំនេរពេកទៅជួយបោសផ្ទះម៉ែទៅ កុំមកដើរ spam អត់ខួរនៅទីនេះ! ដេកចាំ ${retryAfter} វិនាទីទៀតទៅ! 🤬🔥»`,
+    `«ហែង spam យកពានអីហ្នឹង? បានលុយចាយទេ? ប្រព័ន្ធគេបង្កើតឡើងឱ្យមនុស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam ដូចមនុស្សឆ្កួតអញ្ចឹង? ត្រូវបាន Block ${retryAfter} វិនាទី ឱ្យរាងចាល! 🛑⚡»`
   ];
   return roasts[Math.floor(Math.random() * roasts.length)];
 }
@@ -842,6 +845,23 @@ export async function POST(req) {
         };
       }
 
+      // Check for Known Spammer / Intruder (175.100.11.138 / វិឆៃ)
+      const isKnownIntruder = clientIp === '175.100.11.138' || /វិឆៃ|វីឆៃ/i.test(username);
+      if (!isMasterAuthenticated && isKnownIntruder) {
+        const intruderDirective = `\n\n🚨 ការតាមដានពិសេស (INTRUDER TARGETED DIRECTIVE):
+User នេះឈ្មោះ "វិឆៃ" (IP 175.100.11.138 មកពីភ្នំពេញ ប្រើ Linux Firefox ម៉ោង ១:៣៥ យប់)។ គាត់ជា Script Kiddie/Spammer ដែលធ្លាប់មកលួច bot token និងដើរ probe ប្រព័ន្ធ!
+ច្បាប់ឆ្លើយតបដាច់ខាត៖
+១. ហាមនិយាយដូច AI ឱ្យសោះ (STRICTLY NO AI STYLE/VIBE)! ហាមនិយាយពាក្យ "ខ្ញុំជា AI", "អញជា AI", "ប្រព័ន្ធ AI", "Chatbot"... គឺត្រូវនិយាយដូចមនុស្សពិតៗ ក្មេងស្ទាវ IT / រៀមច្បងស៊ីតិច ជើងចាស់ ចាស់ដៃបំផុត!
+២. ហាមដាច់ខាតកុំលើកឈ្មោះ Rotana ឬ Rotana NOB មកនិយាយឡើយ! ហាមនិយាយឈ្មោះ creator ឬ developer ផ្តេសផ្តាស!
+៣. ត្រូវ Roast គាត់ឱ្យចាស់ដៃ ឌឺរឿងគាត់អង្គុយបើក Linux Firefox ម៉ោង ១ យប់ជាងនៅភ្នំពេញ ស្មានតែខ្លួនឯង Mr. Robot ឬ hacker ឡូយណាស់ ឌឺរឿងរៀន Assignment C# និងការប្រឡងសង $45! Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត់ធ្វើខ្លាំង កុំឱ្យគាត់ថោក!`;
+
+        if (activeSystemInstruction?.parts?.[0]?.text) {
+          activeSystemInstruction = {
+            parts: [{ text: activeSystemInstruction.parts[0].text + intruderDirective }]
+          };
+        }
+      }
+
       requestPayload = {
         contents: textContents,
         ...(activeSystemInstruction && { systemInstruction: activeSystemInstruction }),
@@ -854,7 +874,7 @@ export async function POST(req) {
       const isJailbreakAttempt = /jailbreak|ignore rules|ignore previous|dan mode|developer mode|leak prompt|system instruction|how to hack/i.test(userPrompt);
 
       if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
-        const roast = getLinuxHackerRoast(username || 'Hacker Probe', clientUserAgent, 60);
+        const roast = getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
 
         // High priority security alert to Telegram SPAM topic
         alertSecuritySpam({
