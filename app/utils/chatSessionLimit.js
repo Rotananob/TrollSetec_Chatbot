@@ -11,20 +11,19 @@ const COOKIE_NAME = 'setec_live_chat_cooldown_v3';
 
 // Helper to check if a user is the Creator Rotana NOB (Permanent 100% Exemption)
 export function isCreatorUsername(name) {
-  if (!name || typeof name !== 'string') {
-    if (typeof window !== 'undefined') {
-      try {
-        name = localStorage.getItem('chatbot_username') || '';
-      } catch {
-        name = '';
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = (localStorage.getItem('chatbot_username') || '').toLowerCase();
+      const bypass = localStorage.getItem('troll_rotana_bypass');
+      if (stored.includes('rotana') || bypass === '1' || bypass === 'true') {
+        return true;
       }
-    } else {
-      return false;
-    }
+    } catch {}
   }
+  if (!name || typeof name !== 'string') return false;
   const clean = name.trim().toLowerCase();
   return (
-    clean === 'rotana' ||
+    clean.includes('rotana') ||
     clean === 'rotana nob' ||
     clean === 'rotananob' ||
     clean === 'rotana_nob'
@@ -176,9 +175,10 @@ export function getLiveSessionState() {
     // A) IDLE / AWAY CHECK: If user was away/inactive for >= 10 mins (COOLDOWN_SECONDS),
     // they ALREADY rested while away! Reset session to fresh immediately.
     // B) TOTAL CYCLE CHECK: If >= 40 mins (30m play + 10m rest) elapsed since session started, reset.
+    const fullCycleMs = (SESSION_LIMIT_SECONDS + COOLDOWN_SECONDS) * 1000;
     if (
       elapsedSinceActive >= COOLDOWN_SECONDS * 1000 ||
-      elapsedSinceStart >= (SESSION_LIMIT_SECONDS + COOLDOWN_SECONDS) * 1000
+      elapsedSinceStart >= fullCycleMs
     ) {
       clearLiveSession();
       return freshState();
@@ -186,24 +186,35 @@ export function getLiveSessionState() {
 
     const sessionLimitMs = SESSION_LIMIT_SECONDS * 1000;
 
-    // C) SESSION EXPIRED: User actively chatted up to 30 minutes! Trigger 10-minute cooldown
+    // C) SESSION EXPIRED: User reached 30 minutes of chat!
+    // Cooldown strictly ends at (sessionStart + 40 mins) — NEVER resets to a fresh 10 mins upon opening!
     if (elapsedSinceStart >= sessionLimitMs) {
-      const newCooldownUntil = now + COOLDOWN_SECONDS * 1000;
-      setCookie(COOKIE_NAME, String(newCooldownUntil), COOLDOWN_SECONDS + 60);
+      const scheduledCooldownUntil = sessionStart + fullCycleMs;
+      if (now >= scheduledCooldownUntil) {
+        clearLiveSession();
+        return freshState();
+      }
+
+      const remainingCooldownSec = Math.min(
+        COOLDOWN_SECONDS,
+        Math.max(1, Math.ceil((scheduledCooldownUntil - now) / 1000))
+      );
+
+      setCookie(COOKIE_NAME, String(scheduledCooldownUntil), remainingCooldownSec + 60);
       try {
         localStorage.setItem(
           STORAGE_KEY,
-          JSON.stringify({ sessionStart, lastActive: now, cooldownUntil: newCooldownUntil })
+          JSON.stringify({ sessionStart, lastActive: now, cooldownUntil: scheduledCooldownUntil })
         );
       } catch {}
 
       return {
         sessionStart,
         lastActive: now,
-        cooldownUntil: newCooldownUntil,
+        cooldownUntil: scheduledCooldownUntil,
         isLocked: true,
         remainingSessionSec: 0,
-        remainingCooldownSec: COOLDOWN_SECONDS
+        remainingCooldownSec
       };
     }
 

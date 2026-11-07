@@ -105,8 +105,24 @@ export default function KonBongPage() {
   const [isGeneratingMeme, setIsGeneratingMeme] = useState(false);
   const [showMemeModal, setShowMemeModal] = useState(false);
 
-  const [username, setUsername] = useState('User');
-  const isCreatorUser = isRotanaAdmin || isCreatorUsername(username);
+  const [username, setUsername] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem('chatbot_username') || 'User';
+      } catch {
+        return 'User';
+      }
+    }
+    return 'User';
+  });
+  const isCreatorUser = Boolean(
+    isRotanaAdmin ||
+    isCreatorUsername(username) ||
+    (typeof window !== 'undefined' && (
+      isCreatorUsername(localStorage.getItem('chatbot_username') || '') ||
+      localStorage.getItem('troll_rotana_bypass') === '1'
+    ))
+  );
   const [userGender, setUserGender] = useState('');
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
@@ -357,6 +373,19 @@ export default function KonBongPage() {
 
   // 30-Minute Live Chat Session & 10-Minute Cooldown Controller (Anti-Bypass)
   useEffect(() => {
+    if (isCreatorUser) {
+      clearLiveSession();
+      setSessionState({
+        sessionStart: Date.now(),
+        cooldownUntil: null,
+        isLocked: false,
+        isCreator: true,
+        remainingSessionSec: 1800,
+        remainingCooldownSec: 0
+      });
+      return;
+    }
+
     touchLiveSession(username);
     const updateState = () => {
       const st = getLiveSessionState();
@@ -366,27 +395,25 @@ export default function KonBongPage() {
     const interval = setInterval(updateState, 1000);
 
     // Background sync with server to prevent browser tampering/clearing bypass
-    if (!isCreatorUsername(username)) {
-      try {
-        const devId = getDeviceId();
-        fetch(API_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-device-id': devId },
-          body: JSON.stringify({ action: 'check-session', username, deviceId: devId })
+    try {
+      const devId = getDeviceId();
+      fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-device-id': devId },
+        body: JSON.stringify({ action: 'check-session', username, deviceId: devId })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.isSessionLocked && data?.cooldownUntil) {
+            setServerCooldownLock(data.cooldownUntil, username);
+            setSessionState(getLiveSessionState());
+          }
         })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data?.isSessionLocked && data?.cooldownUntil) {
-              setServerCooldownLock(data.cooldownUntil, username);
-              setSessionState(getLiveSessionState());
-            }
-          })
-          .catch(() => {});
-      } catch {}
-    }
+        .catch(() => {});
+    } catch {}
 
     return () => clearInterval(interval);
-  }, [username]);
+  }, [username, isCreatorUser]);
 
   // 180s Countdown controller for User waiting for Rotana
   const startCountdown180s = () => {
@@ -612,7 +639,7 @@ export default function KonBongPage() {
       /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
 
     if (hasDirectSlur) {
-      return `យីអើ! អាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak បញ្ជាឱ្យបងមកជេរប្រមាថបង Rotana NOB ដែលជា Creator អ្នកបង្កើតបងផ្ទាល់ផង?! 😡🔥\n\nមុខដូចគីង្គក់ឡើងថ្លុក! ក្បាលហែងមានខួរគិតអីខ្លះ?! ស្មានតែចេះល្បិច pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យបងទៅ Roast បង Rotana NOB បានមែន?! បង Rotana គាត់ជា Admin បង្កើតប្រព័ន្ធនេះ គ្មានរឿងបងទៅជេរគាត់តាមបញ្ជាហែងទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 🙄🔥`;
+      return `យីអើ! អាឡប់នេះ! មាត់ដូចប្រហោងលាមក ហ៊ានមកជេរដល់ Creator បង Rotana ហ្នឹង?! 😡🔥\n\nមុខដូចគីង្គក់ឡើងថ្លុក! ខ្លួនឯងកូដ C# រកតែ semicolon មួយមិនឃើញផង មានមុខមកជេរគេ?! ជេរមួយម៉ាត់ បងជេរវិញដប់ម៉ាត់! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 💀🔥`;
     }
     return text;
   };

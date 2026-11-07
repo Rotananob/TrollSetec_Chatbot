@@ -47,6 +47,24 @@ export default function SessionBreakModal({
   }, [isOpen, cooldownUntil, onUnlock, totalCooldown]);
 
   if (!isOpen) return null;
+
+  // Rotana Creator is 100% exempt from the break modal at all times
+  if (typeof window !== 'undefined') {
+    try {
+      const u = (localStorage.getItem('chatbot_username') || '').toLowerCase();
+      const bp = localStorage.getItem('troll_rotana_bypass');
+      if (u.includes('rotana') || bp === '1' || bp === 'true') {
+        return null;
+      }
+    } catch {}
+  }
+
+  // If cooldown is already finished, unlock immediately
+  if (secondsLeft <= 0) {
+    if (onUnlock) onUnlock();
+    return null;
+  }
+
   const progressPercent = Math.min(100, Math.max(0, ((totalCooldown - secondsLeft) / totalCooldown) * 100));
   const isDark = theme === 'dark';
 
