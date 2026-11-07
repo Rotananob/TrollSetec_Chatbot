@@ -15,10 +15,19 @@ export default function TrollQuoteModal({
   const canvasRef = useRef(null);
   const [copied, setCopied] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [activeCategory, setActiveCategory] = useState('current');
   const [currentText, setCurrentText] = useState(quoteText || '');
   const [currentDept, setCurrentDept] = useState('');
   const [cardStyle, setCardStyle] = useState('cyber'); // 'cyber' | 'neon' | 'oled'
+
+  // Helper to clean raw quote text from bot prefixes
+  function sanitizeQuote(text) {
+    if (!text) return '';
+    return text
+      .replace(/^\[(?:កូនច្បង|កូនពៅ|ចែ|chatbot)[^\]]*\]\s*:\s*/i, '')
+      .trim();
+  }
 
   // Determine avatar if not explicitly provided
   const resolvedBotAvatar =
@@ -31,12 +40,12 @@ export default function TrollQuoteModal({
 
   useEffect(() => {
     if (quoteText) {
-      setCurrentText(quoteText);
+      setCurrentText(sanitizeQuote(quoteText));
       setActiveCategory('current');
       setCurrentDept('');
     } else if (VIRAL_TROLL_QUOTES?.length > 0) {
       const q = VIRAL_TROLL_QUOTES[0];
-      setCurrentText(`${q.quoteKh}\n\n${q.quoteEn}\n${q.tags.join(' ')}`);
+      setCurrentText(`${q.quoteKh}\n\n${q.quoteEn}\n\n${q.tags.join(' ')}`);
       setCurrentDept(q.department);
       setActiveCategory('it_cs');
     }
@@ -383,7 +392,8 @@ export default function TrollQuoteModal({
     ctx.textAlign = 'center';
     ctx.font = '900 36px "Kantumruy Pro", sans-serif';
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(`ស្ដេចឌឺ (${botPersona})`, avatarCenterX, 332);
+    const personaTitle = isKonBong ? 'កូនច្បង (ស្ដេចឌឺ)' : 'កូនពៅ (ចែ/Mommy)';
+    ctx.fillText(personaTitle, avatarCenterX, 332);
 
     // Department Pill Badge (if exists)
     if (currentDept) {
@@ -521,7 +531,7 @@ export default function TrollQuoteModal({
   const selectCategoryQuote = (catKey) => {
     setActiveCategory(catKey);
     if (catKey === 'current') {
-      setCurrentText(quoteText || '');
+      setCurrentText(sanitizeQuote(quoteText) || '');
       setCurrentDept('');
       return;
     }
@@ -529,7 +539,7 @@ export default function TrollQuoteModal({
     const filtered = VIRAL_TROLL_QUOTES.filter((q) => q.category === catKey);
     if (filtered.length > 0) {
       const randomItem = filtered[Math.floor(Math.random() * filtered.length)];
-      setCurrentText(`${randomItem.quoteKh}\n\n${randomItem.quoteEn}\n${randomItem.tags.join(' ')}`);
+      setCurrentText(`${randomItem.quoteKh}\n\n${randomItem.quoteEn}\n\n${randomItem.tags.join(' ')}`);
       setCurrentDept(randomItem.department);
     }
   };
@@ -541,7 +551,7 @@ export default function TrollQuoteModal({
         : VIRAL_TROLL_QUOTES.filter((q) => q.category === activeCategory);
     const pool = list.length > 0 ? list : VIRAL_TROLL_QUOTES;
     const randomItem = pool[Math.floor(Math.random() * pool.length)];
-    setCurrentText(`${randomItem.quoteKh}\n\n${randomItem.quoteEn}\n${randomItem.tags.join(' ')}`);
+    setCurrentText(`${randomItem.quoteKh}\n\n${randomItem.quoteEn}\n\n${randomItem.tags.join(' ')}`);
     setCurrentDept(randomItem.department);
   };
 
@@ -633,6 +643,18 @@ export default function TrollQuoteModal({
 
           <button
             type="button"
+            onClick={() => selectCategoryQuote('campus')}
+            className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 transition cursor-pointer ${
+              activeCategory === 'campus'
+                ? 'bg-cyan-500 text-slate-950 shadow-md'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            🎓 ស៊ីតិច Life
+          </button>
+
+          <button
+            type="button"
             onClick={handleRandomQuote}
             className="px-2.5 py-1 rounded-full text-xs font-bold shrink-0 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 transition cursor-pointer flex items-center gap-1"
             title="ប្តូរ Quote ចៃដន្យថ្មី"
@@ -642,43 +664,68 @@ export default function TrollQuoteModal({
           </button>
         </div>
 
-        {/* Visual Style Selector (Nano Banana Cyber, Neon Party, OLED Dark) */}
-        <div className="flex items-center gap-1.5 pb-2 mb-2">
-          <span className="text-[10px] text-slate-400 font-bold">Style:</span>
+        {/* Visual Style Selector & Live Edit Toggle */}
+        <div className="flex items-center justify-between pb-2 mb-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-slate-400 font-bold">Style:</span>
+            <button
+              type="button"
+              onClick={() => setCardStyle('cyber')}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                cardStyle === 'cyber'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              ⚡ Cyber
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardStyle('neon')}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                cardStyle === 'neon'
+                  ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              ✨ Neon
+            </button>
+            <button
+              type="button"
+              onClick={() => setCardStyle('oled')}
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                cardStyle === 'oled'
+                  ? 'bg-slate-950 text-amber-300 border border-amber-500/40 shadow'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🖤 OLED
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={() => setCardStyle('cyber')}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-              cardStyle === 'cyber'
-                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-            }`}
+            onClick={() => setIsEditing(!isEditing)}
+            className="text-[10.5px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 border border-slate-700 active:scale-95 cursor-pointer shrink-0"
+            title="ចុចដើម្បីកែប្រែពាក្យក្នុង Quote ដោយផ្ទាល់"
           >
-            ⚡ Cyber
-          </button>
-          <button
-            type="button"
-            onClick={() => setCardStyle('neon')}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-              cardStyle === 'neon'
-                ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            ✨ Neon
-          </button>
-          <button
-            type="button"
-            onClick={() => setCardStyle('oled')}
-            className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-              cardStyle === 'oled'
-                ? 'bg-slate-950 text-amber-300 border border-amber-500/40 shadow'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            🖤 OLED
+            <i className="fas fa-pen-to-square text-[9.5px]"></i>
+            <span>{isEditing ? 'បិទការកែ' : 'កែ Caption'}</span>
           </button>
         </div>
+
+        {/* Live Inline Textarea Editor */}
+        {isEditing && (
+          <div className="mb-3 animate-fade-in">
+            <textarea
+              value={currentText}
+              onChange={(e) => setCurrentText(e.target.value)}
+              rows={3}
+              className="w-full bg-slate-950/95 border border-cyan-500/40 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400 font-sans leading-relaxed shadow-inner"
+              placeholder="វាយអត្ថបទ Quote ឬ Caption ផ្ទាល់ខ្លួនរបស់អ្នកនៅទីនេះ..."
+            />
+          </div>
+        )}
 
         {/* Live Canvas Preview */}
         <div className="w-full aspect-square rounded-2xl overflow-hidden border border-slate-700/60 bg-black flex items-center justify-center mb-3 shadow-inner relative group">
