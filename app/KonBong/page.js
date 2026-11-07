@@ -81,6 +81,7 @@ export default function KonBongPage() {
   // Anti-Spam Scary/Funny Modal State
   const [spamModalOpen, setSpamModalOpen] = useState(false);
   const [spamInfo, setSpamInfo] = useState({ ip: '', device: '', retryAfter: 60 });
+  const [spamLockUntil, setSpamLockUntil] = useState(0);
   const [fallbackAudioMap, setFallbackAudioMap] = useState({});
 
   // Error Report to Rotana NOB Modal State
@@ -1030,6 +1031,12 @@ export default function KonBongPage() {
   const handleSendMessageOrQueue = () => {
     if (isGeneratingMeme) return;
 
+    // Check if user is actively locked under a Spam Lockout penalty
+    if (!isCreatorUser && Date.now() < spamLockUntil) {
+      setSpamModalOpen(true);
+      return;
+    }
+
     // Check if Live Chat 30-min Session is locked under 10-min break (Rotana NOB Creator is exempt)
     if (!isCreatorUser) {
       const sessionCheck = getLiveSessionState();
@@ -1238,6 +1245,7 @@ export default function KonBongPage() {
             retryAfter: errData?.retryAfter || 60,
             message: roastText
           });
+          setSpamLockUntil(Date.now() + (errData?.retryAfter || 60) * 1000);
           setSpamModalOpen(true);
           setIsLoading(false);
 
@@ -3227,7 +3235,7 @@ export default function KonBongPage() {
           {/* Text Input */}
           <input
             type="text"
-            disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked)}
+            disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked) || (!isCreatorUser && Date.now() < spamLockUntil)}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => {
@@ -3238,7 +3246,9 @@ export default function KonBongPage() {
             }}
             className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             placeholder={
-              !isCreatorUser && sessionState.isLocked
+              !isCreatorUser && Date.now() < spamLockUntil
+                ? `🔒 អ្នកជាប់ពិន័យ Spam (នៅសល់ ${Math.max(1, Math.ceil((spamLockUntil - Date.now()) / 1000))} វិនាទី)...`
+                : !isCreatorUser && sessionState.isLocked
                 ? `🔒 ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ១០ នាទី (នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)})...`
                 : isRotanaAdmin
                 ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
@@ -3255,7 +3265,7 @@ export default function KonBongPage() {
           {/* Send / Queue button */}
           <button
             onClick={handleSendMessageOrQueue}
-            disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked) || (!inputText.trim() && !selectedImage && !queuedPrompt)}
+            disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked) || (!isCreatorUser && Date.now() < spamLockUntil) || (!inputText.trim() && !selectedImage && !queuedPrompt)}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 cursor-pointer ${
               !isCreatorUser && sessionState.isLocked
                 ? 'bg-slate-800 text-amber-400 cursor-not-allowed opacity-80 border border-amber-500/30'

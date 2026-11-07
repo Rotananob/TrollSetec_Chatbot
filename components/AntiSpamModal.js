@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 
-export default function AntiSpamModal({ isOpen, onClose, username, retryAfter = 30, message }) {
+export default function AntiSpamModal({ isOpen, onClose, username, retryAfter = 60, message }) {
   const [secondsLeft, setSecondsLeft] = useState(retryAfter);
 
   useEffect(() => {
     if (isOpen) {
-      setSecondsLeft(retryAfter > 0 ? retryAfter : 30);
+      setSecondsLeft(retryAfter > 0 ? retryAfter : 60);
       const timer = setInterval(() => {
         setSecondsLeft((prev) => {
           if (prev <= 1) {
@@ -23,6 +23,13 @@ export default function AntiSpamModal({ isOpen, onClose, username, retryAfter = 
   }, [isOpen, retryAfter]);
 
   if (!isOpen) return null;
+
+  const formatTime = (totalSeconds) => {
+    if (isNaN(totalSeconds) || totalSeconds <= 0) return '00:00';
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   const defaultRoast = `«អញជា AI កូនពៅមកទប់ស្កាត់អាមនុស្សអត់ខួរដើរ spam អត់ប្រយោជន៍ដូច ${username || 'ឯង'}! គិតថា server បង Rotana ទុកឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយចាំ ${secondsLeft} វិនាទីទៀតទៅ! 💀🔥»`;
   const displayRoast = message || defaultRoast;
@@ -61,10 +68,10 @@ export default function AntiSpamModal({ isOpen, onClose, username, retryAfter = 
           <div className="text-xs text-rose-300/80 mb-1.5 font-medium">
             រយៈពេលផ្អាកផ្ញើសារបណ្ដោះអាសន្ន
           </div>
-          <div className="text-2xl font-black text-rose-400 font-mono tracking-wider bg-slate-950/90 border border-rose-500/40 px-5 py-2 rounded-2xl shadow-inner flex items-center gap-2">
-            <i className="fas fa-clock text-amber-400 text-base animate-spin"></i>
-            <span>{secondsLeft}</span>
-            <span className="text-xs text-rose-300 font-sans font-medium">វិនាទី</span>
+          <div className="text-3xl font-black text-rose-400 font-mono tracking-wider bg-slate-950/90 border border-rose-500/40 px-6 py-2 rounded-2xl shadow-inner flex items-center gap-2">
+            <i className="fas fa-clock text-amber-400 text-lg animate-spin"></i>
+            <span>{formatTime(secondsLeft)}</span>
+            <span className="text-xs text-rose-300 font-sans font-medium">({secondsLeft}s)</span>
           </div>
         </div>
 

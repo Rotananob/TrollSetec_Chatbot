@@ -830,6 +830,7 @@ export async function POST(req) {
           ? getLinuxHackerRoast(username || 'វិឆៃ', clientUserAgent, retrySec)
           : getKonPovSpamRoast(username || 'User', retrySec);
 
+        const lockMins = rateResult.lockMinutes || Math.ceil(retrySec / 60);
         // Immediate high-priority Security Alert to Telegram Topic SPAM with user prompt included
         alertSecuritySpam({
           username: username || (linuxCheck.isDetected ? 'Linux Spammer' : (isTargetedUser ? 'វិឆៃ (Intruder)' : 'Spammer')),
@@ -838,36 +839,16 @@ export async function POST(req) {
           bot: reqBot || 'konpov',
           retryAfter: retrySec,
           prompt: userPromptSnippet,
-          violationType: isTargetedUser
-            ? '🚨 Intruder វិឆៃ Spammed - Counter-Roast Streamed (200)'
-            : (linuxCheck.isDetected
-                ? '🚨 Linux / Terminal Spam Attack Intercepted'
-                : '🚨 ការស្នើសុំហួសកម្រិតកំណត់ (Too Many Requests - Spam Flood)')
+          violationType: `🚨 Spam លើស 7 chats/min (Locked ${lockMins} នាទី - Strike ${rateResult.strike || 1}/10)`
         }).catch((e) => console.error('[Telegram] Rate limit alert error:', e));
-
-        // Let him play without locking him out (ប្រលែងឱ្យវាមកលេង)! Stream roast back directly in 200 OK
-        if (isTargetedUser || body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: roast }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive',
-              'X-Accel-Buffering': 'no'
-            }
-          });
-        }
 
         return Response.json(
           {
             error: 'Too Many Requests',
             isSpamAttack: true,
-            isLinuxAttack: linuxCheck.isDetected,
+            isChatSpamLocked: true,
+            strike: rateResult.strike || 1,
+            lockMinutes: lockMins,
             ip: clientIp,
             device: clientUserAgent,
             retryAfter: retrySec,
