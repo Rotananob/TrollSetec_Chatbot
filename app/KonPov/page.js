@@ -123,12 +123,12 @@ export default function KonPovPage() {
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
 
-  // 15-Minute Live Chat Session & 20-Minute Cooldown Manager State (Anti-Bypass)
+  // 30-Minute Live Chat Session & 10-Minute Cooldown Manager State (Anti-Bypass)
   const [sessionState, setSessionState] = useState({
     sessionStart: null,
     cooldownUntil: null,
     isLocked: false,
-    remainingSessionSec: 900,
+    remainingSessionSec: 1800,
     remainingCooldownSec: 0
   });
 
@@ -2031,9 +2031,9 @@ export default function KonPovPage() {
 
         {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
-          {/* 15-Minute Live Session Countdown Pill Badge */}
+          {/* 30-Minute Live Session Countdown Pill Badge */}
           <div
-            title="កម្រិតម៉ោងជជែក ១៥ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)"
+            title="កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)"
             className={`px-2 sm:px-2.5 py-1 rounded-full text-[10.5px] font-black border flex items-center gap-1.5 transition select-none ${
               sessionState.remainingSessionSec <= 120
                 ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
@@ -3202,7 +3202,7 @@ export default function KonPovPage() {
             className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             placeholder={
               !isRotanaAdmin && sessionState.isLocked
-                ? `🔒 ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ២០ នាទី (នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)})...`
+                ? `🔒 ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ១០ នាទី (នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)})...`
                 : isRotanaAdmin
                 ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
                 : isBotPaused

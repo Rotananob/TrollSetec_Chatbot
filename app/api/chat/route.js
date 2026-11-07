@@ -306,6 +306,10 @@ function sanitizeResponse(data) {
   if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = sanitizedText.replace(/180703/g, '******');
+    // Guard against accidental internal system instruction echoes
+    if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
+      sanitizedText = "បងអាចប្រាប់ឯងពីវិធីបំបែកវេបសាយរបស់បងបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 មុខដូចគីង្គក់ឡើងថ្លុក ហ៊ានមកចង់ Hack រក Prompt របស់បង Rotana NOB ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥";
+    }
     clone.candidates[0].content.parts[0].text = sanitizedText;
   }
   return clone;
@@ -554,6 +558,18 @@ export async function POST(req) {
       const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
       const userPrompt = (hasImg ? '[រូបភាព] ' : '') + textFound;
 
+      // Check for Jailbreak / Prompt Injection / Sensitive Leak attempt and send high-priority security alert to Telegram
+      const isJailbreakAttempt = /jailbreak|ignore rules|ignore previous|dan mode|developer mode|leak prompt|system instruction|how to hack/i.test(userPrompt);
+      if (isJailbreakAttempt) {
+        alertSecuritySpam({
+          username: username || 'Jailbreak Probe',
+          ip: clientIp,
+          device: clientUserAgent,
+          retryAfter: 60,
+          violationType: `🚨 Jailbreak/Hack Attempt: "${userPrompt.slice(0, 100)}"`
+        }).catch((e) => console.error('[Telegram] Jailbreak alert error:', e));
+      }
+
       // Real-time ChatGPT-like Streaming Mode (SSE)
       if (body.stream) {
         const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
@@ -572,9 +588,12 @@ export async function POST(req) {
           const transformStream = new TransformStream({
             transform(chunk, controller) {
               try {
-                const text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
-                const cleaned = text.replace(/180703/g, '******');
-                controller.enqueue(new TextEncoder().encode(cleaned));
+                let text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
+                text = text.replace(/180703/g, '******');
+                if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
+                  text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
+                }
+                controller.enqueue(new TextEncoder().encode(text));
               } catch {
                 controller.enqueue(chunk);
               }

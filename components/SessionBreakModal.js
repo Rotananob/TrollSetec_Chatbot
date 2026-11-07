@@ -5,7 +5,7 @@ import { formatCountdown } from '../app/utils/chatSessionLimit';
 
 export default function SessionBreakModal({
   isOpen,
-  remainingSeconds = 1200,
+  remainingSeconds = 600,
   cooldownUntil,
   botName = 'កូនច្បង',
   theme = 'dark',
@@ -43,7 +43,7 @@ export default function SessionBreakModal({
 
   if (!isOpen) return null;
 
-  const totalCooldown = 20 * 60; // 1200s
+  const totalCooldown = 10 * 60; // 600s
   const progressPercent = Math.min(100, Math.max(0, ((totalCooldown - secondsLeft) / totalCooldown) * 100));
   const isDark = theme === 'dark';
 
@@ -83,7 +83,7 @@ export default function SessionBreakModal({
         {/* Badge & Title */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black tracking-wide mb-2.5">
           <i className="fas fa-stopwatch text-amber-400 animate-spin"></i>
-          <span>Live Chat Session Limit (15 នាទីចប់ហើយ)</span>
+          <span>Live Chat Session Limit (30 នាទីចប់ហើយ)</span>
         </div>
 
         <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-amber-200">
@@ -92,9 +92,9 @@ export default function SessionBreakModal({
 
         {/* Humorous Cambodian Troll Message */}
         <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-300 dark:text-slate-300 mb-4 px-1">
-          ហាហាហា! មួយលើកលេងបានត្រឹម <b>១៥ នាទី</b> ប៉ុណ្ណោះអាប្អូន! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង កុំនៅតោង Server ឡើងក្តៅផ្សែងហុយ! 🤣🔥
+          ហាហាហា! មួយលើកលេងបានត្រឹម <b>៣០ នាទី</b> ប៉ុណ្ណោះអាប្អូន! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង កុំនៅតោង Server ឡើងក្តៅផ្សែងហុយ! 🤣🔥
           <br className="hidden sm:block" />
-          ឥឡូវ<b>សម្រាក ២០ ទៅ ៣០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក troll ជាមួយ <b>Chatbot {botName}</b> ទៀត! ✨
+          ឥឡូវ<b>សម្រាក ១០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក troll ជាមួយ <b>Chatbot {botName}</b> ទៀត! ✨
         </p>
 
         {/* Big Neon Digital Countdown Timer Box */}
@@ -118,7 +118,7 @@ export default function SessionBreakModal({
           <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold mt-1.5 px-0.5">
             <span>សម្រាក 00:00</span>
             <span>{Math.round(progressPercent)}% រួចរាល់</span>
-            <span>20:00 នាទី</span>
+            <span>10:00 នាទី</span>
           </div>
         </div>
 

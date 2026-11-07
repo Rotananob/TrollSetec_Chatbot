@@ -1,9 +1,9 @@
 // app/utils/chatSessionLimit.js
-// Client & Server Coordinated 15-Minute Live Chat Session & 20-Minute Cooldown Manager
+// Client & Server Coordinated 30-Minute Live Chat Session & 10-Minute Cooldown Manager
 // Enforces strict Anti-Bypass via combined localStorage + Persistent Cookie + Server Sync
 
-export const SESSION_LIMIT_SECONDS = 15 * 60; // 15 minutes = 900 seconds
-export const COOLDOWN_SECONDS = 20 * 60;      // 20 minutes = 1200 seconds
+export const SESSION_LIMIT_SECONDS = 30 * 60; // 30 minutes = 1800 seconds
+export const COOLDOWN_SECONDS = 10 * 60;      // 10 minutes = 600 seconds
 
 const STORAGE_KEY = 'setec_live_chat_session_v1';
 const COOKIE_NAME = 'setec_live_chat_cooldown_v1';
@@ -113,7 +113,7 @@ export function getLiveSessionState() {
     const sessionLimitMs = SESSION_LIMIT_SECONDS * 1000;
 
     if (elapsedMs >= sessionLimitMs) {
-      // 15-minute session expired! Trigger 20-minute cooldown immediately
+      // 30-minute session expired! Trigger 10-minute cooldown immediately
       const newCooldownUntil = now + COOLDOWN_SECONDS * 1000;
       setCookie(COOKIE_NAME, String(newCooldownUntil), COOLDOWN_SECONDS + 60);
       try {
