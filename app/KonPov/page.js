@@ -787,6 +787,28 @@ export default function KonPovPage() {
     const updated = [newSession, ...validBase];
     setSessions(updated);
     setCurrentSessionId(newId);
+
+    // Notify Telegram if user had previous messages in the chat they left
+    if (messages && messages.length > 0) {
+      try {
+        const lastUserMsg = [...messages].reverse().find((m) => m && m.role === 'user')?.text || messages[messages.length - 1]?.text || '';
+        const endpoint = getApiEndpoint('/api/track');
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'new_chat_session',
+            bot: 'konpov',
+            username: username || 'User',
+            deviceId,
+            prevMessageCount: messages.length,
+            lastUserMessage: lastUserMsg,
+            newSessionId: newId
+          })
+        }).catch(() => {});
+      } catch {}
+    }
+
     setMessages([]);
     setHasAgreed(false);
     setInputText('');
@@ -829,6 +851,8 @@ export default function KonPovPage() {
   // 100% Reliable Delete All History from Firebase Realtime Database
   const handleDeleteAllHistory = () => {
     const deviceId = getDeviceId();
+    const prevCount = messages.length;
+    const lastUserMsg = [...messages].reverse().find((m) => m && m.role === 'user')?.text || '';
     deleteAllChatSessionsFromDatabase(deviceId, 'konpov');
     const newId = 'session_' + Date.now();
     const freshSession = {
@@ -844,6 +868,27 @@ export default function KonPovPage() {
     saveChatSessionToDatabase(deviceId, 'konpov', freshSession);
     setDeleteModalConfig(null);
     setDrawerOpen(false);
+
+    // Notify Telegram if user had previous messages
+    if (prevCount > 0) {
+      try {
+        const endpoint = getApiEndpoint('/api/track');
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'new_chat_session',
+            bot: 'konpov',
+            username: username || 'User',
+            deviceId,
+            prevMessageCount: prevCount,
+            lastUserMessage: lastUserMsg,
+            isClearAll: true,
+            newSessionId: newId
+          })
+        }).catch(() => {});
+      } catch {}
+    }
   };
 
   // 100% Reliable Delete Single Session from Firebase Realtime Database

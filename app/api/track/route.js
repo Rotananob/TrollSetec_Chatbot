@@ -8,6 +8,7 @@ import {
   alertPwaInstall,
   alertUserReportedIssue,
   alertDevContribution,
+  alertNewChatSession,
   getCambodiaDayKey
 } from '../../../lib/telegram';
 import {
@@ -236,6 +237,25 @@ export async function POST(req) {
 
       return Response.json(
         { success: true, message: 'Contribution submitted successfully to Rotana NOB' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Handle User Starting a New Chat (Leaving or resetting old chat) -> Alert Telegram TOPIC CHAT
+    if (type === 'new_chat_session' || action === 'new_chat_session') {
+      await alertNewChatSession({
+        username: username || body.username || 'User',
+        bot: body.bot || 'chatbot',
+        ip,
+        userAgent,
+        prevMessageCount: body.prevMessageCount || 0,
+        lastUserMessage: body.lastUserMessage || '',
+        isClearAll: !!body.isClearAll,
+        newSessionId: body.newSessionId
+      }).catch((e) => console.error('[Track] New chat session alert error:', e));
+
+      return Response.json(
+        { success: true, message: 'New chat session notified to Rotana NOB' },
         { status: 200, headers: corsHeaders }
       );
     }
