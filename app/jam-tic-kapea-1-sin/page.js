@@ -10,6 +10,7 @@ export default function JamTicKapeaAdminPage() {
   // Authentication State
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState('');
+  const [showPasscode, setShowPasscode] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -444,17 +445,22 @@ export default function JamTicKapeaAdminPage() {
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPasscode ? "text" : "password"}
                     value={passcode}
                     onChange={(e) => setPasscode(e.target.value)}
                     placeholder="បញ្ចូល Secret Passcode..."
-                    className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
+                    className="w-full pl-4 pr-11 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
                     autoFocus
                     required
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-                    <i className="fa-solid fa-lock text-xs" />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasscode(!showPasscode)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-400 p-1.5 transition-colors cursor-pointer"
+                    title={showPasscode ? "លាក់កូដសម្ងាត់" : "បង្ហាញកូដសម្ងាត់"}
+                  >
+                    <i className={`fa-solid ${showPasscode ? 'fa-eye-slash' : 'fa-eye'} text-xs`} />
+                  </button>
                 </div>
               </div>
 

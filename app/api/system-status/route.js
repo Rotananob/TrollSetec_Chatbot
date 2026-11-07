@@ -10,7 +10,7 @@ import {
 } from '../../../lib/systemControl.js';
 import { verifyRotanaMasterCode } from '../../../lib/masterAuth.js';
 import { flushAllRateLimits, getClientIp } from '../../../lib/rateLimit.js';
-import { alertSystemControlChange } from '../../../lib/telegram.js';
+import { alertSystemControlChange, alertSecuritySpam } from '../../../lib/telegram.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -66,6 +66,16 @@ export async function POST(req) {
 
     // Verify Master Authentication against Rotana secret code
     if (!verifyRotanaMasterCode(candidatePasscode)) {
+      alertSecuritySpam({
+        username: 'Admin Intruder Attempt',
+        ip: clientIp,
+        userAgent: req.headers.get('user-agent') || 'Unknown',
+        bot: 'Admin Control Gateway (/jam-tic-kapea-1-sin)',
+        retryAfter: 300,
+        prompt: `Attempted Passcode: "${candidatePasscode.slice(0, 3)}***"`,
+        violationType: '🚨 Unauthorized Admin Login Breach Attempt'
+      }).catch((e) => console.error('[Telegram] Alert error:', e));
+
       return Response.json(
         {
           ok: false,

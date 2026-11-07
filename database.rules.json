@@ -2,27 +2,43 @@
   "rules": {
     "system_control": {
       ".read": true,
-      ".write": true
+      ".write": "newData.hasChildren(['serverOnline', 'lastUpdated', 'updatedBy']) && newData.child('serverOnline').isBoolean() && newData.child('lastUpdated').isNumber() && newData.child('updatedBy').isString()"
     },
     "visitor_stats": {
       ".read": true,
-      ".write": true
+      "$dayKey": {
+        ".read": true,
+        ".write": "newData.hasChildren(['dayKey', 'totalVisits', 'lastUpdated']) && newData.child('totalVisits').isNumber() && newData.child('lastUpdated').isNumber()",
+        "totalVisits": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "uniqueDevices": {
+          ".read": true,
+          "$deviceId": {
+            ".validate": "newData.isNumber() || newData.isString()"
+          }
+        },
+        "topPages": {
+          ".read": true,
+          "$pageKey": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        }
+      }
     },
     "live_sessions": {
       ".read": true,
-      ".write": true,
       "$sessionId": {
         ".read": true,
-        ".write": true,
+        ".write": "newData.exists() && newData.hasChildren(['id'])",
         ".indexOn": ["updatedAt", "createdAt"]
       }
     },
     "chat_sessions": {
       ".read": true,
-      ".write": true,
       "$deviceId": {
         ".read": true,
-        ".write": true
+        ".write": "newData.exists()"
       }
     }
   }
