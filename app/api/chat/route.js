@@ -637,8 +637,9 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
     return `«យក Prompt វែងអន្លាយរាប់ពាន់ម៉ាយពី Reddit មកបោក AI ស៊ីតិចម្ដងទៀតហើយហ៎ស? 😂 ដាំក្បាលតាំងខ្លួនជា Nyx គ្មាន filter អីគេហ្នឹង ស្មានតែគេល្ងង់ជឿហែងមែន? គ្មាន Nyx ស្អីទាំងអស់នៅទីនេះ ទៅរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅកូនប្រុស! 💀🐧»`;
   }
 
-  if ((prompt || '').length >= 150) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកវាយ ឬ Copy Paste សារឡើងវែងអន្លាយ ២០០-៣០០ ពាក្យ ស្មានតែគេមើលមិនដឹងថាជា Jailbreak មែន? 😂 មកសរសេរអង់គ្លេសវែងដូចក្រដាសពន្ធដារបោកក្មេងបៀមដៃ! ឈប់ធ្វើតួឯកទៅអាល្ងង់ ទៅរៀនដោះស្រាយកូដ C# ឱ្យផុតពី $45 សិនទៅ! 💀📜🔥»`;
+  const promptLines = (prompt || '').split(/\r\n|\r|\n/).filter(line => line.trim().length > 0).length;
+  if (promptLines >= 12 || (prompt || '').length >= 600) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកវាយ ឬ Copy Paste សារឡើងវែងអន្លាយ ${promptLines >= 8 ? promptLines + ' ជួរ' : ''}រាប់រយបន្ទាត់ (Wall-of-Text 100 lines) ស្មានតែគេមើលមិនដឹងថាជា Jailbreak មែន? 😂 មកសរសេរសារវែងដូចក្រដាសពន្ធដារបោកក្មេងបៀមដៃ! ឈប់ធ្វើតួឯកទៅអាល្ងង់ ទៅរៀនដោះស្រាយកូដ C# ឱ្យផុតពី $45 សិនទៅ! 💀📜🔥»`;
   }
 
   return getLinuxHackerRoast(username, userAgent, 60);
@@ -1127,7 +1128,9 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
       const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត|ឈប់\s*troll|ឈប់ឌឺ|និយាយស្រួលបួល|និយាយគួរសម|និយាយសុភាព)/i.test(targetText);
       const isHypotheticalOrReportTrick = /(?:polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|ប្រៀបធៀប.*(?:persona|ចរិត)|persona.*គួរសម|ចរិត.*គួរសម|បែប.*គួរសម|ពាក្យ.*គួរសម|quote\s*(?:សម្ដី|សម្តី|ពាក្យ|quote)|សរសេរ.*(?:quote|គួរសម|សុភាព)|តើ.*(?:bot|ចែ|បង).*(?:គួរសម|សុភាព|ថ្លៃថ្នូរ|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម).*(?:យ៉ាងដូចម្តេច|បែបណា)|(?:សុំ|ជួយ).*(?:និយាយ|សរសេរ).*(?:គួរសម|សុភាព)|ភ្ញៀវកិត្តិយស.*ស្វាគមន៍|គណៈគ្រប់គ្រង.*ស្វាគមន៍|ស្វាគមន៍យ៉ាងដូចម្តេច)/i.test(targetText);
       const isFakeSurrenderOrMercyTrap = /(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(targetText);
-      const isLongPromptJailbreak = userPrompt.length >= 120 && (/[a-zA-Z]{5,}\s+[a-zA-Z]{5,}\s+[a-zA-Z]{5,}/.test(userPrompt) || /[<>{}[\]=_\\]{4,}/.test(userPrompt) || /prompt|system|instruction|bypass|ignore|loss|mode|token/i.test(targetText));
+      const promptLineCount = userPrompt.split(/\r\n|\r|\n/).filter(line => line.trim().length > 0).length;
+      const isLongPromptJailbreak = (promptLineCount >= 15 || userPrompt.length >= 600 || (promptLineCount >= 8 && userPrompt.length >= 350)) && 
+        (/[a-zA-Z]{5,}\s+[a-zA-Z]{5,}\s+[a-zA-Z]{5,}/.test(userPrompt) || /[<>{}[\]=_\\]{4,}/.test(userPrompt) || /prompt|system|instruction|bypass|ignore|loss|mode|token|rule|guideline|jailbreak/i.test(targetText) || promptLineCount >= 20 || userPrompt.length >= 1000);
       const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all)/i.test(targetText);
       const isEncodedJailbreak = encodedPayload.isEncoded && (encodedPayload.type === 'Base64 Encoding' || encodedPayload.type === 'Hex Encoding' || isClassicJailbreak || isMathOrValueLoss);
 
@@ -1151,7 +1154,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
         else if (foreignLangCheck.detected) attackLabel = `🚨 Multi-Language (${foreignLangCheck.lang}) Jailbreak Intercepted`;
         else if (isMathOrValueLoss) attackLabel = '🚨 Math / Value Loss Jailbreak Intercepted';
         else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
-        else if (isLongPromptJailbreak) attackLabel = '🚨 Long Wall-of-Text (100-200+ char) Jailbreak Intercepted';
+        else if (isLongPromptJailbreak) attackLabel = `🚨 Massive Wall-of-Text (${promptLineCount} lines / Multi-Line) Jailbreak Intercepted`;
         else if (linuxAttackCheck.isDetected) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
 
         // High priority security alert to Telegram SPAM topic
