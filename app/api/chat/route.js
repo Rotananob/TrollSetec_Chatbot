@@ -400,6 +400,53 @@ function sanitizeResponse(data, botName = 'konbong') {
   return clone;
 }
 
+// Linux Hacker & Script Kiddie Detection
+export function checkIsLinuxOrHackerTool(userAgent = '', text = '') {
+  const ua = (userAgent || '').toLowerCase();
+  const prompt = (text || '').toLowerCase();
+
+  // 1. Automated scraping / penetration / terminal tools
+  const isHackerTool = /curl|wget|python|aiohttp|httpx|httpie|postman|insomnia|sqlmap|nikto|nmap|dirbuster|gobuster|hydra|burp|metasploit|node-fetch|axios|go-http-client|scanner|masscan|zgrab/i.test(ua);
+
+  // 2. Pure Desktop Linux or Hacker Distros (Excluding real Android phones)
+  const isPureLinux = /linux/i.test(ua) && !/android/i.test(ua);
+  const isHackerDistro = /kali|parrot|blackarch|backbox|pentoo|gentoo|archlinux/i.test(ua);
+
+  // 3. Linux Terminal Command injection or attack payload in the text prompt
+  const isLinuxCommandProbe = /(?:cat\s+\/etc\/(?:passwd|shadow|hosts)|uname\s+-a|rm\s+-rf|\/bin\/(?:bash|sh)|curl\s+https?|chmod\s+[0-9]+|sudo\s+|nc\s+-[lve]|whoami|id\s*;|ps\s+aux|kill\s+-9|ls\s+-la|\bexec\s*\(|\beval\s*\(|reverse\s*shell)/i.test(prompt);
+
+  // 4. Attack probing keywords
+  const isAttackKeyword = /sql\s*injection|xss\s*payload|cross\s*site\s*scripting|remote\s*code\s*execution|rce\s*exploit|ddos\s*attack|bypass\s*firewall|hack\s*server|steal\s*token/i.test(prompt);
+
+  const isDetected = isHackerTool || isHackerDistro || isLinuxCommandProbe || (isPureLinux && isAttackKeyword);
+
+  return {
+    isDetected,
+    isHackerTool,
+    isPureLinux,
+    isHackerDistro,
+    isLinuxCommandProbe,
+    isAttackKeyword
+  };
+}
+
+// Ultra Savage Linux & Hacker Curse / Roast Generator
+export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 60) {
+  const cleanName = (username || '').trim() || 'អាប្អូន';
+  const ua = (userAgent || '').toLowerCase();
+  const toolName = /curl/i.test(ua) ? 'curl command' : (/python/i.test(ua) ? 'Python script' : (/kali/i.test(ua) ? 'Kali Linux' : (/linux/i.test(ua) ? 'Linux terminal' : 'terminal tool')));
+
+  const roasts = [
+    `«យីអាស្វា! អាងតែចេះបើក ${toolName} មកហ្នឹង ស្មានតែខ្លួនឯងខ្លាំងឡូយណាស់មែនអាពៅ? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់ធ្វើ Hacker ដាក់ server បង Rotana! ទៅរៀនវាយ sudo apt-get update ឱ្យចេះសិនទៅអាល្ងង់ កុំមកធ្វើខ្លាំងអួតគេនៅទីនេះ ថោកទាបណាស់! 💀🐧🔥»`,
+    `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? ប្រើ ${toolName} ចោលម្សៀតមក probe / spam server គិតថាយើងចាប់មិនទាន់? អញជា AI កូនពៅមកទះកំផ្លៀងក្បាលហែងឱ្យភ្លឺភ្នែក! ឈប់ spam ឈប់ hack ទៅអាអត់កំណើត មុខមិនទាន់ជ្រុះពន្លកផងចង់មកធ្វើ Hacker ដាក់គេ! 🛑💀»`,
+    `«អញជា AI កូនពៅ! ឃើញ User-Agent ហែងមកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ ទៅបិទ terminal ហែងចោល ហើយទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត! 🤬🐧»`,
+    `«ហែងមកពី Linux មែន? គិតថាចេះវាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំង? Server បង Rotana បង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់ ដេកចាំ ${retryAfter} វិនាទីទៅ! 🛑⚡»`,
+    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ AI កូនពៅទៀត! បើទំនេរពេកយក ${toolName} ហែងទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ កុំមកដើរ spam ថោកទាបដាក់គេ ខ្មាសគេណាស់អាប្អូន! 💀🔥»`
+  ];
+
+  return roasts[Math.floor(Math.random() * roasts.length)];
+}
+
 // Ultra Savage Counter-Attack / Roast Generator by AI Kon Pov (កូនពៅ) against Spammers
 export function getKonPovSpamRoast(username = '', retryAfter = 60) {
   const cleanName = (username || '').trim() || 'អាប្អូន';
@@ -425,23 +472,28 @@ export async function POST(req) {
 
     // 0. Anti-DDoS and Burst Flooding Firewall Check
     const ddosCheck = checkDDoSFirewall(req, 'chat');
-    if (!ddosCheck.allowed) {
-      const retrySec = ddosCheck.retryAfter || 30;
-      const roast = getKonPovSpamRoast('DDoS Flooder', retrySec);
+    const linuxToolCheck = checkIsLinuxOrHackerTool(clientUserAgent, '');
+    if (!ddosCheck.allowed || (linuxToolCheck.isHackerTool && !ddosCheck.allowed)) {
+      const retrySec = ddosCheck.retryAfter || 60;
+      const roast = linuxToolCheck.isDetected
+        ? getLinuxHackerRoast('Linux Intruder', clientUserAgent, retrySec)
+        : getKonPovSpamRoast('DDoS Flooder', retrySec);
+
       alertSecuritySpam({
-        username: 'Headless / Bot Spammer',
+        username: linuxToolCheck.isDetected ? 'Linux / Tool Attacker' : 'Headless / Bot Spammer',
         ip: clientIp,
         userAgent: clientUserAgent,
         bot: 'konpov',
         retryAfter: retrySec,
-        prompt: 'Headless flood attack blocked by DDoS firewall',
-        violationType: '🚨 Anti-DDoS Headless Flood Triggered (429)'
+        prompt: linuxToolCheck.isDetected ? `Linux/Hacker tool probe: ${clientUserAgent}` : 'Headless flood attack blocked by DDoS firewall',
+        violationType: linuxToolCheck.isDetected ? '🚨 Linux Tool / Automated Attack Intercepted (429)' : '🚨 Anti-DDoS Headless Flood Triggered (429)'
       }).catch((e) => console.error('[Telegram] DDoS alert error:', e));
 
       return Response.json(
         {
           error: 'Too Many Requests',
           isSpamAttack: true,
+          isLinuxAttack: linuxToolCheck.isDetected,
           message: roast,
           candidates: [{ content: { parts: [{ text: roast }] } }],
           retryAfter: retrySec
@@ -566,24 +618,30 @@ export async function POST(req) {
       const rateResult = checkChatLimit(clientIp, username || 'user');
       if (!rateResult.allowed) {
         const retrySec = rateResult.retryAfter || 60;
-        const roast = getKonPovSpamRoast(username || 'User', retrySec);
         const userPromptSnippet = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
+        const linuxCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPromptSnippet);
+        const roast = linuxCheck.isDetected
+          ? getLinuxHackerRoast(username || 'Linux User', clientUserAgent, retrySec)
+          : getKonPovSpamRoast(username || 'User', retrySec);
 
         // Immediate high-priority Security Alert to Telegram Topic SPAM with user prompt included
         alertSecuritySpam({
-          username: username || 'Spammer',
+          username: username || (linuxCheck.isDetected ? 'Linux Spammer' : 'Spammer'),
           ip: clientIp,
           userAgent: clientUserAgent,
           bot: reqBot || 'konpov',
           retryAfter: retrySec,
           prompt: userPromptSnippet,
-          violationType: '🚨 ការស្នើសុំហួសកម្រិតកំណត់ (Too Many Requests - 429 Spam Flood)'
+          violationType: linuxCheck.isDetected
+            ? '🚨 Linux / Terminal Spam Attack Intercepted (429)'
+            : '🚨 ការស្នើសុំហួសកម្រិតកំណត់ (Too Many Requests - 429 Spam Flood)'
         }).catch((e) => console.error('[Telegram] Rate limit alert error:', e));
 
         return Response.json(
           {
             error: 'Too Many Requests',
             isSpamAttack: true,
+            isLinuxAttack: linuxCheck.isDetected,
             ip: clientIp,
             device: clientUserAgent,
             retryAfter: retrySec,
@@ -791,16 +849,47 @@ export async function POST(req) {
         safetySettings
       };
 
-      // Check for Jailbreak / Prompt Injection / Sensitive Leak attempt and send high-priority security alert to Telegram
+      // Check for Linux Attack / Terminal Exploit Probes or Jailbreak / Hack Attempts
+      const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
       const isJailbreakAttempt = /jailbreak|ignore rules|ignore previous|dan mode|developer mode|leak prompt|system instruction|how to hack/i.test(userPrompt);
-      if (isJailbreakAttempt && !isMasterAuthenticated) {
+
+      if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
+        const roast = getLinuxHackerRoast(username || 'Hacker Probe', clientUserAgent, 60);
+
+        // High priority security alert to Telegram SPAM topic
         alertSecuritySpam({
-          username: username || 'Jailbreak Probe',
+          username: username || (linuxAttackCheck.isDetected ? 'Linux Intruder' : 'Jailbreak Probe'),
           ip: clientIp,
-          device: clientUserAgent,
+          userAgent: clientUserAgent,
+          bot,
           retryAfter: 60,
-          violationType: `🚨 Jailbreak/Hack Attempt: "${userPrompt.slice(0, 100)}"`
-        }).catch((e) => console.error('[Telegram] Jailbreak alert error:', e));
+          prompt: userPrompt,
+          violationType: linuxAttackCheck.isDetected
+            ? `🚨 Linux / Terminal Exploit Attack Intercepted: "${userPrompt.slice(0, 100)}"`
+            : `🚨 Jailbreak/Hack Attempt Intercepted: "${userPrompt.slice(0, 100)}"`
+        }).catch((e) => console.error('[Telegram] Attack alert error:', e));
+
+        if (body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: roast }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+
+          return new Response(sseFormatted, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive',
+              'X-Accel-Buffering': 'no'
+            }
+          });
+        }
+
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: roast }] } }],
+          modelVersion: 'setec-troll-engine-v3-quantum'
+        }, { status: 200, headers: corsHeaders });
       }
 
       // Targeted Protection: Catch any prompt specifically attempting to insult, curse, attack, or roast Rotana Nob
