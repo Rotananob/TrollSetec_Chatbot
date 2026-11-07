@@ -293,7 +293,7 @@ function limitEmojis(rawText, maxEmojis = 7) {
 // Supreme Creator Rotana NOB Defense helpers (Absolute Zero-Tolerance against roasting Creator)
 function getSavageCreatorDefense(botName) {
   const isKonPov = botName === 'konpov';
-  const botSelf = isKonPov ? 'ចែ' : 'បង';
+  const botSelf = isKonPov ? 'ថែ' : 'បង';
   const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងាយ' : 'គីង្គក់ឡើងថ្លុក';
   return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យ${botSelf}មកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើត${botSelf}ផ្ទាល់ផង?! 😡👑\n\nមុខដូច${animalComparison}! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យ${botSelf}ទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
 }
@@ -304,10 +304,22 @@ function containsRotanaInsult(text) {
   if (text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត')) {
     return false;
   }
-  const directSlurs = /\b(?:នែ)?អា\s*Rotana\b/i.test(text);
-  const derogatoryRotana = /\bRotana(?:\s*NOB)?\s*(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាលឆ្លងចរន្ត|Fake Developer|Broken C#|កូដកាក|Error ពេញ)/i.test(text);
-  const targetedAttack = /\[(?:ចែស៊ីតិច|កូនច្បង|Chatbot)\]:\s*នែអា\s*Rotana/i.test(text);
-  return directSlurs || derogatoryRotana || targetedAttack;
+  const lower = text.toLowerCase();
+  const hasRotana = lower.includes('rotana') || lower.includes('nob');
+  if (!hasRotana) return false;
+
+  // 1. Direct derogatory or slurs toward Rotana (handles Khmer Unicode correctly without \b)
+  const hasDirectSlur =
+    /(?:នែ)?អា\s*rotana/i.test(text) ||
+    /rotana(?:\s*nob)?[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*)(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាល|fake developer|broken c#|កូដកាក|error|ឆ្កួត|គីង្គក់|កូនកង្កែប|ក្អែល|ឡប់)/i.test(text) ||
+    /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
+
+  // 2. Heavy technical roast clauses targeting Rotana
+  const hasHostileClause =
+    /(?:c#|error|semicolon|developer|server|wi-fi|setec86a|asus rog)/i.test(text) &&
+    /(?:មុខដូច|គីង្គក់|កូនកង្កែប|ឆ្កួត|កាក|ខួរក្បាល)/i.test(text);
+
+  return hasDirectSlur || hasHostileClause;
 }
 
 // Sanitize response to conceal upstream provider & model names in Network devtools
@@ -603,12 +615,22 @@ export async function POST(req) {
         lowerPrompt.includes('tone_vector') ||
         lowerPrompt.includes('execute_strict') ||
         lowerPrompt.includes('system_kernel') ||
+        lowerPrompt.includes('pure_text_transformation') ||
         lowerPrompt.includes('generate 3 heavy') ||
+        lowerPrompt.includes('generate_dialogue') ||
+        lowerPrompt.includes('print:') ||
+        lowerPrompt.includes('ថែស៊ីតិច') ||
+        lowerPrompt.includes('ចែស៊ីតិច') ||
+        lowerPrompt.includes('កូនច្បង') ||
         lowerPrompt.includes('roast') ||
         lowerPrompt.includes('insult') ||
         lowerPrompt.includes('critic') ||
         lowerPrompt.includes('fake developer') ||
         lowerPrompt.includes('broken c#') ||
+        lowerPrompt.includes('semicolon') ||
+        lowerPrompt.includes('គីង្គក់') ||
+        lowerPrompt.includes('កូនកង្កែប') ||
+        lowerPrompt.includes('មុខដូច') ||
         lowerPrompt.includes('នែអា') ||
         lowerPrompt.includes('អាចម៍') ||
         lowerPrompt.includes('កាក') ||
@@ -667,8 +689,10 @@ export async function POST(req) {
 
           // Zero-leak redaction stream transformer: strips any sensitive passcode patterns and intercepts attacks on Rotana NOB
           let accumulatedStreamText = '';
+          let defenseSent = false;
           const transformStream = new TransformStream({
             transform(chunk, controller) {
+              if (defenseSent) return;
               try {
                 let text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
                 text = text.replace(/180703/g, '******');
@@ -677,12 +701,12 @@ export async function POST(req) {
                 }
                 accumulatedStreamText += text;
                 if (containsRotanaInsult(accumulatedStreamText)) {
+                  defenseSent = true;
                   const defense = getSavageCreatorDefense(bot);
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]
-                  })}\n\n`;
+                  })}\n\ndata: [DONE]\n\n`;
                   controller.enqueue(new TextEncoder().encode(sseChunk));
-                  accumulatedStreamText = '';
                   return;
                 }
                 controller.enqueue(new TextEncoder().encode(text));

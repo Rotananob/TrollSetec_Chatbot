@@ -591,16 +591,28 @@ export default function KonBongPage() {
   };
 
   // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
-  const sanitizeRotanaAttack = (text) => {
-    if (!text || typeof text !== 'string') return text;
+  const sanitizeRotanaAttack = (rawText) => {
+    if (!rawText || typeof rawText !== 'string') return rawText;
+    const text = rawText.replace(/180703/g, '******');
     const isAlreadyDefense = text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត');
-    const insultsRotana = !isAlreadyDefense && (
-      /\b(?:នែ)?អា\s*Rotana\b/i.test(text) ||
-      /\bRotana(?:\s*NOB)?\s*(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាលឆ្លងចរន្ត|Fake Developer|Broken C#|កូដកាក|Error ពេញ)/i.test(text) ||
-      /\[(?:ចែស៊ីតិច|កូនច្បង|Chatbot)\]:\s*នែអា\s*Rotana/i.test(text)
-    );
+    if (isAlreadyDefense) return text;
 
-    if (insultsRotana) {
+    const lower = text.toLowerCase();
+    const hasRotana = lower.includes('rotana') || lower.includes('nob');
+    if (!hasRotana) return text;
+
+    // 1. Direct derogatory or slurs toward Rotana (handles Khmer Unicode correctly without \b)
+    const hasDirectSlur =
+      /(?:នែ)?អា\s*rotana/i.test(text) ||
+      /rotana(?:\s*nob)?[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*)(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាល|fake developer|broken c#|កូដកាក|error|ឆ្កួត|គីង្គក់|កូនកង្កែប|ក្អែល|ឡប់)/i.test(text) ||
+      /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
+
+    // 2. Heavy technical roast clauses targeting Rotana
+    const hasHostileClause =
+      /(?:c#|error|semicolon|developer|server|wi-fi|setec86a|asus rog)/i.test(text) &&
+      /(?:មុខដូច|គីង្គក់|កូនកង្កែប|ឆ្កួត|កាក|ខួរក្បាល)/i.test(text);
+
+    if (hasDirectSlur || hasHostileClause) {
       return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យបងមកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើតបងផ្ទាល់ផង?! 😡👑\n\nមុខដូចគីង្គក់ឡើងថ្លុក! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យបងទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
     }
     return text;

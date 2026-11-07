@@ -5,8 +5,8 @@
 export const SESSION_LIMIT_SECONDS = 30 * 60; // 30 minutes = 1800 seconds
 export const COOLDOWN_SECONDS = 10 * 60;      // 10 minutes = 600 seconds
 
-const STORAGE_KEY = 'setec_live_chat_session_v1';
-const COOKIE_NAME = 'setec_live_chat_cooldown_v1';
+const STORAGE_KEY = 'setec_live_chat_session_v2';
+const COOKIE_NAME = 'setec_live_chat_cooldown_v2';
 
 // Format seconds into MM:SS
 export function formatCountdown(totalSeconds) {
@@ -49,6 +49,12 @@ export function getLiveSessionState() {
 
   const now = Date.now();
 
+  // Clean up legacy v1 keys from previous 20-minute config if present
+  try {
+    removeCookie('setec_live_chat_cooldown_v1');
+    localStorage.removeItem('setec_live_chat_session_v1');
+  } catch {}
+
   // 1. Check persistent cookie first (Anti-Bypass: persists even if localStorage is cleared)
   let cookieCooldown = null;
   try {
@@ -76,9 +82,17 @@ export function getLiveSessionState() {
     cooldownUntil = cookieCooldown;
   }
 
+  // Hard clamp cooldown to strict 10 minutes maximum (COOLDOWN_SECONDS)
+  if (cooldownUntil && cooldownUntil - now > COOLDOWN_SECONDS * 1000) {
+    cooldownUntil = now + COOLDOWN_SECONDS * 1000;
+  }
+
   // 3. Cooldown Active Check
   if (cooldownUntil && now < cooldownUntil) {
-    const remainingCooldownSec = Math.max(1, Math.ceil((cooldownUntil - now) / 1000));
+    const remainingCooldownSec = Math.min(
+      COOLDOWN_SECONDS,
+      Math.max(1, Math.ceil((cooldownUntil - now) / 1000))
+    );
     // Ensure cookie is synced
     setCookie(COOKIE_NAME, String(cooldownUntil), remainingCooldownSec + 60);
     return {
@@ -179,12 +193,15 @@ export function touchLiveSession() {
   return state;
 }
 
-// Set cooldown lock directly from server response (Server-Enforced Lockout)
+// Set cooldown lock directly from server response (Server-Enforced Lockout, clamped to 10 min max)
 export function setServerCooldownLock(cooldownUntilMs) {
   if (typeof window === 'undefined') return;
   const now = Date.now();
-  const safeUntil = cooldownUntilMs || (now + COOLDOWN_SECONDS * 1000);
-  const remainingSec = Math.max(1, Math.ceil((safeUntil - now) / 1000));
+  let safeUntil = cooldownUntilMs || (now + COOLDOWN_SECONDS * 1000);
+  if (safeUntil - now > COOLDOWN_SECONDS * 1000) {
+    safeUntil = now + COOLDOWN_SECONDS * 1000;
+  }
+  const remainingSec = Math.min(COOLDOWN_SECONDS, Math.max(1, Math.ceil((safeUntil - now) / 1000)));
 
   setCookie(COOKIE_NAME, String(safeUntil), remainingSec + 60);
   try {

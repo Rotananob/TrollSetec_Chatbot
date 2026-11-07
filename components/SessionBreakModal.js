@@ -11,27 +11,32 @@ export default function SessionBreakModal({
   theme = 'dark',
   onUnlock
 }) {
-  const [secondsLeft, setSecondsLeft] = useState(remainingSeconds);
+  const totalCooldown = 10 * 60; // strictly 10 minutes = 600s
+  const [secondsLeft, setSecondsLeft] = useState(() => Math.min(remainingSeconds, totalCooldown));
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // Recalculate based on real timestamp to prevent clock manipulation
+    // Recalculate based on real timestamp to prevent clock manipulation, strictly capped at 10 minutes (600s)
     const tick = () => {
       const now = Date.now();
       if (cooldownUntil) {
-        const diff = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
+        let diff = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
+        if (diff > totalCooldown) {
+          diff = totalCooldown;
+        }
         setSecondsLeft(diff);
         if (diff <= 0 && onUnlock) {
           onUnlock();
         }
       } else {
         setSecondsLeft((prev) => {
-          if (prev <= 1) {
+          const clamped = Math.min(prev, totalCooldown);
+          if (clamped <= 1) {
             if (onUnlock) onUnlock();
             return 0;
           }
-          return prev - 1;
+          return clamped - 1;
         });
       }
     };
@@ -39,11 +44,9 @@ export default function SessionBreakModal({
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [isOpen, cooldownUntil, onUnlock]);
+  }, [isOpen, cooldownUntil, onUnlock, totalCooldown]);
 
   if (!isOpen) return null;
-
-  const totalCooldown = 10 * 60; // 600s
   const progressPercent = Math.min(100, Math.max(0, ((totalCooldown - secondsLeft) / totalCooldown) * 100));
   const isDark = theme === 'dark';
 

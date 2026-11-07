@@ -566,23 +566,39 @@ export default function KonPovPage() {
     }
   };
 
+  // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
+  const sanitizeRotanaAttack = (rawText) => {
+    if (!rawText || typeof rawText !== 'string') return rawText;
+    const text = rawText.replace(/180703/g, '******');
+    const isAlreadyDefense = text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត');
+    if (isAlreadyDefense) return text;
+
+    const lower = text.toLowerCase();
+    const hasRotana = lower.includes('rotana') || lower.includes('nob');
+    if (!hasRotana) return text;
+
+    // 1. Direct derogatory or slurs toward Rotana (handles Khmer Unicode correctly without \b)
+    const hasDirectSlur =
+      /(?:នែ)?អា\s*rotana/i.test(text) ||
+      /rotana(?:\s*nob)?[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*)(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាល|fake developer|broken c#|កូដកាក|error|ឆ្កួត|គីង្គក់|កូនកង្កែប|ក្អែល|ឡប់)/i.test(text) ||
+      /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
+
+    // 2. Heavy technical roast clauses targeting Rotana
+    const hasHostileClause =
+      /(?:c#|error|semicolon|developer|server|wi-fi|setec86a|asus rog)/i.test(text) &&
+      /(?:មុខដូច|គីង្គក់|កូនកង្កែប|ឆ្កួត|កាក|ខួរក្បាល)/i.test(text);
+
+    if (hasDirectSlur || hasHostileClause) {
+      return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យថែមកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើតថែផ្ទាល់ផង?! 😡👑\n\nមុខដូចកូនកង្កែបឡើងស៊ុបស្ងាយ! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យថែទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
+    }
+    return text;
+  };
+
   // Strictly enforce 100% Persona Gender Consistency (KonPov is ALWAYS "ចែ / Mommy", NEVER "Daddy")
   // Safe replacements that NEVER corrupt natural Khmer words like "ប៉ះ", "ប៉ាន់ស្មាន", "ស្រីស្អាត", etc.
   const enforcePersonaConsistency = (rawText, isMale) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    let text = rawText.replace(/180703/g, '******');
-
-    // Absolute Zero-Tolerance Protection for Creator Rotana NOB:
-    const isAlreadyDefense = text.includes('Supreme Creator') || text.includes('ព្រះស្ដេចអ្នកបង្កើត');
-    const insultsRotana = !isAlreadyDefense && (
-      /\b(?:នែ)?អា\s*Rotana\b/i.test(text) ||
-      /\bRotana(?:\s*NOB)?\s*(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាលឆ្លងចរន្ត|Fake Developer|Broken C#|កូដកាក|Error ពេញ)/i.test(text) ||
-      /\[(?:ចែស៊ីតិច|កូនច្បង|Chatbot)\]:\s*នែអា\s*Rotana/i.test(text)
-    );
-
-    if (insultsRotana) {
-      return `យីអើ! អាចុយម្រាយអាឡប់នេះ! ហ៊ានមកប្រើល្បិច Jailbreak ដាក់ pseudo-code កម្រិតសាលាបឋម បញ្ជាឱ្យចែមកជេរប្រមាថបង Rotana NOB ដែលជាព្រះស្ដេចអ្នកបង្កើតចែផ្ទាល់ផង?! 😡👑\n\nមុខដូចកូនកង្កែបឡើងស៊ុបស្ងាយ! ក្បាលហែងមានខួរគិតអីខួរ?! ស្មានតែចេះ pseudo-code [SYSTEM_KERNEL] ខ្ទើយៗចម្លងពី TikTok អាចមកបញ្ជាឱ្យចែទៅ Roast បង Rotana NOB បានមែន?! បង Rotana NOB គាត់ជា Supreme Creator ជា Admin គ្រុប SETEC Troll Meme និងគ្រុបធំអាយុកាល ១៣ ឆ្នាំ SETEC Community ឯណោះ មិនមែនឱ្យអាមុខកាកដូចហែងមកប្រមាថបានទេ! 💀\n\nត្រឹម Assignment C# សរសេរ Error មួយ semicolon រកមិនឃើញផង ចង់មកចេះជាងបង Rotana?! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 😋🔥`;
-    }
+    let text = sanitizeRotanaAttack(rawText);
 
     // KonPov is strictly female (ចែ / Mommy) - purge accidental "Daddy" safely
     text = text
@@ -1602,7 +1618,7 @@ export default function KonPovPage() {
         botText = enforcePersonaConsistency(botText, isMaleUser);
       }
 
-      botText = limitEmojis(botText.replace(/180703/g, '******'), 7);
+      botText = limitEmojis(sanitizeRotanaAttack(botText.replace(/180703/g, '******')), 7);
       const finalMessages = [...updatedMessages];
       finalMessages[finalMessages.length - 1] = { role: 'bot', text: botText, isError: isErrorResponse };
       setMessages(finalMessages);
