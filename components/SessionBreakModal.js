@@ -94,7 +94,7 @@ export default function SessionBreakModal({
         <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-300 dark:text-slate-300 mb-4 px-1">
           ហាហាហា! មួយលើកលេងបានត្រឹម <b>១៥ នាទី</b> ប៉ុណ្ណោះអាប្អូន! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង កុំនៅតោង Server ឡើងក្តៅផ្សែងហុយ! 🤣🔥
           <br className="hidden sm:block" />
-          ឥឡូវ<b>សម្រាក ២០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក troll ជាមួយ <b>Chatbot {botName}</b> ទៀត! ✨
+          ឥឡូវ<b>សម្រាក ២០ ទៅ ៣០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក troll ជាមួយ <b>Chatbot {botName}</b> ទៀត! ✨
         </p>
 
         {/* Big Neon Digital Countdown Timer Box */}
