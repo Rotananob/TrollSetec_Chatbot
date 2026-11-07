@@ -12,7 +12,7 @@ import {
   checkChatLimit,
   checkChatSessionLimit,
   getClientIp
-} from '../../../lib/rateLimit';
+} from '../../../lib/rateLimit.js';
 import {
   verifyRotanaMasterCode,
   redactRotanaMasterCode,
@@ -139,7 +139,7 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 20000
 }
 
 // Native Gemini TTS via /v1beta/interactions with gemini-3.8-flash-tts
-async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 12000) {
+async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 22000) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   for (const key of keys) {
     if (!key) continue;
@@ -230,10 +230,10 @@ async function fetchKhmerSpeechFallback(text) {
       .trim();
     if (!cleanText) return null;
 
-    // Split text into chunks <= 160 chars at natural sentence/phrase boundaries (limit to max 8 chunks for smooth playback)
+    // Split text into chunks <= 160 chars at natural sentence/phrase boundaries (limit to max 12 chunks for smooth, complete playback)
     const chunks = [];
     let remaining = cleanText.slice(0, 1400);
-    while (remaining.length > 0 && chunks.length < 8) {
+    while (remaining.length > 0 && chunks.length < 12) {
       if (remaining.length <= 160) {
         chunks.push(remaining);
         break;
@@ -461,23 +461,30 @@ export async function POST(req) {
     // 3. Format payload
     let requestPayload;
     if (audio) {
-      // Clean speech text: Remove any prompt prefixes so the voice reads ONLY the clean message text
+      // Clean speech text: Remove any prompt prefixes, markdown links, and syntax so the voice reads cleanly
       let speechText = prompt || '';
       if (contents && contents[0]?.parts?.[0]?.text) {
         speechText = contents[0].parts[0].text;
       }
       speechText = speechText
         .replace(/^(?:Say|Speak|Read)\s+this[\s\S]*?(?:Text:\s*|:\s*)/i, '')
+        .replace(/https?:\/\/\S+/gi, '')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/__(.*?)__/g, '$1')
+        .replace(/_(.*?)_/g, '$1')
+        .replace(/`{1,3}[^`]*`{1,3}/g, '')
+        .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
         .replace(/^["']|["']$/g, '')
         .trim();
 
-      // Smart length optimization for lightning-fast AI Voice generation (<3s):
-      // If the response is long, slice to the first complete sentences or max 280 characters
+      // Full speech support: Read the complete response (up to 850 characters) so voice never cuts off after 8-10s!
       let audioPromptText = speechText;
-      if (audioPromptText.length > 280) {
-        const sentenceBoundary = audioPromptText.slice(0, 280).lastIndexOf('។');
-        const altBoundary = audioPromptText.slice(0, 280).lastIndexOf('\n');
-        const cutoff = sentenceBoundary > 100 ? sentenceBoundary + 1 : (altBoundary > 100 ? altBoundary : 280);
+      if (audioPromptText.length > 850) {
+        const sentenceBoundary = audioPromptText.slice(0, 850).lastIndexOf('។');
+        const altBoundary = audioPromptText.slice(0, 850).lastIndexOf('\n');
+        const cutoff = sentenceBoundary > 500 ? sentenceBoundary + 1 : (altBoundary > 500 ? altBoundary : 850);
         audioPromptText = audioPromptText.slice(0, cutoff).trim();
       }
 
@@ -500,7 +507,7 @@ export async function POST(req) {
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
         (bot === 'konpov' ? 'Aoede' : 'Puck');
-      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 12000);
+      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 22000);
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(
           {
@@ -525,7 +532,7 @@ export async function POST(req) {
       }
 
       // Seamless fallback to high-uptime Khmer speech synthesis when AI TTS quota is exhausted
-      const fallbackAudioB64 = await fetchKhmerSpeechFallback(speechText);
+      const fallbackAudioB64 = await fetchKhmerSpeechFallback(audioPromptText);
       if (fallbackAudioB64) {
         return Response.json(
           {
