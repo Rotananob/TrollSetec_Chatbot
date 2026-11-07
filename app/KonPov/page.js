@@ -3261,116 +3261,112 @@ export default function KonPovPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-1.5 mb-2">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[11px] no-scrollbar">
+          <div className="space-y-2 mb-2.5">
+            {/* ROW 1: ⚡ មុខងារដំណើរការ (Action & Feature Tools - Distinct Rounded-XL Cards) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <span className="text-[10px] text-pink-400 font-extrabold shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/25">
+                <i className="fas fa-bolt text-amber-400 text-xs"></i>
+                <span>មុខងារ:</span>
+              </span>
+
+              {/* Survival Modal Tool */}
               <button
                 type="button"
                 onClick={() => setIsSurvivalModalOpen(true)}
-                className="px-3 py-1 rounded-full border font-black flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-gradient-to-r from-pink-500/15 via-rose-500/15 to-purple-500/15 hover:from-pink-500/25 hover:to-purple-500/25 border-pink-400/40 text-pink-300 ring-1 ring-pink-400/30"
+                className="px-3 py-1.5 rounded-xl border font-black flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:from-pink-500/30 hover:to-indigo-500/30 border-pink-400/50 text-pink-200 ring-1 ring-pink-400/30"
+                title="កម្មវិធីគណនាប្រឡងសង $45 និងសំឡេង"
               >
                 <i className="fas fa-calculator text-xs text-pink-400"></i>
-                <span>🎒 SETEC Survival ($45 & Sound)</span>
+                <span>🎒 Survival ($45 & សំឡេង)</span>
               </button>
 
+              {/* Meme Generator Tool */}
               <button
-                onClick={() => setContributeModalOpen(true)}
-                className="px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-400/30 text-indigo-400"
-              >
-                <i className="fas fa-brain text-xs text-amber-300"></i>
-                <span>ចូលរួមបង្រៀន AI</span>
-              </button>
-
-              <button
-                onClick={() => setQuoteModalData({ text: '' })}
-                disabled={!hasAgreed}
-                className="px-3 py-1 rounded-full bg-pink-500/10 hover:bg-pink-500/20 border border-pink-400/30 text-pink-500 dark:text-pink-300 font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95"
-                title="បង្កើតរូបភាព Quote Troll សម្រាប់ផុស IG & X"
-              >
-                <i className="fas fa-quote-left text-xs text-pink-400"></i>
-                <span>Quote Troll IG/X</span>
-              </button>
-
-              <button
+                type="button"
                 onClick={() => handleRequestMeme()}
                 disabled={!hasAgreed || isGeneratingMeme || isLoading}
-                className={`px-3 py-1 rounded-full border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
+                className={`px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
                   !hasAgreed
                     ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                    : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-400/30 text-amber-500 dark:text-amber-300'
+                    : 'bg-amber-500/15 hover:bg-amber-500/25 border-amber-400/40 text-amber-300 ring-1 ring-amber-400/25'
                 }`}
+                title="បង្កើតរូបភាព Meme ស៊ីតិច ៥ សន្លឹក"
               >
                 <i className="fas fa-wand-magic-sparkles text-xs text-amber-400"></i>
-                <span>សុំ Meme ៥ សន្លឹក</span>
+                <span>🪄 សុំ Meme ៥ សន្លឹក</span>
               </button>
 
+              {/* Image Vision Analysis Tool */}
               <button
+                type="button"
                 onClick={() => {
                   if (hasAgreed) fileInputRef.current?.click();
                 }}
                 disabled={!hasAgreed}
-                className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
+                className={`px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
                   !hasAgreed
                     ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                    : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
+                    : 'bg-blue-500/15 hover:bg-blue-500/25 border-blue-400/40 text-blue-300 ring-1 ring-blue-400/25'
                 }`}
+                title="បញ្ចូលរូបភាពឱ្យចែវិភាគ"
               >
                 <i className="fas fa-camera text-xs text-blue-400"></i>
-                <span>វិភាគរូបភាព</span>
+                <span>📷 វិភាគរូបភាព</span>
               </button>
 
+              {/* Quote Troll Tool */}
               <button
-                onClick={() => handleChat('Troll ឌឺខ្ញុំមួយមើល ថាស្ដេចឌឺច្បាស់ការឬអត់?')}
-                disabled={!hasAgreed || isLoading}
-                className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
-                  !hasAgreed
-                    ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                    : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-blue-500/10 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-400 cursor-pointer'
-                }`}
+                type="button"
+                onClick={() => setQuoteModalData({ text: '' })}
+                disabled={!hasAgreed}
+                className="px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 bg-rose-500/15 hover:bg-rose-500/25 border-rose-400/40 text-rose-300 ring-1 ring-rose-400/25"
+                title="បង្កើត Quote Troll សម្រាប់ IG & X"
               >
-                <i className="fas fa-fire text-xs text-amber-400"></i>
-                <span>Troll ឌឺមួយមើល</span>
+                <i className="fas fa-quote-left text-xs text-rose-400"></i>
+                <span>❝ Quote Troll IG/X</span>
               </button>
 
+              {/* Reset Session Tool */}
               <button
+                type="button"
                 onClick={() => createNewSession()}
                 disabled={!hasAgreed}
-                className={`px-3 py-1 rounded-full border font-semibold flex items-center gap-1.5 transition shrink-0 shadow-xs active:scale-95 ${
+                className={`px-3 py-1.5 rounded-xl border font-bold flex items-center gap-1.5 transition shrink-0 cursor-pointer shadow-xs active:scale-95 ${
                   !hasAgreed
                     ? 'opacity-40 cursor-not-allowed bg-slate-800 text-slate-500 border-slate-700'
-                    : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-rose-500/10 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-rose-400 cursor-pointer'
+                    : 'bg-slate-800/80 hover:bg-slate-700/80 border-slate-600/60 text-slate-300 hover:text-white'
                 }`}
+                title="ជម្រះសារ ហើយជជែកថ្មី"
               >
-                <i className="fas fa-rotate text-xs"></i>
-                <span>ជជែកថ្មី</span>
+                <i className="fas fa-rotate text-xs text-slate-400"></i>
+                <span>🔄 ជជែកថ្មី</span>
               </button>
             </div>
 
-            {/* SETEC Hot Topics Quick Chips Bar */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar">
-              <span className="text-[10px] text-pink-400 font-bold shrink-0 flex items-center gap-1 px-1">
-                <i className="fas fa-fire text-amber-400 text-xs animate-pulse"></i>
-                <span>ប្រធានបទ Troll:</span>
+            {/* ROW 2: 💬 សំណើជជែក Troll (Prompt Suggestion Chips - Distinct Rounded-Full Chat Pills) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <span className="text-[10px] text-pink-400 font-bold shrink-0 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-900/80 border border-slate-700/60">
+                <i className="fas fa-comment-dots text-pink-400 text-xs"></i>
+                <span>សំណើ Troll:</span>
               </span>
               {[
-                { label: '🔥 Quote IT & CS (IG/X)', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកចែ!' },
-                { label: '🏛️ Quote Interior (IG/X)', prompt: 'សុំ Quote Troll បែប IG និង X សម្រាប់សិស្ស Interior Design ទាំង 3D Render និងប្លង់មកចែ!' },
-                { label: '🎨 Quote Graphic Design', prompt: 'សុំ Caption Troll ឡូយៗបែប IG/X សម្រាប់សិស្ស Graphic Design មួយឈុតមកចែ!' },
-                { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីរឿងកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលចែ' },
+                { label: '🔥 Quote IT & CS', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកចែ!' },
                 { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
                 { label: '💸 ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់ចែ?' },
+                { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីរឿងកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលចែ' },
                 { label: '🎨 សិស្ស Design & បណ្ណាល័យ', prompt: 'តើសិស្ស Graphic Design និង IT នៅស៊ីតិចមានបរិយាកាសស្និទ្ធស្នាលគ្នាយ៉ាងម៉េចខ្លះក្នុងបណ្ណាល័យ?' },
                 { label: '☕ ញៀនកាហ្វេ', prompt: 'ឮថាសិស្សស៊ីតិចញៀនកាហ្វេខ្លាំងណាស់មែន?' },
-                { label: '💇‍♂️ សក់ K-Pop', prompt: 'ម៉ូដសក់ក្រញាញ់ និងពុះកណ្ដាលដូចតារា K-Pop នៅស៊ីតិចម៉េចដែរ?' },
-                { label: '👥 គ្រុប Meme ទាំង ២', prompt: 'ជួយណែនាំពី Facebook Group ធំៗទាំង ២ របស់ស៊ីតិចបន្តិចមើល' }
+                { label: '😈 Troll ឌឺមួយមើល', prompt: 'Troll ឌឺខ្ញុំមួយមើល ថាស្ដេចឌឺច្បាស់ការឬអត់?' }
               ].map((topic, tIdx) => (
                 <button
                   key={tIdx}
                   type="button"
                   onClick={() => handleChat(topic.prompt)}
                   disabled={!hasAgreed || isLoading}
-                  className="px-2.5 py-1 rounded-full bg-slate-900/80 hover:bg-pink-500/20 text-slate-300 hover:text-pink-300 border border-slate-700/80 hover:border-pink-400/50 font-bold text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-xs"
+                  className="px-2.5 py-1 rounded-full bg-slate-900/90 hover:bg-pink-500/20 text-slate-300 hover:text-pink-300 border border-slate-700/80 hover:border-pink-400/50 font-medium text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1"
                 >
-                  {topic.label}
+                  <i className="fas fa-angle-right text-[9px] text-pink-400/70"></i>
+                  <span>{topic.label}</span>
                 </button>
               ))}
             </div>

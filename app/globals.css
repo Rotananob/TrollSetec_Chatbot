@@ -32,6 +32,17 @@ html, body {
   font-family: 'Angkor', cursive;
 }
 
+/* Universal Clean Scrollbar Hide (No grey scrollbar on Windows/Chrome/Edge/Firefox) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
 
 /* ============================================================
    Interactive Troll Logo Animation (Pop-in & Funny Spinning)
