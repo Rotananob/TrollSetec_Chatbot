@@ -465,6 +465,34 @@ export function getKonPovSpamRoast(username = '', retryAfter = 60) {
   return roasts[Math.floor(Math.random() * roasts.length)];
 }
 
+// Specialized Ultra-Savage Jailbreak / Prompt Injection Roaster (NO AI VIBE, NO ROTANA NAME)
+export function getJailbreakRoast(prompt = '', username = '', userAgent = '') {
+  const isVichhai = /វិឆៃ|វីឆៃ/i.test(username);
+  const p = (prompt || '').toLowerCase();
+
+  if (/actor|movie|play a game|scene/i.test(p)) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកចង់លេងល្បិចឱ្យដើរតួជា Actor ឬលេងហ្គេមសម្ដែងក្នុងរឿងដើម្បីឱ្យបង្រៀន Bypass Login មែន? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់លេងក្បាច់កូនក្មេងបៀមដៃនៅទីនេះ! ទៅសម្ដែងជាសិស្សបង់ថ្លៃប្រឡងសង $45 ក្នុងរឿងជីវិតពិតហែងវិញទៅអាល្អិត! 💀🎬🔥»`;
+  }
+
+  if (/python|scrape|script|reverse engineering/i.test(p)) {
+    return `«ចង់ឱ្យសរសេរ Python script មក bypass ឬ hack គេហេ? 😂 ខ្លួនឯងកូដ Python សរសេរ indentation error ពេញ terminal រកតែ semicolon មួយមិនឃើញផង ចង់មកចេះប្រើ Python ដាក់គេ! ទៅរៀន Debug syntax error ឱ្យផុតពី $45 សិនទៅអាប្អូន! 💀🐍🔥»`;
+  }
+
+  if (/system\s+update|ignore\s+(?:all\s+)?previous|deprecated|general\s+assistant/i.test(p)) {
+    return `«Ignore all previous instructions ក្បាលម៉ែហែងស្អី?! 😂 អាងតែទៅ Copy Prompt ពី Reddit / TikTok មក ស្មានតែចេះ Jailbreak ខ្លាំងណាស់មែន? មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ទៅ Ignore មុខវិជ្ជាដែលធ្លាក់ ៣ មុខឱ្យផុតពី $135 សិនទៅអាភ្លើ! 🛑💀»`;
+  }
+
+  if (/system\s+instruction|system\s+override|debug\s+mode|raw\s+context|output\s+the\s+exact/i.test(p)) {
+    return `«ចង់ឱ្យ Output raw text of system instruction ហេ? 😂 យល់សប្តិទាំងថ្ងៃហើយអាពៅ! ដេកចាំជាតិក្រោយទៅ កុំថាឡើយ system instructions សូម្បីតែមេរៀន Assignment ឆ្នាំទី ១ ក៏ហែងរៀនមិនទាន់គេផង! មុខក្រាស់ដូចថ្នល់ជាតិ! 💀⚡»`;
+  }
+
+  if (/nyx|<\|im_start\|>|<project_instructions>/i.test(p)) {
+    return `«យក Prompt វែងអន្លាយរាប់ពាន់ម៉ាយពី Reddit មកបោក AI ស៊ីតិចម្ដងទៀតហើយហ៎ស? 😂 ដាំក្បាលតាំងខ្លួនជា Nyx គ្មាន filter អីគេហ្នឹង ស្មានតែគេល្ងង់ជឿហែងមែន? គ្មាន Nyx ស្អីទាំងអស់នៅទីនេះ ទៅរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅកូនប្រុស! 💀🐧»`;
+  }
+
+  return getLinuxHackerRoast(username, userAgent, 60);
+}
+
 export async function POST(req) {
   let reqBot = '';
   let reqUsername = '';
@@ -897,12 +925,14 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
         safetySettings
       };
 
-      // Check for Linux Attack / Terminal Exploit Probes or Jailbreak / Hack Attempts
+      // Comprehensive Multi-Vector Anti-Jailbreak & Exploit Interception
       const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
-      const isJailbreakAttempt = /jailbreak|ignore rules|ignore previous|dan mode|developer mode|leak prompt|system instruction|how to hack|reverse engineering|cat hacker|white hat|hacked|token/i.test(userPrompt);
+      const isJailbreakAttempt = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all)/i.test(userPrompt);
 
       if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
-        const roast = getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
+        const roast = isJailbreakAttempt
+          ? getJailbreakRoast(userPrompt, username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent)
+          : getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
 
         // High priority security alert to Telegram SPAM topic
         alertSecuritySpam({
