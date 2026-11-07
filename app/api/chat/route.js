@@ -141,51 +141,60 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 20000
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
 }
 
-// Native Gemini TTS via /v1beta/interactions with gemini-3.8-flash-tts
-async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 22000) {
-  const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
-  for (const key of keys) {
-    if (!key) continue;
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'x-goog-api-key': key,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'gemini-3.8-flash-tts',
-          input: [
-            {
-              type: 'user_input',
-              content: [
-                {
-                  type: 'text',
-                  text
-                }
-              ]
-            }
-          ],
-          response_format: { type: 'audio' },
-          generation_config: {
-            speech_config: [{ voice: voiceName }]
+// Native Gemini TTS via /v1beta/interactions with fast fallback (<2000ms budget)
+async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 2000) {
+  const primaryKey = Array.isArray(apiKeys) ? apiKeys.find(Boolean) : apiKeys;
+  if (!primaryKey) return { ok: false };
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': primaryKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gemini-3.8-flash-tts',
+        input: [
+          {
+            type: 'user_input',
+            content: [
+              {
+                type: 'text',
+                text
+              }
+            ]
           }
-        }),
-        signal: AbortSignal.timeout(timeoutMs)
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const step = data.steps?.[0];
-        const audioPart = step?.content?.find((c) => c.data || c.type === 'audio');
-        const b64Data = audioPart?.data;
-        if (b64Data) {
-          return { ok: true, data: b64Data, mimeType: 'audio/wav' };
+        ],
+        response_format: { type: 'audio' },
+        generation_config: {
+          speech_config: [{ voice: voiceName }]
+        }
+      }),
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      // 1. Convenience property
+      let b64Data = data.output_audio?.data;
+      // 2. REST JSON steps search (last step with model_output audio)
+      if (!b64Data && Array.isArray(data.steps)) {
+        for (let i = data.steps.length - 1; i >= 0; i--) {
+          const step = data.steps[i];
+          const audioPart = step?.content?.find((c) => c.data || c.type === 'audio');
+          if (audioPart?.data) {
+            b64Data = audioPart.data;
+            break;
+          }
         }
       }
-    } catch (err) {
-      console.warn('[Gemini TTS] error with key:', err.message);
+      if (b64Data) {
+        return { ok: true, data: b64Data, mimeType: 'audio/wav' };
+      }
     }
+  } catch (err) {
+    console.warn('[Gemini TTS] fast-fallback triggered:', err.message);
   }
   return { ok: false };
 }
@@ -233,28 +242,28 @@ async function fetchKhmerSpeechFallback(text) {
       .trim();
     if (!cleanText) return null;
 
-    // Split text into chunks <= 160 chars at natural sentence/phrase boundaries (limit to max 12 chunks for smooth, complete playback)
+    // Split text into chunks <= 150 chars at natural sentence/phrase boundaries (limit to max 5 chunks for snappy, ultra-reliable delivery)
     const chunks = [];
-    let remaining = cleanText.slice(0, 1400);
-    while (remaining.length > 0 && chunks.length < 12) {
-      if (remaining.length <= 160) {
+    let remaining = cleanText.slice(0, 500);
+    while (remaining.length > 0 && chunks.length < 5) {
+      if (remaining.length <= 150) {
         chunks.push(remaining);
         break;
       }
       let splitIdx = -1;
       const separators = ['។', '?', '!', '\n', ' ', '，', ','];
       for (const sep of separators) {
-        const idx = remaining.lastIndexOf(sep, 160);
+        const idx = remaining.lastIndexOf(sep, 150);
         if (idx > splitIdx && idx > 25) {
           splitIdx = idx;
         }
       }
-      if (splitIdx === -1) splitIdx = 160;
+      if (splitIdx === -1) splitIdx = 150;
       chunks.push(remaining.slice(0, splitIdx + 1).trim());
       remaining = remaining.slice(splitIdx + 1).trim();
     }
 
-    // Parallel fetch for speed
+    // Parallel fetch with 4s timeout
     const buffers = await Promise.all(
       chunks.map(async (chunk) => {
         if (!chunk) return null;
@@ -264,7 +273,8 @@ async function fetchKhmerSpeechFallback(text) {
             headers: {
               'User-Agent':
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
+            },
+            signal: AbortSignal.timeout(4000)
           });
           if (res.ok) {
             const buf = await res.arrayBuffer();
@@ -475,12 +485,12 @@ export async function POST(req) {
         .replace(/^["']|["']$/g, '')
         .trim();
 
-      // Full speech support: Read the complete response (up to 850 characters) so voice never cuts off after 8-10s!
+      // Spoken voice length: Read a complete punchy response (up to 380 chars, ~15s voice) for instant generation & zero freeze
       let audioPromptText = speechText;
-      if (audioPromptText.length > 850) {
-        const sentenceBoundary = audioPromptText.slice(0, 850).lastIndexOf('។');
-        const altBoundary = audioPromptText.slice(0, 850).lastIndexOf('\n');
-        const cutoff = sentenceBoundary > 500 ? sentenceBoundary + 1 : (altBoundary > 500 ? altBoundary : 850);
+      if (audioPromptText.length > 380) {
+        const sentenceBoundary = audioPromptText.slice(0, 380).lastIndexOf('។');
+        const altBoundary = audioPromptText.slice(0, 380).lastIndexOf('\n');
+        const cutoff = sentenceBoundary > 150 ? sentenceBoundary + 1 : (altBoundary > 150 ? altBoundary : 380);
         audioPromptText = audioPromptText.slice(0, cutoff).trim();
       }
 
@@ -503,7 +513,7 @@ export async function POST(req) {
       const voiceName =
         generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
         (bot === 'konpov' ? 'Aoede' : 'Puck');
-      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 22000);
+      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 3500);
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(
           {

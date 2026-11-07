@@ -157,6 +157,7 @@ export default function KonPovPage() {
   const audioCacheRef = useRef(new Map());
   const pendingAudioFetchesRef = useRef(new Map());
   const [activeVoiceIndex, setActiveVoiceIndex] = useState(null);
+  const activeAudioRequestRef = useRef(0);
 
   // PCM to WAV helper
   function pcmToWav(pcmData, sampleRate) {
@@ -184,7 +185,7 @@ export default function KonPovPage() {
     return new Blob([buffer], { type: 'audio/wav' });
   }
 
-  function createAudioBlob(b64Data, mimeType = 'audio/mpeg') {
+  function createAudioBlob(b64Data, mimeType = null) {
     try {
       if (!b64Data || typeof b64Data !== 'string') return null;
       const cleanB64 = b64Data.replace(/^data:[^;]+;base64,/, '').replace(/\s+/g, '');
@@ -194,24 +195,25 @@ export default function KonPovPage() {
       const bytes = new Uint8Array(len);
       for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
 
-      if (mimeType && (mimeType.includes('mpeg') || mimeType.includes('mp3'))) {
-        return new Blob([bytes], { type: 'audio/mpeg' });
-      }
-
-      const isWav =
-        (bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70) ||
-        (mimeType && mimeType.includes('wav'));
-
+      // 1. Detect WAV container by RIFF magic header (bytes 0-3: 'RIFF')
+      const isWav = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46;
       if (isWav) {
         return new Blob([bytes], { type: 'audio/wav' });
       }
 
+      // 2. Detect MP3 container by ID3 tag ('ID3') or MPEG frame sync (0xFF 0xEx)
       const isMp3 =
-        (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0) ||
-        (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33);
-
+        (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) ||
+        (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
       if (isMp3) {
         return new Blob([bytes], { type: 'audio/mpeg' });
+      }
+
+      if (mimeType && (mimeType.includes('mpeg') || mimeType.includes('mp3'))) {
+        return new Blob([bytes], { type: 'audio/mpeg' });
+      }
+      if (mimeType && mimeType.includes('wav')) {
+        return new Blob([bytes], { type: 'audio/wav' });
       }
 
       const safeLen = len - (len % 2);
@@ -239,7 +241,7 @@ export default function KonPovPage() {
       .replace(/[^\u1780-\u17FFa-zA-Z0-9\s.,!?៖។\n\-]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
-      .slice(0, 1000);
+      .slice(0, 450);
   }
 
   async function fetchAudio(text, gender, index) {
@@ -269,7 +271,8 @@ export default function KonPovPage() {
           bot: 'konpov',
           username: username || 'User',
           gender: gender || userGender
-        })
+        }),
+        signal: AbortSignal.timeout(9000)
       });
 
       if (!response.ok) return null;
@@ -288,12 +291,12 @@ export default function KonPovPage() {
           // KonPov voice is strictly female (Aoede)
           const voiceGenderKey = 'female';
           const hash = hashText(text) + '_' + voiceGenderKey;
-          sessionStorage.setItem('troll_audio_cache_' + hash, inlineData.data);
-          sessionStorage.setItem('troll_audio_fallback_' + hash, isFallback ? '1' : '0');
+          sessionStorage.setItem('troll_audio_v4_' + hash, inlineData.data);
+          sessionStorage.setItem('troll_audio_v4_fallback_' + hash, isFallback ? '1' : '0');
         } catch {}
       }
 
-      const blob = createAudioBlob(inlineData.data, inlineData.mimeType || 'audio/mpeg');
+      const blob = createAudioBlob(inlineData.data, inlineData.mimeType);
       return {
         blob,
         isFallback
@@ -307,12 +310,18 @@ export default function KonPovPage() {
   useEffect(() => {
     initSecurityShield();
 
-    // Clean up any legacy or corrupt audio keys from localStorage
+    // Clean up any legacy, oversized or corrupt audio keys from localStorage & sessionStorage
     try {
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const k = localStorage.key(i);
         if (k && k.startsWith('konpov_audio_')) {
           localStorage.removeItem(k);
+        }
+      }
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && (k.startsWith('troll_audio_cache_') || k.startsWith('troll_audio_fallback_'))) {
+          sessionStorage.removeItem(k);
         }
       }
     } catch {}
@@ -980,10 +989,10 @@ export default function KonPovPage() {
     // 2. Instant sessionStorage persistent cache (survives re-renders, 0ms latency on replay)
     if (typeof window !== 'undefined') {
       try {
-        const storedB64 = sessionStorage.getItem('troll_audio_cache_' + hash);
-        const storedFallback = sessionStorage.getItem('troll_audio_fallback_' + hash);
+        const storedB64 = sessionStorage.getItem('troll_audio_v4_' + hash);
+        const storedFallback = sessionStorage.getItem('troll_audio_v4_fallback_' + hash);
         if (storedB64) {
-          const blob = createAudioBlob(storedB64, 'audio/wav');
+          const blob = createAudioBlob(storedB64);
           if (blob) {
             const url = URL.createObjectURL(blob);
             audioCacheRef.current.set(hash, url);
@@ -1094,6 +1103,14 @@ export default function KonPovPage() {
   const triggerAudio = async (rawAudioText, index, autoPlay = false) => {
     if (!rawAudioText) return;
     const text = String(rawAudioText);
+
+    // Cancel loading if user clicks an item that is currently loading
+    if (audioStatuses[index] === 'loading') {
+      setExclusiveVoiceState(index, 'ready');
+      setActiveVoiceIndex(null);
+      return;
+    }
+
     if (!audioPlayerRef.current && typeof window !== 'undefined') {
       audioPlayerRef.current = new Audio();
     }
@@ -1158,11 +1175,18 @@ export default function KonPovPage() {
       return;
     }
 
+    const reqId = ++activeAudioRequestRef.current;
+
     if (!audioCacheRef.current.has(hash)) {
       setExclusiveVoiceState(index, 'loading');
+      // Anti-hang watchdog: guarantee loading state auto-resets after 7s
+      setTimeout(() => {
+        setAudioStatuses((prev) => (prev[index] === 'loading' ? { ...prev, [index]: 'ready' } : prev));
+      }, 7000);
     }
 
     const audioUrl = await loadAudioUrl(text, userGender, index);
+    if (activeAudioRequestRef.current !== reqId) return;
 
     if (audioUrl && player) {
       player.src = audioUrl;
@@ -2867,7 +2891,6 @@ export default function KonPovPage() {
                           <button
                             type="button"
                             onClick={() => triggerAudio(item.text, idx)}
-                            disabled={isThisItemLoading}
                             className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black border flex items-center gap-2 transition cursor-pointer select-none active:scale-95 ${
                               isFallbackVoice
                                 ? isDark
