@@ -1219,7 +1219,7 @@ export default function KonBongPage() {
 
           const roastText =
             errData?.message ||
-            `«អញជា AI កូនពៅមកទប់ស្កាត់អាមនុស្សអត់ខួរដើរ spam អត់ប្រយោជន៍ដូច ${userNameStr || 'ឯង'}! គិតថា server បង Rotana ទុកឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយចាំ ${errData?.retryAfter || 60} វិនាទីទៀតទៅ! 💀🔥»`;
+            `«យីអាស្វា! មកអង្គុយ spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${errData?.retryAfter || 60} វិនាទីសិនទៅ! 💀🔥»`;
 
           setSpamInfo({
             ip: errData?.ip || 'Client IP',

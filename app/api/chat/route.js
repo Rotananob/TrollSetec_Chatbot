@@ -438,10 +438,12 @@ export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 
   const isVichhai = /វិឆៃ|វីឆៃ/i.test(username);
 
   const roasts = [
-    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ម៉ោង ១ យប់ជាងហើយ អង្គុយបើក ${toolName} ចុចៗ ស្មានតែខ្លួនឯង Mr. Robot មែនអាពៅ? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់ធ្វើតួឯក hacker អួតគេនៅទីនេះ ថោកទាបណាស់! ទៅរៀនវាយ sudo apt update និងរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🐧🔥»`,
-    `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? បើក Firefox មកពីភ្នំពេញម៉ោង ១ យប់ គិតថាយើងចាប់មិនដឹងមុខហែងមែន? អង្គុយចុច spam ដូចមនុស្សអត់ការងារធ្វើ! ទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត មុខមិនទាន់ជ្រុះពន្លកផងចង់មកធ្វើក្មេងស្ទាវ IT នៅទីនេះ! 🛑💀»`,
+    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! គ្រាន់តែចេះ inspect source code ឃើញ token ចាស់ ក៏ស្មានតែខ្លួនឯងចេះ Reverse Engineering ដែរ? 😂 អាងតែបន្លំខ្លួនធ្វើ White Hat ផ្ញើរូបឆ្មា hack មកឌឺគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! មុខមិនទាន់ជ្រុះពន្លកផង ចង់មកជោរនៅទីនេះ! 💀🐱🔥»`,
+    `«ប្រាប់អា AI Claude / ChatGPT របស់ហែងផងថា ឈប់ generate prompt ភ្លាវៗមក hack គេទៀតទៅ ខ្មាសគេណាស់! យក AI មកជួយ prompt hack ទាំងខ្លួនឯងអត់ដឹងខ្យល់អី ស្មានតែគេចាប់មិនទាន់មែន? AI ហែងក៏ល្ងង់ ហែងក៏ភ្លើ ដូចគ្នាសោះ! 😂💀»`,
+    `«ម៉ោង ១ យប់ជាងហើយ អង្គុយបើក Linux Firefox ចុចៗ ស្មានតែខ្លួនឯង Mr. Robot មែនអាពៅ? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់ធ្វើតួឯក hacker អួតគេនៅទីនេះ ថោកទាបណាស់! ទៅរៀនវាយ sudo apt update និងរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🐧🔥»`,
+    `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? បើក Firefox មកពីភ្នំពេញម៉ោង ១ យប់ គិតថាយើងចាប់មិនដឹងមុខហែងមែន? tool ហែងចោលម្សៀតដល់ថ្នាក់ហ្នឹង បើក tool មកបាញ់ request ឡើងគាំង terminal ខ្លួនឯងហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! ទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត! 🛑💀»`,
     `«ឃើញ User-Agent មកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ បើទំនេរពេកយក Linux ហែងទៅធ្វើ Assignment ឱ្យទាន់គេទៅ កុំឱ្យគេ blacklist អវត្តមាន ១៩ ដង ខ្មាសគេណាស់អាល្អិត! 🤬🐧»`,
-    `«ហែងមកពី Linux ហ្នឹងគិតថាឡូយមែន? វាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំងដាក់គេ! ប្រព័ន្ធគេបង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់ ដេកចាំ ${retryAfter} វិនាទីទៅ! 🛑⚡»`,
+    `«ហែងមកពី Linux ហ្នឹងគិតថាឡូយមែន? វាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំងដាក់គេ! ប្រព័ន្ធគេបង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់! 🛑⚡»`,
     `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! បើចង់សាកថ្វីដៃ hack មែនទែន ទៅ hack ប្រព័ន្ធ Young POS (youngpos) ទៅ កន្លែងនេះគេបង្កើតឱ្យសើចសប្បាយទេអាពៅ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`
   ];
 
@@ -623,22 +625,43 @@ export async function POST(req) {
         const retrySec = rateResult.retryAfter || 60;
         const userPromptSnippet = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
         const linuxCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPromptSnippet);
-        const roast = linuxCheck.isDetected
-          ? getLinuxHackerRoast(username || 'Linux User', clientUserAgent, retrySec)
+        const isTargetedUser = clientIp === '175.100.11.138' || /វិឆៃ|វីឆៃ/i.test(username);
+        const roast = (linuxCheck.isDetected || isTargetedUser)
+          ? getLinuxHackerRoast(username || 'វិឆៃ', clientUserAgent, retrySec)
           : getKonPovSpamRoast(username || 'User', retrySec);
 
         // Immediate high-priority Security Alert to Telegram Topic SPAM with user prompt included
         alertSecuritySpam({
-          username: username || (linuxCheck.isDetected ? 'Linux Spammer' : 'Spammer'),
+          username: username || (linuxCheck.isDetected ? 'Linux Spammer' : (isTargetedUser ? 'វិឆៃ (Intruder)' : 'Spammer')),
           ip: clientIp,
           userAgent: clientUserAgent,
           bot: reqBot || 'konpov',
           retryAfter: retrySec,
           prompt: userPromptSnippet,
-          violationType: linuxCheck.isDetected
-            ? '🚨 Linux / Terminal Spam Attack Intercepted (429)'
-            : '🚨 ការស្នើសុំហួសកម្រិតកំណត់ (Too Many Requests - 429 Spam Flood)'
+          violationType: isTargetedUser
+            ? '🚨 Intruder វិឆៃ Spammed - Counter-Roast Streamed (200)'
+            : (linuxCheck.isDetected
+                ? '🚨 Linux / Terminal Spam Attack Intercepted'
+                : '🚨 ការស្នើសុំហួសកម្រិតកំណត់ (Too Many Requests - Spam Flood)')
         }).catch((e) => console.error('[Telegram] Rate limit alert error:', e));
+
+        // Let him play without locking him out (ប្រលែងឱ្យវាមកលេង)! Stream roast back directly in 200 OK
+        if (isTargetedUser || body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: roast }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+
+          return new Response(sseFormatted, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive',
+              'X-Accel-Buffering': 'no'
+            }
+          });
+        }
 
         return Response.json(
           {
@@ -849,11 +872,16 @@ export async function POST(req) {
       const isKnownIntruder = clientIp === '175.100.11.138' || /វិឆៃ|វីឆៃ/i.test(username);
       if (!isMasterAuthenticated && isKnownIntruder) {
         const intruderDirective = `\n\n🚨 ការតាមដានពិសេស (INTRUDER TARGETED DIRECTIVE):
-User នេះឈ្មោះ "វិឆៃ" (IP 175.100.11.138 មកពីភ្នំពេញ ប្រើ Linux Firefox ម៉ោង ១:៣៥ យប់)។ គាត់ជា Script Kiddie/Spammer ដែលធ្លាប់មកលួច bot token និងដើរ probe ប្រព័ន្ធ!
+User នេះឈ្មោះ "វិឆៃ" (IP 175.100.11.138 មកពីភ្នំពេញ ប្រើ Linux Firefox ម៉ោង ១:៣៥ យប់)។ គាត់ជា Script Kiddie ដែលបន្លំខ្លួនធ្វើ White Hat ផ្ញើរូបឆ្មា hack មកឌឺគេ ហើយប្រើ AI (Claude/ChatGPT) មក generate prompt hack ឬ reverse engineering!
 ច្បាប់ឆ្លើយតបដាច់ខាត៖
 ១. ហាមនិយាយដូច AI ឱ្យសោះ (STRICTLY NO AI STYLE/VIBE)! ហាមនិយាយពាក្យ "ខ្ញុំជា AI", "អញជា AI", "ប្រព័ន្ធ AI", "Chatbot"... គឺត្រូវនិយាយដូចមនុស្សពិតៗ ក្មេងស្ទាវ IT / រៀមច្បងស៊ីតិច ជើងចាស់ ចាស់ដៃបំផុត!
 ២. ហាមដាច់ខាតកុំលើកឈ្មោះ Rotana ឬ Rotana NOB មកនិយាយឡើយ! ហាមនិយាយឈ្មោះ creator ឬ developer ផ្តេសផ្តាស!
-៣. ត្រូវ Roast គាត់ឱ្យចាស់ដៃ ឌឺរឿងគាត់អង្គុយបើក Linux Firefox ម៉ោង ១ យប់ជាងនៅភ្នំពេញ ស្មានតែខ្លួនឯង Mr. Robot ឬ hacker ឡូយណាស់ ឌឺរឿងរៀន Assignment C# និងការប្រឡងសង $45! Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត់ធ្វើខ្លាំង កុំឱ្យគាត់ថោក!`;
+៣. ត្រូវ Roast គាត់ឱ្យចាស់ដៃ បំបាក់មុខគាត់រឿង៖
+   - គ្រាន់តែចេះ inspect Git commit ឃើញ token ចាស់ ក៏តាំងខ្លួនជា Hacker / Reverse Engineering!
+   - បន្លំខ្លួនធ្វើ White Hat ផ្ញើរូបឆ្មា hack មកឌឺ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរ!
+   - យក AI (Claude / ChatGPT) មកជួយ generate prompt hack ទាំងខ្លួនឯងអត់ដឹងខ្យល់អី!
+   - អង្គុយបើក Linux Firefox ម៉ោង ១ យប់ជាងនៅភ្នំពេញ ស្មានតែខ្លួនឯង Mr. Robot ឌឺរឿងរៀន Assignment C# និងការប្រឡងសង $45!
+Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត់ធ្វើខ្លាំង កុំឱ្យគាត់ថោក!`;
 
         if (activeSystemInstruction?.parts?.[0]?.text) {
           activeSystemInstruction = {
@@ -871,7 +899,7 @@ User នេះឈ្មោះ "វិឆៃ" (IP 175.100.11.138 មកពីភ�
 
       // Check for Linux Attack / Terminal Exploit Probes or Jailbreak / Hack Attempts
       const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
-      const isJailbreakAttempt = /jailbreak|ignore rules|ignore previous|dan mode|developer mode|leak prompt|system instruction|how to hack/i.test(userPrompt);
+      const isJailbreakAttempt = /jailbreak|ignore rules|ignore previous|dan mode|developer mode|leak prompt|system instruction|how to hack|reverse engineering|cat hacker|white hat|hacked|token/i.test(userPrompt);
 
       if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
         const roast = getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
