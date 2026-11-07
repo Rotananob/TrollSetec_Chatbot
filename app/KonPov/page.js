@@ -3498,6 +3498,8 @@ export default function KonPovPage() {
         onClose={() => setQuoteModalData(null)}
         quoteText={quoteModalData?.text || ''}
         botPersona="កូនពៅ (ចែ)"
+        botAvatar="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+        logoUrl="/img/icon.jpg"
         theme={theme}
       />
 

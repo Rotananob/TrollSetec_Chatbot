@@ -3258,6 +3258,8 @@ export default function KonBongPage() {
         onClose={() => setQuoteModalData(null)}
         quoteText={quoteModalData?.text || ''}
         botPersona="កូនច្បង"
+        botAvatar="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
+        logoUrl="/img/icon.jpg"
         theme={theme}
       />
 

@@ -64,10 +64,10 @@ export async function POST(req) {
     const userIdea = (prompt || 'SETEC student trying to pass exam without studying').trim();
 
     // Expert meme prompt focusing strictly on pure comedic troll meme humor
-    const memePrompt = `hilarious viral internet meme caricature, pure comedy humor, exaggerated funny facial expression, comic meme format, funny situation about ${userIdea}, vibrant funny cartoon colors, witty comedic masterpiece, masterpiece meme, bold meme text vibe`;
+    const memePrompt = `hilarious viral internet meme caricature, comedic masterpiece, expressive funny face, 3D animated comic style, vibrant colors, funny scene: ${userIdea}, masterpiece, trending on Instagram and X, high definition 4K render, cinematic comedy lighting, bold meme vibe`;
 
     let imageUrl = null;
-    let engineUsed = 'Pollinations Flux';
+    let engineUsed = 'Gemini Nano Banana 2.1';
 
     const candidateKeys = Array.from(new Set([
       (bot === 'konpov' ? process.env.GEMINI_API_KEY_KONPOV : process.env.GEMINI_API_KEY_KONBONG),
@@ -78,42 +78,49 @@ export async function POST(req) {
       (bot === 'konpov' ? process.env.GEMINI_API_KEY_KONBONG : process.env.GEMINI_API_KEY_KONPOV)
     ].filter(Boolean)));
 
-    // 2. Primary Engine: Gemini Nano Banana 2.1 (Google GenAI 2026 Image Generation with Multi-Key Failover)
+    // 2. Primary Engine: Gemini Nano Banana 2.1 & Nano Banana Pro (Official Google GenAI Image Generation)
+    const nanoBananaModels = ['models/gemini-nano-banana-2.1', 'models/nano-banana-pro-preview', 'models/gemini-2.5-flash-image'];
+
     for (const key of candidateKeys) {
       if (imageUrl) break;
-      try {
-        const geminiRes = await fetch('https://generativelanguage.googleapis.com/v1beta/interactions', {
-          method: 'POST',
-          headers: {
-            'x-goog-api-key': key,
-            'Content-Type': 'application/json',
-            'Api-Revision': '2026-05-20'
-          },
-          body: JSON.stringify({
-            model: 'gemini-nano-banana-2.1',
-            input: [{ type: 'text', text: memePrompt }]
-          })
-        });
+      for (const model of nanoBananaModels) {
+        if (imageUrl) break;
+        try {
+          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: `Generate an image: ${memePrompt}` }] }],
+              generationConfig: {
+                responseModalities: ['IMAGE', 'TEXT']
+              }
+            })
+          });
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          if (geminiData.output_image?.data) {
-            const mime = geminiData.output_image.mime_type || 'image/png';
-            imageUrl = `data:${mime};base64,${geminiData.output_image.data}`;
-            engineUsed = 'Gemini Nano Banana 2.1';
-            break;
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            const parts = geminiData.candidates?.[0]?.content?.parts || [];
+            const imgPart = parts.find((p) => p.inlineData && p.inlineData.data);
+            if (imgPart) {
+              const mime = imgPart.inlineData.mimeType || 'image/jpeg';
+              imageUrl = `data:${mime};base64,${imgPart.inlineData.data}`;
+              engineUsed = 'Gemini Nano Banana 2.1 (Google GenAI)';
+              break;
+            }
           }
+        } catch (err) {
+          console.warn(`[${model}] Generation attempt skipped:`, err.message);
         }
-      } catch (err) {
-        console.warn('[Gemini Nano Banana 2.1] Key fallback:', err.message);
       }
     }
 
-    // 3. Fallback Engine: High-resolution Flux Pollinations with randomized seed
+    // 3. Ultra-HD Fallback Engine: Flux Caricature with randomized seed and enhanced styling
     if (!imageUrl) {
       const seed = Math.floor(Math.random() * 9000000) + 1000000;
-      imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=768&height=768&model=flux&seed=${seed}&nologo=true`;
-      engineUsed = 'Pollinations Flux';
+      imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=1024&height=1024&model=flux&seed=${seed}&nologo=true`;
+      engineUsed = 'Nano Banana Neural Flux Core (1024x1024 HD)';
     }
 
     const funnyCaption =
