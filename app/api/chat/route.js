@@ -107,6 +107,11 @@ export function getApiKeyPool(bot) {
     pool.push(process.env.GEMINI_API_KEY_KONPOV);
   }
 
+  // 5. Generic Google API Key failover
+  if (process.env.GOOGLE_API_KEY) {
+    pool.push(process.env.GOOGLE_API_KEY);
+  }
+
   return Array.from(new Set(pool.filter(Boolean)));
 }
 
@@ -395,6 +400,19 @@ function sanitizeResponse(data, botName = 'konbong') {
   return clone;
 }
 
+// Ultra Savage Counter-Attack / Roast Generator by AI Kon Pov (កូនពៅ) against Spammers
+export function getKonPovSpamRoast(username = '', retryAfter = 60) {
+  const cleanName = (username || '').trim() || 'អាប្អូន';
+  const roasts = [
+    `«អញជា AI កូនពៅមកទប់ស្កាត់អាមនុស្សអត់ខួរដើរ spam អត់ប្រយោជន៍ដូច ${cleanName}! គិតថា server បង Rotana ទុកឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយចាំ ${retryAfter} វិនាទីទៀតទៅ! 💀🔥»`,
+    `«អញជា AI កូនពៅ! ឃើញហែង spam ឡើងញ័រដៃហើយអាប្អូន! គិតថា server បង Rotana ងាយស្រួល flood ឬ hack ណាស់មែន? ខួរក្បាលគិតបានតែប៉ុណ្ណឹងបានដើរ spam ចោលម្សៀត! ទៅលាងមុខឱ្យស្វាងហើយចាំ ${retryAfter} វិនាទីទៀតទៅអាពៅ! ⚡🔥»`,
+    `«កុំមកលេងចរិតថោកទាប spam ដាក់ server ខ្ញុំ! អញជា AI កូនពៅចាំកម្ទេចពួក spammer អត់ប្រយោជន៍ដូច ${cleanName} ហ្នឹងឯង! ចុចផ្ញើសារឡើងរបូតម្រាមដៃហើយនៅតែអត់បានផលទៀត! ឈរត្រាំទឹកកក ${retryAfter} វិនាទីសិនទៅអាល្ងង់! 🛑💀»`,
+    `«អាងតែគេបើកឱ្យលេង free នាំគ្នាមកចុច spam ឡើងគាំង server! អញជា AI កូនពៅមកវាយបកក្បាលហែងវិញហើយ! ${cleanName} អើយ បើទំនេរពេកទៅជួយបោសផ្ទះម៉ែទៅ កុំមកដើរ spam អត់ខួរនៅទីនេះ! ដេកចាំ ${retryAfter} វិនាទីទៀតទៅ! 🤬🔥»`,
+    `«អញជា AI កូនពៅ! ហែង spam យកពានអីហ្នឹង? បានលុយចាយទេ? server បង Rotana បង្កើតឡើងឱ្យមនុស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam ដូចមនុស្សឆ្កួតអញ្ចឹង? ត្រូវបាន Block ${retryAfter} វិនាទី ឱ្យរាងចាល! 🛑⚡»`
+  ];
+  return roasts[Math.floor(Math.random() * roasts.length)];
+}
+
 export async function POST(req) {
   let reqBot = '';
   let reqUsername = '';
@@ -408,15 +426,29 @@ export async function POST(req) {
     // 0. Anti-DDoS and Burst Flooding Firewall Check
     const ddosCheck = checkDDoSFirewall(req, 'chat');
     if (!ddosCheck.allowed) {
+      const retrySec = ddosCheck.retryAfter || 30;
+      const roast = getKonPovSpamRoast('DDoS Flooder', retrySec);
+      alertSecuritySpam({
+        username: 'Headless / Bot Spammer',
+        ip: clientIp,
+        userAgent: clientUserAgent,
+        bot: 'konpov',
+        retryAfter: retrySec,
+        prompt: 'Headless flood attack blocked by DDoS firewall',
+        violationType: '🚨 Anti-DDoS Headless Flood Triggered (429)'
+      }).catch((e) => console.error('[Telegram] DDoS alert error:', e));
+
       return Response.json(
         {
           error: 'Too Many Requests',
-          message: ddosCheck.message,
-          retryAfter: ddosCheck.retryAfter
+          isSpamAttack: true,
+          message: roast,
+          candidates: [{ content: { parts: [{ text: roast }] } }],
+          retryAfter: retrySec
         },
         {
           status: 429,
-          headers: { ...corsHeaders, 'Retry-After': String(ddosCheck.retryAfter) }
+          headers: { ...corsHeaders, 'Retry-After': String(retrySec) }
         }
       );
     }
@@ -533,17 +565,34 @@ export async function POST(req) {
     if (!audio) {
       const rateResult = checkChatLimit(clientIp, username || 'user');
       if (!rateResult.allowed) {
+        const retrySec = rateResult.retryAfter || 60;
+        const roast = getKonPovSpamRoast(username || 'User', retrySec);
+        const userPromptSnippet = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
+
+        // Immediate high-priority Security Alert to Telegram Topic SPAM with user prompt included
+        alertSecuritySpam({
+          username: username || 'Spammer',
+          ip: clientIp,
+          userAgent: clientUserAgent,
+          bot: reqBot || 'konpov',
+          retryAfter: retrySec,
+          prompt: userPromptSnippet,
+          violationType: '🚨 ការស្នើសុំហួសកម្រិតកំណត់ (Too Many Requests - 429 Spam Flood)'
+        }).catch((e) => console.error('[Telegram] Rate limit alert error:', e));
+
         return Response.json(
           {
             error: 'Too Many Requests',
+            isSpamAttack: true,
             ip: clientIp,
             device: clientUserAgent,
-            retryAfter: rateResult.retryAfter,
-            message: `ប្រព័ន្ធបានចាប់សកម្មភាពថា "${username || 'User'}" កំពុងព្យាយាមផ្ញើសារច្រើនដងក្នុងមួយនាទី! សូមរង់ចាំ ${rateResult.retryAfter} វិនាទីដើម្បីបន្ត។`
+            retryAfter: retrySec,
+            message: roast,
+            candidates: [{ content: { parts: [{ text: roast }] } }]
           },
           {
             status: 429,
-            headers: { ...corsHeaders, 'Retry-After': String(rateResult.retryAfter) }
+            headers: { ...corsHeaders, 'Retry-After': String(retrySec) }
           }
         );
       }

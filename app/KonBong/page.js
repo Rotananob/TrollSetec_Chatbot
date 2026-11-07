@@ -1207,7 +1207,7 @@ export default function KonBongPage() {
         });
 
         if (response.status === 429) {
-          const errData = await response.json();
+          const errData = await response.json().catch(() => ({}));
           if (errData?.isSessionLocked && errData?.cooldownUntil) {
             setServerCooldownLock(errData.cooldownUntil);
             setSessionState(getLiveSessionState());
@@ -1216,15 +1216,29 @@ export default function KonBongPage() {
             saveCurrentSessionMessages(cleaned);
             return;
           }
+
+          const roastText =
+            errData?.message ||
+            `«អញជា AI កូនពៅមកទប់ស្កាត់អាមនុស្សអត់ខួរដើរ spam អត់ប្រយោជន៍ដូច ${userNameStr || 'ឯង'}! គិតថា server បង Rotana ទុកឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយចាំ ${errData?.retryAfter || 60} វិនាទីទៀតទៅ! 💀🔥»`;
+
           setSpamInfo({
-            ip: errData.ip || '172.20.10.2 / Client IP',
-            device: errData.device || (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'),
-            retryAfter: errData.retryAfter || 60
+            ip: errData?.ip || 'Client IP',
+            device: errData?.device || (typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'),
+            retryAfter: errData?.retryAfter || 60,
+            message: roastText
           });
           setSpamModalOpen(true);
           setIsLoading(false);
-          const cleaned = updatedMessages.slice(0, updatedMessages.length - 1);
-          saveCurrentSessionMessages(cleaned);
+
+          // Append server roast counter-attack message directly into chat stream
+          const roastMsg = {
+            role: 'model',
+            parts: [{ text: roastText }],
+            timestamp: Date.now(),
+            isSpamRoast: true
+          };
+          const withRoast = [...updatedMessages.slice(0, updatedMessages.length - 1), roastMsg];
+          saveCurrentSessionMessages(withRoast);
           return;
         }
 
@@ -3388,6 +3402,7 @@ export default function KonBongPage() {
         ip={spamInfo.ip}
         device={spamInfo.device}
         retryAfter={spamInfo.retryAfter}
+        message={spamInfo.message}
       />
 
       {/* Error Reporting Modal to Rotana NOB */}
