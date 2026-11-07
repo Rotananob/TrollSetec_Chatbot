@@ -552,13 +552,13 @@ export async function POST(req) {
         bot,
         ip: clientIp,
         userAgent: clientUserAgent,
-        errorMessage: result.error || 'Audio generation failed',
+        errorMessage: ttsResult?.error || 'Audio generation failed',
         details: { textLength: speechText.length }
       }).catch((e) => console.error('[Telegram] Audio error alert:', e));
 
       return Response.json(
-        sanitizeResponse(result.data) || { error: result.error || 'Audio generation failed' },
-        { status: result.status || 500, headers: corsHeaders }
+        { error: ttsResult?.error || 'Audio generation failed' },
+        { status: 500, headers: corsHeaders }
       );
     } else {
       const textContents = contents || [{ parts: [{ text: prompt }] }];
