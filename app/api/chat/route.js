@@ -304,7 +304,9 @@ function sanitizeResponse(data) {
     delete clone.usageMetadata.promptTokensDetails;
   }
   if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
-    clone.candidates[0].content.parts[0].text = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
+    let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
+    sanitizedText = sanitizedText.replace(/180703/g, '******');
+    clone.candidates[0].content.parts[0].text = sanitizedText;
   }
   return clone;
 }
@@ -566,7 +568,21 @@ export async function POST(req) {
             isError: false
           }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-          return new Response(streamResult.stream, {
+          // Zero-leak redaction stream transformer: strips any sensitive passcode patterns before reaching the client
+          const transformStream = new TransformStream({
+            transform(chunk, controller) {
+              try {
+                const text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
+                const cleaned = text.replace(/180703/g, '******');
+                controller.enqueue(new TextEncoder().encode(cleaned));
+              } catch {
+                controller.enqueue(chunk);
+              }
+            }
+          });
+          const safeStream = streamResult.stream.pipeThrough(transformStream);
+
+          return new Response(safeStream, {
             status: 200,
             headers: {
               ...corsHeaders,

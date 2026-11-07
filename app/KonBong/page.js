@@ -593,7 +593,7 @@ export default function KonBongPage() {
   // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
-    const content = limitEmojis(rawContent, 7);
+    const content = limitEmojis(rawContent.replace(/180703/g, '******'), 7);
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
@@ -1220,7 +1220,7 @@ export default function KonBongPage() {
         }
       }
 
-      botText = limitEmojis(botText, 7);
+      botText = limitEmojis(botText.replace(/180703/g, '******'), 7);
       const botMsgIndex = updatedMessages.length - 1;
       const finalMessages = [...updatedMessages];
       finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse };
@@ -1479,8 +1479,9 @@ export default function KonBongPage() {
     }
   };
 
-  const triggerAudio = async (text, index, autoPlay = false) => {
-    if (!text) return;
+  const triggerAudio = async (rawAudioText, index, autoPlay = false) => {
+    if (!rawAudioText) return;
+    const text = String(rawAudioText).replace(/180703/g, '');
     if (!audioPlayerRef.current && typeof window !== 'undefined') {
       audioPlayerRef.current = new Audio();
     }
