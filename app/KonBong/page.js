@@ -1868,7 +1868,7 @@ export default function KonBongPage() {
                 <button
                   type="button"
                   onClick={() => setShowPersonaModal(true)}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black tracking-tight transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
+                  className={`hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black tracking-tight transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
                     isDark
                       ? 'bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-emerald-500/20 border-cyan-400/40 text-cyan-300 hover:border-cyan-400/70 hover:shadow-cyan-500/20'
                       : 'bg-gradient-to-r from-cyan-50 to-teal-50 border-cyan-300 text-cyan-700 hover:bg-cyan-100'
@@ -1881,39 +1881,55 @@ export default function KonBongPage() {
               )}
             </div>
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse"></span>
-              <span className="text-emerald-500 font-semibold text-[9.5px]">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse shrink-0"></span>
+              <span className="text-emerald-500 font-semibold text-[9.5px] shrink-0">
                 {isRotanaAdmin ? 'Rotana Verified Agent (1-1)' : 'Online'}
               </span>
+              {!isRotanaAdmin && (
+                <>
+                  <span className="text-slate-400/60 text-[8px] md:hidden">•</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPersonaModal(true)}
+                    className="md:hidden inline-flex items-center gap-0.5 text-[9px] font-bold text-cyan-400 hover:text-cyan-300 transition shrink-0 active:scale-95"
+                    title="ចុចមើលព័ត៌មានកូនច្បង"
+                  >
+                    <i className="fas fa-crown text-[7.5px] text-amber-400"></i>
+                    <span>កូនច្បង</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         {/* Right Side: Clean, Modern & Emoji-Free Action Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 relative">
           {/* 30-Minute Live Session Countdown Pill Badge */}
-          <div
-            title="កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)"
-            className={`px-2 sm:px-2.5 py-1 rounded-full text-[10.5px] font-black border flex items-center gap-1.5 transition select-none ${
-              sessionState.remainingSessionSec <= 120
-                ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
-                : sessionState.remainingSessionSec <= 300
-                ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                : isDark
-                ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
-                : 'bg-cyan-50 text-cyan-700 border-cyan-200'
-            }`}
-          >
-            <i className={`fas fa-stopwatch ${sessionState.remainingSessionSec <= 120 ? 'text-rose-400 animate-spin' : 'text-cyan-400'}`}></i>
-            <span className="hidden xs:inline">ម៉ោងលេង: </span>
-            <span>{formatCountdown(sessionState.remainingSessionSec)}</span>
-          </div>
+          {!isCreatorUser && (
+            <div
+              title="កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)"
+              className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9.5px] sm:text-[10.5px] font-black border flex items-center gap-1 sm:gap-1.5 transition select-none shrink-0 ${
+                sessionState.remainingSessionSec <= 120
+                  ? 'bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse'
+                  : sessionState.remainingSessionSec <= 300
+                  ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                  : isDark
+                  ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                  : 'bg-cyan-50 text-cyan-700 border-cyan-200'
+              }`}
+            >
+              <i className={`fas fa-stopwatch text-[8.5px] sm:text-[10px] ${sessionState.remainingSessionSec <= 120 ? 'text-rose-400 animate-spin' : 'text-cyan-400'}`}></i>
+              <span className="hidden lg:inline">ម៉ោងលេង: </span>
+              <span className="font-mono font-bold tracking-tight">{formatCountdown(sessionState.remainingSessionSec)}</span>
+            </div>
+          )}
 
           {/* AI Mode Selector: Interactive Animated Pill with clear dropdown cue */}
           <button
             type="button"
             onClick={() => setShowModeMenu(!showModeMenu)}
-            className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
               savageLevel === 'savage'
                 ? 'bg-rose-500/15 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 ring-1 ring-rose-500/20'
                 : savageLevel === 'medium'
@@ -1922,13 +1938,14 @@ export default function KonBongPage() {
             }`}
             title="ចុចដើម្បីជ្រើសរើសកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
           >
-            <i className={`fas fa-bolt text-[10px] ${savageLevel === 'savage' ? 'animate-pulse text-rose-500 dark:text-rose-400' : ''}`}></i>
+            <i className={`fas fa-bolt text-[9px] sm:text-[10px] ${savageLevel === 'savage' ? 'animate-pulse text-rose-500 dark:text-rose-400' : ''}`}></i>
             <span className="font-extrabold">
-              ម៉ូដ: {savageLevel === 'savage' ? 'ឌឺបាក់ក' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
+              <span className="hidden sm:inline">ម៉ូដ: </span>
+              {savageLevel === 'savage' ? 'ឌឺបាក់ក' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
             </span>
-            <span className="w-3.5 h-3.5 rounded-full bg-rose-500/20 dark:bg-rose-400/20 flex items-center justify-center">
+            <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-rose-500/20 dark:bg-rose-400/20 flex items-center justify-center">
               <i
-                className={`fas fa-chevron-down text-[8px] transition-transform duration-200 ${
+                className={`fas fa-chevron-down text-[7px] sm:text-[8px] transition-transform duration-200 ${
                   showModeMenu ? 'rotate-180' : ''
                 }`}
               ></i>
