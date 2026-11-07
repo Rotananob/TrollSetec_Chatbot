@@ -524,7 +524,9 @@ export async function POST(req) {
     // 2. Select API Key Pool according to the Bot (KonPov vs KonBong + Reserves)
     const apiKeys = getApiKeyPool(bot);
 
-    if (apiKeys.length === 0) {
+    // Text generation strictly requires Gemini API keys.
+    // Audio synthesis does not require Gemini keys as it automatically falls back to the native Khmer TTS engine.
+    if (apiKeys.length === 0 && !audio) {
       alertSystemError({
         type: 'Missing API Key Config',
         username,
@@ -595,8 +597,11 @@ export async function POST(req) {
         audioPromptText = comicIntro + audioPromptText;
       }
 
-      // 1. Primary AI Voice: Call Gemini Native TTS (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
-      const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 1500);
+      // 1. Primary AI Voice: Call Gemini Native TTS if keys available (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
+      let ttsResult = { ok: false };
+      if (apiKeys.length > 0) {
+        ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 1500);
+      }
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(
           {

@@ -178,6 +178,7 @@ export default function KonBongPage() {
       if (!cleanB64) return null;
       const binStr = atob(cleanB64);
       const len = binStr.length;
+      if (len === 0) return null;
       const bytes = new Uint8Array(len);
       for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
 
@@ -187,14 +188,7 @@ export default function KonBongPage() {
         return new Blob([bytes], { type: 'audio/wav' });
       }
 
-      // 2. Detect MP3 container by ID3 tag ('ID3') or MPEG frame sync (0xFF 0xEx)
-      const isMp3 =
-        (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) ||
-        (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
-      if (isMp3) {
-        return new Blob([bytes], { type: 'audio/mpeg' });
-      }
-
+      // 2. Explicit mimeType checks
       if (mimeType && (mimeType.includes('mpeg') || mimeType.includes('mp3'))) {
         return new Blob([bytes], { type: 'audio/mpeg' });
       }
@@ -202,10 +196,16 @@ export default function KonBongPage() {
         return new Blob([bytes], { type: 'audio/wav' });
       }
 
-      const safeLen = len - (len % 2);
-      const pcmBytes = bytes.slice(0, safeLen);
-      const pcmData = new Int16Array(pcmBytes.buffer, pcmBytes.byteOffset, safeLen / 2);
-      return pcmToWav(pcmData, 24000);
+      // 3. Detect MP3 container by ID3 tag ('ID3') or MPEG frame sync (0xFF 0xEx)
+      const isMp3 =
+        (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) ||
+        (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0);
+      if (isMp3) {
+        return new Blob([bytes], { type: 'audio/mpeg' });
+      }
+
+      // 4. Fallback: Default to audio/mpeg container for universal browser playback
+      return new Blob([bytes], { type: 'audio/mpeg' });
     } catch (err) {
       console.warn('[Audio] createAudioBlob error:', err);
       return null;
@@ -284,6 +284,7 @@ export default function KonBongPage() {
         try {
           const hash = hashText(text) + '_' + voiceTag;
           sessionStorage.setItem('troll_audio_v5_' + hash, inlineData.data);
+          sessionStorage.setItem('troll_audio_v5_mime_' + hash, inlineData.mimeType || (isFallback ? 'audio/mpeg' : 'audio/wav'));
           sessionStorage.setItem('troll_audio_v5_fallback_' + hash, isFallback ? '1' : '0');
         } catch {}
       }
@@ -312,7 +313,7 @@ export default function KonBongPage() {
       }
       for (let i = sessionStorage.length - 1; i >= 0; i--) {
         const k = sessionStorage.key(i);
-        if (k && (k.startsWith('troll_audio_cache_') || k.startsWith('troll_audio_fallback_'))) {
+        if (k && (k.startsWith('troll_audio_cache_') || k.startsWith('troll_audio_fallback_') || k.startsWith('troll_audio_v4_'))) {
           sessionStorage.removeItem(k);
         }
       }
@@ -1468,8 +1469,9 @@ export default function KonBongPage() {
       try {
         const storedB64 = sessionStorage.getItem('troll_audio_v5_' + hash) || sessionStorage.getItem('troll_audio_v4_' + hash);
         const storedFallback = sessionStorage.getItem('troll_audio_v5_fallback_' + hash) || sessionStorage.getItem('troll_audio_v4_fallback_' + hash);
+        const storedMime = sessionStorage.getItem('troll_audio_v5_mime_' + hash) || (storedFallback === '1' ? 'audio/mpeg' : 'audio/wav');
         if (storedB64) {
-          const blob = createAudioBlob(storedB64);
+          const blob = createAudioBlob(storedB64, storedMime);
           if (blob) {
             const url = URL.createObjectURL(blob);
             audioCacheRef.current.set(hash, url);
@@ -1477,6 +1479,10 @@ export default function KonBongPage() {
               setFallbackAudioMap((prev) => ({ ...prev, [index]: storedFallback === '1' }));
             }
             return url;
+          } else {
+            sessionStorage.removeItem('troll_audio_v5_' + hash);
+            sessionStorage.removeItem('troll_audio_v5_mime_' + hash);
+            sessionStorage.removeItem('troll_audio_v4_' + hash);
           }
         }
       } catch {}
@@ -1593,6 +1599,21 @@ export default function KonBongPage() {
     }
     const player = audioPlayerRef.current;
 
+    // Unlock HTML5 Audio player synchronously inside user interaction to avoid mobile/desktop autoplay block
+    if (player) {
+      try {
+        if (!player.src) {
+          player.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+        }
+        const prime = player.play();
+        if (prime && typeof prime.then === 'function') {
+          prime.then(() => {
+            player.pause();
+          }).catch(() => {});
+        }
+      } catch {}
+    }
+
     // Handle speech synthesis pause/cancel toggle on active item
     if (typeof window !== 'undefined' && window.speechSynthesis && window.speechSynthesis.speaking && activeAudioIndex === index) {
       window.speechSynthesis.cancel();
@@ -1691,9 +1712,12 @@ export default function KonBongPage() {
         playPromise
           .then(() => setExclusiveAudioState(index, 'playing'))
           .catch((err) => {
-            console.warn('[Audio] play() blocked or interrupted:', err);
-            setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-            setActiveAudioIndex((curr) => (curr === index ? null : curr));
+            console.warn('[Audio] play() blocked or interrupted, falling back to WebSpeech:', err);
+            const spoke = speakWithWebSpeech(text, index);
+            if (!spoke) {
+              setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+              setActiveAudioIndex((curr) => (curr === index ? null : curr));
+            }
           });
       }
     } else {
