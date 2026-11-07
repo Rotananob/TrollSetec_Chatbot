@@ -575,20 +575,27 @@ export async function POST(req) {
         .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F270}\u{2388}\u{200D}\u{FE0F}]/gu, '')
         .trim();
 
+      // Determine user gender for voice personality:
+      // USER IS GIRL (ស្រី) -> DADDY Voice ('Puck' / Male)
+      // USER IS BOY (ប្រុស) -> MOMMY Voice ('Aoede' / Female)
+      const isFemaleUser =
+        gender === 'ស្រី' ||
+        /ស្រី|female|girl|sister|sis/i.test(gender || '') ||
+        /ស្រី|female|girl|sister|sis/i.test(username || '');
+
+      const voiceName = isFemaleUser ? 'Puck' : 'Aoede';
+
       // Ensure the voice begins with a punchy, humorous Cambodian vocal flavor (laughter / tease) if none is present
       const hasComicVocal = /ហាហា|ហាស់|ហិហិ|ហ៊ឺ|ហឹក|យីអើ|អូហូ|យើស|អេន|អ្ហា|កក្អឹក|ហេស/u.test(audioPromptText);
       if (!hasComicVocal && audioPromptText.length > 0) {
-        const comicIntro =
-          bot === 'konpov'
-            ? 'ហិហិហិ! យីអើ! '
-            : 'ហាហាហា! យីអើ! ';
+        // DADDY (Puck) laughs "ហាហាហា! យីអើ! ", MOMMY (Aoede) giggles "ហិហិហិ! យីអើ! "
+        const comicIntro = isFemaleUser
+          ? 'ហាហាហា! យីអើ! '
+          : 'ហិហិហិ! យីអើ! ';
         audioPromptText = comicIntro + audioPromptText;
       }
 
-      // 1. Primary AI Voice: Call Gemini Native TTS (Aoede for KonPov female voice / Puck for KonBong male voice)
-      const voiceName =
-        generationConfig?.speechConfig?.voiceConfig?.prebuiltVoiceConfig?.voiceName ||
-        (bot === 'konpov' ? 'Aoede' : 'Puck');
+      // 1. Primary AI Voice: Call Gemini Native TTS (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
       const ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 3500);
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(

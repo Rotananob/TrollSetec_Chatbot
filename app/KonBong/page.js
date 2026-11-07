@@ -239,6 +239,14 @@ export default function KonBongPage() {
       if (!speechText) return null;
       const deviceId = getDeviceId();
       const endpoint = getApiEndpoint('/api/chat');
+
+      // USER FEMALE (ស្រី) -> DADDY Voice ('Puck' / Male)
+      // USER BOY (ប្រុស) -> MOMMY Voice ('Aoede' / Female)
+      const activeGender = userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ប្រុស';
+      const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
+      const voiceName = isFemaleUser ? 'Puck' : 'Aoede';
+      const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -249,9 +257,11 @@ export default function KonBongPage() {
           prompt: speechText,
           audio: true,
           bot: 'konbong',
+          gender: activeGender,
+          username: username || 'User',
           generationConfig: {
             speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } }
+              voiceConfig: { prebuiltVoiceConfig: { voiceName } }
             }
           }
         }),
@@ -271,9 +281,9 @@ export default function KonBongPage() {
       // Persist to sessionStorage for instant replay without re-fetching
       if (typeof window !== 'undefined') {
         try {
-          const hash = hashText(text);
-          sessionStorage.setItem('troll_audio_v4_' + hash, inlineData.data);
-          sessionStorage.setItem('troll_audio_v4_fallback_' + hash, isFallback ? '1' : '0');
+          const hash = hashText(text) + '_' + voiceTag;
+          sessionStorage.setItem('troll_audio_v5_' + hash, inlineData.data);
+          sessionStorage.setItem('troll_audio_v5_fallback_' + hash, isFallback ? '1' : '0');
         } catch {}
       }
 
@@ -1442,7 +1452,10 @@ export default function KonBongPage() {
 
   // Load or fetch audio URL with instant persistent caching (No duplicate API calls)
   const loadAudioUrl = async (text, index) => {
-    const hash = hashText(text);
+    const activeGender = userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ប្រុស';
+    const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
+    const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
+    const hash = hashText(text) + '_' + voiceTag;
 
     // 1. Instant in-memory cache
     if (audioCacheRef.current.has(hash)) {
@@ -1452,8 +1465,8 @@ export default function KonBongPage() {
     // 2. Instant sessionStorage persistent cache (survives re-renders, 0ms latency on replay)
     if (typeof window !== 'undefined') {
       try {
-        const storedB64 = sessionStorage.getItem('troll_audio_v4_' + hash);
-        const storedFallback = sessionStorage.getItem('troll_audio_v4_fallback_' + hash);
+        const storedB64 = sessionStorage.getItem('troll_audio_v5_' + hash) || sessionStorage.getItem('troll_audio_v4_' + hash);
+        const storedFallback = sessionStorage.getItem('troll_audio_v5_fallback_' + hash) || sessionStorage.getItem('troll_audio_v4_fallback_' + hash);
         if (storedB64) {
           const blob = createAudioBlob(storedB64);
           if (blob) {
