@@ -635,7 +635,7 @@ export default function KonPovPage() {
     return text;
   };
 
-  // Strictly enforce 100% Persona Gender Consistency (KonPov is ALWAYS "ចែ / Mommy", NEVER "Daddy")
+  // Strictly enforce 100% Persona Gender Consistency (KonPov is ALWAYS "ចែ / Mommy", NEVER "Daddy" or "រៀមច្បង/បង")
   // Safe replacements that NEVER corrupt natural Khmer words like "ប៉ះ", "ប៉ាន់ស្មាន", "ស្រីស្អាត", etc.
   const enforcePersonaConsistency = (rawText, isMale) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
@@ -647,7 +647,16 @@ export default function KonPovPage() {
       .replace(/ដាឌី/g, 'ចែ')
       .replace(/លោកប៉ា/g, 'ចែ')
       .replace(/ប៉ាៗ/g, 'ចែៗ')
-      .replace(/(?:^|\s)ប៉ា(?=\s|[!?~,។៕]|$)/g, ' ចែ ');
+      .replace(/(?:^|\s)ប៉ា(?=\s|[!?~,។៕]|$)/g, ' ចែ ')
+      .replace(/រៀមច្បង IT/g, 'ចែ/Mommy កូនពៅ')
+      .replace(/រៀមច្បង/g, 'ចែ កូនពៅ')
+      .replace(/បងកូនច្បង/g, 'ចែកូនពៅ')
+      .replace(/កូនច្បង/g, 'កូនពៅ');
+
+    // Client-side Fail-safe for Polite HCI Report or Surrender quote bypass
+    if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
+      return '«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅស្ពាយ Asus ROG រត់ទៅបង់ថ្លៃប្រឡងសង $45 ទៅអាល្អិត! 💀🖕🔥»';
+    }
 
     if (isMale) {
       // User is Male ('ប្រុស') -> Bot calls user "អាប្អូនប្រុស"

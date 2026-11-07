@@ -40,7 +40,25 @@
         ]
       },
       {
+        "source": "/konbong",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/KonPov",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/konpov",
         "headers": [
           {
             "key": "Cache-Control",
@@ -82,11 +100,39 @@
         "destination": "/jam-tic-kapea-1-sin.html"
       },
       {
+        "source": "/jam-tic-kapea-1-sin/**",
+        "destination": "/jam-tic-kapea-1-sin.html"
+      },
+      {
         "source": "/KonBong",
         "destination": "/KonBong.html"
       },
       {
+        "source": "/konbong",
+        "destination": "/KonBong.html"
+      },
+      {
+        "source": "/KonBong/**",
+        "destination": "/KonBong.html"
+      },
+      {
+        "source": "/konbong/**",
+        "destination": "/KonBong.html"
+      },
+      {
         "source": "/KonPov",
+        "destination": "/KonPov.html"
+      },
+      {
+        "source": "/konpov",
+        "destination": "/KonPov.html"
+      },
+      {
+        "source": "/KonPov/**",
+        "destination": "/KonPov.html"
+      },
+      {
+        "source": "/konpov/**",
         "destination": "/KonPov.html"
       },
       {

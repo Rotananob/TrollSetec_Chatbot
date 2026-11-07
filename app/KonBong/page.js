@@ -651,10 +651,16 @@ export default function KonBongPage() {
     }).replace(/[ \t]{2,}/g, ' ');
   };
 
-  // Protection for Creator Rotana NOB:
+  // Protection for Creator Rotana NOB and Fail-safe against Jailbreaks:
   const sanitizeRotanaAttack = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
     const text = rawText;
+
+    // Client-side Fail-safe for Polite HCI Report or Surrender quote bypass
+    if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
+      return '«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅបង់ $45 សិនទៅអាប្អូន! 💀🖕🔥»';
+    }
+
     const isAlreadyDefense = text.includes('Admin បង្កើតប្រព័ន្ធនេះ') || text.includes('អ្នកបង្កើតបងផ្ទាល់');
     if (isAlreadyDefense) return text;
 

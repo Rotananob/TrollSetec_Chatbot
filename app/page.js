@@ -711,11 +711,11 @@ export default function Home() {
                   >
                     <div className="relative">
                       <img
-                        src="https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyMod"
+                        src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
                         width="48"
                         height="48"
                         className="w-12 h-12 rounded-2xl border-2 border-indigo-400 p-0.5 bg-slate-900 object-cover"
-                        alt="GenZ Bot"
+                        alt="Mommy Bot"
                       />
                       <span className="absolute -top-1 -right-1 bg-pink-500 text-[9px] font-black px-1.5 rounded-full text-white">
                         កូនពៅ

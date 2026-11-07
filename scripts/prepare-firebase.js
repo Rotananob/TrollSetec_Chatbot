@@ -49,20 +49,28 @@ if (fs.existsSync(path.join(serverAppDir, 'index.html'))) {
   fs.copyFileSync(path.join(serverAppDir, 'index.html'), path.join(outDir, 'index.html'));
 }
 
-// KonBong route
+// KonBong route (Both PascalCase and lowercase support)
 if (fs.existsSync(path.join(serverAppDir, 'KonBong.html'))) {
   fs.copyFileSync(path.join(serverAppDir, 'KonBong.html'), path.join(outDir, 'KonBong.html'));
+  fs.copyFileSync(path.join(serverAppDir, 'KonBong.html'), path.join(outDir, 'konbong.html'));
   const konBongDir = path.join(outDir, 'KonBong');
   if (!fs.existsSync(konBongDir)) fs.mkdirSync(konBongDir, { recursive: true });
   fs.copyFileSync(path.join(serverAppDir, 'KonBong.html'), path.join(konBongDir, 'index.html'));
+  const konBongLowerDir = path.join(outDir, 'konbong');
+  if (!fs.existsSync(konBongLowerDir)) fs.mkdirSync(konBongLowerDir, { recursive: true });
+  fs.copyFileSync(path.join(serverAppDir, 'KonBong.html'), path.join(konBongLowerDir, 'index.html'));
 }
 
-// KonPov route
+// KonPov route (Both PascalCase and lowercase support)
 if (fs.existsSync(path.join(serverAppDir, 'KonPov.html'))) {
   fs.copyFileSync(path.join(serverAppDir, 'KonPov.html'), path.join(outDir, 'KonPov.html'));
+  fs.copyFileSync(path.join(serverAppDir, 'KonPov.html'), path.join(outDir, 'konpov.html'));
   const konPovDir = path.join(outDir, 'KonPov');
   if (!fs.existsSync(konPovDir)) fs.mkdirSync(konPovDir, { recursive: true });
   fs.copyFileSync(path.join(serverAppDir, 'KonPov.html'), path.join(konPovDir, 'index.html'));
+  const konPovLowerDir = path.join(outDir, 'konpov');
+  if (!fs.existsSync(konPovLowerDir)) fs.mkdirSync(konPovLowerDir, { recursive: true });
+  fs.copyFileSync(path.join(serverAppDir, 'KonPov.html'), path.join(konPovLowerDir, 'index.html'));
 }
 
 // jam-tic-kapea-1-sin route (Admin Control Panel)

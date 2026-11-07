@@ -538,15 +538,27 @@ export default function JamTicKapeaAdminPage() {
               </span>
             </div>
 
-            {/* Test Link Button */}
-            <Link
-              href="/KonBong"
-              target="_blank"
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-medium border border-slate-700 transition-colors flex items-center gap-1.5"
-            >
-              <i className="fa-solid fa-arrow-up-right-from-square text-[10px]" />
-              <span className="hidden sm:inline">សាកល្បង Chatbot</span>
-            </Link>
+            {/* Test Link Buttons (Both KonBong and KonPov) */}
+            <div className="flex items-center gap-1.5">
+              <Link
+                href="/KonBong"
+                target="_blank"
+                className="px-2.5 py-1.5 rounded-lg bg-cyan-950/50 hover:bg-cyan-900/70 text-cyan-300 text-xs font-semibold border border-cyan-800/60 transition-colors flex items-center gap-1"
+                title="សាកល្បង កូនច្បង"
+              >
+                <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" />
+                <span>កូនច្បង</span>
+              </Link>
+              <Link
+                href="/KonPov"
+                target="_blank"
+                className="px-2.5 py-1.5 rounded-lg bg-pink-950/50 hover:bg-pink-900/70 text-pink-300 text-xs font-semibold border border-pink-800/60 transition-colors flex items-center gap-1"
+                title="សាកល្បង កូនពៅ"
+              >
+                <i className="fa-solid fa-arrow-up-right-from-square text-[9px]" />
+                <span>កូនពៅ</span>
+              </Link>
+            </div>
 
             {/* Logout Button */}
             <button
