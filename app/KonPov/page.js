@@ -12,7 +12,7 @@ import ErrorReportModal from '@/components/ErrorReportModal';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import { getApiEndpoint } from '../utils/apiConfig';
-import { compressAvatarImage, saveAvatarToStorage } from '../utils/imageStorage';
+import { compressAvatarImage, saveAvatarToStorage, removeAvatarFromStorage, DEFAULT_USER_AVATAR } from '../utils/imageStorage';
 import { initSecurityShield } from '../utils/securityShield';
 import { buildKonPovSystemInstruction } from '../prompts/konPovPrompt';
 import {
@@ -725,6 +725,16 @@ export default function KonPovPage() {
       alert(err.message || 'មិនអាចជ្រើសរូបភាពនេះបានទេ!');
     }
     e.target.value = '';
+  };
+
+  // Remove user avatar and reset to clean default
+  const handleRemoveUserAvatar = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setAvatar(DEFAULT_USER_AVATAR);
+    removeAvatarFromStorage();
   };
 
   // Sessions management (100% Firebase Realtime Database - Zero localStorage)
@@ -1773,7 +1783,7 @@ export default function KonPovPage() {
             </button>
           </div>
 
-          {/* User Profile Card with Avatar Change */}
+          {/* User Profile Card with Avatar Change & Remove */}
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/60 mb-3 shadow-sm">
             <label className="relative cursor-pointer group shrink-0" title="ចុចដើម្បីប្ដូររូប Profile">
               <input
@@ -1793,16 +1803,29 @@ export default function KonPovPage() {
             </label>
             <div className="min-w-0 flex-1">
               <span className="font-bold text-xs truncate block text-blue-400">{username || 'User'}</span>
-              <label className="text-[10px] text-slate-400 hover:text-white cursor-pointer underline flex items-center gap-1 mt-0.5">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleUserAvatarChange}
-                />
-                <i className="fas fa-camera text-[9px]"></i>
-                <span>ប្ដូររូប Profile ថ្មី</span>
-              </label>
+              <div className="flex items-center gap-2.5 mt-1">
+                <label className="text-[10px] text-slate-400 hover:text-white cursor-pointer underline flex items-center gap-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleUserAvatarChange}
+                  />
+                  <i className="fas fa-camera text-[9px]"></i>
+                  <span>ប្ដូររូប</span>
+                </label>
+                {avatar && avatar !== DEFAULT_USER_AVATAR && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveUserAvatar}
+                    className="text-[10px] text-rose-400 hover:text-rose-300 underline flex items-center gap-1 cursor-pointer active:scale-95 transition"
+                    title="លុបរូប Profile ត្រឡប់ទៅរូបដើមវិញ"
+                  >
+                    <i className="fas fa-trash-alt text-[8.5px]"></i>
+                    <span>លុបរូប</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -2578,6 +2601,16 @@ export default function KonPovPage() {
               return (
                 <div key={idx} className="flex flex-col items-end gap-1 self-end max-w-[88%] sm:max-w-[80%] animate-fade-in">
                   <div className="flex items-center gap-1.5 mb-0.5">
+                    {avatar && avatar !== DEFAULT_USER_AVATAR && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveUserAvatar}
+                        className="opacity-60 hover:opacity-100 text-slate-400 hover:text-rose-400 transition text-[9px] p-0.5 cursor-pointer"
+                        title="លុបរូប Profile ត្រឡប់ទៅរូបដើមវិញ"
+                      >
+                        <i className="fas fa-trash-alt text-[8px]"></i>
+                      </button>
+                    )}
                     <span className="font-bold text-blue-500 dark:text-blue-400 text-[11px]">{username}</span>
                     <label className="relative cursor-pointer group/avatar" title="ចុចដើម្បីប្ដូររូប Profile">
                       <input

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import { resetClientRateLimit } from './utils/rateLimiter';
-import { compressAvatarImage, saveAvatarToStorage } from './utils/imageStorage';
+import { compressAvatarImage, saveAvatarToStorage, removeAvatarFromStorage, DEFAULT_USER_AVATAR } from './utils/imageStorage';
 import { initSecurityShield } from './utils/securityShield';
 
 export default function Home() {
@@ -97,6 +97,17 @@ export default function Home() {
       }
     }
   };
+
+  const handleRemoveAvatar = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setAvatar(DEFAULT_USER_AVATAR);
+    removeAvatarFromStorage();
+  };
+
+  const hasCustomAvatar = Boolean(avatar && avatar !== DEFAULT_USER_AVATAR);
 
   const handleContinue = (e) => {
     if (e) {
@@ -281,33 +292,54 @@ export default function Home() {
             <>
               <div className="mb-5">
                 <div className="flex flex-col items-center gap-3">
-                  <label htmlFor="avatar-input" className="cursor-pointer flex flex-col items-center group">
-                    <div className="relative">
-                      <img
-                        id="avatar-preview"
-                        src={avatar}
-                        width="80"
-                        height="80"
-                        className="w-20 h-20 rounded-full border-4 border-indigo-400/50 shadow-md object-cover group-hover:scale-105 transition-transform"
-                        style={{ width: '80px', height: '80px', objectFit: 'cover' }}
-                        alt="Avatar Preview"
-                      />
-                      <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-1 rounded-full text-xs shadow">
-                        <i className="fas fa-camera"></i>
+                  <div className="flex flex-col items-center">
+                    <label htmlFor="avatar-input" className="cursor-pointer flex flex-col items-center group">
+                      <div className="relative">
+                        <img
+                          id="avatar-preview"
+                          src={avatar}
+                          width="80"
+                          height="80"
+                          className="w-20 h-20 rounded-full border-4 border-indigo-400/50 shadow-md object-cover group-hover:scale-105 transition-transform"
+                          style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                          alt="Avatar Preview"
+                        />
+                        <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-1 rounded-full text-xs shadow">
+                          <i className="fas fa-camera"></i>
+                        </div>
                       </div>
+                      <input
+                        type="file"
+                        id="avatar-input"
+                        accept="image/*"
+                        className="hidden"
+                        style={{ display: 'none' }}
+                        onChange={handleAvatarChange}
+                      />
+                    </label>
+
+                    {/* Action buttons: Change / Remove Profile */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <label
+                        htmlFor="avatar-input"
+                        className="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      >
+                        <i className="fas fa-camera text-[10px]"></i>
+                        <span>{hasCustomAvatar ? 'ប្ដូររូប Profile' : 'ដាក់រូប Profile'}</span>
+                      </label>
+                      {hasCustomAvatar && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveAvatar}
+                          className="text-[11px] text-rose-400 hover:text-rose-300 font-bold hover:underline flex items-center gap-1 cursor-pointer transition active:scale-95"
+                          title="លុបរូប Profile ត្រឡប់ទៅរូបដើមវិញ"
+                        >
+                          <i className="fas fa-trash-alt text-[9.5px]"></i>
+                          <span>លុបរូប</span>
+                        </button>
+                      )}
                     </div>
-                    <span className="text-[11px] text-indigo-400 mt-1 font-bold group-hover:underline">
-                      ដាក់ ឬប្ដូររូប Profile
-                    </span>
-                    <input
-                      type="file"
-                      id="avatar-input"
-                      accept="image/*"
-                      className="hidden"
-                      style={{ display: 'none' }}
-                      onChange={handleAvatarChange}
-                    />
-                  </label>
+                  </div>
 
                   <div className="w-full">
                     <label className={`block text-xs font-bold mb-1 text-left ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
@@ -587,9 +619,41 @@ export default function Home() {
             </>
           ) : (
             <>
-              <div className="text-lg sm:text-xl font-extrabold mb-3">
-                ស្វាគមន៍ <span className="text-pink-500">{username}</span>!{' '}
-                <i className="fas fa-user-check text-green-500"></i>
+              <div className="flex flex-col items-center mb-4">
+                <div className="relative group mb-2">
+                  <img
+                    src={avatar}
+                    alt="User Avatar"
+                    className="w-14 h-14 rounded-full border-2 border-indigo-400/60 shadow-md object-cover"
+                  />
+                </div>
+                <div className="text-base sm:text-lg font-extrabold flex items-center gap-1.5">
+                  <span>ស្វាគមន៍</span> <span className="text-pink-500">{username}</span>!{' '}
+                  <i className="fas fa-user-check text-green-500 text-sm"></i>
+                </div>
+                <div className="flex items-center gap-2.5 mt-1.5">
+                  <label className="text-[10.5px] text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer underline flex items-center gap-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarChange}
+                    />
+                    <i className="fas fa-camera text-[9px]"></i>
+                    <span>ប្ដូររូប Profile</span>
+                  </label>
+                  {hasCustomAvatar && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveAvatar}
+                      className="text-[10.5px] text-rose-400 hover:text-rose-300 font-semibold underline flex items-center gap-1 cursor-pointer active:scale-95 transition"
+                      title="លុបរូប Profile ត្រឡប់ទៅរូបដើមវិញ"
+                    >
+                      <i className="fas fa-trash-alt text-[9px]"></i>
+                      <span>លុបរូប Profile</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div id="bot-select-section">

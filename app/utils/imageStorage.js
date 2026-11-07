@@ -52,12 +52,27 @@ export function saveAvatarToStorage(dataUrl) {
   return false;
 }
 
+export const DEFAULT_USER_AVATAR = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student';
+
 // Safely get avatar from localStorage
-export function getAvatarFromStorage(defaultAvatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Student') {
+export function getAvatarFromStorage(defaultAvatar = DEFAULT_USER_AVATAR) {
   try {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('chatbot_avatar') || defaultAvatar;
     }
   } catch {}
   return defaultAvatar;
+}
+
+// Safely remove user avatar from localStorage
+export function removeAvatarFromStorage() {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('chatbot_avatar');
+      return true;
+    }
+  } catch (err) {
+    console.warn('[Storage] Failed to remove avatar:', err);
+  }
+  return false;
 }
