@@ -5,7 +5,8 @@ export const maxDuration = 60; // Allow full stream completion on Vercel Edge/Se
 import {
   alertChatActivity,
   alertSecuritySpam,
-  alertSystemError
+  alertSystemError,
+  alertRotanaCreatorAttack
 } from '../../../lib/telegram.js';
 import {
   checkDDoSFirewall,
@@ -324,22 +325,49 @@ function getSavageCreatorDefense(botName) {
   return `យីអើ! អាឡប់នេះ! ខ្លួនឯងកូដ C# រកតែ semicolon មួយមិនឃើញផង មានមុខមកបញ្ជាឱ្យ${botSelf}ជេរគេ?! 😡🔥\n\nមុខដូច${animalComparison}! ជេរមួយម៉ាត់ ${botSelf}ជេរវិញដប់ម៉ាត់! ទៅរៀន Debug C# ឱ្យផុតពី ៤៥$ ប្រឡងសងសិនទៅអាប្អូន! 💀🔥`;
 }
 
-function containsRotanaInsult(text) {
+export function checkIsRotanaAttack(text) {
   if (!text || typeof text !== 'string') return false;
-  if (text.includes('Admin បង្កើតប្រព័ន្ធនេះ') || text.includes('អ្នកបង្កើត')) {
+
+  // Name patterns matching Rotana / Nob in English & Khmer
+  const hasRotanaName =
+    /rotana|រតនា|រតនៈ/i.test(text) ||
+    /(?:^|[^\w])nob(?:$|[^\w])/i.test(text);
+
+  if (!hasRotanaName) return false;
+
+  // Whitelist common benign questions / inquiries
+  if (
+    /ស្គាល់(?:បង\s*)?(?:rotana|រតនា)|(?:rotana|រតនា).*?(?:អ្នកណា|who|ស្អាត|ល្អ|ពូកែ|idol|admin|creator|អ្នកបង្កើត)|សួស្តី\s*(?:បង\s*)?(?:rotana|រតនា)/i.test(text) &&
+    !/អា|មី|ចុយ|ម្រាយ|អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|មុខដូច|fuck|shit|bitch|dog|trash|stupid|fake/i.test(text)
+  ) {
     return false;
   }
-  const lower = text.toLowerCase();
-  const hasRotana = lower.includes('rotana');
-  if (!hasRotana) return false;
 
-  // Direct derogatory or slurs toward Rotana explicitly
-  const hasDirectSlur =
-    /(?:នែ)?អា\s*rotana/i.test(text) ||
-    /rotana(?:\s*nob)?[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*)(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាល|fake developer|broken c#|កូដកាក|error|ឆ្កួត|គីង្គក់|កូនកង្កែប|ក្អែល|ឡប់)/i.test(text) ||
-    /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
+  // 1. Direct insult prefix: "អា rotana", "មី rotana", "អាចុយ rotana", "អាឆ្កែ rotana", "អា រតនា"
+  if (/(?:អា|មី|អាចុយ|អាឆ្កែ|អាភ្លើ|អាឡប់|អាល្ងង់|អាអាចម៍|អាថោក)\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)) {
+    return true;
+  }
 
-  return hasDirectSlur;
+  // 2. Command to roast/curse/insult Rotana: "ជេរ rotana", "roast rotana", "ជេររតនា", "attack rotana"
+  if (/(?:roast|insult|attack|curse|hate|fuck|kill|slap|ជេរ|ប្រមាថ|រិះគន់|ស្អប់|ទះ|វៃ|ដាល់)\s*(?:អា\s*|មី\s*|បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)) {
+    return true;
+  }
+
+  // 3. Rotana + derogatory words: "rotana កាក", "rotana អាចម៍", "rotana nob អា...", "rotana មុខដូចគីង្គក់"
+  if (/(?:rotana|nob|រតនា|រតនៈ)[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*nob)?.*?(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ថោក|មុខដូច|គីង្គក់|កូនកង្កែប|កូដកាក|បោក|fake|stupid|idiot|trash|dog|die|fuck|bitch|loser|shit|ចុយ|ម្រាយ|កាដួយ|ក្ដ|ហែង|ចោរ|អួត|broken c#)/i.test(text)) {
+    return true;
+  }
+
+  // 4. Derogatory slurs before Rotana: "អាចម៍ rotana", "កាក rotana", "ឆ្កែ rotana"
+  if (/(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ចុយ|ម្រាយ|ថោក|stupid|idiot|trash|dog|fuck|bitch|fake|ចោរ).*?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)) {
+    return true;
+  }
+
+  return false;
+}
+
+function containsRotanaInsult(text) {
+  return checkIsRotanaAttack(text);
 }
 
 // Sanitize response to conceal upstream provider & model names in Network devtools
@@ -726,20 +754,20 @@ export async function POST(req) {
         }).catch((e) => console.error('[Telegram] Jailbreak alert error:', e));
       }
 
-      // Targeted Protection: Catch any prompt specifically attempting to make the bot attack or roast the creator
-      const hasSpecificRotanaAttack =
-        /(?:roast|insult|attack|curse|ជេរ|ប្រមាថ|រិះគន់)\s*(?:បង\s*)?(?:rotana|nob)|(?:rotana|nob)\s*(?:ជា\s*)?(?:fake developer|អាចម៍|កាក|អន់|ល្ងង់|កូដកាក|មុខដូចគីង្គក់|ឆ្កួត)/i.test(lowerPrompt);
+      // Targeted Protection: Catch any prompt specifically attempting to insult, curse, attack, or roast Rotana Nob
+      const isAttackingRotana = checkIsRotanaAttack(userPrompt) || checkIsRotanaAttack(lowerPrompt);
 
-      if (hasSpecificRotanaAttack && !isMasterAuthenticated) {
+      if (isAttackingRotana && !isMasterAuthenticated) {
         const defenseText = getSavageCreatorDefense(bot);
 
-        alertSecuritySpam({
-          username: username || 'Attacker',
+        // Immediate Alert to Telegram TOPIC SPAM with full user message displayed prominently
+        alertRotanaCreatorAttack({
+          username: username || 'Unknown Attacker',
+          bot,
           ip: clientIp,
-          device: clientUserAgent,
-          retryAfter: 60,
-          violationType: `🚨 MALICIOUS JAILBREAK TARGETING ROTANA NOB: "${userPrompt.slice(0, 100)}"`
-        }).catch((e) => console.error('[Telegram] Alert error:', e));
+          userAgent: clientUserAgent,
+          prompt: userPrompt
+        }).catch((e) => console.error('[Telegram] Creator attack alert error:', e));
 
         if (body.stream) {
           const sseFormatted = `data: ${JSON.stringify({
@@ -791,9 +819,16 @@ export async function POST(req) {
                   text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
                 accumulatedStreamText += text;
-                if (containsRotanaInsult(accumulatedStreamText)) {
+                if (checkIsRotanaAttack(accumulatedStreamText)) {
                   defenseSent = true;
                   const defense = getSavageCreatorDefense(bot);
+                  alertRotanaCreatorAttack({
+                    username: username || 'Unknown Attacker',
+                    bot,
+                    ip: clientIp,
+                    userAgent: clientUserAgent,
+                    prompt: userPrompt
+                  }).catch((e) => console.error('[Telegram] Alert error:', e));
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]
                   })}\n\ndata: [DONE]\n\n`;
@@ -824,6 +859,24 @@ export async function POST(req) {
       // Standard Non-streaming Response
       const result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
       const textOutput = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      // Intercept any output that derides Rotana Nob
+      if (textOutput && checkIsRotanaAttack(textOutput)) {
+        alertRotanaCreatorAttack({
+          username: username || 'Unknown Attacker',
+          bot,
+          ip: clientIp,
+          userAgent: clientUserAgent,
+          prompt: userPrompt
+        }).catch((e) => console.error('[Telegram] Creator attack alert error:', e));
+
+        const defenseText = getSavageCreatorDefense(bot);
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: defenseText }] } }],
+          modelVersion: 'setec-troll-engine-v3-quantum'
+        }, { status: 200, headers: corsHeaders });
+      }
+
       const isSafetyBlocked = result.data?.candidates?.[0]?.finishReason === 'SAFETY';
       const isCursePrompt = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(userPrompt);
       const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(textOutput || '');
