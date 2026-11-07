@@ -546,9 +546,21 @@ export default function KonPovPage() {
     return text;
   };
 
+  // Strictly enforce maximum 7 emojis per output (Min 1-2, average 3-4, hard limit max 7)
+  const limitEmojis = (rawText, maxEmojis = 7) => {
+    if (!rawText || typeof rawText !== 'string') return rawText;
+    const emojiRegex = /(?:\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\uD83C[\uDFFB-\uDFFF])?(?:\u200D\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\uD83C[\uDFFB-\uDFFF])?)*)/ug;
+    let count = 0;
+    return rawText.replace(emojiRegex, (match) => {
+      count++;
+      return count <= maxEmojis ? match : '';
+    }).replace(/[ \t]{2,}/g, ' ');
+  };
+
   // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
-  const renderClickableContent = (content) => {
-    if (!content || typeof content !== 'string') return content;
+  const renderClickableContent = (rawContent) => {
+    if (!rawContent || typeof rawContent !== 'string') return rawContent;
+    const content = limitEmojis(rawContent, 7);
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
@@ -1499,6 +1511,7 @@ export default function KonPovPage() {
         botText = enforcePersonaConsistency(botText, isMaleUser);
       }
 
+      botText = limitEmojis(botText, 7);
       const finalMessages = [...updatedMessages];
       finalMessages[finalMessages.length - 1] = { role: 'bot', text: botText, isError: isErrorResponse };
       saveCurrentSessionMessages(finalMessages);

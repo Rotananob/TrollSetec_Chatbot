@@ -214,6 +214,17 @@ async function fetchKhmerSpeechFallback(text) {
   }
 }
 
+// Strictly enforce maximum 7 emojis per output (Min 1-2, average 3-4, hard limit max 7)
+function limitEmojis(rawText, maxEmojis = 7) {
+  if (!rawText || typeof rawText !== 'string') return rawText;
+  const emojiRegex = /(?:\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\uD83C[\uDFFB-\uDFFF])?(?:\u200D\p{Extended_Pictographic}(?:[\uFE0E\uFE0F]|\uD83C[\uDFFB-\uDFFF])?)*)/ug;
+  let count = 0;
+  return rawText.replace(emojiRegex, (match) => {
+    count++;
+    return count <= maxEmojis ? match : '';
+  }).replace(/[ \t]{2,}/g, ' ');
+}
+
 // Sanitize response to conceal upstream provider & model names in Network devtools
 function sanitizeResponse(data) {
   if (!data || typeof data !== 'object') return data;
@@ -226,6 +237,9 @@ function sanitizeResponse(data) {
   }
   if (clone.usageMetadata?.promptTokensDetails) {
     delete clone.usageMetadata.promptTokensDetails;
+  }
+  if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
+    clone.candidates[0].content.parts[0].text = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
   }
   return clone;
 }
