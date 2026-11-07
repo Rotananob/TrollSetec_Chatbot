@@ -266,7 +266,7 @@ export default function KonBongPage() {
             }
           }
         }),
-        signal: AbortSignal.timeout(9000)
+        signal: AbortSignal.timeout(12000)
       });
 
       if (!response.ok) return null;
@@ -2816,7 +2816,7 @@ export default function KonBongPage() {
                             {isThisItemLoading && (
                               <>
                                 <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
-                                <span>{isFallbackVoice ? 'AI រវល់... កំពុងរៀបចំសំឡេង Bot...' : 'កំពុងទាញសំឡេង AI...'}</span>
+                                <span>កំពុងរៀបចំសំឡេងកូនច្បង...</span>
                               </>
                             )}
                             {isThisItemPlaying && (
@@ -2826,31 +2826,19 @@ export default function KonBongPage() {
                                   <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-2 inline-block"></span>
                                   <span className="w-0.5 bg-cyan-400 rounded-full animate-eq-3 inline-block"></span>
                                 </div>
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
-                                    : 'សំឡេងកូនច្បង កំពុងអាន...'}
-                                </span>
+                                <span>សំឡេងកូនច្បង កំពុងអាន...</span>
                               </>
                             )}
                             {isThisItemPaused && (
                               <>
                                 <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'បន្តស្ដាប់សំឡេង Bot អានជំនួស'
-                                    : 'បន្តស្ដាប់សំឡេងកូនច្បង'}
-                                </span>
+                                <span>បន្តស្ដាប់សំឡេងកូនច្បង</span>
                               </>
                             )}
                             {isThisItemEnded && (
                               <>
                                 <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-cyan-400'}`}></i>{' '}
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'ស្តាប់ Bot អានជំនួសម្ដងទៀត (AI រវល់)'
-                                    : 'ស្តាប់សំឡេងកូនច្បងម្ដងទៀត'}
-                                </span>
+                                <span>ស្តាប់សំឡេងកូនច្បងម្ដងទៀត</span>
                               </>
                             )}
                             {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
@@ -2858,15 +2846,11 @@ export default function KonBongPage() {
                                 <i
                                   className={`${
                                     isFallbackVoice
-                                      ? 'fas fa-robot text-amber-400 text-xs'
+                                      ? 'fas fa-volume-up text-amber-400 text-xs'
                                       : 'fas fa-volume-up text-cyan-400'
                                   }`}
                                 ></i>{' '}
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
-                                    : 'ស្តាប់សំឡេងកូនច្បង'}
-                                </span>
+                                <span>ស្តាប់សំឡេងកូនច្បង</span>
                               </>
                             )}
                           </button>

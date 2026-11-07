@@ -155,60 +155,64 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 20000
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
 }
 
-// Native Gemini TTS via /v1beta/interactions with fast fallback (<2000ms budget)
-async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 2000) {
-  const primaryKey = Array.isArray(apiKeys) ? apiKeys.find(Boolean) : apiKeys;
-  if (!primaryKey) return { ok: false };
+// Native Gemini TTS via /v1beta/interactions with key rotation across all available pool keys
+async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 3800) {
+  const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
+  if (keys.length === 0) return { ok: false };
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'x-goog-api-key': primaryKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gemini-3.8-flash-tts',
-        input: [
-          {
-            type: 'user_input',
-            content: [
-              {
-                type: 'text',
-                text
-              }
-            ]
+  for (const key of keys) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'x-goog-api-key': key,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gemini-3.8-flash-tts',
+          input: [
+            {
+              type: 'user_input',
+              content: [
+                {
+                  type: 'text',
+                  text
+                }
+              ]
+            }
+          ],
+          response_format: { type: 'audio' },
+          generation_config: {
+            speech_config: [{ voice: voiceName }]
           }
-        ],
-        response_format: { type: 'audio' },
-        generation_config: {
-          speech_config: [{ voice: voiceName }]
-        }
-      }),
-      signal: AbortSignal.timeout(timeoutMs)
-    });
-    if (res.ok) {
-      const data = await res.json();
-      // 1. Convenience property
-      let b64Data = data.output_audio?.data;
-      // 2. REST JSON steps search (last step with model_output audio)
-      if (!b64Data && Array.isArray(data.steps)) {
-        for (let i = data.steps.length - 1; i >= 0; i--) {
-          const step = data.steps[i];
-          const audioPart = step?.content?.find((c) => c.data || c.type === 'audio');
-          if (audioPart?.data) {
-            b64Data = audioPart.data;
-            break;
+        }),
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // 1. Convenience property
+        let b64Data = data.output_audio?.data;
+        // 2. REST JSON steps search (last step with model_output audio)
+        if (!b64Data && Array.isArray(data.steps)) {
+          for (let i = data.steps.length - 1; i >= 0; i--) {
+            const step = data.steps[i];
+            const audioPart = step?.content?.find((c) => c.data || c.type === 'audio');
+            if (audioPart?.data) {
+              b64Data = audioPart.data;
+              break;
+            }
           }
         }
+        if (b64Data) {
+          return { ok: true, data: b64Data, mimeType: 'audio/wav' };
+        }
+      } else {
+        console.warn(`[Gemini TTS] key (${key.slice(0, 8)}...) status ${res.status}`);
       }
-      if (b64Data) {
-        return { ok: true, data: b64Data, mimeType: 'audio/wav' };
-      }
+    } catch (err) {
+      console.warn(`[Gemini TTS] key (${key.slice(0, 8)}...) error:`, err.message);
     }
-  } catch (err) {
-    console.warn('[Gemini TTS] fast-fallback triggered:', err.message);
   }
   return { ok: false };
 }
@@ -277,25 +281,27 @@ async function fetchKhmerSpeechFallback(text) {
       remaining = remaining.slice(splitIdx + 1).trim();
     }
 
-    // Parallel fetch with 4s timeout
+    // Parallel fetch with dual client failover ('tw-ob' -> 'gtx') with 4s timeout
     const buffers = await Promise.all(
       chunks.map(async (chunk) => {
         if (!chunk) return null;
-        try {
-          const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=km&client=tw-ob`;
-          const res = await fetch(url, {
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            },
-            signal: AbortSignal.timeout(4000)
-          });
-          if (res.ok) {
-            const buf = await res.arrayBuffer();
-            return Buffer.from(buf);
+        for (const client of ['tw-ob', 'gtx']) {
+          try {
+            const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=km&client=${client}`;
+            const res = await fetch(url, {
+              headers: {
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+              },
+              signal: AbortSignal.timeout(4000)
+            });
+            if (res.ok) {
+              const buf = await res.arrayBuffer();
+              return Buffer.from(buf);
+            }
+          } catch {
+            // failover to next client
           }
-        } catch {
-          return null;
         }
         return null;
       })
@@ -941,7 +947,7 @@ export async function POST(req) {
       // 1. Primary AI Voice: Call Gemini Native TTS if keys available (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
       let ttsResult = { ok: false };
       if (apiKeys.length > 0) {
-        ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 1500);
+        ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 3800);
       }
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(

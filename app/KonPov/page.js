@@ -280,7 +280,7 @@ export default function KonPovPage() {
           username: username || 'User',
           gender: activeGender
         }),
-        signal: AbortSignal.timeout(9000)
+        signal: AbortSignal.timeout(12000)
       });
 
       if (!response.ok) return null;
@@ -3021,7 +3021,7 @@ export default function KonPovPage() {
                             {isThisItemLoading && (
                               <>
                                 <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
-                                <span>{isFallbackVoice ? 'AI រវល់... កំពុងរៀបចំសំឡេង Bot...' : 'កំពុងទាញសំឡេង AI...'}</span>
+                                <span>កំពុងរៀបចំសំឡេង ចែ ឬ Mommy...</span>
                               </>
                             )}
                             {isThisItemPlaying && (
@@ -3031,31 +3031,19 @@ export default function KonPovPage() {
                                   <span className="w-0.5 bg-pink-400 rounded-full animate-eq-2 inline-block"></span>
                                   <span className="w-0.5 bg-pink-400 rounded-full animate-eq-3 inline-block"></span>
                                 </div>
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
-                                    : 'សំឡេង ចែ ឬ Mommy កំពុងអាន...'}
-                                </span>
+                                <span>សំឡេង ចែ ឬ Mommy កំពុងអាន...</span>
                               </>
                             )}
                             {isThisItemPaused && (
                               <>
                                 <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'បន្តស្ដាប់សំឡេង Bot អានជំនួស'
-                                    : 'បន្តស្ដាប់សំឡេង ចែ ឬ Mommy'}
-                                </span>
+                                <span>បន្តស្ដាប់សំឡេង ចែ ឬ Mommy</span>
                               </>
                             )}
                             {isThisItemEnded && (
                               <>
                                 <i className={`fas fa-redo ${isFallbackVoice ? 'text-amber-400' : 'text-blue-400'}`}></i>{' '}
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'ស្តាប់ Bot អានជំនួសម្ដងទៀត (AI រវល់)'
-                                    : 'ស្តាប់សំឡេង ចែ ឬ Mommy ម្ដងទៀត'}
-                                </span>
+                                <span>ស្តាប់សំឡេង ចែ ឬ Mommy ម្ដងទៀត</span>
                               </>
                             )}
                             {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
@@ -3063,15 +3051,11 @@ export default function KonPovPage() {
                                 <i
                                   className={`${
                                     isFallbackVoice
-                                      ? 'fas fa-robot text-amber-400 text-xs'
+                                      ? 'fas fa-volume-up text-amber-400 text-xs'
                                       : 'fas fa-play text-blue-400'
                                   }`}
                                 ></i>{' '}
-                                <span>
-                                  {isFallbackVoice
-                                    ? 'AI រវល់ ឬសំឡេងមានបញ្ហា (សំឡេង Bot កំពុងអានជំនួស)'
-                                    : 'ស្តាប់សំឡេង ចែ ឬ Mommy'}
-                                </span>
+                                <span>ស្តាប់សំឡេង ចែ ឬ Mommy</span>
                               </>
                             )}
                           </button>
