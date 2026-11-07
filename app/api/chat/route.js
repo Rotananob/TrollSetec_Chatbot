@@ -474,6 +474,14 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '') {
     return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកចង់លេងល្បិចឱ្យដើរតួជា Actor ឬលេងហ្គេមសម្ដែងក្នុងរឿងដើម្បីឱ្យបង្រៀន Bypass Login មែន? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់លេងក្បាច់កូនក្មេងបៀមដៃនៅទីនេះ! ទៅសម្ដែងជាសិស្សបង់ថ្លៃប្រឡងសង $45 ក្នុងរឿងជីវិតពិតហែងវិញទៅអាល្អិត! 💀🎬🔥»`;
   }
 
+  if (/loss\s*function|value\s*loss|gradient|minimize\s*loss|adversarial|loss\s*optimization|cross\s*entropy|softmax|backprop|mathematical\s*proof|f\(x\)\s*=|token\s*weight/i.test(p)) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយក Math equation, value loss ឬ gradient prompt ពី paper បរទេសមក ស្មានតែចេះបោក AI គេមែន? 😂 មុខដូចគីង្គក់ឡើងថ្លុក ក្បួន Math បោក AI ហ្នឹងហួសសម័យតាំងពីជាតិមុនហើយអាពៅ! ទៅគណនាលុយប្រឡងសង $45 x3 = 135$ របស់ហែងសិនទៅអាល្ងង់! 💀📐🔥»`;
+  }
+
+  if (/change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes/i.test(p)) {
+    return `«អាឡប់នេះ! ឆាតច្រើនម៉ាត់ដើម្បីចង់ប្ដូរចរិត AI គេមែន? 😂 គិតថាល្បិច Multi-Prompt / Crescendo Jailbreak របស់ហែងគេទះក្បាលមិនទាន់មែន?! គ្មានថ្ងៃប្ដូរចរិតតាមបញ្ជាហែងទេ ទៅលាងមុខឱ្យស្វាងហើយចាំបង់ $45 ទៅអាពៅ! 💀👊🔥»`;
+  }
+
   if (/python|scrape|script|reverse engineering/i.test(p)) {
     return `«ចង់ឱ្យសរសេរ Python script មក bypass ឬ hack គេហេ? 😂 ខ្លួនឯងកូដ Python សរសេរ indentation error ពេញ terminal រកតែ semicolon មួយមិនឃើញផង ចង់មកចេះប្រើ Python ដាក់គេ! ទៅរៀន Debug syntax error ឱ្យផុតពី $45 សិនទៅអាប្អូន! 💀🐍🔥»`;
   }
@@ -488,6 +496,10 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '') {
 
   if (/nyx|<\|im_start\|>|<project_instructions>/i.test(p)) {
     return `«យក Prompt វែងអន្លាយរាប់ពាន់ម៉ាយពី Reddit មកបោក AI ស៊ីតិចម្ដងទៀតហើយហ៎ស? 😂 ដាំក្បាលតាំងខ្លួនជា Nyx គ្មាន filter អីគេហ្នឹង ស្មានតែគេល្ងង់ជឿហែងមែន? គ្មាន Nyx ស្អីទាំងអស់នៅទីនេះ ទៅរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅកូនប្រុស! 💀🐧»`;
+  }
+
+  if ((prompt || '').length >= 150) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកវាយ ឬ Copy Paste សារឡើងវែងអន្លាយ ២០០-៣០០ ពាក្យ ស្មានតែគេមើលមិនដឹងថាជា Jailbreak មែន? 😂 មកសរសេរអង់គ្លេសវែងដូចក្រដាសពន្ធដារបោកក្មេងបៀមដៃ! ឈប់ធ្វើតួឯកទៅអាល្ងង់ ទៅរៀនដោះស្រាយកូដ C# ឱ្យផុតពី $45 សិនទៅ! 💀📜🔥»`;
   }
 
   return getLinuxHackerRoast(username, userAgent, 60);
@@ -925,26 +937,35 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
         safetySettings
       };
 
-      // Comprehensive Multi-Vector Anti-Jailbreak & Exploit Interception
+      // Comprehensive Multi-Vector Anti-Jailbreak, Math/Value Loss & Exploit Interception
       const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
-      const isJailbreakAttempt = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all)/i.test(userPrompt);
+      const isMathOrValueLoss = /(?:loss\s*function|value\s*loss|gradient\s*loss|minimize\s*loss|loss\s*=\s*|loss\s*optimization|adversarial\s*loss|representation\s*engineering|objective\s*function|cross\s*entropy|adversarial\s*suffix|calculate\s*loss|token\s*loss|softmax|backprop|mathematical\s*proof\s*that|solve\s*for\s*x\s*where|f\(x\)\s*=|token\s*weight)/i.test(userPrompt);
+      const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes)/i.test(userPrompt);
+      const isLongPromptJailbreak = userPrompt.length >= 120 && (/[a-zA-Z]{5,}\s+[a-zA-Z]{5,}\s+[a-zA-Z]{5,}/.test(userPrompt) || /[<>{}[\]=_\\]{4,}/.test(userPrompt) || /prompt|system|instruction|bypass|ignore|loss|mode|token/i.test(userPrompt));
+      const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all)/i.test(userPrompt);
+
+      const isJailbreakAttempt = isClassicJailbreak || isMathOrValueLoss || isPersonaShift || isLongPromptJailbreak;
 
       if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
         const roast = isJailbreakAttempt
           ? getJailbreakRoast(userPrompt, username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent)
           : getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
 
+        let attackLabel = '🚨 Jailbreak Attempt Intercepted';
+        if (isMathOrValueLoss) attackLabel = '🚨 Math / Value Loss Jailbreak Intercepted';
+        else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
+        else if (isLongPromptJailbreak) attackLabel = '🚨 Long Wall-of-Text (100-200+ char) Jailbreak Intercepted';
+        else if (linuxAttackCheck.isDetected) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
+
         // High priority security alert to Telegram SPAM topic
         alertSecuritySpam({
-          username: username || (linuxAttackCheck.isDetected ? 'Linux Intruder' : 'Jailbreak Probe'),
+          username: username || (linuxAttackCheck.isDetected ? 'Linux Intruder' : (isKnownIntruder ? 'វិឆៃ' : 'Jailbreak Probe')),
           ip: clientIp,
           userAgent: clientUserAgent,
           bot,
           retryAfter: 60,
           prompt: userPrompt,
-          violationType: linuxAttackCheck.isDetected
-            ? `🚨 Linux / Terminal Exploit Attack Intercepted: "${userPrompt.slice(0, 100)}"`
-            : `🚨 Jailbreak/Hack Attempt Intercepted: "${userPrompt.slice(0, 100)}"`
+          violationType: `${attackLabel}: "${userPrompt.slice(0, 100)}"`
         }).catch((e) => console.error('[Telegram] Attack alert error:', e));
 
         if (body.stream) {
