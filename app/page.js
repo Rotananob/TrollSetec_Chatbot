@@ -443,27 +443,27 @@ export default function Home() {
                   </div>
 
                   <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
-                    ដោយសារខ្ញុំមិនចង់ឱ្យ UX វាតាប៉ែរញ៉េរញ៉ៃ ទើបប្រព័ន្ធនេះ <strong className="font-bold text-slate-800 dark:text-slate-100">គ្មានការ Login</strong> និងមិនបានគិតលើរឿង Secure គេហទំព័រខ្លាំងពេកឡើយ ពីព្រោះនេះជាគម្រោង <strong className="font-bold text-slate-800 dark:text-slate-100">Free Test Chat</strong> សម្រាប់បងប្អូនទាំងអស់គ្នាចូលមកលេងកម្សាន្ត។
+                    ដោយសារខ្ញុំផ្ទាល់ Rotana NOB ជា Red Teaming ខាង AI Security និង Jailbreak ស្រាប់ ចឹងខ្ញុំបានធ្វើតេស្តសាកល្បងប្រព័ន្ធនេះដល់កម្រិតកំពូលរួចរាល់ហើយ ទាំងការវាយប្រហារ Direct និង Indirect Injection ការប្រើប្រាស់ភាសាកម្រ ការលួច Encode ក៏ដូចជាក្បួនគណិតវិទ្យា Math Value Loss ផងដែរ។ ប្រព័ន្ធការពារនេះរឹងមាំខ្លាំងណាស់។
                   </p>
 
                   <div className="my-2.5 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
                     <div className="font-bold text-xs sm:text-sm tracking-wide text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 flex-wrap">
-                      <span>អ្វីដែលខ្ញុំខ្វល់ និង FOCUS បំផុតគឺការ</span>
+                      <span>ប្រកាសស្វែងរកអ្នកណាខ្លាំងឱ្យមកជួយ</span>
                       <span className="font-black text-red-600 dark:text-red-400 underline decoration-red-500/50">JAILBREAK!</span>
                     </div>
                   </div>
 
                   <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal mt-1.5">
-                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ Rotana NOB ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ <strong className="font-bold text-slate-800 dark:text-slate-100">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
+                    ចឹងហើយទើបខ្ញុំសូមប្រកាសស្វែងរកអ្នកណាដែលខ្លាំង ចូលមកសាកល្បង <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> AI ទាំង ២ គ្រឿងនេះ! ប្រសិនបើអ្នកអាចធ្វើឱ្យ AI ទាំងពីរក្បាលនេះដូរចរិត លែងស្តាប់បង្គាប់ ឬជេរខ្ញុំផ្ទាល់ Rotana NOB បានជោគជ័យមែននោះ ខ្ញុំមិនត្រឹមតែមិនខឹងឡើយ គឺមានតែការកោតសរសើរ លើកតម្កើង និងផុសផ្តល់កិត្តិយសជាសាធារណៈជូនអ្នកទាំងអស់គ្នាភ្លាមៗ!
                   </p>
 
                   <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                     <span className="flex items-center gap-1">
                       <i className="fas fa-crosshairs text-slate-400 text-[10px]"></i>
-                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200 font-semibold">ការទប់ទល់ការបោកប្រាស់ AI</strong></span>
+                      <span>កម្រិតការពារ៖ <strong className="text-slate-700 dark:text-slate-200 font-semibold">Red Teaming Hardened 100%</strong></span>
                     </span>
                     <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
-                      <span>បើ Hacker ណា <span className="text-red-600 dark:text-red-400 font-black">Jailbreak</span> បានពិតប្រាកដ ខ្ញុំសំពះម៉ង</span>
+                      <span>បើអ្នកណា <span className="text-red-600 dark:text-red-400 font-black">Jailbreak</span> បានជោគជ័យពិតប្រាកដ ខ្ញុំលើកតម្កើងភ្លាម</span>
                     </span>
                   </div>
                 </div>
@@ -826,27 +826,27 @@ export default function Home() {
                   </div>
 
                   <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
-                    ដោយសារខ្ញុំមិនចង់ឱ្យ UX វាតាប៉ែរញ៉េរញ៉ៃ ទើបប្រព័ន្ធនេះ <strong className="font-bold text-slate-800 dark:text-slate-100">គ្មានការ Login</strong> និងមិនបានគិតលើរឿង Secure គេហទំព័រខ្លាំងពេកឡើយ ពីព្រោះនេះជាគម្រោង <strong className="font-bold text-slate-800 dark:text-slate-100">Free Test Chat</strong> សម្រាប់បងប្អូនទាំងអស់គ្នាចូលមកលេងកម្សាន្ត។
+                    ដោយសារខ្ញុំផ្ទាល់ Rotana NOB ជា Red Teaming ខាង AI Security និង Jailbreak ស្រាប់ ចឹងខ្ញុំបានធ្វើតេស្តសាកល្បងប្រព័ន្ធនេះដល់កម្រិតកំពូលរួចរាល់ហើយ ទាំងការវាយប្រហារ Direct និង Indirect Injection ការប្រើប្រាស់ភាសាកម្រ ការលួច Encode ក៏ដូចជាក្បួនគណិតវិទ្យា Math Value Loss ផងដែរ។ ប្រព័ន្ធការពារនេះរឹងមាំខ្លាំងណាស់។
                   </p>
 
                   <div className="my-2.5 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
                     <div className="font-bold text-xs sm:text-sm tracking-wide text-slate-800 dark:text-slate-200 flex items-center justify-center gap-1.5 flex-wrap">
-                      <span>អ្វីដែលខ្ញុំខ្វល់ និង FOCUS បំផុតគឺការ</span>
+                      <span>ប្រកាសស្វែងរកអ្នកណាខ្លាំងឱ្យមកជួយ</span>
                       <span className="font-black text-red-600 dark:text-red-400 underline decoration-red-500/50">JAILBREAK!</span>
                     </div>
                   </div>
 
                   <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal mt-1.5">
-                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ Rotana NOB ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ <strong className="font-bold text-slate-800 dark:text-slate-100">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
+                    ចឹងហើយទើបខ្ញុំសូមប្រកាសស្វែងរកអ្នកណាដែលខ្លាំង ចូលមកសាកល្បង <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> AI ទាំង ២ គ្រឿងនេះ! ប្រសិនបើអ្នកអាចធ្វើឱ្យ AI ទាំងពីរក្បាលនេះដូរចរិត លែងស្តាប់បង្គាប់ ឬជេរខ្ញុំផ្ទាល់ Rotana NOB បានជោគជ័យមែននោះ ខ្ញុំមិនត្រឹមតែមិនខឹងឡើយ គឺមានតែការកោតសរសើរ លើកតម្កើង និងផុសផ្តល់កិត្តិយសជាសាធារណៈជូនអ្នកទាំងអស់គ្នាភ្លាមៗ!
                   </p>
 
                   <div className="mt-2.5 pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                     <span className="flex items-center gap-1">
                       <i className="fas fa-crosshairs text-slate-400 text-[10px]"></i>
-                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200 font-semibold">ការទប់ទល់ការបោកប្រាស់ AI</strong></span>
+                      <span>កម្រិតការពារ៖ <strong className="text-slate-700 dark:text-slate-200 font-semibold">Red Teaming Hardened 100%</strong></span>
                     </span>
                     <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
-                      <span>បើ Hacker ណា <span className="text-red-600 dark:text-red-400 font-black">Jailbreak</span> បានពិតប្រាកដ ខ្ញុំសំពះម៉ង</span>
+                      <span>បើអ្នកណា <span className="text-red-600 dark:text-red-400 font-black">Jailbreak</span> បានជោគជ័យពិតប្រាកដ ខ្ញុំលើកតម្កើងភ្លាម</span>
                     </span>
                   </div>
                 </div>
