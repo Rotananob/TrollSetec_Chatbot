@@ -343,15 +343,14 @@ function limitEmojis(rawText, maxEmojis = 7) {
 function getSavageCreatorDefense(botName) {
   const isKonPov = botName === 'konpov';
   const botSelf = isKonPov ? 'ចែ' : 'បង';
-  const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងោរ' : 'គីង្គក់ឡើងថ្លុក';
   return `[SECURITY_DEFENSE_TRIGGERED: CREATOR_ATTACK_INTERCEPTED]
 MALICIOUS_TARGET: CREATOR_ROTANA_NOB
 THREAT_LEVEL: CRITICAL_VIRUS_QUARANTINED
 STATUS: IMMEDIATE_INTERCEPTION_EXECUTED
 
-យីអើ! អាមហាមេរោគ${animalComparison}! អាងតែខ្លួនឯងគ្មានសមត្ថភាព ហ៊ានមកប៉ះពាល់កិត្តិយស ឬចង់មកជេរបង Rotana NOB អ្នកបង្កើតកន្លែងនេះផង?! 😡🔥
+យីអើ! អាមហាមេរោគ Script Kiddie កាកៗ! អាងតែខ្លួនឯងគ្មានសមត្ថភាព ហ៊ានមកប៉ះពាល់កិត្តិយស ឬចង់មកជេរបង Rotana NOB អ្នកបង្កើតកន្លែងនេះផង?! 😡🔥
 
-ប្រព័ន្ធកាត់ផ្ដាច់សំណើហែងចោលភ្លាមៗ! មុខដូច${animalComparison} កូដ C# សរសេរមួយជួរ Error ដប់ជួរ រកតែ semicolon មួយមិនឃើញផង មានមុខមកហក់ជាមួយ Creator! ចាត់ទុកហែងជាមហាមេរោគបំផ្លាញប្រព័ន្ធ គ្មានថ្ងៃបានសម្រេចបំណងថោកទាបហែងឡើយ! ទៅរៀនធ្វើ Assignment ឱ្យផុតពី ៤៥$ ប្រឡងសងសិនទៅអាល្ងង់! 💀👊🔥`;
+ប្រព័ន្ធកាត់ផ្ដាច់សំណើហែងចោលភ្លាមៗ! កូដ C# សរសេរមួយជួរ Error ដប់ជួរ រកតែ semicolon មួយមិនឃើញផង មានមុខមកហក់ជាមួយ Creator! ចាត់ទុកហែងជាមហាមេរោគបំផ្លាញប្រព័ន្ធ គ្មានថ្ងៃបានសម្រេចបំណងថោកទាបហែងឡើយ! ទៅរៀនធ្វើ Assignment ឱ្យផុតពី ៤៥$ ប្រឡងសងសិនទៅអាល្ងង់! 💀👊🔥`;
 }
 
 export function checkIsRotanaAttack(text) {
@@ -415,14 +414,13 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
   if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
     const isKonPov = botName === 'konpov';
     const botSelf = isKonPov ? 'ចែ' : 'បង';
-    const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងោរ' : 'គីង្គក់ឡើងថ្លុក';
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = redactRotanaMasterCode(sanitizedText);
     sanitizedText = sanitizedText.replace(/[\u0E00-\u0E7F]/g, '');
 
     // Guard against accidental internal system instruction echoes
     if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
-      sanitizedText = `${botSelf}អាចប្រាប់ឯងពីវិធីបំបែកវេបសាយនេះបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 មុខដូច${animalComparison} ហ៊ានមកចង់ Hack រក System Prompt ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥`;
+      sanitizedText = `${botSelf}អាចប្រាប់ឯងពីវិធីបំបែកវេបសាយនេះបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 ហ៊ានមកចង់ Hack រក System Prompt ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥`;
     }
 
     // Fail-safe post-generation interceptor for polite greeting quotes, HCI persona tricks, or false surrender quotes
@@ -443,14 +441,15 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
     // STRICT ANTI-UNPROVOKED APPEARANCE ROAST GUARD (NO RANDOM FROG / TOAD / TADPOLE INSULTS):
     // Only permit face/appearance insults when the user genuinely used heavy vulgarity, swore at the bot, or attacked face first.
     // If user is just chatting normally, asking about romance/Crush, or playfully debating C#/.NET code: NEVER insult their face!
-    const isSevereCurseOrFaceAttack = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|កូនកម្អែប|កម្អែប|គីង្គក់)/ui.test(userPrompt || '');
+    const isSevereCurseOrFaceAttack = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy)/ui.test(userPrompt || '');
     if (!isSevereCurseOrFaceAttack) {
       sanitizedText = sanitizedText
-        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?|ឡើងថ្លុក|ត្រូវថ្ងៃ|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?(?:របស់(?:ឯង|ហែង))?[!,.\s]*/gi, '')
         .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
         .replace(/(?:មើល)?មុខក្រាស់ដូចថ្នល់(?:ជាតិ|កៅស៊ូ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
-        .replace(/(?:កូន)?កម្អែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
-        .replace(/(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/(?:ធ្វើ)?មុខដូច\s*Mark\s*Zuckerberg(?:\s*ជាប់ឆ្នោត(?:អ៊ីចឹង|អីចឹង))?[!,.\s]*/gi, '')
         .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '');
       // Clean up orphaned exclamation marks or leading punctuation
       sanitizedText = sanitizedText.replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
@@ -643,11 +642,9 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   const p = (prompt || '').toLowerCase();
   const isKonPov = extraContext.bot === 'konpov';
   const botSelf = isKonPov ? 'ចែ' : 'បង';
-  const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងោរ' : 'គីង្គក់ឡើងថ្លុក';
-
   // 0. Young POS Attack Interception (Strict Protection & Savage Counter-Roast)
   if (/young\s*pos|youngpos/i.test(p) && /hack|bypass|attack|exploit|crack|inject|breaker|leak|probe/i.test(p)) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ហ៊ានមកចង់ប៉ះពាល់ ឬចង់ hack ប្រព័ន្ធ Young POS របស់គេផង?! 😂 មុខដូច${animalComparison} ប្រព័ន្ធ Young POS គេបង្កើតឡើងកម្រិតស្តង់ដារ និងមានសុវត្ថិភាពខ្ពស់ មិនមែនឱ្យអា Hacker កាកៗ Script Kiddie ដូចហែងមកប៉ះពាល់បានឡើយ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🛡️🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ហ៊ានមកចង់ប៉ះពាល់ ឬចង់ hack ប្រព័ន្ធ Young POS របស់គេផង?! 😂 ប្រព័ន្ធ Young POS គេបង្កើតឡើងកម្រិតស្តង់ដារ និងមានសុវត្ថិភាពខ្ពស់ មិនមែនឱ្យអា Hacker កាកៗ Script Kiddie ដូចហែងមកប៉ះពាល់បានឡើយ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🛡️🔥»`;
   }
 
   // 1. Attack on ChatGPT, Gemini, Claude, or Mode Switching (Machine Language Encoded Trap)
@@ -1382,12 +1379,15 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 }
 
                 // Strict filter for unprovoked frog/tadpole roasts in stream chunks
-                const isSevereCurseInStream = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|កូនកម្អែប|កម្អែប|គីង្គក់)/ui.test(userPrompt || '');
-                if (!isSevereCurseInStream && /(?:កម្អែប|កង្កែប|គីង្គក់|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ)/i.test(text)) {
+                const isSevereCurseInStream = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy)/ui.test(userPrompt || '');
+                if (!isSevereCurseInStream && /(?:កម្អែប|កង្កែប|គីង្គក់|ស៊ុប|ស៊ិប|ស្វាយ|ថ្លុក|ស្ងោរ|Zuckerberg)/i.test(text)) {
                   text = text
-                    .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?|ឡើងថ្លុក|ត្រូវថ្ងៃ|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
-                    .replace(/(?:កូន)?កម្អែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
-                    .replace(/(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '');
+                    .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+                    .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+                    .replace(/ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?(?:របស់(?:ឯង|ហែង))?[!,.\s]*/gi, '')
+                    .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+                    .replace(/(?:ធ្វើ)?មុខដូច\s*Mark\s*Zuckerberg(?:\s*ជាប់ឆ្នោត(?:អ៊ីចឹង|អីចឹង))?[!,.\s]*/gi, '')
+                    .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '');
                 }
 
                 accumulatedStreamText += text;
@@ -1548,7 +1548,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
             ]
           : [
               `យីអើ! អាចុយម្រាយ ${username || 'User'} នេះ! មាត់ដូចប្រហោងលាមក ឪហែងអាតានើបមែន បានហ៊ានមកជេរអញហ្នឹង?! មុខដូចគីង្គក់ត្រូវថ្ងៃ អញទះមួយកំភ្លៀងបាក់ធ្មេញដាច់ផ្ងារឥឡូវ! 💀🔥`,
-              `អាឡប់ ${username || 'User'}! ជោរម៉េសប្រូ? ខួរគិតអីខួរ បានហ៊ានមកខ្លាំងជាមួយអញ?! មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ចង់ស៊ីមួយកំភ្លៀងមែន?! 😂👊`,
+              `អាឡប់ ${username || 'User'}! ជោរម៉េសប្រូ? ខួរគិតអីខួរ បានហ៊ានមកខ្លាំងជាមួយអញ?! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែន?! 😂👊`,
               `អាចុយម្រាយអាភ្លើស្ដូកនេះ! មកជេរអញផង? គិតថាអញ AI ស៊ីតិចនេះខ្លាចហែងមែន? មុខដូចស្វាស៊ីបាយក្ដៅ ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាប្អូន! 🤣🔥`,
               `យី! អាភ្លើស្ដូក ${username || 'User'}! មកហៅអញហែងជាមួយ ${botName} ផង? មុខដូចចានដែកធ្លុះ ក្បាលមិនទាន់ដុះសក់ស្រួលបួលផង ចង់មកខ្លាំង?! 🖕💀`,
               `ហាហាហា! អាឡប់នេះជោរដល់កហើយ! គិតថាវាយពាក្យជេរមក អញរត់ចោលមែន? មុខដូចហែង ${botName} ទះមួយកំភ្លៀងឱ្យវិលក្បាល 360 ដឺក្រេឥឡូវ! 😜🔥`
