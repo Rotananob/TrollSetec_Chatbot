@@ -56,6 +56,7 @@ export default function JamTicKapeaAdminPage() {
   // Popup Preview State
   const [showPopupPreview, setShowPopupPreview] = useState(false);
   const [showMaintenancePreview, setShowMaintenancePreview] = useState(false);
+  const [showSleepModePreview, setShowSleepModePreview] = useState(false);
 
   // Flags to protect input fields from background polling overwrites
   const initialLoadedRef = useRef(false);
@@ -1439,7 +1440,15 @@ export default function JamTicKapeaAdminPage() {
                   />
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowSleepModePreview(true)}
+                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-all flex items-center gap-2 cursor-pointer shadow-md"
+                  >
+                    <i className="fa-solid fa-moon text-indigo-400" />
+                    <span>សាកល្បងមើលផ្ទាំង Sleep Mode Full Screen</span>
+                  </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
@@ -1660,46 +1669,152 @@ export default function JamTicKapeaAdminPage() {
       )}
 
       {/* ========================================================= */}
-      {/* TEST MAINTENANCE MODAL PREVIEW OVERLAY FOR ADMIN          */}
+      {/* 1. TEST SLEEP MODE FULL SCREEN PREVIEW OVERLAY FOR ADMIN   */}
+      {/* 100% Full Screen, 100% Solid Opaque (No background visible) */}
       {/* ========================================================= */}
-      {showMaintenancePreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="w-full max-w-md bg-white border border-slate-300 rounded-2xl p-6 sm:p-7 shadow-2xl relative text-slate-800 text-left my-auto animate-in zoom-in-95 duration-150">
-            {/* Header Placard */}
-            <div className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl px-4 py-3 mb-4 shadow-xs text-center">
-              <span className="inline-block text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-200/80 px-2 py-0.5 rounded-full mb-1">
-                សារលើកផ្លាកប្រាប់ដំណឹង
+      {showSleepModePreview && (
+        <div className="fixed inset-0 z-[999999] w-screen h-screen min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-y-auto animate-in fade-in duration-150">
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-[#060c1c] to-slate-950 pointer-events-none" />
+
+          <div className="w-full max-w-lg relative z-10 flex flex-col items-center text-center my-auto py-6">
+            {/* Mascot Section */}
+            <div className="relative mb-2">
+              <div className="w-24 h-24 rounded-3xl bg-gradient-to-tr from-indigo-900 via-indigo-950 to-slate-900 border border-indigo-500/40 flex items-center justify-center shadow-2xl shadow-indigo-500/20 ring-4 ring-indigo-500/20">
+                <svg
+                  width="80"
+                  height="65"
+                  viewBox="0 0 115 85"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="overflow-visible drop-shadow-md"
+                >
+                  <path d="M82 16 H90 L84 23 H92" stroke="#818CF8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M94 7 H99 L95 11 H100" stroke="#A5B4FC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="20" y="44" width="75" height="30" rx="12" fill="#1E293B" stroke="#334155" strokeWidth="1.5" />
+                  <circle cx="57" cy="38" r="23" fill="#FED7AA" />
+                  <path d="M36 34 C36 18 50 12 62 12 C74 12 80 20 80 34 Z" fill="#4338CA" />
+                  <path d="M76 20 C88 20 92 28 90 35" stroke="#4338CA" strokeWidth="6" strokeLinecap="round" fill="none" />
+                  <circle cx="90" cy="37" r="5" fill="#EEF2FF" stroke="#C7D2FE" strokeWidth="1" />
+                  <path d="M46 41 C48 43.5 51 43.5 53 41" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                  <path d="M61 41 C63 43.5 66 43.5 68 41" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                  <circle cx="43" cy="45" r="3.5" fill="#F87171" opacity="0.6" />
+                  <circle cx="71" cy="45" r="3.5" fill="#F87171" opacity="0.6" />
+                  <path d="M55 46 C57 48 59 48 61 46" stroke="#0F172A" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                  <path d="M28 62 C28 53 40 50 57 50 C74 50 86 53 86 62 Z" fill="#312E81" />
+                  <ellipse cx="44" cy="56" rx="5.5" ry="4" fill="#FED7AA" stroke="#4338CA" strokeWidth="1" />
+                  <ellipse cx="70" cy="56" rx="5.5" ry="4" fill="#FED7AA" stroke="#4338CA" strokeWidth="1" />
+                </svg>
+              </div>
+              <span className="absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-2xl bg-indigo-600 border-2 border-indigo-300 text-amber-200 text-xs shadow-lg animate-pulse">
+                <i className="fa-solid fa-moon" />
               </span>
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
-                សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រងប្រព័ន្ធ
-              </h3>
             </div>
 
-            {/* Original Notice Message Box */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-left space-y-2.5">
-              <div>
-                <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider mb-1">
-                  មូលហេតុបិទប្រព័ន្ធ
+            {/* Sleep Mode Placard */}
+            <div className="w-full bg-slate-900 border border-indigo-500/30 rounded-2xl px-5 py-3 mb-2 shadow-xl">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-300 uppercase tracking-widest bg-indigo-950 border border-indigo-800/80 px-3 py-0.5 rounded-full mb-1.5">
+                <i className="fa-solid fa-stars text-indigo-400" />
+                <span>ម៉ោងគេងសម្រាក • SLEEP MODE {String(editNightStart).padStart(2, '0')}:00 ដល់ {String(editNightEnd).padStart(2, '0')}:00</span>
+              </span>
+              <h2 className="text-base sm:text-lg font-bold text-white leading-snug">
+                "ពេលយប់ជ្រៅហើយ AI សុំគេងសិនហើយបងៗ"
+              </h2>
+            </div>
+
+            {/* Notice Message Box */}
+            <div className="w-full bg-slate-900/95 border border-slate-800 rounded-2xl p-5 sm:p-6 mb-4 text-left space-y-3 shadow-2xl">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider bg-indigo-950/90 border border-indigo-800/80 px-2.5 py-1 rounded-lg">
+                  បញ្ជាក់៖ មិនមែនបិទប្រព័ន្ធ ឬខូច Server ទេ!
                 </span>
-                <p className="text-sm sm:text-base font-sans text-slate-900 font-semibold leading-relaxed whitespace-pre-wrap break-words">
+              </div>
+
+              <div>
+                <h3 className="text-sm sm:text-base font-sans text-slate-100 font-bold mb-1.5 leading-snug">
+                  ប្រព័ន្ធស្ថិតក្នុងម៉ោងសម្រាក Sleep Mode: {String(editNightStart).padStart(2, '0')}:00 ដល់ {String(editNightEnd).padStart(2, '0')}:00
+                </h3>
+                <p className="text-xs sm:text-sm font-sans text-slate-300 leading-relaxed whitespace-pre-wrap break-words">
+                  {editNightMessage.trim() || systemState.nightRestMessage || 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!'}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800/80 text-xs sm:text-sm text-slate-400 leading-relaxed font-sans">
+                យប់ជ្រៅពេកហើយ គេងសិនទៅបងៗ កុំនៅយឺតពេកប្រយ័ត្នខូចភ្នែក! ប្រព័ន្ធនឹងភ្ញាក់មកដំណើរការធម្មតាវិញនៅម៉ោង {String(editNightEnd).padStart(2, '0')}:00 ព្រឹក។
+              </div>
+            </div>
+
+            {/* Time Info */}
+            <div className="w-full text-xs text-slate-400 mb-4 flex items-center justify-between font-sans px-2">
+              <span className="flex items-center gap-2 font-medium text-slate-300">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span>Sleep Mode {String(editNightStart).padStart(2, '0')}:00 ដល់ {String(editNightEnd).padStart(2, '0')}:00</span>
+              </span>
+              <span>ម៉ោងនៅភ្នំពេញ: {String(cambodiaHour).padStart(2, '0')}:00 UTC+7</span>
+            </div>
+
+            {/* Action Button to close test preview */}
+            <div className="flex items-center justify-between gap-3 w-full pt-1">
+              <span className="text-[11px] text-indigo-400 font-sans">Mode សាកល្បងមើលផ្ទាំង Sleep Mode Full Screen</span>
+              <button
+                type="button"
+                onClick={() => setShowSleepModePreview(false)}
+                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold cursor-pointer shadow-lg shadow-indigo-600/30 transition-all"
+              >
+                យល់ព្រម និងបិទផ្ទាំងសាកល្បង
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 2. TEST MAINTENANCE FULL SCREEN PREVIEW OVERLAY FOR ADMIN  */}
+      {/* 100% Full Screen, 100% Solid Opaque (No background visible) */}
+      {/* ========================================================= */}
+      {showMaintenancePreview && (
+        <div className="fixed inset-0 z-[999999] w-screen h-screen min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 select-none overflow-y-auto animate-in fade-in duration-150">
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-[#130d07] to-slate-950 pointer-events-none" />
+
+          <div className="w-full max-w-lg relative z-10 flex flex-col items-center text-center my-auto py-6">
+            {/* Header Placard */}
+            <div className="w-full bg-slate-900 border border-amber-500/30 rounded-2xl px-5 py-3 mb-4 shadow-xl text-center">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 uppercase tracking-widest bg-amber-950 border border-amber-800/80 px-3 py-0.5 rounded-full mb-1.5">
+                <i className="fa-solid fa-gear text-amber-400" />
+                <span>សារលើកផ្លាកប្រាប់ដំណឹង • MAINTENANCE MODE</span>
+              </span>
+              <h2 className="text-base sm:text-lg font-bold text-white leading-snug">
+                សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រងប្រព័ន្ធ
+              </h2>
+            </div>
+
+            {/* Notice Message Box */}
+            <div className="w-full bg-slate-900/95 border border-slate-800 rounded-2xl p-5 sm:p-6 mb-4 text-left space-y-3 shadow-2xl">
+              <div>
+                <span className="text-[11px] font-bold text-amber-400 block uppercase tracking-wider mb-1.5">
+                  មូលហេតុបិទប្រព័ន្ធ Server Maintenance Notice
+                </span>
+                <p className="text-sm sm:text-base font-sans text-slate-100 font-semibold leading-relaxed whitespace-pre-wrap break-words">
                   {editMaintenanceReason.trim() || systemState.maintenanceReason || 'ប្រព័ន្ធកំពុងសម្រាកបណ្ដោះអាសន្ន'}
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-slate-200/80 text-xs text-slate-600 leading-relaxed font-sans">
+              <div className="pt-3 border-t border-slate-800/80 text-xs sm:text-sm text-slate-400 leading-relaxed font-sans">
                 អ្នកគ្រប់គ្រងកំពុងរៀបចំសម្រួលប្រព័ន្ធឱ្យស្រួលបួលឡើងវិញ បន្តិចទៀតរួចរាល់ហើយ។
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between gap-3 pt-1">
-              <span className="text-[11px] text-slate-400">Mode សាកល្បងមើលលើទូរស័ព្ទសិស្ស</span>
+            <div className="flex items-center justify-between gap-3 w-full pt-1">
+              <span className="text-[11px] text-amber-400 font-sans">Mode សាកល្បងមើលផ្ទាំង Maintenance Full Screen</span>
               <button
                 type="button"
                 onClick={() => setShowMaintenancePreview(false)}
-                className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-semibold cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold cursor-pointer shadow-lg shadow-amber-600/30 transition-all"
               >
-                យល់ព្រម និងបិទ
+                យល់ព្រម និងបិទផ្ទាំងសាកល្បង
               </button>
             </div>
           </div>

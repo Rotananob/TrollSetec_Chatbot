@@ -1341,6 +1341,7 @@ export default function KonBongPage() {
         }
 
         if (response.status === 503) {
+          if (typeof window !== 'undefined') window.dispatchEvent(new Event('rotana_system_rest'));
           const errData = await response.json().catch(() => ({}));
           const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
           const isNight = errData?.mode === 'night_rest';
