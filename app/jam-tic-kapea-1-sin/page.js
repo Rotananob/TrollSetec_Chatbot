@@ -137,7 +137,7 @@ export default function JamTicKapeaAdminPage() {
             if (!isEditingBroadcastRef.current || forceSyncFields) {
               setEditBroadcastNotice(data.state.broadcastNotice || '');
             }
-            setEditNightStart(data.state.nightStartHour ?? 23);
+            setEditNightStart(data.state.nightStartHour ?? 2);
             setEditNightEnd(data.state.nightEndHour ?? 6);
             initialLoadedRef.current = true;
             if (forceSyncFields) {
@@ -262,7 +262,7 @@ export default function JamTicKapeaAdminPage() {
           setEditMaintenanceReason(data.state.maintenanceReason || '');
           setEditNightMessage(data.state.nightRestMessage || '');
           setEditBroadcastNotice(data.state.broadcastNotice || '');
-          setEditNightStart(data.state.nightStartHour ?? 23);
+          setEditNightStart(data.state.nightStartHour ?? 2);
           setEditNightEnd(data.state.nightEndHour ?? 6);
           initialLoadedRef.current = true;
         }
@@ -467,7 +467,11 @@ export default function JamTicKapeaAdminPage() {
   };
 
   // Current system resting calculation
-  const isCurrentlyNight = cambodiaHour >= (systemState.nightStartHour ?? 23) || cambodiaHour < (systemState.nightEndHour ?? 6);
+  const nightStartH = systemState.nightStartHour ?? 2;
+  const nightEndH = systemState.nightEndHour ?? 6;
+  const isCurrentlyNight = nightStartH > nightEndH
+    ? cambodiaHour >= nightStartH || cambodiaHour < nightEndH
+    : cambodiaHour >= nightStartH && cambodiaHour < nightEndH;
   const isEffectivelyResting = !systemState.serverOnline || systemState.maintenanceMode || (systemState.nightScheduleEnabled && isCurrentlyNight);
 
   // Authentication Card Screen
@@ -1461,7 +1465,7 @@ export default function JamTicKapeaAdminPage() {
                   <span>ស្វ័យប្រវត្តិនឹងបិទចរាចរណ៍សាធារណៈ</span>
                 </div>
                 <p className="text-slate-400">
-                  នៅពេលម៉ោងក្នុងប្រទេសកម្ពុជាឈានចូលដល់ {String(systemState.nightStartHour ?? 23).padStart(2, '0')}:00 ប្រព័ន្ធនឹងដាក់ AI ឱ្យសម្រាកគេងរហូតដល់ម៉ោង {String(systemState.nightEndHour ?? 6).padStart(2, '0')}:00 ព្រឹក។
+                  នៅពេលម៉ោងក្នុងប្រទេសកម្ពុជាឈានចូលដល់ {String(systemState.nightStartHour ?? 2).padStart(2, '0')}:00 ប្រព័ន្ធនឹងដាក់ AI ឱ្យសម្រាកគេង (Sleep Mode) រហូតដល់ម៉ោង {String(systemState.nightEndHour ?? 6).padStart(2, '0')}:00 ព្រឹក។
                 </p>
               </div>
 

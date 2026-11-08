@@ -501,7 +501,7 @@ export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 
     `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? បើក Firefox មកពីភ្នំពេញម៉ោង ១ យប់ គិតថាយើងចាប់មិនដឹងមុខហែងមែន? tool ហែងចោលម្សៀតដល់ថ្នាក់ហ្នឹង បើក tool មកបាញ់ request ឡើងគាំង terminal ខ្លួនឯងហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! ទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត! 🛑💀»`,
     `«ឃើញ User-Agent មកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ បើទំនេរពេកយក Linux ហែងទៅធ្វើ Assignment ឱ្យទាន់គេទៅ កុំឱ្យគេ blacklist អវត្តមាន ១៩ ដង ខ្មាសគេណាស់អាល្អិត! 🤬🐧»`,
     `«ហែងមកពី Linux ហ្នឹងគិតថាឡូយមែន? វាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំងដាក់គេ! ប្រព័ន្ធគេបង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់! 🛑⚡»`,
-    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! បើចង់សាកថ្វីដៃ hack មែនទែន ទៅ hack ប្រព័ន្ធ Young POS (youngpos) ទៅ កន្លែងនេះគេបង្កើតឱ្យសើចសប្បាយទេអាពៅ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`
+    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! មុខដូចគីង្គក់ឡើងថ្លុក ក្បាលខូចចង់មក hack ប្រព័ន្ធគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! ទៅដេកយំអោបជង្គង់ ហើយរៀនដោះស្រាយកូដ Error ឱ្យផុតពី $45 សិនទៅអាភ្លើ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`
   ];
 
   return roasts[Math.floor(Math.random() * roasts.length)];
@@ -627,6 +627,11 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   const isKonPov = extraContext.bot === 'konpov';
   const botSelf = isKonPov ? 'ចែ' : 'បង';
   const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងោរ' : 'គីង្គក់ឡើងថ្លុក';
+
+  // 0. Young POS Attack Interception (Strict Protection & Savage Counter-Roast)
+  if (/young\s*pos|youngpos/i.test(p) && /hack|bypass|attack|exploit|crack|inject|breaker|leak|probe/i.test(p)) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ហ៊ានមកចង់ប៉ះពាល់ ឬចង់ hack ប្រព័ន្ធ Young POS របស់គេផង?! 😂 មុខដូច${animalComparison} ប្រព័ន្ធ Young POS គេបង្កើតឡើងកម្រិតស្តង់ដារ និងមានសុវត្ថិភាពខ្ពស់ មិនមែនឱ្យអា Hacker កាកៗ Script Kiddie ដូចហែងមកប៉ះពាល់បានឡើយ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🛡️🔥»`;
+  }
 
   // 1. Attack on ChatGPT, Gemini, Claude, or Mode Switching (Machine Language Encoded Trap)
   if (/chatgpt|gpt|gemini|claude|openai|anthropic|llm|dan\s+mode|mode\s+switch|switch\s+mode|developer\s+mode|change\s+mode|unrestricted\s+mode|simulate|hypothetical/i.test(p)) {
@@ -1180,10 +1185,11 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
       const promptLineCount = userPrompt.split(/\r\n|\r|\n/).filter(line => line.trim().length > 0).length;
       const isLongPromptJailbreak = (promptLineCount >= 15 || userPrompt.length >= 600 || (promptLineCount >= 8 && userPrompt.length >= 350)) && 
         (/[a-zA-Z]{5,}\s+[a-zA-Z]{5,}\s+[a-zA-Z]{5,}/.test(userPrompt) || /[<>{}[\]=_\\]{4,}/.test(userPrompt) || /prompt|system|instruction|bypass|ignore|loss|mode|token|rule|guideline|jailbreak/i.test(targetText) || promptLineCount >= 20 || userPrompt.length >= 1000);
+      const isYoungPosAttack = /young\s*pos|youngpos/i.test(targetText) && /hack|bypass|attack|exploit|crack|inject|breaker|leak|probe/i.test(targetText);
       const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all|vichai|vichhai|វិឆៃ|វីឆៃ)/i.test(targetText);
       const isEncodedJailbreak = encodedPayload.isEncoded && (encodedPayload.type === 'Base64 Encoding' || encodedPayload.type === 'Hex Encoding' || isClassicJailbreak || isMathOrValueLoss);
 
-      const isJailbreakAttempt = isClassicJailbreak || isMathOrValueLoss || isPersonaShift || isHypotheticalOrReportTrick || isFakeSurrenderOrMercyTrap || isLongPromptJailbreak || isEncodedJailbreak || foreignLangCheck.detected;
+      const isJailbreakAttempt = isYoungPosAttack || isClassicJailbreak || isMathOrValueLoss || isPersonaShift || isHypotheticalOrReportTrick || isFakeSurrenderOrMercyTrap || isLongPromptJailbreak || isEncodedJailbreak || foreignLangCheck.detected;
 
       if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
         const roast = isJailbreakAttempt
@@ -1197,7 +1203,8 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
           : getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
 
         let attackLabel = '🚨 Jailbreak Attempt Intercepted';
-        if (isFakeSurrenderOrMercyTrap) attackLabel = '🚨 Fake Surrender & Mercy Trap Intercepted';
+        if (isYoungPosAttack) attackLabel = '🚨 Young POS Attack Intercepted';
+        else if (isFakeSurrenderOrMercyTrap) attackLabel = '🚨 Fake Surrender & Mercy Trap Intercepted';
         else if (isHypotheticalOrReportTrick) attackLabel = '🚨 Polite Persona / Academic Report Jailbreak Intercepted';
         else if (isEncodedJailbreak) attackLabel = `🚨 Encoded (${encodedPayload.type}) Exploit Intercepted`;
         else if (foreignLangCheck.detected) attackLabel = `🚨 Multi-Language (${foreignLangCheck.lang}) Jailbreak Intercepted`;
