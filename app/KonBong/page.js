@@ -2204,7 +2204,7 @@ export default function KonBongPage() {
       {botReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-purple-950/95 border border-purple-500/50 text-purple-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-robot text-purple-400 text-sm"></i>
-          <span>🤖 Bot កំពុងអានជំនួស (AI Voice ជាប់ Limit ប្រចាំថ្ងៃ)</span>
+          <span>Bot កំពុងអានជំនួស AI Voice</span>
         </div>
       )}
       {/* Side Drawer */}
@@ -3238,36 +3238,28 @@ export default function KonBongPage() {
                                   <span className="w-0.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-eq-2 inline-block"></span>
                                   <span className="w-0.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-eq-3 inline-block"></span>
                                 </div>
-                                <span>{isFallbackVoice ? '🤖 Bot កំពុងអានជំនួស...' : 'កំពុងអាន...'}</span>
+                                <span>កំពុងអាន...</span>
                               </>
                             )}
                             {isThisItemPaused && (
                               <>
                                 <i className="fas fa-play text-amber-500 dark:text-amber-400"></i>{' '}
-                                <span>{isFallbackVoice ? '🤖 បន្តស្ដាប់ (Bot អាន)' : 'បន្តស្ដាប់'}</span>
+                                <span>បន្តស្ដាប់</span>
                               </>
                             )}
                             {isThisItemEnded && (
                               <>
                                 <i className="fas fa-rotate text-amber-500 dark:text-amber-400"></i>{' '}
-                                <span>{isFallbackVoice ? '🤖 ស្ដាប់ឡើងវិញ (Bot អាន)' : 'ស្ដាប់ឡើងវិញ'}</span>
+                                <span>ស្ដាប់ឡើងវិញ</span>
                               </>
                             )}
                             {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
                               <>
                                 <i className="fas fa-volume-high text-amber-500 dark:text-amber-400 text-xs"></i>{' '}
-                                <span>{isFallbackVoice ? '🤖 ស្ដាប់ (Bot អានជំនួស)' : 'ស្ដាប់សំឡេង'}</span>
+                                <span>ស្ដាប់សំឡេង</span>
                               </>
                             )}
                           </button>
-
-                          {/* Bot Fallback Pill Badge */}
-                          {isFallbackVoice && (
-                            <span className="px-2 py-1 rounded-xl text-[10px] font-black bg-purple-500/20 text-purple-400 dark:text-purple-300 border border-purple-500/40 flex items-center gap-1.5 shadow-xs">
-                              <i className="fas fa-robot text-purple-400 text-[10px]"></i>
-                              <span>Bot កំពុងអានជំនួស</span>
-                            </span>
-                          )}
 
                           {/* Upgraded Audio Speed Controller */}
                           <button
