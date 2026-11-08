@@ -86,4 +86,16 @@ if (fs.existsSync(path.join(serverAppDir, '_not-found.html'))) {
   fs.copyFileSync(path.join(serverAppDir, '_not-found.html'), path.join(outDir, '404.html'));
 }
 
+// 5. Generate version.json for Real-Time PWA Auto-Update Detection
+const buildTime = Date.now();
+const versionData = JSON.stringify({
+  version: '1.0.' + Math.floor(buildTime / 1000),
+  buildTime,
+  date: new Date().toISOString()
+}, null, 2);
+
+fs.writeFileSync(path.join(publicDir, 'version.json'), versionData);
+fs.writeFileSync(path.join(outDir, 'version.json'), versionData);
+console.log('📌 Generated version.json with build timestamp:', buildTime);
+
 console.log('✅ Firebase distribution successfully prepared in dist-firebase/');

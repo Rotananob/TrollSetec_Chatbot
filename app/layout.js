@@ -1,6 +1,7 @@
 import Script from 'next/script';
 import VisitorTracker from '../components/VisitorTracker';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
+import PwaUpdatePrompt from '../components/PwaUpdatePrompt';
 import SystemBroadcast from '../components/SystemBroadcast';
 import './globals.css';
 
@@ -82,30 +83,16 @@ export default function RootLayout({ children }) {
       <body className="antialiased selection:bg-indigo-500 selection:text-white">
         <VisitorTracker />
         <PwaInstallPrompt />
+        <PwaUpdatePrompt />
         <SystemBroadcast />
         {children}
-        {/* Service Worker Registration & Stale PWA Cache Auto-Purge */}
+        {/* Service Worker Registration */}
         <Script id="service-worker-register" strategy="afterInteractive">
           {`
-            if (typeof window !== 'undefined') {
-              // 1. Purge legacy Service Worker CacheStorage immediately
-              if ('caches' in window) {
-                window.caches.keys().then(function(names) {
-                  names.forEach(function(name) {
-                    window.caches.delete(name);
-                  });
-                }).catch(function() {});
-              }
-              // 2. Register Service Worker with auto-update
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(reg) {
-                    if (reg && reg.update) {
-                      reg.update().catch(function() {});
-                    }
-                  }).catch(function() {});
-                });
-              }
+            if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function() {});
+              });
             }
           `}
         </Script>

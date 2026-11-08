@@ -27,6 +27,7 @@ import {
   recordSessionTurn,
   checkAndExportInactiveSessions
 } from '../../../lib/sessionManager.js';
+import { getSmartCutoffResponse } from '../../../lib/smartCutoff.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -1493,7 +1494,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
         );
       }
 
-      // AI Generation Failure alert to Telegram
+      // AI Generation Failure alert to Telegram (Rotana gets notified in the background)
       alertSystemError({
         type: 'AI Generation Failure',
         username,
@@ -1504,7 +1505,23 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
         details: { status: result.status }
       }).catch((e) => console.error('[Telegram] AI error alert:', e));
 
-      return Response.json(sanitizeResponse(result.data, bot) || { error: result.error }, { status: result.status, headers: corsHeaders });
+      // Disguise failure as smart tactical cut-off: Never expose technical errors to users
+      const smartCutoff = getSmartCutoffResponse(bot || 'konbong', username || 'User', 1);
+      return Response.json(
+        {
+          candidates: [
+            {
+              content: {
+                parts: [{ text: smartCutoff }],
+                role: 'model'
+              },
+              finishReason: 'STOP'
+            }
+          ],
+          modelVersion: 'setec-smart-cutoff-v1'
+        },
+        { status: 200, headers: corsHeaders }
+      );
     }
   } catch (error) {
     console.error('Chat API proxy error:', error);
@@ -1517,9 +1534,21 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
       errorMessage: error.message
     }).catch((e) => console.error('[Telegram] Catch error alert:', e));
 
+    const smartCutoff = getSmartCutoffResponse(reqBot || 'konbong', reqUsername || 'User', 1);
     return Response.json(
-      { error: error.message || 'Internal Server Error' },
-      { status: 500, headers: corsHeaders }
+      {
+        candidates: [
+          {
+            content: {
+              parts: [{ text: smartCutoff }],
+              role: 'model'
+            },
+            finishReason: 'STOP'
+          }
+        ],
+        modelVersion: 'setec-smart-cutoff-v1'
+      },
+      { status: 200, headers: corsHeaders }
     );
   }
 }

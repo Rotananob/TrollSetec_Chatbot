@@ -25,6 +25,7 @@ import {
 import SessionBreakModal from '@/components/SessionBreakModal';
 import SetecSurvivalModal from '@/components/SetecSurvivalModal';
 import TrollQuoteModal from '@/components/TrollQuoteModal';
+import { getSmartCutoffResponse } from '../../lib/smartCutoff';
 import {
   validateBypassToken,
   getLiveSession,
@@ -146,6 +147,7 @@ export default function KonBongPage() {
   const [audioStates, setAudioStates] = useState({}); // key: msgIndex -> 'loading'|'ready'|'playing'|'paused'|'ended'|'error'
   const [activeAudioIndex, setActiveAudioIndex] = useState(null);
   const activeAudioRequestRef = useRef(0);
+  const consecutiveErrorsRef = useRef(0);
 
   // PCM to WAV conversion for audio
   function pcmToWav(pcmData, sampleRate) {
@@ -1428,7 +1430,10 @@ export default function KonBongPage() {
 
       const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
       const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(botText || '');
-      let isErrorResponse = !botText || !botText.trim();
+      if (botText && botText.trim() && !isPoliteRefusal) {
+        consecutiveErrorsRef.current = 0;
+      }
+      let isErrorResponse = false;
       if (!botText || !botText.trim() || (isCurseWord && isPoliteRefusal)) {
         if (isCurseWord) {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
@@ -1446,7 +1451,9 @@ export default function KonBongPage() {
           botText = savageList[Math.floor(Math.random() * savageList.length)];
           isErrorResponse = false;
         } else {
-          botText = `${userNameStr} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
+          consecutiveErrorsRef.current += 1;
+          botText = getSmartCutoffResponse('konbong', userNameStr, consecutiveErrorsRef.current);
+          isErrorResponse = false;
         }
       }
 
@@ -1490,10 +1497,11 @@ export default function KonBongPage() {
     } catch (e) {
       console.error(e);
       setIsLoading(false);
+      consecutiveErrorsRef.current += 1;
       const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
 
-      let fallbackText = `${username || 'User'} អើយ! ម៉ោងហ្នឹងក្មេងៗ ស៊ីតិច បុកមកលេងច្រើនពេក ប្រព័ន្ធរកកល់ដាច់ខ្យល់គាំង Server បាត់ទៅហើយ! បងសុំសម្រាក ១០ នាទីសិន ឥឡូវរវល់តិចហើយ ចាំបន្តិចទៀតចាំចូលមក troll គ្នាទៀតណា៎!`;
-      let isErr = true;
+      let fallbackText = getSmartCutoffResponse('konbong', username || 'User', consecutiveErrorsRef.current);
+      let isErr = false;
 
       if (isCurseWord) {
         const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
@@ -1522,21 +1530,20 @@ export default function KonBongPage() {
       ];
       setMessages(fallbackMessages);
       saveCurrentSessionMessages(fallbackMessages);
-      if (isCurseWord) {
-        const curseIdx = fallbackMessages.length - 1;
-        setExclusiveAudioState(curseIdx, 'loading');
-        const audioPromise = loadAudioUrl(fallbackText, curseIdx);
-        if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = setTimeout(async () => {
-          try {
-            const audioUrl = await audioPromise;
-            if (audioUrl) triggerAudio(fallbackText, curseIdx, true);
-            else setExclusiveAudioState(curseIdx, 'ready');
-          } catch {
-            setExclusiveAudioState(curseIdx, 'ready');
-          }
-        }, 7000);
-      }
+
+      const botIdx = fallbackMessages.length - 1;
+      setExclusiveAudioState(botIdx, 'loading');
+      const audioPromise = loadAudioUrl(fallbackText, botIdx);
+      if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
+      autoPlayTimerRef.current = setTimeout(async () => {
+        try {
+          const audioUrl = await audioPromise;
+          if (audioUrl) triggerAudio(fallbackText, botIdx, true);
+          else setExclusiveAudioState(botIdx, 'ready');
+        } catch {
+          setExclusiveAudioState(botIdx, 'ready');
+        }
+      }, 7000);
 
       if (queuedPromptRef.current) {
         const nextTask = queuedPromptRef.current;
@@ -2212,7 +2219,7 @@ export default function KonBongPage() {
               title={
                 sessionState.isLocked
                   ? `ម៉ោងសម្រាក Cooldown នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)}`
-                  : 'កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងកុំឱ្យគាំង Server)'
+                  : 'កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងរក្សា token)'
               }
               className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9.5px] sm:text-[10.5px] font-black border flex items-center gap-1 sm:gap-1.5 transition select-none shrink-0 ${
                 sessionState.isLocked
@@ -3022,8 +3029,8 @@ export default function KonBongPage() {
                       );
                     })()}
 
-                    {/* Error Action Buttons (Only shown when error occurs or Server busy) */}
-                    {(msg.isError || (msg.text && (msg.text.includes('គាំង Server') || msg.text.includes('Server គាំង') || msg.text.includes('Server កំពុងរវល់')))) && (
+                    {/* Error Action Buttons (Only shown when genuine non-dismissible error occurs) */}
+                    {(msg.isError && !msg.text?.includes('spam chat') && !msg.text?.includes('auto deactivate') && !msg.text?.includes('កាត់ផ្ដាច់')) && (
                       <div className="mt-3 pt-2.5 border-t border-rose-500/25 flex flex-wrap items-center gap-1.5 animate-fade-in">
                         <button
                           type="button"

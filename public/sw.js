@@ -1,4 +1,4 @@
-// PWA Service Worker - Automatic Cache Purge & Fresh Network Passthrough
+// PWA Service Worker
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -13,7 +13,8 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  // Always passthrough to network so PWA standalone always uses fresh bundles & APIs
-  return;
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

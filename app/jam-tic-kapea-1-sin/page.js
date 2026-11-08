@@ -1143,7 +1143,7 @@ export default function JamTicKapeaAdminPage() {
                   <span>សម្អាត Cooldown &amp; Bans</span>
                 </h3>
                 <p className="text-xs text-slate-400 mb-4">
-                  ប្រសិនបើសិស្សបុកមកលេងច្រើន ហើយជាប់ Lockout 30 នាទី ឬចៃដន្យជាប់ Rate Limit អ្នកអាច Flush សម្អាតចោលភ្លាមៗ។
+                  ប្រសិនបើសិស្សមកលេងច្រើន ហើយជាប់ Lockout 30 នាទី ឬចៃដន្យជាប់ Rate Limit អ្នកអាច Flush សម្អាតចោលភ្លាមៗ។
                 </p>
 
                 <button

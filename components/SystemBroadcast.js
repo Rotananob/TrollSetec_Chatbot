@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { getApiEndpoint } from '../app/utils/apiConfig';
+import { DEFAULT_SYSTEM_STATE } from '../lib/systemControl';
 
 const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
 
@@ -36,7 +37,7 @@ function playBroadcastChime() {
 
 export default function SystemBroadcast() {
   const pathname = usePathname();
-  const [systemState, setSystemState] = useState(null);
+  const [systemState, setSystemState] = useState(DEFAULT_SYSTEM_STATE);
   const [showPopup, setShowPopup] = useState(false);
   const [dismissedNotice, setDismissedNotice] = useState('');
   const [hideTopBanner, setHideTopBanner] = useState(false);
@@ -175,14 +176,75 @@ export default function SystemBroadcast() {
   const isMaintenance = !systemState.serverOnline || systemState.maintenanceMode;
   const isResting = isMaintenance || isNight;
 
-  const isChatRoute = pathname?.includes('KonBong') || pathname?.includes('KonPov');
+  // Pause audio when system is resting/under maintenance
+  useEffect(() => {
+    if (isResting && typeof document !== 'undefined') {
+      try {
+        const audios = document.querySelectorAll('audio');
+        audios.forEach((a) => a.pause());
+      } catch {}
+    }
+  }, [isResting]);
 
   return (
     <>
       {/* ========================================================= */}
-      {/* 1. REAL-TIME UI ALERT POPUP MODAL (ON SCREEN CENTER)     */}
+      {/* 1. FULL-SCREEN RESTING / MAINTENANCE MODAL OVERLAY       */}
+      {/* BLOCKS ALL PAGES STARTING FROM HOME PAGE (/) IMMEDIATELY  */}
       {/* ========================================================= */}
-      {showPopup && activeNotice && (
+      {isResting && (
+        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-gray-100 border border-gray-300 rounded-xl p-6 sm:p-7 shadow-xl text-center text-gray-900">
+            {/* Header */}
+            <div className="text-left pb-3 mb-4 border-b border-gray-300">
+              <h2 className="text-lg font-bold text-gray-900 tracking-tight">
+                សេចក្ដីជូនដំណឹងពីការថែទាំប្រព័ន្ធ
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                ពីអ្នកគ្រប់គ្រង (Rotana NOB)
+              </p>
+            </div>
+
+            {/* Explanation Message */}
+            <div className="bg-white border border-gray-300 rounded-lg p-5 mb-5 text-left shadow-sm">
+              <p className="text-sm sm:text-base text-gray-800 leading-relaxed whitespace-pre-wrap break-words font-medium select-text">
+                {isMaintenance
+                  ? systemState.maintenanceReason || 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\n(សម្រាកប្រហែលជា ៣ ម៉ោងសិន)'
+                  : systemState.nightRestMessage || 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!'}
+              </p>
+            </div>
+
+            {/* Status Info */}
+            <div className="text-xs text-gray-500 mb-5 text-left flex items-center justify-between font-mono">
+              <span>ស្ថានភាព: កំពុងថែទាំបណ្ដោះអាសន្ន</span>
+              <span>ម៉ោង: {String(cambodiaHour).padStart(2, '0')}:00 (UTC+7)</span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.reload();
+                  }
+                }}
+                className="w-full py-2.5 px-4 rounded-lg bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium transition-colors cursor-pointer"
+              >
+                ផ្ទុកទំព័រឡើងវិញ (Refresh)
+              </button>
+              <p className="text-[11px] text-gray-400 mt-1">
+                ប្រព័ន្ធនឹងដំណើរការធម្មតាវិញបន្ទាប់ពីបញ្ចប់ការថែទាំ
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 2. REAL-TIME UI ALERT POPUP MODAL (WHEN NOT IN REST MODE) */}
+      {/* ========================================================= */}
+      {!isResting && showPopup && activeNotice && (
         <div
           role="dialog"
           aria-modal="true"
@@ -236,9 +298,9 @@ export default function SystemBroadcast() {
       )}
 
       {/* ========================================================= */}
-      {/* 2. PERSISTENT TOP BANNER (WHEN NOTICE ACTIVE)            */}
+      {/* 3. PERSISTENT TOP BANNER (WHEN NOT IN REST MODE)         */}
       {/* ========================================================= */}
-      {activeNotice && !hideTopBanner && (
+      {!isResting && activeNotice && !hideTopBanner && (
         <div className="bg-gray-200 text-gray-800 border-b border-gray-300 px-4 py-2 text-xs relative z-40 shadow-sm">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 overflow-hidden">
@@ -266,50 +328,6 @@ export default function SystemBroadcast() {
               >
                 <i className="fa-solid fa-xmark text-xs" />
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 3. FULL-SCREEN RESTING / MAINTENANCE MODAL OVERLAY       */}
-      {/* ========================================================= */}
-      {isChatRoute && isResting && (
-        <div className="fixed inset-0 z-50 bg-neutral-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-gray-100 border border-gray-300 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-center text-gray-900">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gray-400" />
-
-            {/* Title */}
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-              {isMaintenance
-                ? 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការជួសជុល និងថែទាំ'
-                : 'ប្រព័ន្ធកំពុងសម្រាកពេលយប់'}
-            </h2>
-
-            {/* Explanation Message */}
-            <div className="bg-white border border-gray-300 rounded-xl p-4 sm:p-5 mb-5 text-left shadow-sm">
-              <p className="text-sm sm:text-base text-gray-800 leading-relaxed whitespace-pre-wrap break-words font-medium">
-                {isMaintenance
-                  ? systemState.maintenanceReason || 'ប្រព័ន្ធកំពុងសម្រាកបណ្ដោះអាសន្ន ដើម្បីជួសជុល និងថែទាំ Server'
-                  : systemState.nightRestMessage || 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!'}
-              </p>
-            </div>
-
-            {/* Timers & Schedule Info */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-200 border border-gray-300 text-xs text-gray-600 mb-6 font-mono">
-              <i className="fa-solid fa-clock text-gray-500" />
-              <span>ម៉ោងនៅកម្ពុជា: {String(cambodiaHour).padStart(2, '0')}:00 (UTC+7)</span>
-            </div>
-
-            {/* Actions (NO Bypass Creator button) */}
-            <div className="flex items-center justify-center">
-              <Link
-                href="/"
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-900 text-white text-xs sm:text-sm font-medium shadow transition-all flex items-center justify-center gap-2"
-              >
-                <i className="fa-solid fa-house" />
-                <span>ត្រឡប់ទៅទំព័រដើម</span>
-              </Link>
             </div>
           </div>
         </div>
