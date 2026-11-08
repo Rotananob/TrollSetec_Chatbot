@@ -16,9 +16,9 @@ export default function JamTicKapeaAdminPage() {
 
   // System State
   const [systemState, setSystemState] = useState({
-    serverOnline: true,
-    maintenanceMode: false,
-    maintenanceReason: 'ប្រព័ន្ធកំពុងសម្រាកបណ្ដោះអាសន្ន ដើម្បីពង្រឹង Server និងសន្សំកូតា AI សម្រាប់សិស្ស SETEC ទាំងអស់គ្នា!',
+    serverOnline: false,
+    maintenanceMode: true,
+    maintenanceReason: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\n(សម្រាកប្រហែលជា ៣ ម៉ោងសិន)',
     nightScheduleEnabled: true,
     nightStartHour: 23,
     nightEndHour: 6,
@@ -26,7 +26,7 @@ export default function JamTicKapeaAdminPage() {
     konbongActive: true,
     konpovActive: true,
     sessionLimitActive: true,
-    broadcastNotice: '',
+    broadcastNotice: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\n(សម្រាកប្រហែលជា ៣ ម៉ោងសិន)',
     lastUpdated: Date.now(),
     updatedBy: 'Rotana NOB'
   });
@@ -1001,29 +1001,22 @@ export default function JamTicKapeaAdminPage() {
                   <span className="text-[10px] text-slate-400">Modal Popup Center Screen</span>
                 </div>
 
-                <div className="bg-slate-950/90 border border-indigo-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-indigo-500 to-sky-400" />
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-950 border border-indigo-700/60 text-indigo-400 flex items-center justify-center text-lg shrink-0">
-                      <i className="fa-solid fa-bullhorn" />
-                    </div>
+                <div className="bg-gray-100 border border-gray-300 rounded-2xl p-5 shadow-xl relative overflow-hidden text-gray-900">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gray-400" />
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-300">
                     <div>
-                      <div className="text-sm font-bold text-white">📢 សារដំណឹងបន្ទាន់ពីស្ថាបនិក Rotana NOB</div>
-                      <div className="text-[10px] text-rose-400 font-semibold flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
-                        <span>REAL-TIME LIVE &bull; SETEC Master Command</span>
-                      </div>
+                      <div className="text-sm font-bold text-gray-900">សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង (Rotana NOB)</div>
+                      <div className="text-[11px] text-gray-500">ការជូនដំណឹងពីប្រព័ន្ធ (Gray Mode Simulation)</div>
                     </div>
                   </div>
 
-                  <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-slate-100 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                  <div className="bg-white border border-gray-200 rounded-xl p-4 text-gray-800 text-sm leading-relaxed whitespace-pre-wrap font-sans font-medium">
                     {editBroadcastNotice.trim()}
                   </div>
 
                   <div className="mt-3 flex justify-end">
-                    <span className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-medium opacity-80 cursor-default flex items-center gap-1.5">
-                      <i className="fa-solid fa-check" />
-                      <span>យល់ព្រម / ទទួលដឹងឮ</span>
+                    <span className="px-5 py-2 rounded-xl bg-gray-800 text-white text-xs font-medium cursor-default">
+                      យល់ព្រម
                     </span>
                   </div>
                 </div>
@@ -1458,40 +1451,31 @@ export default function JamTicKapeaAdminPage() {
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* TEST POPUP MODAL PREVIEW OVERLAY FOR ADMIN                                */}
-      {/* ========================================================================= */}
+      {/* ========================================================= */}
+      {/* TEST POPUP MODAL PREVIEW OVERLAY FOR ADMIN (GRAY MODE)    */}
+      {/* ========================================================= */}
       {showPopupPreview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-gradient-to-b from-slate-900 to-slate-950 border border-indigo-500/40 ring-1 ring-indigo-500/20 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-indigo-950/80 relative overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Top Glowing Animated Edge */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-indigo-500 to-sky-400 animate-pulse" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-lg bg-gray-100 border border-gray-300 rounded-2xl p-6 sm:p-7 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-150 text-gray-900">
+            {/* Top Gray Bar */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gray-400" />
 
             {/* Header */}
-            <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-slate-800/80">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-950/80 border border-indigo-600/50 text-indigo-400 flex items-center justify-center text-xl shadow-lg shadow-indigo-950/50 shrink-0">
-                  <i className="fa-solid fa-bullhorn" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-white tracking-tight">
-                    📢 សារដំណឹងបន្ទាន់ពីស្ថាបនិក Rotana NOB
-                  </h2>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-950/80 text-rose-300 border border-rose-800/80">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
-                      <span>REAL-TIME LIVE</span>
-                    </span>
-                    <span className="text-[11px] text-slate-400">SETEC Master Command</span>
-                  </div>
-                </div>
+            <div className="flex items-start justify-between gap-4 mb-4 pb-3 border-b border-gray-300">
+              <div>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
+                  សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង (Rotana NOB)
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  ការជូនដំណឹងពីប្រព័ន្ធ (Preview)
+                </p>
               </div>
 
               {/* Close Button */}
               <button
                 type="button"
                 onClick={() => setShowPopupPreview(false)}
-                className="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
                 title="បិទផ្ទាំងសាកល្បង"
               >
                 <i className="fa-solid fa-xmark text-sm" />
@@ -1499,26 +1483,24 @@ export default function JamTicKapeaAdminPage() {
             </div>
 
             {/* Message Body */}
-            <div className="bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 mb-5 max-h-[55vh] overflow-y-auto selection:bg-indigo-600 selection:text-white">
-              <p className="text-sm sm:text-base font-sans text-slate-100 leading-relaxed whitespace-pre-wrap break-words select-text">
+            <div className="bg-white border border-gray-300 rounded-xl p-4 sm:p-5 mb-5 max-h-[55vh] overflow-y-auto shadow-sm">
+              <p className="text-sm sm:text-base font-sans text-gray-800 leading-relaxed whitespace-pre-wrap break-words select-text font-medium">
                 {editBroadcastNotice.trim() || 'មិនទាន់មានអត្ថបទ... សូមវាយបញ្ចូលសារក្នុងប្រអប់សិន!'}
               </p>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <div className="text-[11px] text-amber-400 flex items-center gap-1.5 order-2 sm:order-1">
-                <i className="fa-solid fa-eye" />
-                <span>ផ្ទាំងនេះជា Mode សាកល្បង Preview របស់អ្នក</span>
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <div className="text-[11px] text-gray-500 flex items-center gap-1.5">
+                <span>ផ្ទាំងនេះជា Mode សាកល្បង Preview</span>
               </div>
 
               <button
                 type="button"
                 onClick={() => setShowPopupPreview(false)}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                className="px-6 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-900 text-white font-medium text-xs sm:text-sm shadow transition-all flex items-center justify-center cursor-pointer"
               >
-                <i className="fa-solid fa-check" />
-                <span>យល់ព្រម / បិទផ្ទាំង Preview</span>
+                យល់ព្រម
               </button>
             </div>
           </div>

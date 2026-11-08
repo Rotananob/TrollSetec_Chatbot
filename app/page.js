@@ -32,6 +32,14 @@ export default function Home() {
 
   useEffect(() => {
     initSecurityShield();
+
+    // Purge any stale service worker caches from window level for instant PWA fresh delivery
+    if (typeof window !== 'undefined' && 'caches' in window) {
+      window.caches.keys().then((keys) => {
+        keys.forEach((k) => window.caches.delete(k));
+      }).catch(() => {});
+    }
+
     const savedName = localStorage.getItem('chatbot_username');
     const savedAvatar = localStorage.getItem('chatbot_avatar');
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';

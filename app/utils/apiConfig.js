@@ -7,15 +7,16 @@ export function getApiEndpoint(endpoint) {
     return `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '')}${endpoint}`;
   }
 
-  // When running on Firebase Hosting (*.web.app or *.firebaseapp.com),
-  // forward API requests to the production Vercel backend which runs 24/7 with full CORS
   if (typeof window !== 'undefined') {
     const host = (window.location.hostname || '').toLowerCase();
-    if (host.includes('web.app') || host.includes('firebaseapp.com')) {
-      return `https://troll-setec-chatbot.vercel.app${endpoint}`;
+    // Only local development environments use relative endpoints
+    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') {
+      return endpoint;
     }
+    // All production platforms (Firebase Hosting, PWA standalone, mobile WebAPK, custom domain)
+    // must reliably route to the production 24/7 Vercel API backend with full CORS!
+    return `https://troll-setec-chatbot.vercel.app${endpoint}`;
   }
 
-  // Localhost or Vercel default relative path
   return endpoint;
 }

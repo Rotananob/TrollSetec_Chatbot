@@ -305,6 +305,13 @@ export default function KonBongPage() {
   useEffect(() => {
     initSecurityShield();
 
+    // Purge any stale service worker caches from window level for instant PWA fresh delivery
+    if (typeof window !== 'undefined' && 'caches' in window) {
+      window.caches.keys().then((keys) => {
+        keys.forEach((k) => window.caches.delete(k));
+      }).catch(() => {});
+    }
+
     // Clean up any legacy, oversized or corrupt audio keys from localStorage & sessionStorage
     try {
       for (let i = localStorage.length - 1; i >= 0; i--) {
