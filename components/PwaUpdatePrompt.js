@@ -129,16 +129,13 @@ export default function PwaUpdatePrompt() {
     <div
       role="alert"
       aria-live="polite"
-      className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[99999] max-w-sm w-[calc(100%-2rem)] sm:w-96 bg-gray-900/95 backdrop-blur-md text-white rounded-2xl p-4 sm:p-4.5 shadow-2xl border border-gray-700/80 animate-in slide-in-from-bottom-5 duration-200"
+      className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[99999] max-w-sm w-[calc(100%-2rem)] sm:w-96 bg-white text-slate-900 rounded-xl p-4 shadow-xl border border-slate-300"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-          </span>
-          <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0" />
+          <h3 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
             មានកំណែ Update ថ្មី (New Version)
           </h3>
         </div>
@@ -146,7 +143,7 @@ export default function PwaUpdatePrompt() {
         <button
           type="button"
           onClick={() => setIsDismissed(true)}
-          className="text-gray-400 hover:text-white transition-colors p-1 -mr-1 -mt-1 cursor-pointer"
+          className="text-slate-400 hover:text-slate-700 transition-colors p-1 -mr-1 -mt-1 cursor-pointer"
           title="បិទ"
         >
           <i className="fa-solid fa-xmark text-xs" />
@@ -154,8 +151,8 @@ export default function PwaUpdatePrompt() {
       </div>
 
       {/* Description */}
-      <p className="text-xs text-gray-300 leading-relaxed mb-3">
-        ប្រព័ន្ធទើបតែមានការ Update មុខងារថ្មី! សូមចុចប៊ូតុងខាងក្រោមដើម្បី Update ដោយស្វ័យប្រវត្តិ។
+      <p className="text-xs text-slate-600 leading-relaxed mb-3">
+        ប្រព័ន្ធទើបតែមានការ Update កំណែថ្មី! សូមចុចប៊ូតុងខាងក្រោមដើម្បី Update ចូលទៅកាន់ទម្រង់ថ្មីបំផុត។
       </p>
 
       {/* Action Buttons */}
@@ -164,7 +161,7 @@ export default function PwaUpdatePrompt() {
           type="button"
           onClick={handleAutoUpdate}
           disabled={isUpdating}
-          className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 active:scale-[0.98] text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+          className="flex-1 py-2 px-3 rounded-lg bg-slate-900 hover:bg-black text-white text-xs font-medium shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
         >
           {isUpdating ? (
             <>
@@ -174,7 +171,7 @@ export default function PwaUpdatePrompt() {
           ) : (
             <>
               <i className="fa-solid fa-rotate-right text-[11px]" />
-              <span>Update ភ្លាមៗ (Auto Update)</span>
+              <span>Update ភ្លាមៗ (Reload)</span>
             </>
           )}
         </button>
@@ -182,7 +179,12 @@ export default function PwaUpdatePrompt() {
         <button
           type="button"
           onClick={() => setIsDismissed(true)}
-          className="py-2 px-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium transition-colors cursor-pointer"
+          className="py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-300 transition-colors cursor-pointer"
+        >
+          ពេលក្រោយ
+        </button>
+      </div>
+    </div>
         >
           ពេលក្រោយ
         </button>

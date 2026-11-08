@@ -1,7 +1,6 @@
 import Script from 'next/script';
 import VisitorTracker from '../components/VisitorTracker';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
-import PwaUpdatePrompt from '../components/PwaUpdatePrompt';
 import SystemBroadcast from '../components/SystemBroadcast';
 import './globals.css';
 
@@ -83,7 +82,6 @@ export default function RootLayout({ children }) {
       <body className="antialiased selection:bg-indigo-500 selection:text-white">
         <VisitorTracker />
         <PwaInstallPrompt />
-        <PwaUpdatePrompt />
         <SystemBroadcast />
         {children}
         {/* Service Worker Registration */}

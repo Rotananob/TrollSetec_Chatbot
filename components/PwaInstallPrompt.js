@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getApiEndpoint } from '../app/utils/apiConfig';
 
-export default function PwaInstallPrompt({ isDark = true }) {
+export default function PwaInstallPrompt({ isDark = false }) {
   const [isStandalone, setIsStandalone] = useState(false);
   const [deviceType, setDeviceType] = useState('desktop'); // 'ios' | 'android' | 'desktop'
   const [deferredPrompt, setDeferredPrompt] = useState(null);
