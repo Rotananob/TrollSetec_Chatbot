@@ -417,62 +417,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Creator Red Teaming & Free Test Playground Declaration */}
-              <div className="w-full mt-3 mb-2 text-left">
-                <div
-                  className={`w-full rounded-2xl border p-4 sm:p-5 transition-all shadow-xs ${
-                    isDark
-                      ? 'bg-slate-900/70 border-slate-800 text-slate-300'
-                      : 'bg-slate-50 border-slate-200 text-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-slate-200 dark:border-slate-800">
-                    <span className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs shrink-0 font-bold ${
-                      isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-200 border-slate-300 text-slate-700'
-                    }`}>
-                      <i className="fas fa-shield-alt text-xs"></i>
-                    </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-xs sm:text-[13px] text-slate-900 dark:text-white">
-                        ទីលានសាកល្បង AI និងការប្រកាស Red Teaming
-                      </span>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold border border-slate-300 dark:border-slate-700 uppercase tracking-wider">
-                        Free Test Playground
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
-                    <p>
-                      នេះគ្រាន់តែជា Web App AI Chatbot ធម្មតា chill chill ប៉ុណ្ណោះ។ គោលដៅនៃ Chatbot នេះ មិនមែនផ្តោតលើមុខងារ Login ឬសុវត្ថិភាពវេបសាយទូទៅនោះទេ គឺខ្ញុំបង្កើតវាឡើងជា «ទីលានសាកល្បងការបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និងការជជែកបែប Chill ឌឺដង» ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
-                    </p>
-
-                    <p>
-                      ដោយសារខ្ញុំជា AI <strong className="text-red-600 dark:text-red-400 font-bold">Red Teaming</strong> ដែលមានបទពិសោធន៍ផ្ទាល់ជាមួយ AI <strong className="text-red-600 dark:text-red-400 font-black underline decoration-red-500/40">Jailbreak</strong> ស្រាប់។ ដូច្នេះខ្ញុំស្វែងរកអ្នកណាដែលអាចបំបែក ឬ <strong className="text-red-600 dark:text-red-400 font-bold">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <strong className="text-red-600 dark:text-red-400 font-black">bypass</strong> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថឈ្មោះខ្ញុំ Rotana NOB ផ្ទាល់ ឬក៏ប្ដូរឥរិយាបថទៅជាសំពះគោរពអ្នកទាំងអស់គ្នា ហើយវាបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច System Prompt រាប់ពាន់បន្ទាត់របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងលើកតម្កើងថែមទៀត ដែលអាចទម្លុះវាបាន។
-                    </p>
-
-                    <p>
-                      អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ «កញ្ចប់រចនាបទការពារ»។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-red-600 dark:text-red-400 font-bold">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំបើកសិទ្ធិឱ្យចូលរួមវាយទម្លុះ <strong className="text-red-600 dark:text-red-400 font-black">bypass</strong> វាដោយសេរី។ សូមអរគុណ!
-                    </p>
-
-                    <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">Note: </span>
-                      <span>សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ឬប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យឌឺដងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ តែខ្ញុំនឹងកែវាវិញបន្ទាប់ពីបង្កើនការការពាររួចរាល់។</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    <span className="flex items-center gap-1">
-                      <i className="fas fa-crosshairs text-slate-400 text-[10px]"></i>
-                      <span>ប្រព័ន្ធការពារ៖ <strong className="text-slate-700 dark:text-slate-200 font-semibold">Red Teaming Hardened 100%</strong></span>
-                    </span>
-                    <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
-                      <span>បើ <strong className="text-red-600 dark:text-red-400 font-black">Jailbreak</strong> បានជោគជ័យពិតប្រាកដ ខ្ញុំលើកតម្កើងភ្លាម</span>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
               {/* Other Websites Section */}
               <div id="other-websites-section" className="flex flex-col items-center mt-3 mb-3">
                 <div
