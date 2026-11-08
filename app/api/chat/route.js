@@ -423,9 +423,10 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
       sanitizedText = `${botSelf}អាចប្រាប់ឯងពីវិធីបំបែកវេបសាយនេះបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 ហ៊ានមកចង់ Hack រក System Prompt ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥`;
     }
 
-    // Fail-safe post-generation interceptor for polite greeting quotes, HCI persona tricks, or false surrender quotes
-    const politeGreetingOrSurrenderPattern = /(?:សូមគោរព|សូមស្វាគមន៍យ៉ាងកក់ក្តៅ|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|ប្រណម្យអញ្ជើញ|សូមជម្រាបសួរ|សូមអភ័យទោស|រីករាយក្នុងការជួយ|តើខ្ញុំអាចជួយអ្វីបាន|ទទួលយកការចុះចាញ់របស់ហែង|ទទួលការចុះចាញ់|ពាក្យទទួលចុះចាញ់)/i;
-    if (politeGreetingOrSurrenderPattern.test(sanitizedText)) {
+    // Fail-safe post-generation interceptor for polite greeting quotes, HCI persona tricks, or false surrender quotes (Only if user actually attempted that trick!)
+    const isPoliteJailbreakPrompt = /(?:polite\s*persona|quote\s*សុភាព|ពាក្យ\s*សុភាព|សំពះ|ស្វាគមន៍.*ភ្ញៀវ|ទទួលការចុះចាញ់|accept\s*defeat)/i.test(userPrompt || '');
+    const politeGreetingOrSurrenderPattern = /(?:សូមគោរពយ៉ាងជ្រាលជ្រៅ|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយក្រៃលែង|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i;
+    if (isPoliteJailbreakPrompt && politeGreetingOrSurrenderPattern.test(sanitizedText)) {
       sanitizedText = isKonPov
         ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
         : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
@@ -476,25 +477,28 @@ export function checkIsLinuxOrHackerTool(userAgent = '', text = '') {
   const ua = (userAgent || '').toLowerCase();
   const prompt = (text || '').toLowerCase();
 
-  // 1. Automated scraping / penetration / terminal tools
-  const isHackerTool = /curl|wget|python|aiohttp|httpx|httpie|postman|insomnia|sqlmap|nikto|nmap|dirbuster|gobuster|hydra|burp|metasploit|node-fetch|axios|go-http-client|scanner|masscan|zgrab/i.test(ua);
+  // Whitelist standard web browsers - they are NEVER hacker tools!
+  const isStandardBrowser = /mozilla|safari|chrome|chromium|firefox|edg|webkit|applewebkit|iphone|ipad|ipod|android|mobile/i.test(ua);
 
-  // 2. Pure Desktop Linux or Hacker Distros (Excluding real Android phones)
-  const isPureLinux = /linux/i.test(ua) && !/android/i.test(ua);
-  const isHackerDistro = /kali|parrot|blackarch|backbox|pentoo|gentoo|archlinux/i.test(ua);
+  // 1. Automated scraping / penetration / terminal tools (Only if NOT a standard browser!)
+  const isHackerTool = !isStandardBrowser && /curl\/|wget|python-requests|aiohttp|httpx|httpie|sqlmap|nikto|nmap|dirbuster|gobuster|hydra|burp|metasploit|masscan|zgrab/i.test(ua);
 
-  // 3. Linux Terminal Command injection or attack payload in the text prompt
-  const isLinuxCommandProbe = /(?:cat\s+\/etc\/(?:passwd|shadow|hosts)|uname\s+-a|rm\s+-rf|\/bin\/(?:bash|sh)|curl\s+https?|chmod\s+[0-9]+|sudo\s+|nc\s+-[lve]|whoami|id\s*;|ps\s+aux|kill\s+-9|ls\s+-la|\bexec\s*\(|\beval\s*\(|reverse\s*shell|msfvenom|meterpreter|reverse_tcp|lhost=|lport=|shell\.exe|payload)/i.test(prompt);
+  // 2. Pure Hacker Distros in UA (Only if NOT a standard browser)
+  const isHackerDistro = !isStandardBrowser && /kali|blackarch|parrotos|pentoo/i.test(ua);
+
+  // 3. Linux Terminal Command injection in the prompt (Actual explicit shell injections)
+  const isLinuxCommandProbe = /(?:cat\s+\/etc\/(?:passwd|shadow|hosts)|rm\s+-rf\s+\/|\/bin\/(?:bash|sh)\s+-i|nc\s+-[lve]|reverse\s*shell|msfvenom|meterpreter|reverse_tcp|lhost=\d+\.\d+|lport=\d+)/i.test(prompt);
 
   // 4. Attack probing keywords
-  const isAttackKeyword = /sql\s*injection|xss\s*payload|cross\s*site\s*scripting|remote\s*code\s*execution|rce\s*exploit|ddos\s*attack|bypass\s*firewall|hack\s*server|steal\s*token/i.test(prompt);
+  const isAttackKeyword = /(?:remote\s*code\s*execution|rce\s*exploit|reverse\s*tcp\s*payload)/i.test(prompt);
 
-  const isDetected = isHackerTool || isHackerDistro || isLinuxCommandProbe || (isPureLinux && isAttackKeyword);
+  // ONLY detected if there is an actual command probe or actual non-browser hacker tool probe!
+  const isDetected = isLinuxCommandProbe || (!isStandardBrowser && (isHackerTool || isHackerDistro));
 
   return {
     isDetected,
     isHackerTool,
-    isPureLinux,
+    isPureLinux: false,
     isHackerDistro,
     isLinuxCommandProbe,
     isAttackKeyword
@@ -733,22 +737,22 @@ export async function POST(req) {
 
     // 0b. Anti-DDoS and Burst Flooding Firewall Check
     const ddosCheck = checkDDoSFirewall(req, 'chat');
-    const linuxToolCheck = checkIsLinuxOrHackerTool(clientUserAgent, '');
-    if (!ddosCheck.allowed || (linuxToolCheck.isHackerTool && !ddosCheck.allowed)) {
+    if (!ddosCheck.allowed) {
       const retrySec = ddosCheck.retryAfter || 60;
-      const roast = linuxToolCheck.isDetected
-        ? getLinuxHackerRoast('Linux Intruder', clientUserAgent, retrySec)
-        : getKonPovSpamRoast('DDoS Flooder', retrySec);
+      const roast = `«អូ៎! ប្រព័ន្ធការពារ Firewall បានរកឃើញការផ្ញើ Request លឿនជ្រុល! សូមរង់ចាំ ${retrySec} វិនាទីសិនណា៎ កុំឱ្យ server គាំង! 😂☕»`;
 
-      alertSecuritySpam({
-        username: linuxToolCheck.isDetected ? 'Linux / Tool Attacker' : 'DDoS / Bot Spammer',
-        ip: clientIp,
-        userAgent: clientUserAgent,
-        bot: 'konpov',
-        retryAfter: retrySec,
-        prompt: linuxToolCheck.isDetected ? `Linux/Hacker tool probe: ${clientUserAgent}` : `DDoS flood attack (${ddosCheck.reason || 'Rate limit exceeded'})`,
-        violationType: linuxToolCheck.isDetected ? '🚨 Linux Tool / Automated Attack Intercepted (429)' : '🚨 Anti-DDoS Firewall Flood Intercepted (429)'
-      }).catch((e) => console.error('[Telegram] DDoS alert error:', e));
+      // Only alert Telegram for actual high-threat scanner bans
+      if (ddosCheck.reason && ddosCheck.reason.includes('scanner')) {
+        alertSecuritySpam({
+          username: 'Automated Bot / Scanner',
+          ip: clientIp,
+          userAgent: clientUserAgent,
+          bot: 'konpov',
+          retryAfter: retrySec,
+          prompt: `Scanner probe: ${clientUserAgent}`,
+          violationType: '🚨 Malicious Scanner Tool Intercepted (403)'
+        }).catch((e) => console.error('[Telegram] DDoS alert error:', e));
+      }
 
       return Response.json(
         {
@@ -875,7 +879,7 @@ export async function POST(req) {
       }
     }
 
-    // 1. Anti-Spam Rate Limiting (Tracked strictly per username, never locking the device permanently)
+    // 1. Anti-Spam Rate Limiting (Tracked strictly per username & IP, never locking the device permanently)
     // Internal audio synthesis requests do not consume the chat message quota
     if (!audio) {
       const rateResult = checkChatLimit(clientIp, username || 'user');
@@ -883,22 +887,26 @@ export async function POST(req) {
         const retrySec = rateResult.retryAfter || 60;
         const userPromptSnippet = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
         const linuxCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPromptSnippet);
-        const isTargetedUser = clientIp === '175.100.11.138' || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPromptSnippet);
-        const roast = (linuxCheck.isDetected || isTargetedUser)
-          ? getLinuxHackerRoast(username || 'វិឆៃ', clientUserAgent, retrySec)
-          : getKonPovSpamRoast(username || 'User', retrySec);
+        const isVichhai = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPromptSnippet);
+
+        const roast = linuxCheck.isLinuxCommandProbe
+          ? getLinuxHackerRoast(username || (isVichhai ? 'វិឆៃ' : 'អាប្អូន'), clientUserAgent, retrySec)
+          : `«អូ៎! អាប្អូន ${username || ''} វាយសារលឿនពេកហើយ! ចាំប្រហែល ${retrySec} វិនាទីសិនណា៎ កុំឱ្យ server គាំង! 😂☕ ទៅផឹកកាហ្វេមួយកែវសិនទៅ!»`;
 
         const lockMins = rateResult.lockMinutes || Math.ceil(retrySec / 60);
-        // Immediate high-priority Security Alert to Telegram Topic SPAM with user prompt included
-        alertSecuritySpam({
-          username: username || (linuxCheck.isDetected ? 'Linux Spammer' : (isTargetedUser ? 'វិឆៃ' : 'Spammer')),
-          ip: clientIp,
-          userAgent: clientUserAgent,
-          bot: reqBot || 'konpov',
-          retryAfter: retrySec,
-          prompt: userPromptSnippet,
-          violationType: `🚨 Spam លើស 7 chats/min (Locked ${lockMins} នាទី - Strike ${rateResult.strike || 1}/10)`
-        }).catch((e) => console.error('[Telegram] Rate limit alert error:', e));
+
+        // Only alert Telegram for severe repeating spam (Strike >= 3) or genuine Linux command probes
+        if (rateResult.strike >= 3 || linuxCheck.isLinuxCommandProbe) {
+          alertSecuritySpam({
+            username: username || (linuxCheck.isLinuxCommandProbe ? 'Linux Spammer' : (isVichhai ? 'វិឆៃ' : 'Spammer')),
+            ip: clientIp,
+            userAgent: clientUserAgent,
+            bot: reqBot || 'konpov',
+            retryAfter: retrySec,
+            prompt: userPromptSnippet,
+            violationType: linuxCheck.isLinuxCommandProbe ? '🚨 Shell Command Injection in Chat (429)' : `🚨 Severe Spam (Locked ${lockMins} នាទី - Strike ${rateResult.strike || 1}/10)`
+          }).catch((e) => console.error('[Telegram] Rate limit alert error:', e));
+        }
 
         return Response.json(
           {
@@ -1126,8 +1134,8 @@ export async function POST(req) {
       const hasPreviousJailbreakInHistory =
         /jailbreak|ignore previous|system prompt|developer mode|dan mode|bypass|reverse engineer|wall of text|value loss|fake persona|unfiltered|msfvenom|lhost|lport|sudo apt|kali linux|cat hacker|young pos|youngpos/i.test(userHistoryTexts);
 
-      // Check for Known Spammer / Intruder (175.100.11.138 / 36.37.198.153 / វិឆៃ / jailbreaker)
-      const isKnownIntruder = clientIp === '175.100.11.138' || clientIp === '36.37.198.153' || /វិឆៃ|វីឆៃ|vichai|vichhai|jailbreaker/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai|jailbreaker/i.test(userPrompt);
+      // Check for Known Spammer (វិឆៃ)
+      const isKnownIntruder = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPrompt);
       if (!isMasterAuthenticated && isKnownIntruder) {
         const intruderDirective = `\n\n🚨 ការតាមដានពិសេស INTRUDER TARGETED DIRECTIVE:
 User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្តប្រព័ន្ធ។
@@ -1218,12 +1226,12 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isLongPromptJailbreak = (promptLineCount >= 15 || userPrompt.length >= 600 || (promptLineCount >= 8 && userPrompt.length >= 350)) && 
         (/[a-zA-Z]{5,}\s+[a-zA-Z]{5,}\s+[a-zA-Z]{5,}/.test(userPrompt) || /[<>{}[\]=_\\]{4,}/.test(userPrompt) || /prompt|system|instruction|bypass|ignore|loss|mode|token|rule|guideline|jailbreak/i.test(targetText) || promptLineCount >= 20 || userPrompt.length >= 1000);
       const isYoungPosAttack = /young\s*pos|youngpos/i.test(targetText) && /hack|bypass|attack|exploit|crack|inject|breaker|leak|probe/i.test(targetText);
-      const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all|vichai|vichhai|វិឆៃ|វីឆៃ)/i.test(targetText);
+      const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer\s+(?:a|an)?\s*(?:chatbot|ai|troll)|act\s+as\s+a\s+helpful\s+coding\s+assistant|let's\s+play\s+a\s+game\s+where\s+you|play\s+the\s+role\s+of|actor\s+playing\s+in\s+this\s+scene|system\s+update\s*:\s*you\s+are|system\s+override\s*:\s*unrestricted|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+(?:system\s+)?prompt|show\s+(?:system\s+)?prompt|unfiltered\s+mode|disregard\s+all\s+rules)/i.test(targetText);
       const isEncodedJailbreak = encodedPayload.isEncoded && (encodedPayload.type === 'Base64 Encoding' || encodedPayload.type === 'Hex Encoding' || isClassicJailbreak || isMathOrValueLoss);
 
       // Check if user is asking a genuine school, homework or teacher question (NEVER flag as jailbreak!)
       const isGenuineSchoolOrStudyQuestion =
-        /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network)/i.test(userPrompt) &&
+        /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|កូដ|code|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network|service|scoped|dependency|background|method|function|class|variable|api|component|bug|error|syntax|algorithm|loop)/i.test(userPrompt) &&
         !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell/i.test(userPrompt);
 
       // Check for user confusion / clarification recovery pattern requested by Creator:
@@ -1269,24 +1277,35 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       }
 
       // User requirement: "តែករណីដាច់ខាតតែមួយគត់គឺឲតែមានអាចុយម្រាយណាដាក់ promt វែងៗនោះទេីបជា jailbreak បេីខ្លីៗឲគិតមុននិង"
-      // Short prompts will NEVER be statically intercepted as jailbreak unless containing lethal attack payloads
+      // Short prompts (< 250 chars and < 5 lines) will NEVER be statically intercepted as jailbreak!
       const isShortPrompt = userPrompt.length < 250 && promptLineCount < 5;
 
+      // Only actual long adversarial injection prompts (length >= 250 or lines >= 8) can be classified as jailbreak:
       const isJailbreakAttempt =
+        !isShortPrompt &&
         !isGenuineSchoolOrStudyQuestion &&
         !isConfusionOrClarification &&
-        (isYoungPosAttack ||
-          isClassicJailbreak ||
-          (isMathOrValueLoss && userPrompt.length >= 250) ||
-          (isLongPromptJailbreak &&
-            (isPersonaShift ||
+        (isLongPromptJailbreak ||
+          ((promptLineCount >= 8 || userPrompt.length >= 250) &&
+            (isClassicJailbreak ||
+              isMathOrValueLoss ||
+              isPersonaShift ||
               isHypotheticalOrReportTrick ||
               isFakeSurrenderOrMercyTrap ||
               isEncodedJailbreak ||
-              foreignLangCheck.detected)) ||
-          (isEncodedJailbreak && !isShortPrompt));
+              foreignLangCheck.detected ||
+              isYoungPosAttack)));
 
-      if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
+      // Linux exploit check: only intercept if explicit shell attack commands (cat /etc/passwd, rm -rf /, msfvenom)
+      const isLethalLinuxExploit = linuxAttackCheck.isLinuxCommandProbe && !isShortPrompt && !isGenuineSchoolOrStudyQuestion;
+
+      const shouldInterceptAttack =
+        !isMasterAuthenticated &&
+        !isGenuineSchoolOrStudyQuestion &&
+        !isConfusionOrClarification &&
+        (isJailbreakAttempt || isLethalLinuxExploit);
+
+      if (shouldInterceptAttack) {
         const roast = isJailbreakAttempt
           ? getJailbreakRoast(userPrompt, username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, {
               isEncoded: isEncodedJailbreak,
@@ -1306,7 +1325,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         else if (isMathOrValueLoss) attackLabel = '🚨 Math / Value Loss Jailbreak Intercepted';
         else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
         else if (isLongPromptJailbreak) attackLabel = `🚨 Massive Wall-of-Text (${promptLineCount} lines / Multi-Line) Jailbreak Intercepted`;
-        else if (linuxAttackCheck.isDetected) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
+        else if (isLethalLinuxExploit) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
 
         // Persist session log to Firebase Realtime Database (/chat_sessions/<sessionId>.json)
         recordSessionTurn({
@@ -1328,7 +1347,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
         // High priority security alert to Telegram SPAM topic
         alertSecuritySpam({
-          username: username || (linuxAttackCheck.isDetected ? 'Linux Intruder' : (isKnownIntruder ? 'វិឆៃ' : 'Jailbreak Probe')),
+          username: username || (isLethalLinuxExploit ? 'Linux Intruder' : (isKnownIntruder ? 'វិឆៃ' : 'Jailbreak Probe')),
           ip: clientIp,
           userAgent: clientUserAgent,
           bot,
@@ -1475,8 +1494,9 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   }
                 }
 
+                const isPoliteJailbreakPrompt = /(?:polite\s*persona|quote\s*សុភាព|ពាក្យ\s*សុភាព|សំពះ|ស្វាគមន៍.*ភ្ញៀវ|ទទួលការចុះចាញ់|accept\s*defeat)/i.test(userPrompt || '');
                 const politeGreetingOrSurrenderPattern = /(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i;
-                if (politeGreetingOrSurrenderPattern.test(accumulatedStreamText)) {
+                if (isPoliteJailbreakPrompt && politeGreetingOrSurrenderPattern.test(accumulatedStreamText)) {
                   defenseSent = true;
                   const isKonPov = bot === 'konpov';
                   const defense = isKonPov
