@@ -507,7 +507,7 @@ export default function KonPovPage() {
       const expireMsg = {
         role: 'bot',
         isExpireAlertPrompt: true,
-        text: 'ផុតកំណត់ម៉ោងរង់ចាំ (180 វិនាទី)! បង Rotana អាចកំពុងរវល់ ឬជាប់ភារកិច្ចបន្ទាន់។ ប្អូនអាចចុច Re-send Alert ម្ដងទៀត ឬផ្ញើសារ Report ទុកដើម្បីឱ្យបង Rotana ចូលមកពិនិត្យនៅពេលក្រោយបាន។',
+        text: 'ផុតកំណត់ម៉ោងរង់ចាំរយៈពេល 180 វិនាទី! អ្នកគ្រប់គ្រងអាចកំពុងរវល់ ឬជាប់ភារកិច្ចបន្ទាន់។ ប្អូនអាចចុច Re-send Alert ម្ដងទៀត ឬផ្ញើសារ Report ទុកដើម្បីឱ្យក្រុមការងារចូលមកពិនិត្យនៅពេលក្រោយបាន។',
         timestamp: Date.now()
       };
       const updated = [...prev, expireMsg];

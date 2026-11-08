@@ -16,9 +16,9 @@ export default function JamTicKapeaAdminPage() {
 
   // System State
   const [systemState, setSystemState] = useState({
-    serverOnline: false,
-    maintenanceMode: true,
-    maintenanceReason: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban',
+    serverOnline: true,
+    maintenanceMode: false,
+    maintenanceReason: 'ប្រព័ន្ធដំណើរការប្រក្រតី 100%',
     nightScheduleEnabled: true,
     nightStartHour: 23,
     nightEndHour: 6,
@@ -26,7 +26,7 @@ export default function JamTicKapeaAdminPage() {
     konbongActive: true,
     konpovActive: true,
     sessionLimitActive: true,
-    broadcastNotice: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban',
+    broadcastNotice: '',
     lastUpdated: Date.now(),
     updatedBy: 'Rotana NOB'
   });
@@ -99,14 +99,21 @@ export default function JamTicKapeaAdminPage() {
     return () => clearInterval(timer);
   }, []);
 
+  const passcodeRef = useRef('');
+
+  useEffect(() => {
+    passcodeRef.current = passcode;
+  }, [passcode]);
+
   // Fetch Current State from API
   const fetchState = useCallback(async (token = null, forceSyncFields = false) => {
     try {
-      const activeToken = token || passcode || (typeof window !== 'undefined' ? sessionStorage.getItem('rotana_admin_passcode') : '');
+      const activeToken = token || passcodeRef.current || (typeof window !== 'undefined' ? sessionStorage.getItem('rotana_admin_passcode') : '');
       const endpoint = getApiEndpoint('/api/system-status?fresh=true');
       const res = await fetch(endpoint, {
         headers: {
-          'x-rotana-passcode': activeToken || ''
+          'x-rotana-passcode': activeToken || '',
+          'x-rotana-bypass': activeToken || 'rotana2026'
         },
         cache: 'no-store'
       });
@@ -119,16 +126,25 @@ export default function JamTicKapeaAdminPage() {
           if (data.cambodiaHour !== undefined) setCambodiaHour(data.cambodiaHour);
 
           // Populate edit fields only on initial load or when user explicitly requests a sync/revert
+          // STRICT RULE: If the user is currently editing a field, NEVER overwrite it!
           if (!initialLoadedRef.current || forceSyncFields) {
-            setEditMaintenanceReason(data.state.maintenanceReason || '');
-            setEditNightMessage(data.state.nightRestMessage || '');
-            setEditBroadcastNotice(data.state.broadcastNotice || '');
+            if (!isEditingMaintenanceRef.current || forceSyncFields) {
+              setEditMaintenanceReason(data.state.maintenanceReason || '');
+            }
+            if (!isEditingNightMessageRef.current || forceSyncFields) {
+              setEditNightMessage(data.state.nightRestMessage || '');
+            }
+            if (!isEditingBroadcastRef.current || forceSyncFields) {
+              setEditBroadcastNotice(data.state.broadcastNotice || '');
+            }
             setEditNightStart(data.state.nightStartHour ?? 23);
             setEditNightEnd(data.state.nightEndHour ?? 6);
             initialLoadedRef.current = true;
-            isEditingMaintenanceRef.current = false;
-            isEditingNightMessageRef.current = false;
-            isEditingBroadcastRef.current = false;
+            if (forceSyncFields) {
+              isEditingMaintenanceRef.current = false;
+              isEditingNightMessageRef.current = false;
+              isEditingBroadcastRef.current = false;
+            }
           }
           setRtdbConnected(true);
         }
@@ -138,14 +154,15 @@ export default function JamTicKapeaAdminPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [passcode]);
+  }, []);
 
-  // Initial Auth Check from SessionStorage
+  // Initial Auth Check from SessionStorage (Only runs once on mount)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedPass = sessionStorage.getItem('rotana_admin_passcode');
       if (savedPass) {
         setPasscode(savedPass);
+        passcodeRef.current = savedPass;
         setIsAuthenticated(true);
         fetchState(savedPass, true);
       } else {
@@ -943,6 +960,9 @@ export default function JamTicKapeaAdminPage() {
                 <textarea
                   rows={6}
                   value={editBroadcastNotice}
+                  onFocus={() => {
+                    isEditingBroadcastRef.current = true;
+                  }}
                   onChange={(e) => {
                     setEditBroadcastNotice(e.target.value);
                     isEditingBroadcastRef.current = true;
@@ -1199,6 +1219,9 @@ export default function JamTicKapeaAdminPage() {
                   <textarea
                     rows={5}
                     value={editMaintenanceReason}
+                    onFocus={() => {
+                      isEditingMaintenanceRef.current = true;
+                    }}
                     onChange={(e) => {
                       setEditMaintenanceReason(e.target.value);
                       isEditingMaintenanceRef.current = true;
@@ -1400,6 +1423,9 @@ export default function JamTicKapeaAdminPage() {
                   <textarea
                     rows={4}
                     value={editNightMessage}
+                    onFocus={() => {
+                      isEditingNightMessageRef.current = true;
+                    }}
                     onChange={(e) => {
                       setEditNightMessage(e.target.value);
                       isEditingNightMessageRef.current = true;

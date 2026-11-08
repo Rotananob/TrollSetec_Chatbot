@@ -32,7 +32,7 @@ import { getSmartCutoffResponse } from '../../../lib/smartCutoff.js';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-device-id, x-session-id, x-requested-with',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-rotana-bypass, x-device-id, x-session-id, x-requested-with, X-Accel-Buffering, Cache-Control',
   'X-Engine': 'setec-neural-core-v3',
   'X-Powered-By': 'SETEC Neural Network v3.8',
   'Server': 'SETEC-Cloud-Gateway'

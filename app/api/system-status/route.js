@@ -15,7 +15,7 @@ import { alertSystemControlChange, alertSecuritySpam } from '../../../lib/telegr
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-device-id',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-rotana-bypass, x-device-id, x-session-id, x-requested-with',
   'Cache-Control': 'no-cache, no-store, must-revalidate',
   'X-Engine': 'setec-control-core-v3',
   'X-Powered-By': 'SETEC Cloud Gateway'

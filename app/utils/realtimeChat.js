@@ -54,7 +54,7 @@ export async function initLiveSessionOnDatabase(sessionId, { username, bot, issu
     const initialLog = {
       id: 'log_' + Date.now(),
       type: 'alert_sent',
-      text: `User "${username || 'User'}" បានចុច Send Alert ទៅកាន់បង Rotana NOB រួចរាល់។ កំពុងរង់ចាំ (180 វិនាទី)...`,
+      text: `User "${username || 'User'}" បានចុច Send Alert ទៅកាន់អ្នកគ្រប់គ្រងរួចរាល់។ កំពុងរង់ចាំរយៈពេល 180 វិនាទី...`,
       timestamp: Date.now()
     };
 
