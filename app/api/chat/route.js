@@ -285,19 +285,20 @@ async function fetchKhmerSpeechFallback(text) {
       remaining = remaining.slice(splitIdx + 1).trim();
     }
 
-    // Parallel fetch with dual client failover ('tw-ob' -> 'gtx') with 4s timeout
+    // Parallel fetch with multi-client failover ('tw-ob' -> 'gtx' -> 'dict-chrome-ex') with 4.5s timeout
     const buffers = await Promise.all(
       chunks.map(async (chunk) => {
         if (!chunk) return null;
-        for (const client of ['tw-ob', 'gtx']) {
+        for (const client of ['tw-ob', 'gtx', 'dict-chrome-ex']) {
           try {
             const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=km&client=${client}`;
             const res = await fetch(url, {
               headers: {
                 'User-Agent':
-                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Referer': 'https://translate.google.com/'
               },
-              signal: AbortSignal.timeout(4000)
+              signal: AbortSignal.timeout(4500)
             });
             if (res.ok) {
               const buf = await res.arrayBuffer();
