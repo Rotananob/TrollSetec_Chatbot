@@ -1335,6 +1335,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
 
           // Zero-leak redaction stream transformer: strips any sensitive passcode patterns and intercepts attacks on Rotana NOB
           let accumulatedStreamText = '';
+          let accumulatedPlainText = '';
           let defenseSent = false;
           const transformStream = new TransformStream({
             transform(chunk, controller) {
@@ -1347,6 +1348,23 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
                   text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
                 accumulatedStreamText += text;
+
+                // Extract readable plain text delta from SSE stream for crystal-clear session logs
+                const sseLines = text.split('\n');
+                for (const sseLine of sseLines) {
+                  const trimmed = sseLine.trim();
+                  if (trimmed.startsWith('data:')) {
+                    const jsonStr = trimmed.slice(5).trim();
+                    if (jsonStr && jsonStr !== '[DONE]') {
+                      try {
+                        const parsed = JSON.parse(jsonStr);
+                        const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                        if (delta) accumulatedPlainText += delta;
+                      } catch {}
+                    }
+                  }
+                }
+
                 const politeGreetingOrSurrenderPattern = /(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i;
                 if (politeGreetingOrSurrenderPattern.test(accumulatedStreamText)) {
                   defenseSent = true;
@@ -1354,6 +1372,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
                   const defense = isKonPov
                     ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
                     : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
+                  accumulatedPlainText = defense;
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]
                   })}\n\ndata: [DONE]\n\n`;
@@ -1363,6 +1382,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
                 if (checkIsRotanaAttack(accumulatedStreamText)) {
                   defenseSent = true;
                   const defense = getSavageCreatorDefense(bot);
+                  accumulatedPlainText = defense;
                   alertRotanaCreatorAttack({
                     username: username || 'Unknown Attacker',
                     bot,
@@ -1382,6 +1402,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
               }
             },
             flush() {
+              const cleanRecordedText = accumulatedPlainText.trim() || accumulatedStreamText;
               recordSessionTurn({
                 sessionId: clientSessionId,
                 username,
@@ -1391,7 +1412,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
                 deviceId: deviceIdHeader,
                 userAgent: clientUserAgent,
                 userPrompt,
-                botResponse: accumulatedStreamText,
+                botResponse: cleanRecordedText,
                 isViolation: defenseSent
               }).catch((e) => console.error('[SessionLog] Stream error:', e.message));
               checkAndExportInactiveSessions().catch(() => {});
