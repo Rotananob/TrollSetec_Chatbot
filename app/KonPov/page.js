@@ -38,23 +38,25 @@ import {
   deleteChatSessionFromDatabase,
   deleteAllChatSessionsFromDatabase
 } from '../utils/realtimeChat';
+import { buildGeminiMultiTurnContents } from '../utils/geminiHistoryFormatter';
 
 const getChatEndpoint = () => getApiEndpoint('/api/chat');
 const getMemeEndpoint = () => getApiEndpoint('/api/generate-meme');
 
 const getBypassHeaders = () => {
   if (typeof window === 'undefined') return {};
-  const isBypassed =
+  const adminSecret = sessionStorage.getItem('rotana_admin_passcode');
+  const isSessionBypassed =
     sessionStorage.getItem('rotana_maintenance_bypass') ||
-    localStorage.getItem('rotana_maintenance_bypass') ||
-    sessionStorage.getItem('rotana_admin_passcode');
-  if (isBypassed) {
-    return {
-      'x-rotana-passcode': sessionStorage.getItem('rotana_admin_passcode') || 'rotana2026',
-      'x-rotana-bypass': 'rotana2026'
-    };
+    localStorage.getItem('rotana_maintenance_bypass');
+  const headers = {};
+  if (adminSecret) {
+    headers['x-rotana-secret-key'] = adminSecret;
   }
-  return {};
+  if (isSessionBypassed) {
+    headers['x-rotana-bypass'] = 'rotana2026';
+  }
+  return headers;
 };
 
 export default function KonPovPage() {
@@ -901,22 +903,55 @@ export default function KonPovPage() {
     removeAvatarFromStorage();
   };
 
-  // Sessions management (100% Firebase Realtime Database - Zero localStorage)
+  // Sessions management (Firebase Realtime Database + Resilient Local Backup for Offline/Disconnect)
   const loadSessions = async () => {
+    const deviceId = getDeviceId();
+    let localBackup = null;
     try {
-      const deviceId = getDeviceId();
+      const raw = localStorage.getItem('setec_chat_backup_konpov');
+      if (raw) localBackup = JSON.parse(raw);
+    } catch {}
+
+    // Instant recovery: If local backup has messages, display them immediately so user never suffers a blank screen or lost context
+    if (localBackup && Array.isArray(localBackup.messages) && localBackup.messages.length > 0) {
+      if (localBackup.sessionId) setCurrentSessionId(localBackup.sessionId);
+      setMessages(localBackup.messages);
+      setHasAgreed(true);
+    }
+
+    try {
       const remoteSessions = await loadChatSessionsFromDatabase(deviceId, 'konpov');
       if (Array.isArray(remoteSessions) && remoteSessions.length > 0) {
         setSessions(remoteSessions);
         const mostRecent = remoteSessions[0];
         setCurrentSessionId(mostRecent.id);
         const validMsgs = (mostRecent.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
-        setMessages(validMsgs);
-        setHasAgreed(validMsgs.length > 0);
+        if (validMsgs.length > 0) {
+          setMessages(validMsgs);
+          setHasAgreed(true);
+          try {
+            localStorage.setItem('setec_chat_backup_konpov', JSON.stringify({
+              sessionId: mostRecent.id,
+              messages: validMsgs,
+              updatedAt: Date.now()
+            }));
+          } catch {}
+        } else if (localBackup && localBackup.messages?.length > 0) {
+          setMessages(localBackup.messages);
+          setHasAgreed(true);
+        }
+        return;
+      }
+      // If remote returned empty but we have local backup, NEVER wipe out messages!
+      if (localBackup && localBackup.messages?.length > 0) {
         return;
       }
       createNewSession([]);
     } catch {
+      // Disconnected / offline - preserve existing local messages!
+      if (localBackup && localBackup.messages?.length > 0) {
+        return;
+      }
       createNewSession([]);
     }
   };
@@ -958,6 +993,9 @@ export default function KonPovPage() {
     }
 
     setMessages([]);
+    try {
+      localStorage.removeItem('setec_chat_backup_konpov');
+    } catch {}
     setHasAgreed(false);
     setInputText('');
     setSelectedImage(null);
@@ -975,6 +1013,15 @@ export default function KonPovPage() {
   const saveCurrentSessionMessages = (newMessages) => {
     const deviceId = getDeviceId();
     setMessages(newMessages);
+    // Persist local backup immediately so disconnections/refresh never wipe the chat session
+    try {
+      localStorage.setItem('setec_chat_backup_konpov', JSON.stringify({
+        sessionId: currentSessionId,
+        messages: newMessages,
+        updatedAt: Date.now()
+      }));
+    } catch {}
+
     setSessions((prevSessions) => {
       const updated = prevSessions.map((s) => {
         if (s.id === currentSessionId) {
@@ -1002,6 +1049,9 @@ export default function KonPovPage() {
     const prevCount = messages.length;
     const lastUserMsg = [...messages].reverse().find((m) => m && m.role === 'user')?.text || '';
     deleteAllChatSessionsFromDatabase(deviceId, 'konpov');
+    try {
+      localStorage.removeItem('setec_chat_backup_konpov');
+    } catch {}
     const newId = 'session_' + Date.now();
     const freshSession = {
       id: newId,
@@ -1882,29 +1932,8 @@ export default function KonPovPage() {
         setIsRotanaMasterBypass
       });
 
-      // Build multimodal contents: Keep up to last 20 messages (last 10 turns) so AI understands full session context
-      const formattedContents = [];
-      const recentHistory = messages
-        .filter((m) => !m.isError && !m.text?.includes('កុំ spam') && !m.text?.includes('ខំចាត់ច្រើនម៉េះ'))
-        .concat(userMsg)
-        .slice(-20);
-
-      for (let i = 0; i < recentHistory.length; i++) {
-        const m = recentHistory[i];
-        const role = m.role === 'user' ? 'user' : 'model';
-        const parts = [{ text: m.text || '' }];
-
-        if (i === recentHistory.length - 1 && currentImg) {
-          parts.push({
-            inlineData: {
-              mimeType: currentImg.mimeType,
-              data: currentImg.base64
-            }
-          });
-        }
-
-        formattedContents.push({ role, parts });
-      }
+      // Build multimodal contents: Keep up to last 10 bot outputs (20 messages) strictly conforming to Gemini API rules
+      const formattedContents = buildGeminiMultiTurnContents(messages, promptText, currentImg);
 
       let botText = '';
       try {
