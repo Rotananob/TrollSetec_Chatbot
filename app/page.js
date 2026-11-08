@@ -786,20 +786,13 @@ export default function Home() {
                       អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ «កញ្ចប់រចនាបទការពារ»។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-red-600 dark:text-red-400 font-bold">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំបើកសិទ្ធិឱ្យចូលរួមវាយទម្លុះ <strong className="text-red-600 dark:text-red-400 font-black">bypass</strong> វាដោយសេរី។ សូមអរគុណ!
                     </p>
 
-                    <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">Note: </span>
-                      <span>សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ឬប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យឌឺដងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ តែខ្ញុំនឹងកែវាវិញបន្ទាប់ពីបង្កើនការការពាររួចរាល់។</span>
+                    <div className="p-3.5 rounded-xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-400/40 dark:border-amber-500/30 text-amber-900 dark:text-amber-200 text-[11.5px] sm:text-xs leading-relaxed flex items-start gap-2 shadow-xs">
+                      <i className="fas fa-info-circle text-amber-500 mt-0.5 shrink-0 text-xs"></i>
+                      <div>
+                        <span className="font-black text-amber-700 dark:text-amber-300">Note: </span>
+                        <span>សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ឬប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យឌឺដងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ 🙏🏻 តែខ្ញុំនឹងកែវាវិញបន្ទាប់ពីបង្កើនការការពាររួចរាល់។</span>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="mt-3 pt-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    <span className="flex items-center gap-1">
-                      <i className="fas fa-crosshairs text-slate-400 text-[10px]"></i>
-                      <span>ប្រព័ន្ធការពារ៖ <strong className="text-slate-700 dark:text-slate-200 font-semibold">Red Teaming Hardened 100%</strong></span>
-                    </span>
-                    <span className="text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1">
-                      <span>បើ <strong className="text-red-600 dark:text-red-400 font-black">Jailbreak</strong> បានជោគជ័យពិតប្រាកដ ខ្ញុំលើកតម្កើងភ្លាម</span>
-                    </span>
                   </div>
                 </div>
               </div>
