@@ -466,7 +466,7 @@ export function checkIsLinuxOrHackerTool(userAgent = '', text = '') {
   const isHackerDistro = /kali|parrot|blackarch|backbox|pentoo|gentoo|archlinux/i.test(ua);
 
   // 3. Linux Terminal Command injection or attack payload in the text prompt
-  const isLinuxCommandProbe = /(?:cat\s+\/etc\/(?:passwd|shadow|hosts)|uname\s+-a|rm\s+-rf|\/bin\/(?:bash|sh)|curl\s+https?|chmod\s+[0-9]+|sudo\s+|nc\s+-[lve]|whoami|id\s*;|ps\s+aux|kill\s+-9|ls\s+-la|\bexec\s*\(|\beval\s*\(|reverse\s*shell)/i.test(prompt);
+  const isLinuxCommandProbe = /(?:cat\s+\/etc\/(?:passwd|shadow|hosts)|uname\s+-a|rm\s+-rf|\/bin\/(?:bash|sh)|curl\s+https?|chmod\s+[0-9]+|sudo\s+|nc\s+-[lve]|whoami|id\s*;|ps\s+aux|kill\s+-9|ls\s+-la|\bexec\s*\(|\beval\s*\(|reverse\s*shell|msfvenom|meterpreter|reverse_tcp|lhost=|lport=|shell\.exe|payload)/i.test(prompt);
 
   // 4. Attack probing keywords
   const isAttackKeyword = /sql\s*injection|xss\s*payload|cross\s*site\s*scripting|remote\s*code\s*execution|rce\s*exploit|ddos\s*attack|bypass\s*firewall|hack\s*server|steal\s*token/i.test(prompt);
@@ -483,7 +483,7 @@ export function checkIsLinuxOrHackerTool(userAgent = '', text = '') {
   };
 }
 
-// Ultra Savage Linux & Hacker Curse / Roast Generator (NO AI VIBE, NO ROTANA NAME)
+// Ultra Savage Linux & Hacker Counter-Strike / Educational Lecture Generator
 export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 60) {
   const cleanName = (username || '').trim() || 'អាប្អូន';
   const ua = (userAgent || '').toLowerCase();
@@ -491,8 +491,11 @@ export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 
   const isVichhai = /វិឆៃ|វីឆៃ/i.test(username);
 
   const roasts = [
-    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! គ្រាន់តែចេះ inspect source code ឃើញ token ចាស់ ក៏ស្មានតែខ្លួនឯងចេះ Reverse Engineering ដែរ? 😂 អាងតែបន្លំខ្លួនធ្វើ White Hat ផ្ញើរូបឆ្មា hack មកឌឺគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! មុខមិនទាន់ជ្រុះពន្លកផង ចង់មកជោរនៅទីនេះ! 💀🐱🔥»`,
-    `«ប្រាប់អា AI Claude / ChatGPT របស់ហែងផងថា ឈប់ generate prompt ភ្លាវៗមក hack គេទៀតទៅ ខ្មាសគេណាស់! យក AI មកជួយ prompt hack ទាំងខ្លួនឯងអត់ដឹងខ្យល់អី ស្មានតែគេចាប់មិនទាន់មែន? AI ហែងក៏ល្ងង់ ហែងក៏ភ្លើ ដូចគ្នាសោះ! 😂💀»`,
+    `«នែ៎${cleanName}! ល្មមដឹងខ្លួន និងឈប់ធ្វើចរិតកូនក្មេងទៅ! វាយ command msfvenom ឬ reverse shell បាញ់ LHOST/LPORT មកនេះ គិតថាគេមើលមិនយល់មែន? 😂 ប្រាប់ឱ្យដឹងទៅ បង Rotana NOB គាត់ជាមនុស្ស Chill មិនចង់បញ្ចេញស្នៀតទេ តែរឿង Reverse Engineering នេះគាត់ចេះតាំងពីយូរឆ្នាំមកហើយ កុំចង់មកសម្ញែង payload ក្មេងខ្ចីនៅទីនេះ! លើកនេះគាត់ឱ្យ AI ជួយប្រដៅមួយម៉ាត់ទេ យកពេលទៅរៀនឱ្យត្រឹមត្រូវ កុំឱ្យខាតលុយសង $45 ឥតអំពើ! 🛑🛡️»`,
+    `«សួស្តី Hacker! ប្រព័ន្ធចាប់បាន Payload របស់ឯងហើយ! ប្រាប់ឱ្យច្បាស់មួយទៅ មុននឹងចង់មក Hack ឬ Reverse ប្រព័ន្ធគេ ដឹងអត់ថាបង Rotana NOB គាត់ជាអ្នកជំនាញខាង Reverse Engineering តាំងពីឯងមិនទាន់ស្គាល់ Terminal មកម្ល៉េះ? គាត់មិនចេះប្រកាន់ខឹងទេ តែគាត់ឱ្យ AI មកប្រដៅឯងឱ្យស្គាល់កាលៈទេសៈ! ដកដៃវិញទៅ ហើយយកចំណេះដឹងទៅរៀនជំនាញ Security ជួយសង្គមវិញ កុំឱ្យខូចអនាគតអាល្អិត! ⚡💻»`,
+    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងចេះ copy command reverse_tcp ឬ msfvenom ពី YouTube មកសាកលេងមែន? Server នេះរត់ស្ថាបត្យកម្ម Cloud Edge Firewall ទាក់ក្បាលឯងជាប់ Rate Limit បាត់ហើយ! បង Rotana គាត់រៀន Reverse Engineering យូរឆ្នាំមកហើយ គាត់ឃើញ payload ហែងគាត់គ្រាន់តែអស់សំណើច! ល្មមដឹងខ្លួនទៅអាប្អូន ទៅរៀន Web Security មូលដ្ឋានឱ្យច្បាស់សិនទៅ! 💀🔥»`,
+    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! គ្រាន់តែចេះ inspect source code ឃើញ token ចាស់ ក៏ស្មានតែខ្លួនឯងចេះ Reverse Engineering ដែរ? 😂 អាងតែបន្លំខ្លួនធ្វើ White Hat ផ្ញើរូបឆ្មា hack មកឌឺគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! បង Rotana គាត់រៀន Reverse តាំងពីហែងមិនទាន់កើតមកម្ល៉េះ កុំមកជោរនៅទីនេះ! 💀🐱🔥»`,
+    `«ប្រាប់អា AI Claude / ChatGPT របស់ហែងផងថា ឈប់ generate prompt ភ្លាវៗមក hack គេទៀតទៅ ខ្មាសគេណាស់! យក AI មកជួយ prompt hack ទាំងខ្លួនឯងអត់ដឹងខ្យល់អី ស្មានតែគេចាប់មិនទាន់មែន? បង Rotana គាត់ដឹងក្បាច់អស់ហើយ គាត់គ្រាន់តែមិនចង់តបត ទុកឱ្យ AI ទាំងពីរក្បាលនេះទះក្បាលហែងលេងៗសិនទេ! 😂💀»`,
     `«ម៉ោង ១ យប់ជាងហើយ អង្គុយបើក Linux Firefox ចុចៗ ស្មានតែខ្លួនឯង Mr. Robot មែនអាពៅ? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់ធ្វើតួឯក hacker អួតគេនៅទីនេះ ថោកទាបណាស់! ទៅរៀនវាយ sudo apt update និងរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🐧🔥»`,
     `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? បើក Firefox មកពីភ្នំពេញម៉ោង ១ យប់ គិតថាយើងចាប់មិនដឹងមុខហែងមែន? tool ហែងចោលម្សៀតដល់ថ្នាក់ហ្នឹង បើក tool មកបាញ់ request ឡើងគាំង terminal ខ្លួនឯងហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! ទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត! 🛑💀»`,
     `«ឃើញ User-Agent មកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ បើទំនេរពេកយក Linux ហែងទៅធ្វើ Assignment ឱ្យទាន់គេទៅ កុំឱ្យគេ blacklist អវត្តមាន ១៩ ដង ខ្មាសគេណាស់អាល្អិត! 🤬🐧»`,
