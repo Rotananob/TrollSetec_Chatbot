@@ -1470,7 +1470,7 @@ export default function KonBongPage() {
         } else {
           consecutiveErrorsRef.current += 1;
           botText = getSmartCutoffResponse('konbong', userNameStr, consecutiveErrorsRef.current, userGender);
-          isErrorResponse = false;
+          isErrorResponse = true;
         }
       }
 
@@ -3046,8 +3046,8 @@ export default function KonBongPage() {
                       );
                     })()}
 
-                    {/* Error Action Buttons (Only shown when genuine non-dismissible error occurs) */}
-                    {(msg.isError && !msg.text?.includes('spam chat') && !msg.text?.includes('auto deactivate') && !msg.text?.includes('កាត់ផ្ដាច់')) && (
+                    {/* Error Action Buttons (Shown when error or smart cutoff occurs so students can alert admin) */}
+                    {(msg.isError && !msg.isSpamRoast) && (
                       <div className="mt-3 pt-2.5 border-t border-rose-500/25 flex flex-wrap items-center gap-1.5 animate-fade-in">
                         <button
                           type="button"

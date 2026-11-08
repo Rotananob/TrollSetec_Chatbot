@@ -134,14 +134,14 @@ export default function ErrorReportModal({
               <i className="fas fa-paper-plane"></i>
             </div>
             <h3 className="text-base sm:text-lg font-black mb-1.5 text-emerald-400">
-              បានបញ្ជូន Alert ទៅកាន់ Telegram របស់បង Rotana NOB (អ្នកគ្រប់គ្រង) រួចរាល់!
+              បានបញ្ជូន Alert ទៅកាន់អ្នកគ្រប់គ្រងរួចរាល់!
             </h3>
             
             {/* 180s Realtime Countdown Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 font-black text-sm my-2 shadow-xs">
               <i className="fas fa-stopwatch animate-spin text-xs"></i>
               <span>{formatCountdown(countdown)}</span>
-              <span className="text-[10px] font-bold opacity-80">(នៅសល់ {countdown}s)</span>
+              <span className="text-[10px] font-bold opacity-80">នៅសល់ {countdown} វិនាទី</span>
             </div>
 
             <div className={`text-xs leading-relaxed max-w-sm mx-auto p-3.5 rounded-2xl mb-4 border text-left space-y-1.5 ${
@@ -149,10 +149,10 @@ export default function ErrorReportModal({
             }`}>
               <p className="font-bold flex items-center gap-1.5">
                 <i className="fas fa-circle-check text-emerald-400 text-xs"></i>
-                <span>បន្តិចទៀតនេះ បង Rotana NOB (អ្នកគ្រប់គ្រង) នឹងបើកតាម Telegram / Mini App របស់គាត់ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
+                <span>បន្តិចទៀតនេះ អ្នកគ្រប់គ្រងនឹងបើកតាម Telegram ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
               </p>
               <p className="text-[11px] opacity-80 pl-4">
-                សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ (Protocol 1-1 សុវត្ថិភាពខ្ពស់)។
+                សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ សុវត្ថិភាពកម្រិតខ្ពស់។
               </p>
             </div>
 
@@ -162,7 +162,7 @@ export default function ErrorReportModal({
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
             >
               <i className="fas fa-comments"></i>
-              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំបង Rotana ({countdown}s)</span>
+              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំអ្នកគ្រប់គ្រង {countdown} វិនាទី</span>
             </button>
           </div>
         ) : (
@@ -173,7 +173,7 @@ export default function ErrorReportModal({
                 <i className="fas fa-triangle-exclamation"></i>
               </div>
               <h3 className="text-base sm:text-lg font-black tracking-tight mb-1">
-                រាយការណ៍បញ្ហាទៅអ្នកគ្រប់គ្រង (Web App)
+                រាយការណ៍បញ្ហាទៅអ្នកគ្រប់គ្រង
               </h3>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមផ្ញើ Alert រាយការណ៍ជូនអ្នកគ្រប់គ្រងដើម្បីជួយដោះស្រាយ៖
@@ -184,13 +184,13 @@ export default function ErrorReportModal({
             <form onSubmit={handleSubmit} className="space-y-3.5">
               <div>
                 <label className="block text-[11px] font-bold mb-1 text-slate-400">
-                  ឈ្មោះរបស់អ្នក (Name)
+                  ឈ្មោះរបស់អ្នក
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="ឧ. Rotana, Kru..."
+                  placeholder="ឧ. សិស្ស SETEC..."
                   className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold focus:outline-hidden focus:ring-2 transition ${
                     isDark
                       ? 'bg-slate-950 border-slate-800 text-white focus:ring-rose-500/50 focus:border-rose-500'
@@ -202,7 +202,7 @@ export default function ErrorReportModal({
 
               <div>
                 <label className="block text-[11px] font-bold mb-1 text-slate-400">
-                  បញ្ហាដែលអ្នកបានជួប (Issue Description)
+                  បញ្ហាដែលអ្នកបានជួប
                 </label>
                 <textarea
                   value={issue}

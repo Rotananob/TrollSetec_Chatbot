@@ -1895,7 +1895,7 @@ export default function KonPovPage() {
         } else {
           consecutiveErrorsRef.current += 1;
           botText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
-          isErrorResponse = false;
+          isErrorResponse = true;
         }
       } else {
         botText = enforcePersonaConsistency(botText, isMaleUser);
@@ -3252,8 +3252,8 @@ export default function KonPovPage() {
                       );
                     })()}
 
-                    {/* Error Action Buttons (Only shown when genuine non-dismissible error occurs) */}
-                    {(item.isError && !item.text?.includes('spam chat') && !item.text?.includes('auto deactivate') && !item.text?.includes('កាត់ផ្ដាច់')) && (
+                    {/* Error Action Buttons (Shown when error or smart cutoff occurs so students can alert admin) */}
+                    {(item.isError && !item.isSpamRoast) && (
                       <div className="mt-3 pt-2.5 border-t border-rose-500/25 flex flex-wrap items-center gap-1.5 animate-fade-in">
                         <button
                           type="button"
