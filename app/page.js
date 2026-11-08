@@ -429,7 +429,7 @@ export default function Home() {
                   {/* Clean Promo Caption Box */}
                   <div className="w-full mb-3 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs text-center">
                     <p className="text-[12px] sm:text-[12.5px] text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                      Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតបន្តិចហើយណា៎ មិចម៉ា ជួយប្រើ ឬ ជួយជាវ ម្នាក់មួយផង
+                      Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតតិច។ មិចម៉ា ជួយប្រើ ឬ ជួយជាវ ម្នាក់មួយហូវ ណ៎រ 🙏🏻😭
                     </p>
                   </div>
 
