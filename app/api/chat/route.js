@@ -400,7 +400,7 @@ function containsRotanaInsult(text) {
 }
 
 // Sanitize response to conceal upstream provider & model names in Network devtools
-function sanitizeResponse(data, botName = 'konbong') {
+function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
   if (!data || typeof data !== 'object') return data;
   const clone = { ...data };
   if (clone.modelVersion) {
@@ -438,6 +438,20 @@ function sanitizeResponse(data, botName = 'konbong') {
     const cannedOpenerRegex = /^\s*(?:(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?|ស្ដាប់ទៅដូចជា(?:\.\.\.)?\s*|ស្ដាប់ទម្រង់(?:សួរនាំ)?(?:បែបនេះ)?(?:ហើយ)?(?:\.\.\.)?\s*)/i;
     if (cannedOpenerRegex.test(sanitizedText)) {
       sanitizedText = sanitizedText.replace(cannedOpenerRegex, '');
+    }
+
+    // STRICT ANTI-UNPROVOKED APPEARANCE ROAST GUARD (NO RANDOM FROG / TOAD INSULTS):
+    // Only permit face/appearance insults when the user genuinely used heavy vulgarity, swore at the bot, or attacked face first.
+    // If user is just chatting normally, asking about romance/Crush, or playfully debating C#/.NET code: NEVER insult their face!
+    const isSevereCurseOrFaceAttack = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|គីង្គក់)/ui.test(userPrompt || '');
+    if (!isSevereCurseOrFaceAttack) {
+      sanitizedText = sanitizedText
+        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ)?|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?គីង្គក់(?:ឡើងថ្លុក|ត្រូវថ្ងៃ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខក្រាស់ដូចថ្នល់(?:ជាតិ|កៅស៊ូ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '');
+      // Clean up orphaned exclamation marks or leading punctuation
+      sanitizedText = sanitizedText.replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
     }
 
     // Strictly enforce Persona Title Separation
@@ -1486,7 +1500,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           isError: false
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-        const sanitized = sanitizeResponse(result.data, bot);
+        const sanitized = sanitizeResponse(result.data, bot, userPrompt);
         const botResponseText = sanitized?.candidates?.[0]?.content?.parts?.[0]?.text || textOutput;
 
         recordSessionTurn({
