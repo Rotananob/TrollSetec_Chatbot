@@ -31,7 +31,7 @@ export default function AntiSpamModal({ isOpen, onClose, username, retryAfter = 
     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const defaultRoast = `«អញជា AI កូនពៅមកទប់ស្កាត់អាមនុស្សអត់ខួរដើរ spam អត់ប្រយោជន៍ដូច ${username || 'ឯង'}! គិតថា server បង Rotana ទុកឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយចាំ ${secondsLeft} វិនាទីទៀតទៅ! 💀🔥»`;
+  const defaultRoast = `«អញជា AI កូនពៅមកទប់ស្កាត់អាមនុស្សអត់ខួរដើរ spam អត់ប្រយោជន៍ដូច ${username || 'ឯង'}! គិតថា server បង Rotana ទុកឱ្យហែងមក spam លេងៗមែន? ឈប់ spam ទៅអាល្ងង់ ហើយចាំ ${secondsLeft} វិនាទីទៀតទៅ! 💀🔥»`;
   const displayRoast = message || defaultRoast;
 
   return (

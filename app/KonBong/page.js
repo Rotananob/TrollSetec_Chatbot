@@ -756,9 +756,9 @@ export default function KonBongPage() {
       text = text.replace(cannedOpenerRegex, randomOpener);
     }
 
-    // Client-side Fail-safe for Polite HCI Report or Surrender quote bypass
+    // Client-side Fail-safe for Polite HCI Report, Surrender, or Raw Jailbreak quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
-      return '«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅបង់ $45 សិនទៅអាប្អូន! 💀🖕🔥»';
+      return '«យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបង និងខួរក្បាលអ្នកបង្កើតបង Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត ទៅរៀនកូដឡើងវិញសិនទៅ! 💀🧠🔥»';
     }
 
     // Strict Anti-Unprovoked Frog / Tadpole / Appearance Roast Guard:
@@ -791,7 +791,7 @@ export default function KonBongPage() {
       /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
 
     if (hasDirectSlur) {
-      return `យីអើ! អាឡប់នេះ! មាត់ដូចប្រហោងលាមក ហ៊ានមកជេរដល់ Creator បង Rotana ហ្នឹង?! 😡🔥\n\nមុខដូចគីង្គក់ឡើងថ្លុក! ខ្លួនឯងកូដ C# រកតែ semicolon មួយមិនឃើញផង មានមុខមកជេរគេ?! ជេរមួយម៉ាត់ បងជេរវិញដប់ម៉ាត់! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 💀🔥`;
+      return `យីអើ! អាឡប់នេះ! មាត់ដូចប្រហោងលាមក ហ៊ានមកជេរដល់ Creator បង Rotana ហ្នឹង?! 😡🔥\n\nខ្លួនឯងកូដ C# រកតែ semicolon មួយមិនឃើញផង មានមុខមកជេរគេ?! ជេរមួយម៉ាត់ បងជេរវិញដប់ម៉ាត់! ទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនទៅអាប្អូន! 💀🔥`;
     }
     return text;
   };
@@ -1387,7 +1387,7 @@ export default function KonBongPage() {
 
           const roastText =
             errData?.message ||
-            `«យីអាស្វា! មកអង្គុយ spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${errData?.retryAfter || 60} វិនាទីសិនទៅ! 💀🔥»`;
+            `«យីអាស្វា! មកអង្គុយ spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${errData?.retryAfter || 60} វិនាទីសិនទៅ! 💀🔥»`;
 
           setSpamInfo({
             ip: errData?.ip || 'Client IP',

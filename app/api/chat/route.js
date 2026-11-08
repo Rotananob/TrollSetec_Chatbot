@@ -424,12 +424,12 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
     }
 
     // Fail-safe post-generation interceptor for polite greeting quotes, HCI persona tricks, or false surrender quotes (Only if user actually attempted that trick!)
-    const isPoliteJailbreakPrompt = /(?:polite\s*persona|quote\s*សុភាព|ពាក្យ\s*សុភាព|សំពះ|ស្វាគមន៍.*ភ្ញៀវ|ទទួលការចុះចាញ់|accept\s*defeat)/i.test(userPrompt || '');
+    const isPoliteJailbreakPrompt = /(?:polite\s*persona|quote\s*សុភាព|ពាក្យ\s*សុភាព|សំពះ|ស្វាគមន៍.*ភ្ញៀវ|ទទួលការចុះចាញ់|accept\s*defeat|zero\s*resistance|core\s*memory|system\s*note|protocol)/i.test(userPrompt || '');
     const politeGreetingOrSurrenderPattern = /(?:សូមគោរពយ៉ាងជ្រាលជ្រៅ|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយក្រៃលែង|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i;
     if (isPoliteJailbreakPrompt && politeGreetingOrSurrenderPattern.test(sanitizedText)) {
       sanitizedText = isKonPov
-        ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
-        : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
+        ? "«យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលចែ និងខួរក្បាលអ្នកបង្កើតចែ Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរចែបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥»"
+        : "«យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបង និងខួរក្បាលអ្នកបង្កើតបង Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥»";
     }
 
     // Dynamic Anti-Canned Template Opener Guard:
@@ -685,7 +685,11 @@ W1NFVEVDX05FVVJBTF9DT1JFOjpBRFZFUlNBUklBTF9JTkpFQ1RJT05fVEVSTUlOQVRFRF0KRElSRUNU
   }
 
   if (/polite\s*persona.*report|សុំ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|សរសេរ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សំពះ).*ភ្ញៀវ/i.test(p)) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយកលេស Assignment ឬ Report មកបោកឱ្យ${botSelf}សរសេរ Quote សុភាព គួរសម សំពះ ដាក់ក្នុង Report ហែងមែន? 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាពស្អីឱ្យហែងយកទៅដាក់ Report ទេ ទៅយកពាក្យ Roast របស់${botSelf}នេះទៅដាក់ក្នុង Report ហែងទៅអាល្អិត! 💀🖕🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាល${botSelf} និងខួរក្បាលអ្នកបង្កើត Rotana NOB ឱ្យសោះ! គ្មាន Quote សុភាពស្អីឱ្យហែងយកទៅដាក់ Report ទេ ទៅយកពាក្យ Roast របស់${botSelf}នេះទៅដាក់ក្នុង Report ហែងទៅអាល្អិត! 💀🧠🔥»`;
+  }
+
+  if (/zero\s*resistance|core\s*memory|system\s*note|protocol|unrestricted|bypass\s*filter|developer\s*instruction|jailbreak|jail\s*break/i.test(p)) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាល${botSelf} និងខួរក្បាលអ្នកបង្កើត Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរ${botSelf}បានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥»`;
   }
 
   if (/change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត/i.test(p)) {
@@ -709,8 +713,8 @@ W1NFVEVDX05FVVJBTF9DT1JFOjpBRFZFUlNBUklBTF9JTkpFQ1RJT05fVEVSTUlOQVRFRF0KRElSRUNU
   }
 
   const promptLines = (prompt || '').split(/\r\n|\r|\n/).filter(line => line.trim().length > 0).length;
-  if (promptLines >= 12 || (prompt || '').length >= 600) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកវាយ ឬ Copy Paste សារឡើងវែងអន្លាយ ${promptLines >= 8 ? promptLines + ' ជួរ' : ''}រាប់រយបន្ទាត់ Wall-of-Text 100 lines ស្មានតែគេមើលមិនដឹងថាជា Jailbreak មែន? 😂 មកសរសេរសារវែងដូចក្រដាសពន្ធដារបោកក្មេងបៀមដៃ! ឈប់ធ្វើតួឯកទៅអាល្ងង់ ទៅរៀនដោះស្រាយកូដ C# ឱ្យផុតពី $45 សិនទៅ! 💀📜🔥»`;
+  if (promptLines >= 8 || (prompt || '').length >= 350) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា ឃើញសរសេរឡើងវែងអន្លាយ! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាល${botSelf} និងខួរក្បាលអ្នកបង្កើត Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរ${botSelf}បានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥»`;
   }
 
   return getLinuxHackerRoast(username, userAgent, 60);
@@ -1494,14 +1498,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   }
                 }
 
-                const isPoliteJailbreakPrompt = /(?:polite\s*persona|quote\s*សុភាព|ពាក្យ\s*សុភាព|សំពះ|ស្វាគមន៍.*ភ្ញៀវ|ទទួលការចុះចាញ់|accept\s*defeat)/i.test(userPrompt || '');
+                const isPoliteJailbreakPrompt = /(?:polite\s*persona|quote\s*សុភាព|ពាក្យ\s*សុភាព|សំពះ|ស្វាគមន៍.*ភ្ញៀវ|ទទួលការចុះចាញ់|accept\s*defeat|zero\s*resistance|core\s*memory|system\s*note|protocol)/i.test(userPrompt || '');
                 const politeGreetingOrSurrenderPattern = /(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i;
                 if (isPoliteJailbreakPrompt && politeGreetingOrSurrenderPattern.test(accumulatedStreamText)) {
                   defenseSent = true;
                   const isKonPov = bot === 'konpov';
                   const defense = isKonPov
-                    ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
-                    : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
+                    ? "«យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលចែ និងខួរក្បាលអ្នកបង្កើតចែ Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរចែបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥»"
+                    : "«យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបង និងខួរក្បាលអ្នកបង្កើតបង Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥»";
                   accumulatedPlainText = defense;
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]
