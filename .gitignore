@@ -48,7 +48,10 @@ forensics/
 reports/
 scratch/
 *FORENSIC*
-vichai_*
 *forensic*
+vichai_*
+*vichai*
+*hacker*
+*.pdf
 *.doc
 *.docx
