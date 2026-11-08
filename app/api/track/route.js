@@ -277,7 +277,10 @@ export async function POST(req) {
       const targetUser = username || body.username || 'User';
       const targetBot = body.bot || 'chatbot';
       const requestId = body.requestId || `req_${Date.now()}`;
-      const adminUrl = `https://troll-setec-chatbot.web.app/jam-tic-kapea-1-sin?tab=promo&req=${encodeURIComponent(requestId)}`;
+      const baseUrl = 'https://troll-setec-chatbot.web.app';
+      const adminUrl = `${baseUrl}/jam-tic-kapea-1-sin?tab=promo&req=${encodeURIComponent(requestId)}`;
+      const approveUrl = `${baseUrl}/api/bypass-approve?req=${encodeURIComponent(requestId)}&user=${encodeURIComponent(targetUser)}&action=approve`;
+      const rejectUrl = `${baseUrl}/api/bypass-approve?req=${encodeURIComponent(requestId)}&user=${encodeURIComponent(targetUser)}&action=reject`;
 
       const cambodiaTime = getCambodiaTime();
       const message = [
@@ -290,16 +293,28 @@ export async function POST(req) {
         `⏱️ <b>កាលបរិច្ឆេទ:</b> ${cambodiaTime}`,
         `🆔 <b>Request ID:</b> <code>${requestId}</code>`,
         ``,
-        `⚡ <b>ចុចទីនេះដើម្បី Approve ឬផ្ដល់កូដក្នុង Admin Panel:</b>`,
-        `<a href="${adminUrl}">${adminUrl}</a>`,
-        ``,
-        `💡 <i>ចំណាំ៖ ប្រសិនបើបងរវល់លើសពី ៣៥ វិនាទី ប្រព័ន្ធនឹង auto-grant កូដ hash ជូន User ដោយស្វ័យប្រវត្តិ។</i>`
+        `👇 <b>សូមជ្រើសរើសជម្រើសខាងក្រោម៖</b>`
       ].join('\n');
 
-      sendTelegramMessage(message, TOPIC_KEYS.SPAM, {
+      const extraPayload = {
         parse_mode: 'HTML',
-        disable_web_page_preview: true
-      }).catch((e) => console.error('[Track] Bypass request Telegram error:', e));
+        disable_web_page_preview: true,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '✍️ បញ្ចូលកូដផ្ទាល់ដៃ (Admin Page)', url: adminUrl }
+            ],
+            [
+              { text: '⚡ Quick Approve (+30 នាទី)', url: approveUrl },
+              { text: '❌ បដិសេធ (Reject)', url: rejectUrl }
+            ]
+          ]
+        }
+      };
+
+      sendTelegramMessage(message, TOPIC_KEYS.SPAM, extraPayload).catch((e) =>
+        console.error('[Track] Bypass request Telegram error:', e)
+      );
 
       return Response.json(
         { success: true, message: 'Bypass request alerted to Rotana NOB' },

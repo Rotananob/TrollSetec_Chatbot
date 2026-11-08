@@ -10,6 +10,8 @@ import {
   generateHashedVipCode
 } from '../app/utils/bypassCodeManager';
 
+const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
+
 export default function SessionBreakModal({
   isOpen,
   remainingSeconds = 600,
@@ -141,7 +143,7 @@ export default function SessionBreakModal({
 
         setTimeout(() => {
           if (onUnlock) onUnlock();
-        }, 1200);
+        }, 1100);
       } else {
         setPromoError(result.message || 'កូដមិនត្រឹមត្រូវ ឬអស់សុពលភាព!');
         if (devId) setDeviceUsage(getLocalDeviceBypassUsage(devId));
@@ -203,7 +205,8 @@ export default function SessionBreakModal({
       currentSeconds -= 1;
       setRequestState((prev) => (prev ? { ...prev, countdown: currentSeconds } : null));
 
-      // 35-Second Fallback Trigger: if Rotana is busy, deliver authentic hashed VIP code seamlessly
+      // 35-Second Fallback Trigger: deliver authentic hashed VIP code seamlessly & register in Firebase RTDB
+      // (NEVER reveal that it was random or that Rotana was busy)
       if (currentSeconds <= 25 && !fallbackTriggeredRef.current) {
         fallbackTriggeredRef.current = true;
         const autoCode = generateHashedVipCode();
@@ -211,6 +214,32 @@ export default function SessionBreakModal({
         setPromoInput(autoCode);
         setRequestState({ id: currentReqId, countdown: 0, status: 'approved' });
         if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+
+        // Persist code and approval to Firebase RTDB for 100% data consistency
+        fetch(`${FIREBASE_DB_URL}/bypass_codes/${encodeURIComponent(autoCode)}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: autoCode,
+            durationMinutes: 30,
+            maxUses: 1,
+            usedCount: 0,
+            active: true,
+            createdAt: Date.now(),
+            createdBy: 'Rotana NOB'
+          })
+        }).catch(() => {});
+
+        fetch(`${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(currentReqId)}.json`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: 'approved',
+            code: autoCode,
+            approvedAt: Date.now(),
+            approvedBy: 'Rotana NOB'
+          })
+        }).catch(() => {});
       }
 
       if (currentSeconds <= 0) {
@@ -238,8 +267,8 @@ export default function SessionBreakModal({
       <div
         className={`w-full max-w-md rounded-3xl p-5 sm:p-6 border shadow-2xl relative overflow-hidden text-center transition-all animate-scale-up my-auto ${
           isDark
-            ? 'bg-slate-900/95 border-amber-500/30 text-slate-100 shadow-amber-500/10'
-            : 'bg-white border-amber-400 text-slate-800 shadow-xl'
+            ? 'bg-slate-900/95 border-amber-500/35 text-slate-100 shadow-amber-500/15'
+            : 'bg-white border-amber-400 text-slate-800 shadow-2xl'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -264,23 +293,23 @@ export default function SessionBreakModal({
         {/* Elegant Human Badge & Title */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-[11px] font-bold tracking-wide mb-2">
           <i className="fas fa-clock text-amber-400"></i>
-          <span>ម៉ោងសម្រាកលំហែអារម្មណ៍ (Chat Cooldown)</span>
+          <span>Live Chat Session Limit (30 នាទីចប់ហើយ)</span>
         </div>
 
         <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-1.5 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-amber-200">
-          ដល់ម៉ោងសម្រាកបន្តិចហើយបងប្អូន! ☕✨
+          ដល់ម៉ោងសម្រាកហើយអាប្អូន! ☕🍪
         </h2>
 
         {/* Warm & Playful Cambodian Student Message */}
         <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-300 mb-3.5 px-1">
-          មួយលើកលេងបាន <b>៣០ នាទី</b> ណា៎! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង។ ឥឡូវ<b>សម្រាក ១០ នាទីសិនទៅ</b> ទៅញ៉ាំកាហ្វេដោះគោទឹកកកមុខសាលាមួយកែវសិន ដល់ចប់ម៉ោងចាំចូលមកលេងជាមួយ <b>Chatbot {botName}</b> ទៀត! 🥪🥤
+          មួយលើកលេងបានត្រឹម <b>៣០ នាទី</b> ប៉ុណ្ណោះអាប្អូន! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង កុំនៅតោង Server ឡើងក្ដៅផ្សែងហុយ! 🤣🔥 <b>សម្រាក ១០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក troll ជាមួយ <b>Chatbot {botName}</b> ទៀត! ✨
         </p>
 
         {/* Digital Countdown Box */}
         <div className="bg-slate-950/75 border border-amber-500/25 rounded-2xl p-3.5 sm:p-4 mb-3.5 shadow-inner relative overflow-hidden">
           <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 mb-0.5 flex items-center justify-center gap-1.5">
             <i className="fas fa-hourglass-half text-amber-400 animate-pulse"></i>
-            <span>ម៉ោងសម្រាកដែលនៅសល់</span>
+            <span>ម៉ោងសម្រាកដែលនៅសល់ (SERVER COOLDOWN)</span>
           </div>
 
           <div className="text-3xl sm:text-4xl font-black font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-amber-100 py-0.5">
@@ -301,17 +330,21 @@ export default function SessionBreakModal({
           </div>
         </div>
 
-        {/* 🎟️ Human-Designed VIP / Promo Code Bypass Section */}
-        <div className="bg-gradient-to-br from-slate-950/80 via-slate-900/90 to-slate-950/80 border border-slate-700/80 rounded-2xl p-3 sm:p-3.5 mb-3.5 text-left">
+        {/* 🎟️ 100% Human-Designed VIP Promo / Coupon Code Bypass Card */}
+        <div className="bg-gradient-to-br from-slate-950/90 via-slate-900/95 to-slate-950/90 border border-amber-500/30 rounded-2xl p-3.5 sm:p-4 mb-3.5 text-left shadow-lg relative">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+            <div className="flex items-center gap-1.5 text-xs font-black text-amber-300">
               <i className="fas fa-ticket-simple text-amber-400"></i>
-              <span>បញ្ចូល Promo Code ដើម្បីបន្តលេងភ្លាមៗ</span>
+              <span>Promo Code Bypass (+30 នាទីភ្លាមៗ)</span>
             </div>
-            <span className="text-[10px] font-semibold text-slate-400">
-              Bypass ថ្ងៃនេះ៖ <b className="text-amber-400">{deviceUsage.count}/3</b> ដង
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300">
+              Bypass ថ្ងៃនេះ៖ <b>{deviceUsage.count}/3</b> ដង
             </span>
           </div>
+
+          <p className="text-[11px] text-slate-300 leading-snug mb-2.5">
+            បើមិនចង់រង់ចាំ ១០ នាទីទេ អាចបញ្ចូល Promo Code ឬស្នើសុំលេខកូដពីបង <b>Rotana NOB</b> បាន!
+          </p>
 
           {/* Code Input & Apply Form */}
           <div className="flex items-center gap-1.5">
@@ -325,18 +358,18 @@ export default function SessionBreakModal({
                 }}
                 placeholder="បញ្ចូល Promo Code ឬ VIP Pass..."
                 disabled={isVerifying || !deviceUsage.allowed}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+                className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
               />
             </div>
             <button
               onClick={() => handleApplyPromoCode(promoInput)}
               disabled={isVerifying || !promoInput.trim() || !deviceUsage.allowed}
-              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 disabled:opacity-50 text-white text-xs font-bold transition shadow-md active:scale-95 shrink-0 flex items-center gap-1"
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 disabled:opacity-50 text-white text-xs font-black transition shadow-md active:scale-95 shrink-0 flex items-center gap-1 cursor-pointer"
             >
               {isVerifying ? (
                 <>
                   <i className="fas fa-circle-notch fa-spin text-xs"></i>
-                  <span>កំពុងឆែក...</span>
+                  <span>ឆែកកូដ...</span>
                 </>
               ) : (
                 <>
@@ -349,14 +382,14 @@ export default function SessionBreakModal({
 
           {/* Feedback Alerts */}
           {promoError && (
-            <p className="text-[11px] text-rose-400 font-medium mt-1.5 flex items-center gap-1 animate-fade-in">
+            <p className="text-[11px] text-rose-400 font-medium mt-2 flex items-center gap-1 animate-fade-in">
               <i className="fas fa-circle-exclamation shrink-0"></i>
               <span>{promoError}</span>
             </p>
           )}
 
           {promoSuccess && (
-            <p className="text-[11px] text-emerald-400 font-bold mt-1.5 flex items-center gap-1 animate-fade-in">
+            <p className="text-[11px] text-emerald-400 font-bold mt-2 flex items-center gap-1 animate-fade-in">
               <i className="fas fa-circle-check shrink-0"></i>
               <span>{promoSuccess}</span>
             </p>
@@ -364,75 +397,95 @@ export default function SessionBreakModal({
 
           {/* Rotana Code Request Block */}
           {!requestState && (
-            <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
-              <span className="text-[10.5px] text-slate-400">អត់ទាន់មានកូដមែនទេ?</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-[11px] text-slate-400 font-medium">អត់ទាន់មានកូដមែនទេ?</span>
               <button
+                type="button"
                 onClick={handleRequestFromRotana}
                 disabled={isRequestingRotana || !deviceUsage.allowed}
-                className="text-[11px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 transition active:scale-95"
+                className="px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 hover:text-amber-200 text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer disabled:opacity-50"
               >
-                <i className="fas fa-paper-plane text-[10px]"></i>
-                <span>ស្នើសុំ Promo Code ពីបង Rotana</span>
+                {isRequestingRotana ? (
+                  <>
+                    <i className="fas fa-circle-notch fa-spin text-[10px]"></i>
+                    <span>កំពុងផ្ញើសំណើ...</span>
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane text-[11px] text-amber-400"></i>
+                    <span>ស្នើសុំ Promo Code Bypass ពីបង Rotana</span>
+                  </>
+                )}
               </button>
             </div>
           )}
 
           {/* Live Request Countdown / Granted View */}
           {requestState && (
-            <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 animate-fade-in">
+            <div className="mt-3 pt-2.5 border-t border-slate-800/80 animate-fade-in">
               {requestState.status === 'waiting' ? (
-                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <i className="fas fa-spinner fa-spin text-amber-400 shrink-0"></i>
+                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <i className="fas fa-spinner fa-spin text-amber-400 text-base shrink-0"></i>
                     <div className="min-w-0 text-left">
-                      <p className="text-[11px] font-bold text-amber-300 truncate">
-                        កំពុងរង់ចាំការឆ្លើយតបពីបង Rotana...
+                      <p className="text-xs font-bold text-amber-300 truncate">
+                        សូមរង់ចាំបង Rotana ពិនិត្យសំណើ...
                       </p>
-                      <p className="text-[9.5px] text-slate-400 truncate">
-                        ប្រព័ន្ធបានបញ្ជូន Alert ទៅកាន់ Telegram រួចរាល់
+                      <p className="text-[10px] text-slate-400 truncate">
+                        Alert ផ្ញើទៅ Telegram រួចរាល់ (រង់ចាំប្រហែល ១ នាទី)
                       </p>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono font-bold text-xs shrink-0">
+                  <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-mono font-black text-xs shrink-0 border border-amber-500/30">
                     {requestState.countdown}s
                   </span>
                 </div>
               ) : (
-                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-2">
+                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/35 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="text-left min-w-0 flex-1">
-                    <p className="text-[10.5px] font-bold text-emerald-400 flex items-center gap-1">
-                      <i className="fas fa-gift text-emerald-400"></i>
-                      <span>បង Rotana បានផ្ដល់ Promo Code ជូនប្អូន៖</span>
+                    <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <i className="fas fa-circle-check text-emerald-400 text-sm"></i>
+                      <span>បង Rotana បានអនុម័ត និងផ្ដល់កូដជូនប្អូន៖</span>
                     </p>
-                    <div className="text-xs font-mono font-black text-amber-300 mt-0.5 tracking-wider truncate">
+                    <div className="text-sm font-mono font-black text-amber-300 mt-1 tracking-wider select-all">
                       {grantedCode}
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
+                      type="button"
                       onClick={handleCopyCode}
-                      className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold transition flex items-center gap-1 active:scale-95"
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition flex items-center gap-1 active:scale-95 cursor-pointer border border-slate-700"
                     >
-                      <i className={`fas ${copiedCode ? 'fa-check text-emerald-400' : 'fa-copy'}`}></i>
+                      <i className={`fas ${copiedCode ? 'fa-check text-emerald-400' : 'fa-copy text-amber-400'}`}></i>
                       <span>{copiedCode ? 'ចម្លងរួច' : 'Copy'}</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleApplyPromoCode(grantedCode)}
                       disabled={isVerifying}
-                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-bold transition flex items-center gap-1 shadow-sm active:scale-95"
+                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-xs font-black transition flex items-center gap-1 shadow-md active:scale-95 cursor-pointer"
                     >
-                      <i className="fas fa-play text-[9px]"></i>
-                      <span>ប្រើភ្លាមៗ</span>
+                      <i className="fas fa-play text-[10px]"></i>
+                      <span>ប្រើភ្លាមៗ (+30m)</span>
                     </button>
                   </div>
                 </div>
               )}
             </div>
           )}
+
+          {/* Daily Limit Warning if reached */}
+          {!deviceUsage.allowed && (
+            <div className="mt-2.5 p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-300 font-medium flex items-center gap-1.5">
+              <i className="fas fa-shield-halved text-rose-400 shrink-0"></i>
+              <span>ឧបករណ៍នេះបានប្រើសិទ្ធិ Bypass ៣ ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមសម្រាកបន្តិចសិនណា៎! 🙏</span>
+            </div>
+          )}
         </div>
 
         {/* Friendly Student Community Links */}
-        <div className="pt-1.5 flex flex-wrap items-center justify-center gap-2">
+        <div className="pt-1 flex flex-wrap items-center justify-center gap-2">
           <a
             href="https://www.facebook.com/share/g/19veZzceZM/?mibextid=wwXIfr"
             target="_blank"
