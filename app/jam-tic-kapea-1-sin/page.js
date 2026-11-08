@@ -18,7 +18,7 @@ export default function JamTicKapeaAdminPage() {
   const [systemState, setSystemState] = useState({
     serverOnline: false,
     maintenanceMode: true,
-    maintenanceReason: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\n(សម្រាកប្រហែលជា ៣ ម៉ោងសិន)',
+    maintenanceReason: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban',
     nightScheduleEnabled: true,
     nightStartHour: 23,
     nightEndHour: 6,
@@ -26,7 +26,7 @@ export default function JamTicKapeaAdminPage() {
     konbongActive: true,
     konpovActive: true,
     sessionLimitActive: true,
-    broadcastNotice: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\n(សម្រាកប្រហែលជា ៣ ម៉ោងសិន)',
+    broadcastNotice: 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban',
     lastUpdated: Date.now(),
     updatedBy: 'Rotana NOB'
   });
@@ -34,7 +34,7 @@ export default function JamTicKapeaAdminPage() {
   const [evaluation, setEvaluation] = useState({
     isResting: false,
     mode: 'online',
-    title: 'ប្រព័ន្ធដំណើរការធម្មតា (Online)'
+    title: 'ប្រព័ន្ធដំណើរការធម្មតា'
   });
 
   // UI State
@@ -55,6 +55,7 @@ export default function JamTicKapeaAdminPage() {
 
   // Popup Preview State
   const [showPopupPreview, setShowPopupPreview] = useState(false);
+  const [showMaintenancePreview, setShowMaintenancePreview] = useState(false);
 
   // Flags to protect input fields from background polling overwrites
   const initialLoadedRef = useRef(false);
@@ -117,7 +118,7 @@ export default function JamTicKapeaAdminPage() {
           if (data.evaluation) setEvaluation(data.evaluation);
           if (data.cambodiaHour !== undefined) setCambodiaHour(data.cambodiaHour);
 
-          // Populate edit fields on first load or when user explicitly requests a sync
+          // Populate edit fields only on initial load or when user explicitly requests a sync/revert
           if (!initialLoadedRef.current || forceSyncFields) {
             setEditMaintenanceReason(data.state.maintenanceReason || '');
             setEditNightMessage(data.state.nightRestMessage || '');
@@ -128,17 +129,6 @@ export default function JamTicKapeaAdminPage() {
             isEditingMaintenanceRef.current = false;
             isEditingNightMessageRef.current = false;
             isEditingBroadcastRef.current = false;
-          } else {
-            // Keep fields in sync ONLY if the user has NOT actively edited them
-            if (!isEditingMaintenanceRef.current && !editMaintenanceReason) {
-              setEditMaintenanceReason(data.state.maintenanceReason || '');
-            }
-            if (!isEditingNightMessageRef.current && !editNightMessage) {
-              setEditNightMessage(data.state.nightRestMessage || '');
-            }
-            if (!isEditingBroadcastRef.current && !editBroadcastNotice) {
-              setEditBroadcastNotice(data.state.broadcastNotice || '');
-            }
           }
           setRtdbConnected(true);
         }
@@ -148,7 +138,7 @@ export default function JamTicKapeaAdminPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [passcode, editMaintenanceReason, editNightMessage, editBroadcastNotice]);
+  }, [passcode]);
 
   // Initial Auth Check from SessionStorage
   useEffect(() => {
@@ -279,11 +269,28 @@ export default function JamTicKapeaAdminPage() {
     setPasscode('');
   };
 
-  // Perform Server State Update via API
+  // Perform Server State Update via API + Direct Parallel Real-Time Firebase Sync
   const sendUpdate = async (patch, actionDescription = 'Update System Parameters') => {
     setIsSubmitting(true);
     setStatusMessage({ text: 'កំពុងបញ្ជូនទិន្នន័យបញ្ជា...', type: 'info' });
 
+    // 1. Optimistic Local State Update (Instant 0ms feedback)
+    setSystemState((prev) => ({ ...(prev || {}), ...patch }));
+
+    // 2. Direct parallel write to Firebase RTDB for sub-200ms real-time propagation across student browsers
+    try {
+      fetch(`${FIREBASE_DB_URL}/system_control.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...patch,
+          lastUpdated: Date.now(),
+          updatedBy: 'Rotana NOB'
+        })
+      }).catch(() => {});
+    } catch {}
+
+    // 3. Authoritative API Backend Call
     try {
       const endpoint = getApiEndpoint('/api/system-status');
       const activePasscode = passcode || (typeof window !== 'undefined' ? sessionStorage.getItem('rotana_admin_passcode') : '');
@@ -681,7 +688,7 @@ export default function JamTicKapeaAdminPage() {
               }`} />
             </div>
             <div className="text-xl font-bold text-white mb-1">
-              {systemState.serverOnline && !systemState.maintenanceMode ? 'Online (ដំណើរការ)' : 'Maintenance (ថែទាំ)'}
+              {systemState.serverOnline && !systemState.maintenanceMode ? 'Online' : 'Maintenance'}
             </div>
             <p className="text-xs text-slate-400">
               {systemState.serverOnline && !systemState.maintenanceMode
@@ -703,7 +710,7 @@ export default function JamTicKapeaAdminPage() {
               }`} />
             </div>
             <div className="text-xl font-bold text-white mb-1">
-              {isEffectivelyResting ? 'Resting (សម្រាក)' : 'Active (សកម្ម)'}
+              {isEffectivelyResting ? 'Resting' : 'Active'}
             </div>
             <p className="text-xs text-slate-400">
               {isEffectivelyResting
@@ -744,7 +751,7 @@ export default function JamTicKapeaAdminPage() {
               <i className={`fa-solid fa-bullhorn ${systemState.broadcastNotice ? 'text-indigo-400 animate-pulse' : 'text-slate-600'}`} />
             </div>
             <div className="text-xl font-bold text-white mb-1">
-              {systemState.broadcastNotice ? 'Popup Active (សកម្ម)' : 'No Popup (គ្មាន)'}
+              {systemState.broadcastNotice ? 'Popup Active' : 'No Popup'}
             </div>
             <p className="text-xs text-slate-400 truncate">
               {systemState.broadcastNotice || 'មិនទាន់មានសារផ្សាយដំណឹងបន្ទាន់'}
@@ -812,7 +819,7 @@ export default function JamTicKapeaAdminPage() {
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
                   <i className="fa-solid fa-bullhorn text-indigo-400" />
-                  <span>ផ្សាយសារដំណឹងបន្ទាន់ &amp; លោត Popup លើអេក្រង់សិស្ស (Real-Time UI Alert)</span>
+                  <span>ផ្សាយសារដំណឹងបន្ទាន់ &amp; លោត Popup លើអេក្រង់សិស្ស</span>
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
                   សារដែលអ្នកសរសេរនៅទីនេះ នឹងលោតជាផ្ទាំង Modal Popup កណ្ដាលអេក្រង់ និងរបារខាងលើលើគ្រប់ Browser របស់សិស្សក្នុងពេល Real-time ភ្លាមៗ!
@@ -837,7 +844,7 @@ export default function JamTicKapeaAdminPage() {
             {/* Quick Templates Buttons */}
             <div className="mb-5">
               <label className="block text-xs font-semibold text-slate-300 mb-2">
-                គំរូសាររហ័ស (Quick Templates) &bull; ចុចដើម្បីដាក់ចូលប្រអប់សរសេរ៖
+                គំរូសាររហ័ស &bull; ចុចដើម្បីដាក់ចូលប្រអប់សរសេរ៖
               </label>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -898,10 +905,10 @@ export default function JamTicKapeaAdminPage() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-300 flex items-center gap-2">
-                    <span>ខ្លឹមសារនៃសារផ្សាយបន្ទាន់ (អាចកែប្រែបានតាមចិត្ត និងចុះបន្ទាត់បានសេរី)</span>
+                    <span>ខ្លឹមសារនៃសារផ្សាយបន្ទាន់</span>
                     {isEditingBroadcastRef.current && (
                       <span className="text-[10px] text-amber-400 bg-amber-950/50 border border-amber-800/60 px-1.5 py-0.5 rounded">
-                        កំពុងកែសម្រួល... (មិនទាន់ Save)
+                        កំពុងកែសម្រួល... មិនទាន់រក្សាទុក
                       </span>
                     )}
                   </label>
@@ -961,7 +968,7 @@ export default function JamTicKapeaAdminPage() {
                     className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <i className="fa-solid fa-eye text-indigo-400" />
-                    <span>សាកល្បងមើល Popup (Preview)</span>
+                    <span>សាកល្បងមើល Popup</span>
                   </button>
 
                   {/* Clear from Server Button */}
@@ -1000,7 +1007,7 @@ export default function JamTicKapeaAdminPage() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-xs font-bold text-slate-300 flex items-center gap-2">
                     <i className="fa-solid fa-mobile-screen text-indigo-400" />
-                    <span>គំរូជាក់ស្ដែងលើអេក្រង់សិស្ស (Student Screen Simulation):</span>
+                    <span>គំរូជាក់ស្ដែងលើអេក្រង់សិស្ស:</span>
                   </h3>
                   <span className="text-[10px] text-slate-400">Modal Popup Center Screen</span>
                 </div>
@@ -1009,8 +1016,8 @@ export default function JamTicKapeaAdminPage() {
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gray-400" />
                   <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-300">
                     <div>
-                      <div className="text-sm font-bold text-gray-900">សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង (Rotana NOB)</div>
-                      <div className="text-[11px] text-gray-500">ការជូនដំណឹងពីប្រព័ន្ធ (Gray Mode Simulation)</div>
+                      <div className="text-sm font-bold text-gray-900">សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង Rotana NOB</div>
+                      <div className="text-[11px] text-gray-500">ការជូនដំណឹងពីប្រព័ន្ធ Mode សាកល្បង</div>
                     </div>
                   </div>
 
@@ -1043,7 +1050,7 @@ export default function JamTicKapeaAdminPage() {
                     <span>Master Kill Switch &bull; បិទ/បើក Server ភ្លាមៗ</span>
                   </h2>
                   <p className="text-xs text-slate-400 mt-1">
-                    នៅពេលបិទ Server សិស្សទាំងអស់នឹងឃើញសារថែទាំភ្លាមៗ (Creator Rotana NOB នៅតែអាច Bypass និង Test បានជានិច្ច)
+                    នៅពេលបិទ Server សិស្សទាំងអស់នឹងឃើញសារថែទាំភ្លាមៗ Creator Rotana NOB នៅតែអាច Bypass និងតេស្តបានជានិច្ច
                   </p>
                 </div>
 
@@ -1090,50 +1097,161 @@ export default function JamTicKapeaAdminPage() {
                 </button>
               </div>
 
+              {/* Quick Templates Buttons for Maintenance */}
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-slate-300 mb-2">
+                  គំរូសាររហ័ស &bull; ចុចដើម្បីដាក់ចូលប្រអប់សរសេរ៖
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = 'ប្រព័ន្ធកំពុងសម្រាកបណ្ដោះអាសន្ន ៣០ នាទី ដើម្បីពង្រឹង Server និងកូតា AI សម្រាប់សិស្ស SETEC ទាំងអស់គ្នា!';
+                      setEditMaintenanceReason(text);
+                      isEditingMaintenanceRef.current = true;
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-clock text-amber-400" />
+                    <span>សម្រាក ៣០ នាទី</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = 'ប្រព័ន្ធកំពុង Update ក្បួនការពារ AI និងកែសម្រួល Code មួយភ្លែត តិចទៀតបើកវិញហើយ!';
+                      setEditMaintenanceReason(text);
+                      isEditingMaintenanceRef.current = true;
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-shield-halved text-sky-400" />
+                    <span>Update ក្បួនការពារ AI</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = 'ប្រព័ន្ធផ្អាកមួយរយៈខ្លីដើម្បីទប់ស្កាត់ Spam Chat និង Reset Token ឱ្យស្រួលបួលឡើងវិញ!';
+                      setEditMaintenanceReason(text);
+                      isEditingMaintenanceRef.current = true;
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-broom text-emerald-400" />
+                    <span>កាត់ផ្ដាច់ទប់ស្កាត់ Spam</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = 'បង Rotana កំពុងសម្រួល Server ឱ្យដើរស្រួល កុំទាន់ស្លន់ អង្គុយ Chill ផឹកកាហ្វេសិនទៅ តិចទៀតបើកវិញហើយ!';
+                      setEditMaintenanceReason(text);
+                      isEditingMaintenanceRef.current = true;
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-mug-hot text-amber-500" />
+                    <span>Chill ផឹកកាហ្វេសិន</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Maintenance Notice Editor */}
               <form onSubmit={handleSaveMaintenanceConfig} className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-slate-300">
-                      សារជូនដំណឹងពេលថែទាំ Server សម្រាប់បង្ហាញលើផ្ទាំង Chat របស់សិស្ស
+                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                      <span>សារជូនដំណឹងពេលថែទាំ Server សម្រាប់បង្ហាញលើផ្ទាំង Chat របស់សិស្ស</span>
+                      {isEditingMaintenanceRef.current && (
+                        <span className="text-[10px] text-amber-400 bg-amber-950/50 border border-amber-800/60 px-1.5 py-0.5 rounded">
+                          កំពុងកែសម្រួល... មិនទាន់រក្សាទុក
+                        </span>
+                      )}
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditMaintenanceReason(systemState.maintenanceReason || '');
-                        isEditingMaintenanceRef.current = false;
-                      }}
-                      className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
-                      title="ទាញយកសារដើមពី Server ឡើងវិញ"
-                    >
-                      <i className="fa-solid fa-rotate-left" />
-                      <span>Revert ទៅតម្លៃដើម</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditMaintenanceReason(systemState.maintenanceReason || '');
+                          isEditingMaintenanceRef.current = false;
+                        }}
+                        className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="ទាញយកសារដើមពី Server ឡើងវិញ"
+                      >
+                        <i className="fa-solid fa-rotate-left" />
+                        <span>Revert ទៅតម្លៃដើម</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditMaintenanceReason('');
+                          isEditingMaintenanceRef.current = true;
+                        }}
+                        className="text-[11px] text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="លុបអត្ថបទក្នុងប្រអប់នេះទាំងអស់"
+                      >
+                        <i className="fa-solid fa-eraser" />
+                        <span>Clear ប្រអប់</span>
+                      </button>
+                    </div>
                   </div>
                   <textarea
-                    rows={4}
+                    rows={5}
                     value={editMaintenanceReason}
                     onChange={(e) => {
                       setEditMaintenanceReason(e.target.value);
                       isEditingMaintenanceRef.current = true;
                     }}
-                    placeholder="បញ្ចូលសារពន្យល់ពីការថែទាំ..."
-                    className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-sans leading-relaxed"
+                    placeholder="បញ្ចូលសារពន្យល់ពីការថែទាំ... សារនេះអាចចុះបន្ទាត់ និងកែប្រែបានតាមចិត្តសេរី!"
+                    className="w-full px-4 py-3 bg-slate-950/90 border border-slate-700/80 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-sans leading-relaxed selection:bg-indigo-600 selection:text-white"
                   />
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    សារនេះនឹងបង្ហាញប្រាប់សិស្ស SETEC ពេលពួកគេព្យាយាមចូលលេងកំឡុងពេលថែទាំ។
-                  </p>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1 px-1">
+                    <span>ប្រវែងអក្សរ: {editMaintenanceReason.length} តួអក្សរ</span>
+                    <span>សារនេះនឹងបង្ហាញប្រាប់សិស្ស SETEC ពេលពួកគេព្យាយាមចូលលេងកំឡុងពេលថែទាំ</span>
+                  </div>
                 </div>
 
-                <div className="flex justify-end">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                   <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-2 cursor-pointer"
+                    type="button"
+                    onClick={() => setShowMaintenancePreview(true)}
+                    disabled={!editMaintenanceReason.trim()}
+                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-2 cursor-pointer"
                   >
-                    <i className="fa-solid fa-floppy-disk" />
-                    <span>រក្សាទុកសារថែទាំ</span>
+                    <i className="fa-solid fa-eye text-indigo-400" />
+                    <span>សាកល្បងមើលផ្ទាំងជាក់ស្ដែង</span>
                   </button>
+
+                  <div className="flex items-center gap-2">
+                    {systemState.serverOnline && !systemState.maintenanceMode && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const patch = {
+                            serverOnline: false,
+                            maintenanceMode: true,
+                            maintenanceReason: editMaintenanceReason.trim()
+                          };
+                          sendUpdate(patch, 'បិទ Server និងដាក់សារថែទាំភ្លាមៗ');
+                        }}
+                        disabled={isSubmitting}
+                        className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg shadow-rose-600/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                      >
+                        <i className="fa-solid fa-power-off" />
+                        <span>បិទ Server ដាក់សារនេះភ្លាមៗ</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <i className="fa-solid fa-floppy-disk" />
+                      <span>រក្សាទុកសារថែទាំ</span>
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -1228,7 +1346,7 @@ export default function JamTicKapeaAdminPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      ម៉ោងចាប់ផ្ដើមសម្រាក (Phnom Penh Hour)
+                      ម៉ោងចាប់ផ្ដើមសម្រាក ម៉ោងនៅភ្នំពេញ
                     </label>
                     <select
                       value={editNightStart}
@@ -1237,7 +1355,7 @@ export default function JamTicKapeaAdminPage() {
                     >
                       {[...Array(24).keys()].map((h) => (
                         <option key={h} value={h}>
-                          {String(h).padStart(2, '0')}:00 {h >= 12 ? 'ល្ងាច/យប់ (PM)' : 'ព្រឹក (AM)'}
+                          {String(h).padStart(2, '0')}:00 {h >= 12 ? 'រសៀល ឬយប់' : 'ព្រឹក'}
                         </option>
                       ))}
                     </select>
@@ -1245,7 +1363,7 @@ export default function JamTicKapeaAdminPage() {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                      ម៉ោងបញ្ចប់ការសម្រាក (Phnom Penh Hour)
+                      ម៉ោងបញ្ចប់ការសម្រាក ម៉ោងនៅភ្នំពេញ
                     </label>
                     <select
                       value={editNightEnd}
@@ -1254,7 +1372,7 @@ export default function JamTicKapeaAdminPage() {
                     >
                       {[...Array(24).keys()].map((h) => (
                         <option key={h} value={h}>
-                          {String(h).padStart(2, '0')}:00 {h >= 12 ? 'រសៀល/យប់ (PM)' : 'ព្រឹក (AM)'}
+                          {String(h).padStart(2, '0')}:00 {h >= 12 ? 'រសៀល ឬយប់' : 'ព្រឹក'}
                         </option>
                       ))}
                     </select>
@@ -1264,7 +1382,7 @@ export default function JamTicKapeaAdminPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-semibold text-slate-300">
-                      សារពន្យល់ពេលយប់ (បង្ហាញដល់សិស្សកំឡុងពេលសម្រាក)
+                      សារពន្យល់ពេលយប់ សម្រាប់បង្ហាញដល់សិស្សកំឡុងពេលសម្រាក
                     </label>
                     <button
                       type="button"
@@ -1347,7 +1465,7 @@ export default function JamTicKapeaAdminPage() {
                     <i className="fa-solid fa-robot" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">បងកូនច្បង (KonBong)</h3>
+                    <h3 className="text-sm font-bold text-white">ស៊ីតិច Chatbot កូនច្បង</h3>
                     <p className="text-xs text-slate-400">Male AI Troll Specialist &bull; Voice Puck</p>
                   </div>
                 </div>
@@ -1376,7 +1494,7 @@ export default function JamTicKapeaAdminPage() {
                 }`}
               >
                 <i className={`fa-solid ${systemState.konbongActive ? 'fa-pause' : 'fa-play'}`} />
-                <span>{systemState.konbongActive ? 'ផ្អាកបងកូនច្បង (Deactivate)' : 'បើកបងកូនច្បងឡើងវិញ (Activate)'}</span>
+                <span>{systemState.konbongActive ? 'ផ្អាកបងកូនច្បង' : 'បើកបងកូនច្បងឡើងវិញ'}</span>
               </button>
             </div>
 
@@ -1388,7 +1506,7 @@ export default function JamTicKapeaAdminPage() {
                     <i className="fa-solid fa-robot" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">ចែកូនពៅ (KonPov)</h3>
+                    <h3 className="text-sm font-bold text-white">ស៊ីតិច Chatbot កូនពៅ</h3>
                     <p className="text-xs text-slate-400">Female AI Troll Specialist &bull; Voice Aoede</p>
                   </div>
                 </div>
@@ -1417,7 +1535,7 @@ export default function JamTicKapeaAdminPage() {
                 }`}
               >
                 <i className={`fa-solid ${systemState.konpovActive ? 'fa-pause' : 'fa-play'}`} />
-                <span>{systemState.konpovActive ? 'ផ្អាកចែកូនពៅ (Deactivate)' : 'បើកចែកូនពៅឡើងវិញ (Activate)'}</span>
+                <span>{systemState.konpovActive ? 'ផ្អាកចែកូនពៅ' : 'បើកចែកូនពៅឡើងវិញ'}</span>
               </button>
             </div>
 
@@ -1425,11 +1543,11 @@ export default function JamTicKapeaAdminPage() {
             <div className="md:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-bold text-white">ប្រព័ន្ធកំណត់ពេល 30 នាទីក្នុង 1 លើក (Session Limiter)</h3>
+                  <h3 className="text-sm font-bold text-white">ប្រព័ន្ធកំណត់ពេល 30 នាទីក្នុង 1 លើក</h3>
                   <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                     systemState.sessionLimitActive ? 'bg-indigo-950 text-indigo-300 border border-indigo-800' : 'bg-slate-800 text-slate-400'
                   }`}>
-                    {systemState.sessionLimitActive ? 'ENFORCED' : 'OFF (UNLIMITED)'}
+                    {systemState.sessionLimitActive ? 'ENFORCED' : 'OFF UNLIMITED'}
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 max-w-xl">
@@ -1448,7 +1566,7 @@ export default function JamTicKapeaAdminPage() {
                 }`}
               >
                 <i className={`fa-solid ${systemState.sessionLimitActive ? 'fa-lock' : 'fa-lock-open'}`} />
-                <span>{systemState.sessionLimitActive ? 'បិទការកំណត់ពេល (Allow Unlimited)' : 'បើកការកំណត់ពេល 30 នាទី'}</span>
+                <span>{systemState.sessionLimitActive ? 'បិទការកំណត់ពេលគ្មានដែនកំណត់' : 'បើកការកំណត់ពេល 30 នាទី'}</span>
               </button>
             </div>
           </div>
@@ -1456,7 +1574,7 @@ export default function JamTicKapeaAdminPage() {
       </div>
 
       {/* ========================================================= */}
-      {/* TEST POPUP MODAL PREVIEW OVERLAY FOR ADMIN (GRAY MODE)    */}
+      {/* TEST POPUP MODAL PREVIEW OVERLAY FOR ADMIN                */}
       {/* ========================================================= */}
       {showPopupPreview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/50 backdrop-blur-sm animate-in fade-in duration-150">
@@ -1468,10 +1586,10 @@ export default function JamTicKapeaAdminPage() {
             <div className="flex items-start justify-between gap-4 mb-4 pb-3 border-b border-gray-300">
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-gray-900 tracking-tight">
-                  សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង (Rotana NOB)
+                  សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង Rotana NOB
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  ការជូនដំណឹងពីប្រព័ន្ធ (Preview)
+                  ការជូនដំណឹងពីប្រព័ន្ធ Mode សាកល្បង
                 </p>
               </div>
 
@@ -1508,6 +1626,76 @@ export default function JamTicKapeaAdminPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TEST MAINTENANCE MODAL PREVIEW OVERLAY FOR ADMIN          */}
+      {/* ========================================================= */}
+      {showMaintenancePreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-white border border-slate-300 rounded-2xl p-6 sm:p-7 shadow-2xl relative text-slate-800 text-left my-auto animate-in zoom-in-95 duration-150">
+            {/* Header Placard */}
+            <div className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl px-4 py-3 mb-4 shadow-xs text-center">
+              <span className="inline-block text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-200/80 px-2 py-0.5 rounded-full mb-1">
+                សារលើកផ្លាកប្រាប់ដំណឹង
+              </span>
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+                សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រងប្រព័ន្ធ
+              </h3>
+            </div>
+
+            {/* Original Notice Message Box */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-left space-y-2.5">
+              <div>
+                <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider mb-1">
+                  មូលហេតុបិទប្រព័ន្ធ
+                </span>
+                <p className="text-sm sm:text-base font-sans text-slate-900 font-semibold leading-relaxed whitespace-pre-wrap break-words">
+                  {editMaintenanceReason.trim() || systemState.maintenanceReason || 'ប្រព័ន្ធកំពុងសម្រាកបណ្ដោះអាសន្ន'}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200/80 text-xs text-slate-600 leading-relaxed font-sans">
+                អ្នកគ្រប់គ្រងកំពុងរៀបចំសម្រួលប្រព័ន្ធឱ្យស្រួលបួលឡើងវិញ បន្តិចទៀតរួចរាល់ហើយ។
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <span className="text-[11px] text-slate-400">Mode សាកល្បងមើលលើទូរស័ព្ទសិស្ស</span>
+              <button
+                type="button"
+                onClick={() => setShowMaintenancePreview(false)}
+                className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-semibold cursor-pointer"
+              >
+                យល់ព្រម និងបិទ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Mobile Toast Notification */}
+      {statusMessage.text && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] px-5 py-3 rounded-2xl bg-slate-900/95 border border-slate-700 shadow-2xl flex items-center gap-3 backdrop-blur-md text-white text-xs sm:text-sm font-medium animate-fade-in max-w-[90vw]">
+          <i
+            className={`fa-solid ${
+              statusMessage.type === 'success'
+                ? 'fa-circle-check text-emerald-400'
+                : statusMessage.type === 'error'
+                ? 'fa-triangle-exclamation text-rose-400'
+                : 'fa-circle-info text-sky-400'
+            }`}
+          />
+          <span className="truncate">{statusMessage.text}</span>
+          <button
+            type="button"
+            onClick={() => setStatusMessage({ text: '', type: '' })}
+            className="text-slate-400 hover:text-white ml-2 p-1 cursor-pointer shrink-0"
+          >
+            <i className="fa-solid fa-xmark text-xs" />
+          </button>
         </div>
       )}
 
