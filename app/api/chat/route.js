@@ -418,6 +418,7 @@ function sanitizeResponse(data, botName = 'konbong') {
     const animalComparison = isKonPov ? 'កូនកង្កែបឡើងស៊ុបស្ងោរ' : 'គីង្គក់ឡើងថ្លុក';
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = redactRotanaMasterCode(sanitizedText);
+    sanitizedText = sanitizedText.replace(/[\u0E00-\u0E7F]/g, '');
 
     // Guard against accidental internal system instruction echoes
     if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
@@ -1334,6 +1335,7 @@ Roast ឱ្យគាត់ដឹងខ្លួន កុំឱ្យគាត�
               try {
                 let text = typeof chunk === 'string' ? chunk : new TextDecoder().decode(chunk);
                 text = redactRotanaMasterCode(text);
+                text = text.replace(/[\u0E00-\u0E7F]/g, '');
                 if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
                   text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
