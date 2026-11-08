@@ -20,7 +20,7 @@ export default function JamTicKapeaAdminPage() {
     maintenanceMode: false,
     maintenanceReason: 'ប្រព័ន្ធដំណើរការប្រក្រតី 100%',
     nightScheduleEnabled: true,
-    nightStartHour: 23,
+    nightStartHour: 2,
     nightEndHour: 6,
     nightRestMessage: 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!',
     konbongActive: true,
@@ -50,7 +50,7 @@ export default function JamTicKapeaAdminPage() {
   const [editMaintenanceReason, setEditMaintenanceReason] = useState('');
   const [editNightMessage, setEditNightMessage] = useState('');
   const [editBroadcastNotice, setEditBroadcastNotice] = useState('');
-  const [editNightStart, setEditNightStart] = useState(23);
+  const [editNightStart, setEditNightStart] = useState(2);
   const [editNightEnd, setEditNightEnd] = useState(6);
 
   // Popup Preview State
@@ -1465,7 +1465,7 @@ export default function JamTicKapeaAdminPage() {
                   <span>ស្វ័យប្រវត្តិនឹងបិទចរាចរណ៍សាធារណៈ</span>
                 </div>
                 <p className="text-slate-400">
-                  នៅពេលម៉ោងក្នុងប្រទេសកម្ពុជាឈានចូលដល់ {String(systemState.nightStartHour ?? 2).padStart(2, '0')}:00 ប្រព័ន្ធនឹងដាក់ AI ឱ្យសម្រាកគេង (Sleep Mode) រហូតដល់ម៉ោង {String(systemState.nightEndHour ?? 6).padStart(2, '0')}:00 ព្រឹក។
+                  នៅពេលម៉ោងក្នុងប្រទេសកម្ពុជាឈានចូលដល់ {String(systemState.nightStartHour ?? 2).padStart(2, '0')}:00 ប្រព័ន្ធនឹងដាក់ AI ឱ្យសម្រាកគេង Sleep Mode រហូតដល់ម៉ោង {String(systemState.nightEndHour ?? 6).padStart(2, '0')}:00 ព្រឹក។
                 </p>
               </div>
 

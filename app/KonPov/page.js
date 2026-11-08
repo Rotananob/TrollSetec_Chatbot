@@ -1761,6 +1761,27 @@ export default function KonPovPage() {
           return;
         }
 
+        if (response.status === 503) {
+          const errData = await response.json().catch(() => ({}));
+          const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
+          const isNight = errData?.mode === 'night_rest';
+          const botNotice = isNight
+            ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
+            : `«ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎! 🙏»`;
+
+          setIsLoading(false);
+          const finalMessages = [...updatedMessages];
+          finalMessages[finalMessages.length - 1] = {
+            role: 'bot',
+            text: botNotice,
+            isError: true,
+            isMaintenanceNotice: true
+          };
+          setMessages(finalMessages);
+          saveCurrentSessionMessages(finalMessages);
+          return;
+        }
+
         const contentType = response.headers.get('content-type') || '';
 
         // Real-time progressive streaming preview (ChatGPT-style)
@@ -1849,7 +1870,19 @@ export default function KonPovPage() {
               stream: false
             })
           });
-          if (fallbackRes.ok) {
+          if (fallbackRes.status === 503) {
+            const errData = await fallbackRes.json().catch(() => ({}));
+            const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
+            const isNight = errData?.mode === 'night_rest';
+            botText = isNight
+              ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
+              : `«ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎! 🙏»`;
+            setMessages((prev) => {
+              const copy = [...prev];
+              copy[copy.length - 1] = { role: 'bot', text: botText, isError: true, isMaintenanceNotice: true };
+              return copy;
+            });
+          } else if (fallbackRes.ok) {
             const resJson = await fallbackRes.json();
             if (resJson.isMasterAuthenticated) {
               setIsRotanaMasterBypass(true);

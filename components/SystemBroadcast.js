@@ -411,7 +411,7 @@ export default function SystemBroadcast() {
                   {/* Sleep Mode Placard / Header */}
                   <div className="w-full bg-slate-50 border-2 border-slate-300 rounded-xl px-4 py-3 -mt-1 shadow-xs">
                     <span className="inline-block text-[10px] font-bold text-slate-600 uppercase tracking-widest bg-slate-200/90 px-2 py-0.5 rounded-full mb-1">
-                      ម៉ោងគេងសម្រាក • SLEEP MODE ({String(nightStartH).padStart(2, '0')}:00 - {String(nightEndH).padStart(2, '0')}:00)
+                      ម៉ោងគេងសម្រាក • SLEEP MODE {String(nightStartH).padStart(2, '0')}:00 ដល់ {String(nightEndH).padStart(2, '0')}:00
                     </span>
                     <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
                       "ពេលយប់ជ្រៅហើយ AI សុំគេងសិនហើយបងៗ"
@@ -479,7 +479,7 @@ export default function SystemBroadcast() {
 
                 <div>
                   <h4 className="text-sm sm:text-base font-sans text-slate-900 font-bold mb-1 leading-snug">
-                    ប្រព័ន្ធស្ថិតក្នុងម៉ោងសម្រាក (Sleep Mode: {String(nightStartH).padStart(2, '0')}:00 - {String(nightEndH).padStart(2, '0')}:00)
+                    ប្រព័ន្ធស្ថិតក្នុងម៉ោងសម្រាក Sleep Mode: {String(nightStartH).padStart(2, '0')}:00 ដល់ {String(nightEndH).padStart(2, '0')}:00
                   </h4>
                   <p className="text-xs sm:text-sm font-sans text-slate-700 leading-relaxed whitespace-pre-wrap break-words">
                     {systemState.nightRestMessage || 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!'}
@@ -495,10 +495,10 @@ export default function SystemBroadcast() {
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-left space-y-2.5">
                 <div>
                   <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider mb-1">
-                    មូលហេតុបិទប្រព័ន្ធ (Server Maintenance Notice)
+                    មូលហេតុបិទប្រព័ន្ធ Server Maintenance Notice
                   </span>
                   <p className="text-sm sm:text-base font-sans text-slate-900 font-semibold leading-relaxed whitespace-pre-wrap break-words">
-                    {systemState.maintenanceReason || activeNotice || 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\n(សម្រាកប្រហែលជា ៣ ម៉ោងសិន)'}
+                    {systemState.maintenanceReason || activeNotice || 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\nសម្រាកប្រហែលជា ៣ ម៉ោងសិន'}
                   </p>
                 </div>
 
@@ -516,17 +516,17 @@ export default function SystemBroadcast() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                {isNightOnly ? `Sleep Mode (${String(nightStartH).padStart(2, '0')}:00 - ${String(nightEndH).padStart(2, '0')}:00)` : 'Auto-Syncing Real-time'}
+                {isNightOnly ? `Sleep Mode ${String(nightStartH).padStart(2, '0')}:00 ដល់ ${String(nightEndH).padStart(2, '0')}:00` : 'Auto-Syncing Real-time'}
               </span>
-              <span>ម៉ោងនៅភ្នំពេញ: {String(cambodiaHour).padStart(2, '0')}:00 (UTC+7)</span>
+              <span>ម៉ោងនៅភ្នំពេញ: {String(cambodiaHour).padStart(2, '0')}:00 UTC+7</span>
             </div>
 
             {/* Auto-reconnect notification box (NO REFRESH BUTTON) */}
             <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 text-center">
               <p className="text-xs text-slate-700 font-sans font-medium">
                 {isNightOnly
-                  ? `ប្រព័ន្ធនឹងភ្ញាក់ដំណើរការធម្មតាវិញស្វ័យប្រវត្តិតែម្ដង នៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក (ពុំបាច់ចុច Refresh ឡើយ)`
-                  : 'ទំព័រនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិតែម្ដង នៅពេល Server បើកវិញ (ពុំបាច់ចុច Refresh ឡើយ)'}
+                  ? `ប្រព័ន្ធនឹងភ្ញាក់ដំណើរការធម្មតាវិញស្វ័យប្រវត្តិតែម្ដង នៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក ពុំបាច់ចុច Refresh ឡើយ`
+                  : 'ទំព័រនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិតែម្ដង នៅពេល Server បើកវិញ ពុំបាច់ចុច Refresh ឡើយ'}
               </p>
             </div>
           </div>
