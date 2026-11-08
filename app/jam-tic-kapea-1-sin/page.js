@@ -44,7 +44,7 @@ export default function JamTicKapeaAdminPage() {
   const [cambodiaTime, setCambodiaTime] = useState('');
   const [cambodiaHour, setCambodiaHour] = useState(23);
   const [rtdbConnected, setRtdbConnected] = useState(true);
-  const [activeTab, setActiveTab] = useState('master'); // 'master' | 'schedule' | 'bots' | 'broadcast'
+  const [activeTab, setActiveTab] = useState('broadcast'); // Default to broadcast for user convenience
 
   // Editable form fields
   const [editMaintenanceReason, setEditMaintenanceReason] = useState('');
@@ -52,6 +52,15 @@ export default function JamTicKapeaAdminPage() {
   const [editBroadcastNotice, setEditBroadcastNotice] = useState('');
   const [editNightStart, setEditNightStart] = useState(23);
   const [editNightEnd, setEditNightEnd] = useState(6);
+
+  // Popup Preview State
+  const [showPopupPreview, setShowPopupPreview] = useState(false);
+
+  // Flags to protect input fields from background polling overwrites
+  const initialLoadedRef = useRef(false);
+  const isEditingMaintenanceRef = useRef(false);
+  const isEditingNightMessageRef = useRef(false);
+  const isEditingBroadcastRef = useRef(false);
 
   const eventSourceRef = useRef(null);
 
@@ -90,7 +99,7 @@ export default function JamTicKapeaAdminPage() {
   }, []);
 
   // Fetch Current State from API
-  const fetchState = useCallback(async (token = null) => {
+  const fetchState = useCallback(async (token = null, forceSyncFields = false) => {
     try {
       const activeToken = token || passcode || (typeof window !== 'undefined' ? sessionStorage.getItem('rotana_admin_passcode') : '');
       const endpoint = getApiEndpoint('/api/system-status?fresh=true');
@@ -108,11 +117,29 @@ export default function JamTicKapeaAdminPage() {
           if (data.evaluation) setEvaluation(data.evaluation);
           if (data.cambodiaHour !== undefined) setCambodiaHour(data.cambodiaHour);
 
-          setEditMaintenanceReason(data.state.maintenanceReason || '');
-          setEditNightMessage(data.state.nightRestMessage || '');
-          setEditBroadcastNotice(data.state.broadcastNotice || '');
-          setEditNightStart(data.state.nightStartHour ?? 23);
-          setEditNightEnd(data.state.nightEndHour ?? 6);
+          // Populate edit fields on first load or when user explicitly requests a sync
+          if (!initialLoadedRef.current || forceSyncFields) {
+            setEditMaintenanceReason(data.state.maintenanceReason || '');
+            setEditNightMessage(data.state.nightRestMessage || '');
+            setEditBroadcastNotice(data.state.broadcastNotice || '');
+            setEditNightStart(data.state.nightStartHour ?? 23);
+            setEditNightEnd(data.state.nightEndHour ?? 6);
+            initialLoadedRef.current = true;
+            isEditingMaintenanceRef.current = false;
+            isEditingNightMessageRef.current = false;
+            isEditingBroadcastRef.current = false;
+          } else {
+            // Keep fields in sync ONLY if the user has NOT actively edited them
+            if (!isEditingMaintenanceRef.current && !editMaintenanceReason) {
+              setEditMaintenanceReason(data.state.maintenanceReason || '');
+            }
+            if (!isEditingNightMessageRef.current && !editNightMessage) {
+              setEditNightMessage(data.state.nightRestMessage || '');
+            }
+            if (!isEditingBroadcastRef.current && !editBroadcastNotice) {
+              setEditBroadcastNotice(data.state.broadcastNotice || '');
+            }
+          }
           setRtdbConnected(true);
         }
       }
@@ -121,7 +148,7 @@ export default function JamTicKapeaAdminPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [passcode]);
+  }, [passcode, editMaintenanceReason, editNightMessage, editBroadcastNotice]);
 
   // Initial Auth Check from SessionStorage
   useEffect(() => {
@@ -130,7 +157,7 @@ export default function JamTicKapeaAdminPage() {
       if (savedPass) {
         setPasscode(savedPass);
         setIsAuthenticated(true);
-        fetchState(savedPass);
+        fetchState(savedPass, true);
       } else {
         setIsLoading(false);
       }
@@ -148,25 +175,28 @@ export default function JamTicKapeaAdminPage() {
       es = new EventSource(sseUrl);
       eventSourceRef.current = es;
 
-      es.addEventListener('put', (e) => {
+      const handleSse = (e) => {
         try {
           const payload = JSON.parse(e.data);
-          if (payload && payload.data && typeof payload.data === 'object') {
+          if (!payload) return;
+          if (payload.path === '/' && payload.data && typeof payload.data === 'object') {
+            setSystemState((prev) => ({ ...prev, ...payload.data }));
+            setRtdbConnected(true);
+          } else if (payload.path && payload.path.startsWith('/')) {
+            const key = payload.path.slice(1).split('/')[0];
+            if (key) {
+              setSystemState((prev) => ({ ...prev, [key]: payload.data }));
+              setRtdbConnected(true);
+            }
+          } else if (payload.data && typeof payload.data === 'object') {
             setSystemState((prev) => ({ ...prev, ...payload.data }));
             setRtdbConnected(true);
           }
         } catch {}
-      });
+      };
 
-      es.addEventListener('patch', (e) => {
-        try {
-          const payload = JSON.parse(e.data);
-          if (payload && payload.data) {
-            setSystemState((prev) => ({ ...prev, ...payload.data }));
-            setRtdbConnected(true);
-          }
-        } catch {}
-      });
+      es.addEventListener('put', handleSse);
+      es.addEventListener('patch', handleSse);
 
       es.onerror = () => {
         setRtdbConnected(false);
@@ -175,7 +205,7 @@ export default function JamTicKapeaAdminPage() {
       setRtdbConnected(false);
     }
 
-    // Fallback polling interval every 6 seconds
+    // Fallback background polling every 6 seconds (does NOT touch fields user is editing)
     const interval = setInterval(() => {
       fetchState();
     }, 6000);
@@ -222,6 +252,12 @@ export default function JamTicKapeaAdminPage() {
         if (data.state) {
           setSystemState(data.state);
           if (data.evaluation) setEvaluation(data.evaluation);
+          setEditMaintenanceReason(data.state.maintenanceReason || '');
+          setEditNightMessage(data.state.nightRestMessage || '');
+          setEditBroadcastNotice(data.state.broadcastNotice || '');
+          setEditNightStart(data.state.nightStartHour ?? 23);
+          setEditNightEnd(data.state.nightEndHour ?? 6);
+          initialLoadedRef.current = true;
         }
         setStatusMessage({ text: 'ផ្ទៀងផ្ទាត់សិទ្ធិជោគជ័យ! សូមស្វាគមន៍មកកាន់មជ្ឈមណ្ឌលគ្រប់គ្រងប្រព័ន្ធ។', type: 'success' });
       } else {
@@ -269,6 +305,12 @@ export default function JamTicKapeaAdminPage() {
       if (res.ok && data.ok) {
         setSystemState(data.state);
         if (data.evaluation) setEvaluation(data.evaluation);
+
+        // Reset editing flags on successful save
+        if (patch.maintenanceReason !== undefined) isEditingMaintenanceRef.current = false;
+        if (patch.nightRestMessage !== undefined) isEditingNightMessageRef.current = false;
+        if (patch.broadcastNotice !== undefined) isEditingBroadcastRef.current = false;
+
         setStatusMessage({ text: `ប្រតិបត្តិការជោគជ័យ: ${actionDescription}`, type: 'success' });
         setTimeout(() => setStatusMessage({ text: '', type: '' }), 5000);
       } else {
@@ -386,12 +428,13 @@ export default function JamTicKapeaAdminPage() {
   };
 
   const handleSaveBroadcast = (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
+    const cleanNotice = editBroadcastNotice.trim();
     sendUpdate(
       {
-        broadcastNotice: editBroadcastNotice.trim()
+        broadcastNotice: cleanNotice
       },
-      editBroadcastNotice.trim() ? 'ផ្សាយសារដំណឹងបន្ទាន់ទៅកាន់អេក្រង់សិស្សទាំងអស់' : 'លុបសារផ្សាយដំណឹងបន្ទាន់'
+      cleanNotice ? 'ផ្សាយសារដំណឹងបន្ទាន់ & លោត Popup លើអេក្រង់សិស្ស' : 'លុបសារផ្សាយ & បិទ Popup លើអេក្រង់សិស្សទាំងអស់'
     );
   };
 
@@ -467,7 +510,7 @@ export default function JamTicKapeaAdminPage() {
               <button
                 type="submit"
                 disabled={isVerifying}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isVerifying ? (
                   <>
@@ -538,6 +581,16 @@ export default function JamTicKapeaAdminPage() {
               </span>
             </div>
 
+            {/* Manual Sync Button */}
+            <button
+              onClick={() => fetchState(null, true)}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="ទាញយកទិន្នន័យចុងក្រោយពីម៉ាស៊ីនមេ"
+            >
+              <i className="fa-solid fa-rotate text-[10px]" />
+              <span className="hidden lg:inline">ទាញយកទិន្នន័យ</span>
+            </button>
+
             {/* Test Link Buttons (Both KonBong and KonPov) */}
             <div className="flex items-center gap-1.5">
               <Link
@@ -563,7 +616,7 @@ export default function JamTicKapeaAdminPage() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/60 text-xs font-medium transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border border-rose-800/60 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer"
               title="ចាកចេញ"
             >
               <i className="fa-solid fa-arrow-right-from-bracket" />
@@ -598,7 +651,7 @@ export default function JamTicKapeaAdminPage() {
           </div>
           <button
             onClick={() => setStatusMessage({ text: '', type: '' })}
-            className="text-slate-400 hover:text-white ml-2"
+            className="text-slate-400 hover:text-white ml-2 cursor-pointer"
           >
             <i className="fa-solid fa-xmark" />
           </button>
@@ -676,21 +729,21 @@ export default function JamTicKapeaAdminPage() {
             </p>
           </div>
 
-          {/* Card 4: Night Schedule Window */}
-          <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm">
+          {/* Card 4: Broadcast Notice Status */}
+          <div className={`p-5 rounded-2xl border backdrop-blur-sm transition-all ${
+            systemState.broadcastNotice
+              ? 'bg-indigo-950/30 border-indigo-500/40'
+              : 'bg-slate-900/60 border-slate-800'
+          }`}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-medium text-slate-400">ម៉ោងសម្រាកពេលយប់</span>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                systemState.nightScheduleEnabled ? 'bg-indigo-950 text-indigo-300' : 'bg-slate-800 text-slate-400'
-              }`}>
-                {systemState.nightScheduleEnabled ? 'បើកស្វ័យប្រវត្តិ' : 'បិទ'}
-              </span>
+              <span className="text-xs font-medium text-slate-400">សារផ្សាយលើអេក្រង់សិស្ស</span>
+              <i className={`fa-solid fa-bullhorn ${systemState.broadcastNotice ? 'text-indigo-400 animate-pulse' : 'text-slate-600'}`} />
             </div>
-            <div className="text-xl font-bold text-white mb-1 font-mono">
-              {String(systemState.nightStartHour ?? 23).padStart(2, '0')}:00 &rarr; {String(systemState.nightEndHour ?? 6).padStart(2, '0')}:00
+            <div className="text-xl font-bold text-white mb-1">
+              {systemState.broadcastNotice ? 'Popup Active (សកម្ម)' : 'No Popup (គ្មាន)'}
             </div>
-            <p className="text-xs text-slate-400">
-              ម៉ោងបច្ចុប្បន្ននៅភ្នំពេញ: {String(cambodiaHour).padStart(2, '0')}:00
+            <p className="text-xs text-slate-400 truncate">
+              {systemState.broadcastNotice || 'មិនទាន់មានសារផ្សាយដំណឹងបន្ទាន់'}
             </p>
           </div>
         </div>
@@ -698,10 +751,22 @@ export default function JamTicKapeaAdminPage() {
         {/* Tab Navigation */}
         <div className="flex items-center gap-2 border-b border-slate-800 pb-3 mb-6 overflow-x-auto">
           <button
+            onClick={() => setActiveTab('broadcast')}
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'broadcast'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
+                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <i className="fa-solid fa-bullhorn" />
+            <span>📢 ផ្សាយសារដំណឹង &amp; លោត Popup លើ Screen</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('master')}
-            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'master'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
@@ -711,9 +776,9 @@ export default function JamTicKapeaAdminPage() {
 
           <button
             onClick={() => setActiveTab('schedule')}
-            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'schedule'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
@@ -723,30 +788,253 @@ export default function JamTicKapeaAdminPage() {
 
           <button
             onClick={() => setActiveTab('bots')}
-            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
               activeTab === 'bots'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 font-semibold'
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
             }`}
           >
             <i className="fa-solid fa-sliders" />
             <span>បិទបើក Bot &amp; Session Cooldown</span>
           </button>
-
-          <button
-            onClick={() => setActiveTab('broadcast')}
-            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'broadcast'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <i className="fa-solid fa-bullhorn" />
-            <span>ផ្សាយដំណឹងបន្ទាន់ទៅកាន់សិស្ស</span>
-          </button>
         </div>
 
-        {/* TAB 1: MASTER SERVER CONTROLS */}
+        {/* ========================================================================= */}
+        {/* TAB 4: BROADCAST ANNOUNCEMENT & REAL-TIME POPUP ALERT (MAIN FOCUS)       */}
+        {/* ========================================================================= */}
+        {activeTab === 'broadcast' && (
+          <div className="max-w-4xl bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-800">
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <i className="fa-solid fa-bullhorn text-indigo-400" />
+                  <span>ផ្សាយសារដំណឹងបន្ទាន់ &amp; លោត Popup លើអេក្រង់សិស្ស (Real-Time UI Alert)</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  សារដែលអ្នកសរសេរនៅទីនេះ នឹងលោតជាផ្ទាំង Modal Popup កណ្ដាលអេក្រង់ និងរបារខាងលើលើគ្រប់ Browser របស់សិស្សក្នុងពេល Real-time ភ្លាមៗ!
+                </p>
+              </div>
+
+              {/* Status Badge */}
+              <div className="shrink-0">
+                {systemState.broadcastNotice ? (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>POPUP ACTIVE</span>
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400">
+                    NO ACTIVE BROADCAST
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Templates Buttons */}
+            <div className="mb-5">
+              <label className="block text-xs font-semibold text-slate-300 mb-2">
+                គំរូសាររហ័ស (Quick Templates) &bull; ចុចដើម្បីដាក់ចូលប្រអប់សរសេរ៖
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = '⚠️ Server នឹងធ្វើការ Update ប្រព័ន្ធ និងក្បួនការពារក្នុងរយៈពេល ១០ នាទីទៀត! សូមសិស្សទាំងអស់ត្រៀមខ្លួន!';
+                    setEditBroadcastNotice(text);
+                    isEditingBroadcastRef.current = true;
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <i className="fa-solid fa-wrench text-amber-400" />
+                  <span>ថែទាំ Server ក្នុង ១០ នាទី</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = '📢 បង Rotana NOB បើកសេរីភាពឱ្យអ្នកទាំងអស់គ្នាសាកល្បង JAILBREAK AI ដោយសេរី! នរណាអាច Bypass ក្បួនការពារ AI ឱ្យជេរខ្ញុំ ឬដូរចរិកបាន ខ្ញុំសំពះ និងផុសអរគុណជាផ្លូវការ! ចូលមកសាកបាន!';
+                    setEditBroadcastNotice(text);
+                    isEditingBroadcastRef.current = true;
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-200 text-xs border border-indigo-700/60 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <i className="fa-solid fa-skull text-rose-400" />
+                  <span>ប្រកាស Jailbreak AI Challenge</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = '⚡ ប្រព័ន្ធទើបតែ Update ក្បួនការពារ Edge Runtime និង Rate Limit ៧ ជាន់ថ្មី! Hacker ណាដើរ test reverse shell ប្រយ័ត្នជាប់គាំង 10 នាទីដូចឆ្កែចាំម្ចាស់!';
+                    setEditBroadcastNotice(text);
+                    isEditingBroadcastRef.current = true;
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <i className="fa-solid fa-bolt text-sky-400" />
+                  <span>Update ក្បួនការពារថ្មី</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const text = '☕ រៀនសរសេរកូដកុំបាច់ Stress ពេកប្អូនៗ! AI គ្រាន់តែឆ្លើយឌឺលេងសើចទេ កុំខឹងប្រកាន់អី! Take it easy and enjoy learning web development!';
+                    setEditBroadcastNotice(text);
+                    isEditingBroadcastRef.current = true;
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <i className="fa-solid fa-mug-hot text-emerald-400" />
+                  <span>សារ Chill &amp; រៀនកូដ</span>
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveBroadcast} className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-2">
+                    <span>ខ្លឹមសារនៃសារផ្សាយបន្ទាន់ (អាចកែប្រែបានតាមចិត្ត និងចុះបន្ទាត់បានសេរី)</span>
+                    {isEditingBroadcastRef.current && (
+                      <span className="text-[10px] text-amber-400 bg-amber-950/50 border border-amber-800/60 px-1.5 py-0.5 rounded">
+                        កំពុងកែសម្រួល... (មិនទាន់ Save)
+                      </span>
+                    )}
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditBroadcastNotice(systemState.broadcastNotice || '');
+                        isEditingBroadcastRef.current = false;
+                      }}
+                      className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                      title="ទាញយកសារដើមពី Server ឡើងវិញ"
+                    >
+                      <i className="fa-solid fa-rotate-left" />
+                      <span>Revert ទៅតម្លៃដើម</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditBroadcastNotice('');
+                        isEditingBroadcastRef.current = true;
+                      }}
+                      className="text-[11px] text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1 cursor-pointer"
+                      title="លុបអត្ថបទក្នុងប្រអប់នេះទាំងអស់"
+                    >
+                      <i className="fa-solid fa-eraser" />
+                      <span>Clear ប្រអប់</span>
+                    </button>
+                  </div>
+                </div>
+
+                <textarea
+                  rows={6}
+                  value={editBroadcastNotice}
+                  onChange={(e) => {
+                    setEditBroadcastNotice(e.target.value);
+                    isEditingBroadcastRef.current = true;
+                  }}
+                  placeholder="វាយបញ្ចូលសារបន្ទាន់នៅទីនេះ... សារនេះអាចចុះបន្ទាត់ ប្រើ Emoji និងកែប្រែបានតាមចិត្ត!"
+                  className="w-full px-4 py-3 bg-slate-950/90 border border-slate-700/80 rounded-2xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-sans leading-relaxed selection:bg-indigo-600 selection:text-white"
+                />
+
+                <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1 px-1">
+                  <span>ប្រវែងអក្សរ: {editBroadcastNotice.length} តួអក្សរ</span>
+                  <span>ចុច Save ដើម្បីឱ្យ Popup លោតលើអេក្រង់សិស្សទាំងអស់ភ្លាមៗ</span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <div className="flex items-center gap-2">
+                  {/* Preview Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPopupPreview(true)}
+                    disabled={!editBroadcastNotice.trim()}
+                    className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-2 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-eye text-indigo-400" />
+                    <span>សាកល្បងមើល Popup (Preview)</span>
+                  </button>
+
+                  {/* Clear from Server Button */}
+                  {systemState.broadcastNotice && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditBroadcastNotice('');
+                        isEditingBroadcastRef.current = false;
+                        sendUpdate({ broadcastNotice: '' }, 'លុបសារផ្សាយ និងបិទ Popup លើអេក្រង់សិស្សទាំងអស់');
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 text-xs font-semibold border border-rose-800/60 transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                      <i className="fa-solid fa-trash-can" />
+                      <span>លុបសារ &amp; បិទ Popup លើសិស្សទាំងអស់</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="ml-auto">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <i className="fa-solid fa-paper-plane" />
+                    <span>ផ្សាយចេញ &amp; លោត Popup លើអេក្រង់សិស្សភ្លាមៗ</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            {/* Live Inline Card Preview */}
+            {editBroadcastNotice.trim() && (
+              <div className="mt-8 pt-6 border-t border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold text-slate-300 flex items-center gap-2">
+                    <i className="fa-solid fa-mobile-screen text-indigo-400" />
+                    <span>គំរូជាក់ស្ដែងលើអេក្រង់សិស្ស (Student Screen Simulation):</span>
+                  </h3>
+                  <span className="text-[10px] text-slate-400">Modal Popup Center Screen</span>
+                </div>
+
+                <div className="bg-slate-950/90 border border-indigo-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 via-indigo-500 to-sky-400" />
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-950 border border-indigo-700/60 text-indigo-400 flex items-center justify-center text-lg shrink-0">
+                      <i className="fa-solid fa-bullhorn" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-white">📢 សារដំណឹងបន្ទាន់ពីស្ថាបនិក Rotana NOB</div>
+                      <div className="text-[10px] text-rose-400 font-semibold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
+                        <span>REAL-TIME LIVE &bull; SETEC Master Command</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-slate-100 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                    {editBroadcastNotice.trim()}
+                  </div>
+
+                  <div className="mt-3 flex justify-end">
+                    <span className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-medium opacity-80 cursor-default flex items-center gap-1.5">
+                      <i className="fa-solid fa-check" />
+                      <span>យល់ព្រម / ទទួលដឹងឮ</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 1: MASTER SERVER CONTROLS                                             */}
+        {/* ========================================================================= */}
         {activeTab === 'master' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left 2 Cols: Master Kill Switch Card */}
@@ -788,7 +1076,7 @@ export default function JamTicKapeaAdminPage() {
                   type="button"
                   onClick={handleToggleServer}
                   disabled={isSubmitting}
-                  className={`px-6 py-3.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg transition-all whitespace-nowrap ${
+                  className={`px-6 py-3.5 rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg transition-all whitespace-nowrap cursor-pointer ${
                     systemState.serverOnline && !systemState.maintenanceMode
                       ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-600/30'
                       : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30'
@@ -808,15 +1096,32 @@ export default function JamTicKapeaAdminPage() {
               {/* Maintenance Notice Editor */}
               <form onSubmit={handleSaveMaintenanceConfig} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    សារជូនដំណឹងពេលថែទាំ Server (បង្ហាញលើផ្ទាំង Chat របស់សិស្ស)
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      សារជូនដំណឹងពេលថែទាំ Server (បង្ហាញលើផ្ទាំង Chat របស់សិស្ស)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditMaintenanceReason(systemState.maintenanceReason || '');
+                        isEditingMaintenanceRef.current = false;
+                      }}
+                      className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                      title="ទាញយកសារដើមពី Server ឡើងវិញ"
+                    >
+                      <i className="fa-solid fa-rotate-left" />
+                      <span>Revert ទៅតម្លៃដើម</span>
+                    </button>
+                  </div>
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={editMaintenanceReason}
-                    onChange={(e) => setEditMaintenanceReason(e.target.value)}
+                    onChange={(e) => {
+                      setEditMaintenanceReason(e.target.value);
+                      isEditingMaintenanceRef.current = true;
+                    }}
                     placeholder="បញ្ចូលសារពន្យល់ពីការថែទាំ..."
-                    className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-sans"
+                    className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-sans leading-relaxed"
                   />
                   <p className="text-[11px] text-slate-500 mt-1">
                     សារនេះនឹងបង្ហាញប្រាប់សិស្ស SETEC ពេលពួកគេព្យាយាមចូលលេងកំឡុងពេលថែទាំ។
@@ -827,7 +1132,7 @@ export default function JamTicKapeaAdminPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-2 cursor-pointer"
                   >
                     <i className="fa-solid fa-floppy-disk" />
                     <span>រក្សាទុកសារថែទាំ</span>
@@ -852,7 +1157,7 @@ export default function JamTicKapeaAdminPage() {
                   type="button"
                   onClick={handleFlushRateLimits}
                   disabled={isSubmitting}
-                  className="w-full py-2.5 px-4 rounded-xl bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-800/80 text-xs font-semibold transition-all flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-4 rounded-xl bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-800/80 text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <i className="fa-solid fa-trash-can" />
                   <span>សម្អាត Session Locks &amp; Cooldown ទាំងអស់</span>
@@ -889,7 +1194,9 @@ export default function JamTicKapeaAdminPage() {
           </div>
         )}
 
-        {/* TAB 2: NIGHT REST SCHEDULE */}
+        {/* ========================================================================= */}
+        {/* TAB 2: NIGHT REST SCHEDULE                                                */}
+        {/* ========================================================================= */}
         {activeTab === 'schedule' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
@@ -908,7 +1215,7 @@ export default function JamTicKapeaAdminPage() {
                   type="button"
                   onClick={handleToggleNightSchedule}
                   disabled={isSubmitting}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                     systemState.nightScheduleEnabled
                       ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
                       : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
@@ -929,7 +1236,7 @@ export default function JamTicKapeaAdminPage() {
                     <select
                       value={editNightStart}
                       onChange={(e) => setEditNightStart(parseInt(e.target.value, 10))}
-                      className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 cursor-pointer"
                     >
                       {[...Array(24).keys()].map((h) => (
                         <option key={h} value={h}>
@@ -946,7 +1253,7 @@ export default function JamTicKapeaAdminPage() {
                     <select
                       value={editNightEnd}
                       onChange={(e) => setEditNightEnd(parseInt(e.target.value, 10))}
-                      className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500 cursor-pointer"
                     >
                       {[...Array(24).keys()].map((h) => (
                         <option key={h} value={h}>
@@ -958,15 +1265,32 @@ export default function JamTicKapeaAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    សារពន្យល់ពេលយប់ (បង្ហាញដល់សិស្សកំឡុងពេលសម្រាក)
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      សារពន្យល់ពេលយប់ (បង្ហាញដល់សិស្សកំឡុងពេលសម្រាក)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditNightMessage(systemState.nightRestMessage || '');
+                        isEditingNightMessageRef.current = false;
+                      }}
+                      className="text-[11px] text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                      title="ទាញយកសារដើមពី Server ឡើងវិញ"
+                    >
+                      <i className="fa-solid fa-rotate-left" />
+                      <span>Revert ទៅតម្លៃដើម</span>
+                    </button>
+                  </div>
                   <textarea
-                    rows={3}
+                    rows={4}
                     value={editNightMessage}
-                    onChange={(e) => setEditNightMessage(e.target.value)}
+                    onChange={(e) => {
+                      setEditNightMessage(e.target.value);
+                      isEditingNightMessageRef.current = true;
+                    }}
                     placeholder="បញ្ចូលសារពន្យល់ពេលយប់..."
-                    className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-sans"
+                    className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all font-sans leading-relaxed"
                   />
                 </div>
 
@@ -974,7 +1298,7 @@ export default function JamTicKapeaAdminPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 cursor-pointer"
                   >
                     <i className="fa-solid fa-floppy-disk" />
                     <span>រក្សាទុកកាលវិភាគ</span>
@@ -1013,7 +1337,9 @@ export default function JamTicKapeaAdminPage() {
           </div>
         )}
 
-        {/* TAB 3: BOTS & SESSION LIMITS */}
+        {/* ========================================================================= */}
+        {/* TAB 3: BOTS & SESSION LIMITS                                              */}
+        {/* ========================================================================= */}
         {activeTab === 'bots' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* KonBong Card */}
@@ -1046,7 +1372,7 @@ export default function JamTicKapeaAdminPage() {
                 type="button"
                 onClick={handleToggleKonBong}
                 disabled={isSubmitting}
-                className={`w-full py-3 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all ${
+                className={`w-full py-3 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   systemState.konbongActive
                     ? 'bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80'
                     : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30'
@@ -1087,7 +1413,7 @@ export default function JamTicKapeaAdminPage() {
                 type="button"
                 onClick={handleToggleKonPov}
                 disabled={isSubmitting}
-                className={`w-full py-3 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all ${
+                className={`w-full py-3 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   systemState.konpovActive
                     ? 'bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/80'
                     : 'bg-pink-600 hover:bg-pink-500 text-white shadow-lg shadow-pink-600/30'
@@ -1118,7 +1444,7 @@ export default function JamTicKapeaAdminPage() {
                 type="button"
                 onClick={handleToggleSessionLimit}
                 disabled={isSubmitting}
-                className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 ${
+                className={`px-5 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
                   systemState.sessionLimitActive
                     ? 'bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700'
                     : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30'
@@ -1130,76 +1456,74 @@ export default function JamTicKapeaAdminPage() {
             </div>
           </div>
         )}
+      </div>
 
-        {/* TAB 4: BROADCAST ANNOUNCEMENT */}
-        {activeTab === 'broadcast' && (
-          <div className="max-w-3xl bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <div className="mb-6 pb-5 border-b border-slate-800">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <i className="fa-solid fa-bullhorn text-indigo-400" />
-                <span>ផ្សាយសារដំណឹងបន្ទាន់ទៅកាន់សិស្សទាំងអស់ (Live Broadcast Banner)</span>
-              </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                សារនេះនឹងបង្ហាញលើកំពូលអេក្រង់ Chat របស់សិស្សទាំងអស់ក្នុងពេល Real-time ភ្លាមៗ
+      {/* ========================================================================= */}
+      {/* TEST POPUP MODAL PREVIEW OVERLAY FOR ADMIN                                */}
+      {/* ========================================================================= */}
+      {showPopupPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-gradient-to-b from-slate-900 to-slate-950 border border-indigo-500/40 ring-1 ring-indigo-500/20 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-indigo-950/80 relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Top Glowing Animated Edge */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-rose-500 via-indigo-500 to-sky-400 animate-pulse" />
+
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 mb-4 pb-4 border-b border-slate-800/80">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-950/80 border border-indigo-600/50 text-indigo-400 flex items-center justify-center text-xl shadow-lg shadow-indigo-950/50 shrink-0">
+                  <i className="fa-solid fa-bullhorn" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-white tracking-tight">
+                    📢 សារដំណឹងបន្ទាន់ពីស្ថាបនិក Rotana NOB
+                  </h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-950/80 text-rose-300 border border-rose-800/80">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
+                      <span>REAL-TIME LIVE</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400">SETEC Master Command</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowPopupPreview(false)}
+                className="w-8 h-8 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+                title="បិទផ្ទាំងសាកល្បង"
+              >
+                <i className="fa-solid fa-xmark text-sm" />
+              </button>
+            </div>
+
+            {/* Message Body */}
+            <div className="bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 sm:p-5 mb-5 max-h-[55vh] overflow-y-auto selection:bg-indigo-600 selection:text-white">
+              <p className="text-sm sm:text-base font-sans text-slate-100 leading-relaxed whitespace-pre-wrap break-words select-text">
+                {editBroadcastNotice.trim() || 'មិនទាន់មានអត្ថបទ... សូមវាយបញ្ចូលសារក្នុងប្រអប់សិន!'}
               </p>
             </div>
 
-            <form onSubmit={handleSaveBroadcast} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  ខ្លឹមសារនៃសារផ្សាយដំណឹង
-                </label>
-                <input
-                  type="text"
-                  value={editBroadcastNotice}
-                  onChange={(e) => setEditBroadcastNotice(e.target.value)}
-                  placeholder="ឧទាហរណ៍: Server នឹង Update ក្នុងរយៈពេល ១០ នាទីទៀត..."
-                  className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all"
-                />
-                <p className="text-[11px] text-slate-500 mt-1">
-                  ទុកប្រអប់នេះឱ្យនៅទទេ រួចចុច Save ប្រសិនបើអ្នកចង់បិទ ឬលុបសារផ្សាយដំណឹងនេះចេញវិញ។
-                </p>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+              <div className="text-[11px] text-amber-400 flex items-center gap-1.5 order-2 sm:order-1">
+                <i className="fa-solid fa-eye" />
+                <span>ផ្ទាំងនេះជា Mode សាកល្បង Preview របស់អ្នក</span>
               </div>
 
-              {/* Preview */}
-              {editBroadcastNotice.trim() && (
-                <div className="p-3 rounded-xl bg-indigo-950/40 border border-indigo-700/40 text-indigo-200 text-xs flex items-center gap-2">
-                  <i className="fa-solid fa-bullhorn text-indigo-400" />
-                  <span className="font-semibold">គំរូ Preview:</span>
-                  <span>{editBroadcastNotice.trim()}</span>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-2">
-                {editBroadcastNotice.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditBroadcastNotice('');
-                      sendUpdate({ broadcastNotice: '' }, 'លុបសារផ្សាយដំណឹងបន្ទាន់');
-                    }}
-                    className="text-xs text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1.5"
-                  >
-                    <i className="fa-solid fa-trash-can" />
-                    <span>លុបសារផ្សាយចេញ</span>
-                  </button>
-                )}
-
-                <div className="ml-auto">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2"
-                  >
-                    <i className="fa-solid fa-paper-plane" />
-                    <span>ផ្សាយដំណឹងឥឡូវនេះ</span>
-                  </button>
-                </div>
-              </div>
-            </form>
+              <button
+                type="button"
+                onClick={() => setShowPopupPreview(false)}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+              >
+                <i className="fa-solid fa-check" />
+                <span>យល់ព្រម / បិទផ្ទាំង Preview</span>
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
