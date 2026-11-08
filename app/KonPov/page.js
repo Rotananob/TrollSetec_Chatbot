@@ -3848,7 +3848,7 @@ export default function KonPovPage() {
                 handleSendMessageOrQueue();
               }
             }}
-            className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
+            className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-[16px] sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
             placeholder={
               !isCreatorUser && Date.now() < spamLockUntil
                 ? `🔒 អ្នកជាប់ពិន័យ Spam (នៅសល់ ${Math.max(1, Math.ceil((spamLockUntil - Date.now()) / 1000))} វិនាទី)...`

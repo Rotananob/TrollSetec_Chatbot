@@ -28,7 +28,8 @@ export const viewport = {
   themeColor: '#0ea5e9',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 5,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: 'cover',
 };
 
@@ -36,6 +37,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="km">
       <head>
+        {/* Anti-Zoom Viewport Meta for iOS Mobile App Native Feel */}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+        />
         {/* Google Analytics */}
         <Script
           strategy="afterInteractive"

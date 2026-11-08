@@ -26,6 +26,23 @@ html, body {
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
   font-family: 'Kantumruy Pro', sans-serif;
+  touch-action: pan-x pan-y;
+}
+
+/* Prevent iOS Safari auto-zoom on input focus (Must be >= 16px on mobile) */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="search"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input:not([type]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }
 
 .angkor {
