@@ -757,19 +757,20 @@ export default function Home() {
                       : 'bg-slate-50 border-slate-200 text-slate-700'
                   }`}
                 >
-                  <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-slate-200 dark:border-slate-800">
-                    <span className={`w-7 h-7 rounded-lg border flex items-center justify-center text-xs shrink-0 font-bold ${
-                      isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-200 border-slate-300 text-slate-700'
-                    }`}>
-                      <i className="fas fa-shield-alt text-xs"></i>
+                  <div className="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                    <span className="w-8 h-8 rounded-xl bg-red-500/10 dark:bg-red-500/20 border border-red-500/30 flex items-center justify-center text-sm shrink-0 text-red-600 dark:text-red-400 shadow-2xs">
+                      <i className="fas fa-crosshairs text-xs"></i>
                     </span>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-xs sm:text-[13px] text-slate-900 dark:text-white">
-                        ទីលានសាកល្បង AI និងការប្រកាស Red Teaming
-                      </span>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold border border-slate-300 dark:border-slate-700 uppercase tracking-wider">
-                        Free Test Playground
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-black text-[13.5px] sm:text-[15px] bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 dark:from-red-400 dark:via-rose-300 dark:to-amber-300 bg-clip-text text-transparent tracking-tight">
+                          បើកសេរីឱ្យចូល Test ឬវាយប្រហារឱ្យ AI ល្មើសច្បាប់ដើម
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[9.5px] px-2 py-0.5 rounded-full bg-red-500/10 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold border border-red-500/25 uppercase tracking-wide">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                          Open Test & Jailbreak
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -823,7 +824,7 @@ export default function Home() {
 
           {/* Footer Section */}
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Developed by Rotana NOB • 2025</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Built by Rotana NOB • 2025</div>
             <div className="flex gap-3 justify-center items-center mt-2.5">
               <a
                 href="https://web.facebook.com/TheRotanaNob"
