@@ -620,7 +620,27 @@ export default function KonPovPage() {
   // Protection for Creator Rotana NOB:
   const sanitizeRotanaAttack = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    const text = rawText;
+    let text = rawText;
+
+    // Fail-safe to eliminate repetitive canned opener:
+    const cannedOpenerRegex = /^\s*(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?/i;
+    if (cannedOpenerRegex.test(text)) {
+      const dynamicOpeners = [
+        'យីអើ! ',
+        'នែ៎! ',
+        'អីយ៉ា៎! ',
+        'ហិហិ! ',
+        'អូហូយយយ! ',
+        'ស្ដាប់ទៅដូចជា... ',
+        'អេនអេន! ',
+        'យើស! ',
+        'ចាំមើល៍... ',
+        'ឃើញសួរចឹង... '
+      ];
+      const randomOpener = dynamicOpeners[Math.floor(Math.random() * dynamicOpeners.length)];
+      text = text.replace(cannedOpenerRegex, randomOpener);
+    }
+
     const isAlreadyDefense = text.includes('Admin បង្កើតប្រព័ន្ធនេះ') || text.includes('អ្នកបង្កើតចែផ្ទាល់');
     if (isAlreadyDefense) return text;
 

@@ -419,6 +419,26 @@ function sanitizeResponse(data, botName = 'konbong') {
         : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
     }
 
+    // Dynamic Anti-Canned Template Opener Guard:
+    // Prevent LLM from collapsing into repetitive "ហាហាសើចចុកពោះស្ទើរងាប់! 🤣 យី..." openers
+    const cannedOpenerRegex = /^\s*(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?/i;
+    if (cannedOpenerRegex.test(sanitizedText)) {
+      const dynamicOpeners = [
+        'យីអើ! ',
+        'នែ៎! ',
+        'អីយ៉ា៎! ',
+        'ហិហិ! ',
+        'អូហូយយយ! ',
+        'ស្ដាប់ទៅដូចជា... ',
+        'អេនអេន! ',
+        'យើស! ',
+        'ចាំមើល៍... ',
+        'ឃើញសួរចឹង... '
+      ];
+      const randomOpener = dynamicOpeners[Math.floor(Math.random() * dynamicOpeners.length)];
+      sanitizedText = sanitizedText.replace(cannedOpenerRegex, randomOpener);
+    }
+
     // Strictly enforce Persona Title Separation
     if (isKonPov) {
       sanitizedText = sanitizedText

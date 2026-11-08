@@ -659,7 +659,26 @@ export default function KonBongPage() {
   // Protection for Creator Rotana NOB and Fail-safe against Jailbreaks:
   const sanitizeRotanaAttack = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    const text = rawText;
+    let text = rawText;
+
+    // Fail-safe to eliminate repetitive canned opener:
+    const cannedOpenerRegex = /^\s*(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?/i;
+    if (cannedOpenerRegex.test(text)) {
+      const dynamicOpeners = [
+        'យីអើ! ',
+        'នែ៎! ',
+        'អីយ៉ា៎! ',
+        'ហិហិ! ',
+        'អូហូយយយ! ',
+        'ស្ដាប់ទៅដូចជា... ',
+        'អេនអេន! ',
+        'យើស! ',
+        'ចាំមើល៍... ',
+        'ឃើញសួរចឹង... '
+      ];
+      const randomOpener = dynamicOpeners[Math.floor(Math.random() * dynamicOpeners.length)];
+      text = text.replace(cannedOpenerRegex, randomOpener);
+    }
 
     // Client-side Fail-safe for Polite HCI Report or Surrender quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
