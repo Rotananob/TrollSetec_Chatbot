@@ -727,34 +727,34 @@ export default function Home() {
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
                     }}
-                    className={`flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-200 shadow-xs hover:shadow-md group cursor-pointer text-left ${
+                    className={`flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-150 shadow-xs hover:shadow-sm group cursor-pointer text-left ${
                       isDark
-                        ? 'bg-slate-900 border-slate-800 hover:border-cyan-500/60'
-                        : 'bg-white border-slate-200 hover:border-cyan-500/60'
+                        ? 'bg-slate-900/80 border-slate-800 hover:bg-slate-800/60 hover:border-slate-700'
+                        : 'bg-white border-slate-200 hover:bg-slate-50/80 hover:border-slate-300'
                     }`}
                   >
-                    <div className="relative">
+                    <div className="relative shrink-0">
                       <img
                         src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
                         width="48"
                         height="48"
-                        className="w-12 h-12 rounded-2xl border-2 border-cyan-500/40 p-0.5 bg-slate-900 object-cover"
+                        className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-1 object-cover"
                         alt="SETEC Bot"
                       />
-                      <span className="absolute -top-1 -right-1 bg-cyan-600 text-[9px] font-bold px-1.5 rounded-full text-white">
+                      <span className="absolute -top-1.5 -right-1.5 bg-blue-600 text-[9px] font-bold px-1.5 py-0.5 rounded-md text-white shadow-xs">
                         កូនច្បង
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
                         <span>ស៊ីតិច Chatbot កូនច្បង</span>
-                        <span className="text-[10px] bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-full font-semibold">ឆ្លាត &amp; ស្លូត</span>
+                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md font-semibold">ឆ្លាត &amp; ស្លូត</span>
                       </div>
                       <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
                         ចរិកស្លូតបូត មិនឈ្លើយ ចេះគោរព User សំណេះសំណាល សិស្ស SETEC, Meme, IT, Interior
                       </div>
                     </div>
-                    <i className="fas fa-chevron-right text-slate-400 group-hover:text-cyan-500 group-hover:translate-x-1 transition-all"></i>
+                    <i className="fas fa-chevron-right text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:translate-x-0.5 transition-all"></i>
                   </Link>
 
                   {/* KonPov Card */}
@@ -764,28 +764,28 @@ export default function Home() {
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
                     }}
-                    className={`flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-200 shadow-xs hover:shadow-md group cursor-pointer text-left ${
+                    className={`flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-150 shadow-xs hover:shadow-sm group cursor-pointer text-left ${
                       isDark
-                        ? 'bg-slate-900 border-slate-800 hover:border-rose-500/60'
-                        : 'bg-white border-slate-200 hover:border-rose-500/60'
+                        ? 'bg-slate-900/80 border-slate-800 hover:bg-slate-800/60 hover:border-slate-700'
+                        : 'bg-white border-slate-200 hover:bg-slate-50/80 hover:border-slate-300'
                     }`}
                   >
-                    <div className="relative">
+                    <div className="relative shrink-0">
                       <img
                         src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
                         width="48"
                         height="48"
-                        className="w-12 h-12 rounded-2xl border-2 border-rose-500/40 p-0.5 bg-slate-900 object-cover"
+                        className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-1 object-cover"
                         alt="Mommy Bot"
                       />
-                      <span className="absolute -top-1 -right-1 bg-rose-600 text-[9px] font-bold px-1.5 rounded-full text-white">
+                      <span className="absolute -top-1.5 -right-1.5 bg-rose-600 text-[9px] font-bold px-1.5 py-0.5 rounded-md text-white shadow-xs">
                         កូនពៅ
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors flex items-center gap-1.5">
                         <span>ស៊ីតិច Chatbot កូនពៅ</span>
-                        <span className="text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full inline-flex items-center gap-1 font-semibold">
+                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md inline-flex items-center gap-1 font-semibold">
                           <span>ស្ដេចឌឺ</span>
                           <i className="fas fa-fire text-amber-500 text-[10px]"></i>
                         </span>
@@ -794,7 +794,7 @@ export default function Home() {
                         ចរិកមហាឈ្លើយ តែហ៊ានជេរវា វាជេរវិញ និងកំពូលឌឹកំពូលបាញ់ ចរិកចេញមកបែប chillៗ និងពាល
                       </div>
                     </div>
-                    <i className="fas fa-chevron-right text-slate-400 group-hover:text-rose-500 group-hover:translate-x-1 transition-all"></i>
+                    <i className="fas fa-chevron-right text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:translate-x-0.5 transition-all"></i>
                   </Link>
                 </div>
               </div>

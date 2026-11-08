@@ -3038,10 +3038,10 @@ export default function KonBongPage() {
                             setErrorReportInitialText(msg.text);
                             setErrorReportModalOpen(true);
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-black text-[11px] shadow-sm flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
+                          className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-[11px] shadow-xs flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
                         >
                           <i className="fas fa-triangle-exclamation text-amber-300"></i>
-                          <span>Send Alert ទៅកាន់ម្ចាស់ប្រព័ន្ធ</span>
+                          <span>Send Alert ទៅអ្នកគ្រប់គ្រង</span>
                         </button>
 
                         <a

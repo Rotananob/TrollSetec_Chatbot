@@ -134,7 +134,7 @@ export default function ErrorReportModal({
               <i className="fas fa-paper-plane"></i>
             </div>
             <h3 className="text-base sm:text-lg font-black mb-1.5 text-emerald-400">
-              បានបញ្ជូន Alert ទៅកាន់ Telegram របស់បង Rotana NOB (ម្ចាស់ប្រព័ន្ធ) រួចរាល់!
+              បានបញ្ជូន Alert ទៅកាន់ Telegram របស់បង Rotana NOB (អ្នកគ្រប់គ្រង) រួចរាល់!
             </h3>
             
             {/* 180s Realtime Countdown Badge */}
@@ -149,7 +149,7 @@ export default function ErrorReportModal({
             }`}>
               <p className="font-bold flex items-center gap-1.5">
                 <i className="fas fa-circle-check text-emerald-400 text-xs"></i>
-                <span>បន្តិចទៀតនេះ បង Rotana NOB (ម្ចាស់ប្រព័ន្ធ) នឹងបើកតាម Telegram / Mini App របស់គាត់ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
+                <span>បន្តិចទៀតនេះ បង Rotana NOB (អ្នកគ្រប់គ្រង) នឹងបើកតាម Telegram / Mini App របស់គាត់ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
               </p>
               <p className="text-[11px] opacity-80 pl-4">
                 សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ (Protocol 1-1 សុវត្ថិភាពខ្ពស់)។
@@ -159,7 +159,7 @@ export default function ErrorReportModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:brightness-110 text-white rounded-xl text-xs font-black shadow-lg shadow-emerald-500/20 cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
             >
               <i className="fas fa-comments"></i>
               <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំបង Rotana ({countdown}s)</span>
@@ -169,14 +169,14 @@ export default function ErrorReportModal({
           <>
             {/* Header */}
             <div className="text-center mb-5">
-              <div className="w-14 h-14 mx-auto mb-2.5 rounded-2xl bg-gradient-to-tr from-rose-600 to-amber-500 p-0.5 shadow-lg shadow-rose-500/30 flex items-center justify-center text-white text-2xl">
+              <div className="w-12 h-12 mx-auto mb-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 flex items-center justify-center text-rose-600 dark:text-rose-400 text-xl">
                 <i className="fas fa-triangle-exclamation"></i>
               </div>
               <h3 className="text-base sm:text-lg font-black tracking-tight mb-1">
-                រាយការណ៍បញ្ហាទៅកាន់ម្ចាស់ប្រព័ន្ធ (Web App)
+                រាយការណ៍បញ្ហាទៅអ្នកគ្រប់គ្រង (Web App)
               </h3>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមផ្ញើ Alert រាយការណ៍ជូនម្ចាស់ប្រព័ន្ធដើម្បីជួយដោះស្រាយ៖
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមផ្ញើ Alert រាយការណ៍ជូនអ្នកគ្រប់គ្រងដើម្បីជួយដោះស្រាយ៖
               </p>
             </div>
 
@@ -233,7 +233,7 @@ export default function ErrorReportModal({
                 <button
                   type="submit"
                   disabled={isSending}
-                  className="w-2/3 py-2.5 rounded-xl text-xs font-black text-white bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:brightness-110 active:scale-95 shadow-md shadow-rose-500/20 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-2/3 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isSending ? (
                     <>
@@ -243,7 +243,7 @@ export default function ErrorReportModal({
                   ) : (
                     <>
                       <i className="fas fa-paper-plane"></i>
-                      <span>ផ្ញើ Alert ទៅកាន់ម្ចាស់ប្រព័ន្ធ</span>
+                      <span>ផ្ញើ Alert ទៅអ្នកគ្រប់គ្រង</span>
                     </>
                   )}
                 </button>
