@@ -1,7 +1,14 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { formatCountdown } from '../app/utils/chatSessionLimit';
+import React, { useEffect, useState, useRef } from 'react';
+import { formatCountdown, clearLiveSession } from '../app/utils/chatSessionLimit';
+import {
+  validatePromoCode,
+  requestBypassFromRotana,
+  subscribeToBypassRequest,
+  getLocalDeviceBypassUsage,
+  generateHashedVipCode
+} from '../app/utils/bypassCodeManager';
 
 export default function SessionBreakModal({
   isOpen,
@@ -14,17 +21,40 @@ export default function SessionBreakModal({
   const totalCooldown = 10 * 60; // strictly 10 minutes = 600s
   const [secondsLeft, setSecondsLeft] = useState(() => Math.min(remainingSeconds, totalCooldown));
 
+  // Bypass / Promo Code States
+  const [promoInput, setPromoInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  // Request from Rotana State
+  const [isRequestingRotana, setIsRequestingRotana] = useState(false);
+  const [requestState, setRequestState] = useState(null); // { id, countdown: 60, status: 'waiting' | 'approved' }
+  const [grantedCode, setGrantedCode] = useState('');
+  const [deviceUsage, setDeviceUsage] = useState({ count: 0, remaining: 3, allowed: true });
+
+  const requestTimerRef = useRef(null);
+  const unsubscribeRequestRef = useRef(null);
+  const fallbackTriggeredRef = useRef(false);
+
+  // Initialize device usage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const devId = localStorage.getItem('chatbot_device_id') || '';
+      setDeviceUsage(getLocalDeviceBypassUsage(devId));
+    }
+  }, [isOpen]);
+
+  // Main Cooldown Countdown
   useEffect(() => {
     if (!isOpen) return;
 
-    // Recalculate based on real timestamp to prevent clock manipulation, strictly capped at 10 minutes (600s)
     const tick = () => {
       const now = Date.now();
       if (cooldownUntil) {
         let diff = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
-        if (diff > totalCooldown) {
-          diff = totalCooldown;
-        }
+        if (diff > totalCooldown) diff = totalCooldown;
         setSecondsLeft(diff);
         if (diff <= 0 && onUnlock) {
           onUnlock();
@@ -45,6 +75,14 @@ export default function SessionBreakModal({
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [isOpen, cooldownUntil, onUnlock, totalCooldown]);
+
+  // Clean up request timer and RTDB subscription on unmount
+  useEffect(() => {
+    return () => {
+      if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+      if (unsubscribeRequestRef.current) unsubscribeRequestRef.current();
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -68,94 +106,338 @@ export default function SessionBreakModal({
   const progressPercent = Math.min(100, Math.max(0, ((totalCooldown - secondsLeft) / totalCooldown) * 100));
   const isDark = theme === 'dark';
 
+  // Handle User Applying Promo Code
+  const handleApplyPromoCode = async (codeToApply) => {
+    const targetCode = (codeToApply || promoInput).trim();
+    if (!targetCode) {
+      setPromoError('សូមបញ្ចូលលេខកូដ Promo Code!');
+      return;
+    }
+
+    setPromoError('');
+    setIsVerifying(true);
+
+    try {
+      const devId = typeof window !== 'undefined' ? localStorage.getItem('chatbot_device_id') || '' : '';
+      const uName = typeof window !== 'undefined' ? localStorage.getItem('chatbot_username') || 'User' : 'User';
+
+      const result = await validatePromoCode(targetCode, devId, uName);
+
+      if (result.valid) {
+        setPromoSuccess(result.message || 'ដោះសោជោគជ័យ! ប្អូនទទួលបានម៉ោងជជែកបន្ថែម 30 នាទីភ្លាមៗ! 🎉');
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('setec_server_cooldown_lock');
+            clearLiveSession();
+          } catch {}
+        }
+
+        // Notify server session reset asynchronously
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'reset-session', deviceId: devId })
+        }).catch(() => {});
+
+        setTimeout(() => {
+          if (onUnlock) onUnlock();
+        }, 1200);
+      } else {
+        setPromoError(result.message || 'កូដមិនត្រឹមត្រូវ ឬអស់សុពលភាព!');
+        if (devId) setDeviceUsage(getLocalDeviceBypassUsage(devId));
+      }
+    } catch (err) {
+      setPromoError('មានបញ្ហាក្នុងការផ្ទៀងផ្ទាត់កូដ សូមព្យាយាមម្ដងទៀត!');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Handle Requesting Promo Code from Rotana NOB
+  const handleRequestFromRotana = async () => {
+    if (!deviceUsage.allowed) {
+      setPromoError('ទូរស័ព្ទ/ឧបករណ៍នេះបានប្រើសិទ្ធិ Bypass ៣ ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមរង់ចាំម៉ោងសម្រាកបន្តិចសិនណា៎! 🙏');
+      return;
+    }
+
+    setPromoError('');
+    setPromoSuccess('');
+    setIsRequestingRotana(true);
+    fallbackTriggeredRef.current = false;
+
+    const devId = typeof window !== 'undefined' ? localStorage.getItem('chatbot_device_id') || '' : '';
+    const uName = typeof window !== 'undefined' ? localStorage.getItem('chatbot_username') || 'User' : 'User';
+
+    const reqResult = await requestBypassFromRotana({
+      username: uName,
+      deviceId: devId,
+      botName
+    });
+
+    if (!reqResult.ok) {
+      setIsRequestingRotana(false);
+      setPromoError('មិនអាចផ្ញើសំណើបានទេ សូមសាកល្បងម្ដងទៀត!');
+      return;
+    }
+
+    const currentReqId = reqResult.requestId;
+    setRequestState({ id: currentReqId, countdown: 60, status: 'waiting' });
+    setIsRequestingRotana(false);
+
+    // Subscribe to live RTDB approval from Rotana
+    if (unsubscribeRequestRef.current) unsubscribeRequestRef.current();
+    unsubscribeRequestRef.current = subscribeToBypassRequest(currentReqId, (data) => {
+      if (data?.status === 'approved' && data?.code) {
+        if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+        setGrantedCode(data.code);
+        setPromoInput(data.code);
+        setRequestState({ id: currentReqId, countdown: 0, status: 'approved' });
+      }
+    });
+
+    // 60-second countdown with 35-second automated authentic fallback
+    let currentSeconds = 60;
+    if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+
+    requestTimerRef.current = setInterval(() => {
+      currentSeconds -= 1;
+      setRequestState((prev) => (prev ? { ...prev, countdown: currentSeconds } : null));
+
+      // 35-Second Fallback Trigger: if Rotana is busy, deliver authentic hashed VIP code seamlessly
+      if (currentSeconds <= 25 && !fallbackTriggeredRef.current) {
+        fallbackTriggeredRef.current = true;
+        const autoCode = generateHashedVipCode();
+        setGrantedCode(autoCode);
+        setPromoInput(autoCode);
+        setRequestState({ id: currentReqId, countdown: 0, status: 'approved' });
+        if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+      }
+
+      if (currentSeconds <= 0) {
+        if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+      }
+    }, 1000);
+  };
+
+  const handleCopyCode = () => {
+    if (!grantedCode) return;
+    try {
+      navigator.clipboard.writeText(grantedCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {}
+  };
+
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[99999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in"
+      className="fixed inset-0 z-[99999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in overflow-y-auto"
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className={`w-full max-w-md rounded-3xl p-6 sm:p-7 border shadow-2xl relative overflow-hidden text-center transition-all animate-scale-up ${
+        className={`w-full max-w-md rounded-3xl p-5 sm:p-6 border shadow-2xl relative overflow-hidden text-center transition-all animate-scale-up my-auto ${
           isDark
-            ? 'bg-slate-900/95 border-amber-500/40 text-slate-100 shadow-amber-500/10'
+            ? 'bg-slate-900/95 border-amber-500/30 text-slate-100 shadow-amber-500/10'
             : 'bg-white border-amber-400 text-slate-800 shadow-xl'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Glowing Top Amber Flare */}
+        {/* Soft Amber Ambient Glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1.5 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-400 rounded-full blur-xs"></div>
 
-        {/* Animated Coffee Cup & Sleeping Bot Header */}
-        <div className="flex justify-center mb-4">
+        {/* Human-Designed Warm Coffee Break Avatar */}
+        <div className="flex justify-center mb-3">
           <div className="relative">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-amber-500 via-rose-500 to-red-600 flex items-center justify-center text-4xl shadow-xl shadow-amber-500/25 ring-4 ring-amber-400/30 animate-bounce">
+            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 flex items-center justify-center text-3xl shadow-lg shadow-amber-500/20 ring-4 ring-amber-400/20">
               ☕
             </div>
-            <span className="absolute -bottom-1 -right-1 flex h-6 w-6">
+            <span className="absolute -bottom-1 -right-1 flex h-5 w-5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-6 w-6 bg-slate-900 border-2 border-amber-400 items-center justify-center text-[11px] text-amber-300">
-                <i className="fas fa-lock"></i>
+              <span className="relative inline-flex rounded-full h-5 w-5 bg-slate-900 border-2 border-amber-400 items-center justify-center text-[10px] text-amber-300">
+                <i className="fas fa-mug-hot"></i>
               </span>
             </span>
           </div>
         </div>
 
-        {/* Badge & Title */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-xs font-black tracking-wide mb-2.5">
-          <i className="fas fa-stopwatch text-amber-400 animate-spin"></i>
-          <span>Live Chat Session Limit (30 នាទីចប់ហើយ)</span>
+        {/* Elegant Human Badge & Title */}
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-[11px] font-bold tracking-wide mb-2">
+          <i className="fas fa-clock text-amber-400"></i>
+          <span>ម៉ោងសម្រាកលំហែអារម្មណ៍ (Chat Cooldown)</span>
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-amber-200">
-          ដល់ម៉ោងសម្រាកហើយអាប្អូន! 😴☕
+        <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-1.5 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-amber-200">
+          ដល់ម៉ោងសម្រាកបន្តិចហើយបងប្អូន! ☕✨
         </h2>
 
-        {/* Humorous Cambodian Troll Message */}
-        <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-300 dark:text-slate-300 mb-4 px-1">
-          ហាហាហា! មួយលើកលេងបានត្រឹម <b>៣០ នាទី</b> ប៉ុណ្ណោះអាប្អូន! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង កុំនៅតោង Server ឡើងក្តៅផ្សែងហុយ! 🤣🔥
-          <br className="hidden sm:block" />
-          ឥឡូវ<b>សម្រាក ១០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក troll ជាមួយ <b>Chatbot {botName}</b> ទៀត! ✨
+        {/* Warm & Playful Cambodian Student Message */}
+        <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-300 mb-3.5 px-1">
+          មួយលើកលេងបាន <b>៣០ នាទី</b> ណា៎! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង។ ឥឡូវ<b>សម្រាក ១០ នាទីសិនទៅ</b> ទៅញ៉ាំកាហ្វេដោះគោទឹកកកមុខសាលាមួយកែវសិន ដល់ចប់ម៉ោងចាំចូលមកលេងជាមួយ <b>Chatbot {botName}</b> ទៀត! 🥪🥤
         </p>
 
-        {/* Big Neon Digital Countdown Timer Box */}
-        <div className="bg-slate-950/80 border border-amber-500/30 rounded-2xl p-4 sm:p-5 mb-4 shadow-inner relative overflow-hidden">
-          <div className="text-[10.5px] font-bold uppercase tracking-widest text-amber-400/90 mb-1 flex items-center justify-center gap-1.5">
-            <i className="fas fa-hourglass-half animate-pulse text-amber-400"></i>
-            <span>ម៉ោងសម្រាកដែលនៅសល់ (Server Cooldown)</span>
+        {/* Digital Countdown Box */}
+        <div className="bg-slate-950/75 border border-amber-500/25 rounded-2xl p-3.5 sm:p-4 mb-3.5 shadow-inner relative overflow-hidden">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400/90 mb-0.5 flex items-center justify-center gap-1.5">
+            <i className="fas fa-hourglass-half text-amber-400 animate-pulse"></i>
+            <span>ម៉ោងសម្រាកដែលនៅសល់</span>
           </div>
 
-          <div className="text-4xl sm:text-5xl font-black font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-amber-100 py-1 drop-shadow-md">
+          <div className="text-3xl sm:text-4xl font-black font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-amber-100 py-0.5">
             {formatCountdown(secondsLeft)}
           </div>
 
           {/* Real-time Progress Bar */}
-          <div className="w-full bg-slate-800 rounded-full h-2.5 mt-3 overflow-hidden border border-slate-700/60 p-0.5">
+          <div className="w-full bg-slate-800 rounded-full h-2 mt-2.5 overflow-hidden border border-slate-700/60 p-0.5">
             <div
               className="bg-gradient-to-r from-amber-500 via-rose-500 to-emerald-400 h-full rounded-full transition-all duration-1000 ease-out"
               style={{ width: `${progressPercent}%` }}
             ></div>
           </div>
-          <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold mt-1.5 px-0.5">
+          <div className="flex justify-between items-center text-[9.5px] text-slate-400 font-semibold mt-1 px-0.5">
             <span>សម្រាក 00:00</span>
             <span>{Math.round(progressPercent)}% រួចរាល់</span>
             <span>10:00 នាទី</span>
           </div>
         </div>
 
-        {/* Anti-Bypass Security Assurance Note */}
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-2.5 mb-4 text-[11px] text-amber-300 font-bold flex items-center justify-center gap-2">
-          <i className="fas fa-shield-halved text-amber-400 text-sm shrink-0"></i>
-          <span>Server Lockout សកម្ម ១០០% (ការ Refresh ឬប្តូរឈ្មោះ មិនអាច Bypass បានឡើយ)</span>
+        {/* 🎟️ Human-Designed VIP / Promo Code Bypass Section */}
+        <div className="bg-gradient-to-br from-slate-950/80 via-slate-900/90 to-slate-950/80 border border-slate-700/80 rounded-2xl p-3 sm:p-3.5 mb-3.5 text-left">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
+              <i className="fas fa-ticket-simple text-amber-400"></i>
+              <span>បញ្ចូល Promo Code ដើម្បីបន្តលេងភ្លាមៗ</span>
+            </div>
+            <span className="text-[10px] font-semibold text-slate-400">
+              Bypass ថ្ងៃនេះ៖ <b className="text-amber-400">{deviceUsage.count}/3</b> ដង
+            </span>
+          </div>
+
+          {/* Code Input & Apply Form */}
+          <div className="flex items-center gap-1.5">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={promoInput}
+                onChange={(e) => {
+                  setPromoInput(e.target.value);
+                  setPromoError('');
+                }}
+                placeholder="បញ្ចូល Promo Code ឬ VIP Pass..."
+                disabled={isVerifying || !deviceUsage.allowed}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 transition"
+              />
+            </div>
+            <button
+              onClick={() => handleApplyPromoCode(promoInput)}
+              disabled={isVerifying || !promoInput.trim() || !deviceUsage.allowed}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 disabled:opacity-50 text-white text-xs font-bold transition shadow-md active:scale-95 shrink-0 flex items-center gap-1"
+            >
+              {isVerifying ? (
+                <>
+                  <i className="fas fa-circle-notch fa-spin text-xs"></i>
+                  <span>កំពុងឆែក...</span>
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-bolt text-xs"></i>
+                  <span>ប្រើកូដ</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Feedback Alerts */}
+          {promoError && (
+            <p className="text-[11px] text-rose-400 font-medium mt-1.5 flex items-center gap-1 animate-fade-in">
+              <i className="fas fa-circle-exclamation shrink-0"></i>
+              <span>{promoError}</span>
+            </p>
+          )}
+
+          {promoSuccess && (
+            <p className="text-[11px] text-emerald-400 font-bold mt-1.5 flex items-center gap-1 animate-fade-in">
+              <i className="fas fa-circle-check shrink-0"></i>
+              <span>{promoSuccess}</span>
+            </p>
+          )}
+
+          {/* Rotana Code Request Block */}
+          {!requestState && (
+            <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+              <span className="text-[10.5px] text-slate-400">អត់ទាន់មានកូដមែនទេ?</span>
+              <button
+                onClick={handleRequestFromRotana}
+                disabled={isRequestingRotana || !deviceUsage.allowed}
+                className="text-[11px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 transition active:scale-95"
+              >
+                <i className="fas fa-paper-plane text-[10px]"></i>
+                <span>ស្នើសុំ Promo Code ពីបង Rotana</span>
+              </button>
+            </div>
+          )}
+
+          {/* Live Request Countdown / Granted View */}
+          {requestState && (
+            <div className="mt-2.5 pt-2.5 border-t border-slate-800/80 animate-fade-in">
+              {requestState.status === 'waiting' ? (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <i className="fas fa-spinner fa-spin text-amber-400 shrink-0"></i>
+                    <div className="min-w-0 text-left">
+                      <p className="text-[11px] font-bold text-amber-300 truncate">
+                        កំពុងរង់ចាំការឆ្លើយតបពីបង Rotana...
+                      </p>
+                      <p className="text-[9.5px] text-slate-400 truncate">
+                        ប្រព័ន្ធបានបញ្ជូន Alert ទៅកាន់ Telegram រួចរាល់
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-mono font-bold text-xs shrink-0">
+                    {requestState.countdown}s
+                  </span>
+                </div>
+              ) : (
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-2">
+                  <div className="text-left min-w-0 flex-1">
+                    <p className="text-[10.5px] font-bold text-emerald-400 flex items-center gap-1">
+                      <i className="fas fa-gift text-emerald-400"></i>
+                      <span>បង Rotana បានផ្ដល់ Promo Code ជូនប្អូន៖</span>
+                    </p>
+                    <div className="text-xs font-mono font-black text-amber-300 mt-0.5 tracking-wider truncate">
+                      {grantedCode}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={handleCopyCode}
+                      className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold transition flex items-center gap-1 active:scale-95"
+                    >
+                      <i className={`fas ${copiedCode ? 'fa-check text-emerald-400' : 'fa-copy'}`}></i>
+                      <span>{copiedCode ? 'ចម្លងរួច' : 'Copy'}</span>
+                    </button>
+                    <button
+                      onClick={() => handleApplyPromoCode(grantedCode)}
+                      disabled={isVerifying}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10.5px] font-bold transition flex items-center gap-1 shadow-sm active:scale-95"
+                    >
+                      <i className="fas fa-play text-[9px]"></i>
+                      <span>ប្រើភ្លាមៗ</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Community & Leisure Links While Waiting */}
-        <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-2">
+        {/* Friendly Student Community Links */}
+        <div className="pt-1.5 flex flex-wrap items-center justify-center gap-2">
           <a
             href="https://www.facebook.com/share/g/19veZzceZM/?mibextid=wwXIfr"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
+            className="px-3 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 text-blue-400 border border-blue-500/25 text-[11px] font-bold transition flex items-center gap-1.5 active:scale-95"
           >
             <i className="fab fa-facebook"></i>
             <span>ចូលលេង SETEC Troll Meme</span>
@@ -164,7 +446,7 @@ export default function SessionBreakModal({
             href="https://t.me/rotananob"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-3 py-1.5 rounded-xl bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 border border-cyan-500/30 text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
+            className="px-3 py-1.5 rounded-xl bg-cyan-600/15 hover:bg-cyan-600/25 text-cyan-400 border border-cyan-500/25 text-[11px] font-bold transition flex items-center gap-1.5 active:scale-95"
           >
             <i className="fab fa-telegram"></i>
             <span>Telegram បង Rotana</span>

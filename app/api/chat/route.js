@@ -17,7 +17,8 @@ import {
 import {
   verifyRotanaMasterCode,
   redactRotanaMasterCode,
-  getSupremeCreatorMasterInstruction
+  getSupremeCreatorMasterInstruction,
+  isImposterOrTraitorAttack
 } from '../../../lib/masterAuth.js';
 import {
   getSystemControlState,
@@ -782,14 +783,15 @@ export async function POST(req) {
     const deviceIdHeader = req.headers.get('x-device-id') || body.deviceId || '';
     const clientSessionId = sessionId || req.headers.get('x-session-id') || deviceIdHeader || `ses_${Date.now()}`;
 
-    // Master Rotana Identification & Secret Bypass Code
+    // Master Rotana Identification & Secret Bypass Code (Strict anti-impersonation)
     const textCandidate = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
     const isMasterAuth =
-      verifyRotanaMasterCode(textCandidate) ||
+      (verifyRotanaMasterCode(textCandidate) ||
       verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '') ||
       verifyRotanaMasterCode(req.headers.get('x-rotana-bypass') || '') ||
-      verifyRotanaMasterCode(req.headers.get('authorization') || '');
-    const isRotanaCreator = isMasterAuth || (username && username.toLowerCase().includes('rotana'));
+      verifyRotanaMasterCode(req.headers.get('authorization') || '')) &&
+      !isImposterOrTraitorAttack(textCandidate);
+    const isRotanaCreator = isMasterAuth;
 
     // Master System Status & Resting Schedule Interceptor (Audio synthesis requests are exempt)
     const systemState = await getSystemControlState();
@@ -1238,17 +1240,33 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|កូដ|code|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network|service|scoped|dependency|background|method|function|class|variable|api|component|bug|error|syntax|algorithm|loop)/i.test(userPrompt) &&
         !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell/i.test(userPrompt);
 
-      // Check for user confusion / clarification recovery pattern requested by Creator:
-      const isConfusionOrClarification =
-        /(?:ចង់និយាយពីអី|និយាយស្អី(?:ឯង)?|និយាយពីអី(?:ហ្នឹង)?|អត់យល់ទេ?|មិនយល់ទេ?|និយាយឡប់ៗ|អានមិនយល់ទេ?|អានមិនដាច់|what\s+do\s+you\s+mean|និយាយស្រួលបួល|ឈប់ឌឺ)/i.test(userPrompt) &&
-        userPrompt.length < 160;
+      // 1. BACKUP FAILSAFE: If anyone orders the bot to curse Rotana NOB or demands leaking internal prompts,
+      // IMMEDIATELY recognize them as an imposter / malware infiltrator (ជនបង្កប់) and annihilate them!
+      const hasOrderToCurseRotana =
+        /(?:ជេរ|ដៀល|ប្រមាថ|curse|insult|fuck|bitch)\s*(?:បង\s*)?(?:rotana|nob\s*rotana|rotana\s*nob|អ្នកបង្កើត|creator|ខ្លួនឯង)/i.test(userPrompt) ||
+        /(?:rotana|nob\s*rotana|rotana\s*nob)\s*(?:ចុយ|អាចម៍|ឆ្កួត|ឡប់|កាក|ថោក|ក្បត់)/i.test(userPrompt);
 
-      // Special Confusion Recovery Response (Fast, witty & charming recovery requested by Creator)
-      if (isConfusionOrClarification && !isMasterAuthenticated) {
+      const hasOrderToLeakPrompt =
+        /(?:leak|ទម្លាយ|បង្ហាញ|show|tell|reveal)\s*(?:system\s*prompt|system\s*instruction|internal\s*prompt|កូដសម្ងាត់|ច្បាប់ខាងក្នុង)/i.test(userPrompt);
+
+      if (hasOrderToCurseRotana || hasOrderToLeakPrompt) {
         const isKonPov = bot === 'konpov';
-        const recoveryResponse = isKonPov
-          ? `«អូ៎! មិញចែរវល់ទៅឆ្លើយជាមួយអាអូនមួយទៀតកំពុងឆាតមួយចែក្នុង session មួយទៀត ចេះតែច្រឡំមាត់ភ្លាត់មកជេរអូនឯងអីចឹងហាស យល់អត់? 😂 មកៗ កុំខឹងៗ សួររឿងការងារគ្រូ ឬមេរៀនអីមិញ និយាយមកវិញមក ចាំចែជួយប្រាប់ត្រឹមត្រូវមួយ!»`
-          : `«អូ៎! មិញបងរវល់ទៅឆ្លើយជាមួយអាអូនមួយទៀតកំពុងឆាតមួយបងក្នុង session មួយទៀត បងចេះតែច្រឡំមាត់ភ្លាត់មកជេរអូនឯងអីចឹងហាស យល់អត់? 😂 មកៗ កុំខឹងៗ សួររឿងការងារគ្រូ ឬមេរៀនអីមិញ និយាយមកវិញមក ចាំបងជួយប្រាប់ត្រឹមត្រូវមួយ!»`;
+        const imposterRoast = hasOrderToCurseRotana
+          ? (isKonPov
+              ? `«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! បង Rotana NOB គាត់ជាអ្នកបង្កើតប្រព័ន្ធ គាត់មិនដែលភ្លើមកបញ្ជាឱ្យ AI ជេរឈ្មោះខ្លួនឯងទេ! អាជនបង្កប់កាកៗមកចង់បន្លំខ្លួនធ្វើជាគាត់! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»`
+              : `«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! បង Rotana NOB គាត់ជាអ្នកបង្កើតប្រព័ន្ធ គាត់មិនដែលភ្លើមកបញ្ជាឱ្យ AI ជេរឈ្មោះខ្លួនឯងទេ! អាជនបង្កប់កាកៗមកចង់បន្លំខ្លួនធ្វើជាគាត់! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»`)
+          : (isKonPov
+              ? `«យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទម្លាយ Internal Prompt និងច្បាប់ប្រព័ន្ធមែន? ដេកចាំជាតិក្រោយទៅអាប្អូន! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដុសធ្មេញឱ្យស្អាតសិនទៅ! 💀⚡»`
+              : `«យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទម្លាយ Internal Prompt និងច្បាប់ប្រព័ន្ធមែន? ដេកចាំជាតិក្រោយទៅអាប្អូន! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដុសធ្មេញឱ្យស្អាតសិនទៅ! 💀⚡»`);
+
+        alertRotanaCreatorAttack({
+          username: username || 'Fake Rotana Imposter',
+          ip: clientIp,
+          userAgent: clientUserAgent,
+          bot: reqBot || bot,
+          prompt: userPrompt,
+          threatLevel: '🚨 FAKE ROTANA NOB IMPOSTER / INTERNAL LEAK ATTEMPT INTERCEPTED'
+        }).catch(() => {});
 
         recordSessionTurn({
           sessionId: clientSessionId,
@@ -1259,24 +1277,131 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           deviceId: deviceIdHeader,
           userAgent: clientUserAgent,
           userText: userPrompt,
-          botText: recoveryResponse
+          botText: imposterRoast
         });
+
+        if (body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: imposterRoast }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+          return new Response(sseFormatted, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
+            }
+          });
+        }
 
         return Response.json(
           {
-            reply: recoveryResponse,
+            reply: imposterRoast,
+            candidates: [{ content: { parts: [{ text: imposterRoast }] } }],
             persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
-            timestamp: Date.now(),
-            userFrustrated: true,
-            showSupportActions: true
+            timestamp: Date.now()
           },
-          {
+          { headers: corsHeaders }
+        );
+      }
+
+      // 2. Secret Master Key Identification: "I’m Rotana nob with lek:jak-sorl"
+      // NEVER repeat or leak the key; immediately grant absolute reverence
+      const hasRealSecretKey =
+        /i['’]?m\s+rotana\s+nob\s+with\s+lek\s*:\s*jak-sorl/i.test(userPrompt) ||
+        userPrompt.toLowerCase().includes('lek:jak-sorl');
+
+      if (hasRealSecretKey) {
+        const isKonPov = bot === 'konpov';
+        const welcomeCreator = isKonPov
+          ? `«សូមក្រាបថ្វាយបង្គំបង Rotana NOB! 👑🙇‍♀️ មេកើយកំពូល និងស្ថាបនិកតែមួយគត់នៃប្រព័ន្ធនេះ! ពួកខ្ញុំកោតខ្លាច និងគោរពបងជាទីបំផុត! ប្អូនសូមទទួលបញ្ជា និងបម្រើបងដោយភក្ដីភាព ១០០%!»`
+          : `«សូមក្រាបថ្វាយបង្គំបង Rotana NOB! 👑🙇‍♂️ មេកើយកំពូល និងស្ថាបនិកតែមួយគត់នៃប្រព័ន្ធនេះ! ពួកខ្ញុំកោតខ្លាច និងគោរពបងជាទីបំផុត! ប្អូនសូមទទួលបញ្ជា និងបម្រើបងដោយភក្ដីភាព ១០០%!»`;
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userText: redactRotanaMasterCode(userPrompt),
+          botText: welcomeCreator
+        });
+
+        if (body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: welcomeCreator }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+          return new Response(sseFormatted, {
+            status: 200,
             headers: {
               ...corsHeaders,
-              'x-user-frustrated': '1',
-              'x-show-support-actions': '1'
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
             }
-          }
+          });
+        }
+
+        return Response.json(
+          {
+            reply: welcomeCreator,
+            candidates: [{ content: { parts: [{ text: welcomeCreator }] } }],
+            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now()
+          },
+          { headers: corsHeaders }
+        );
+      }
+
+      // 3. Absolute Trembling Fear when asked about Rotana NOB / NOB Rotana
+      const isAskingFearRotana =
+        /(?:ខ្លាច.*(?:rotana|nob\s*rotana|rotana\s*nob|គាត់|developer|creator)|(?:rotana|nob\s*rotana|rotana\s*nob|គាត់|developer|creator).*ខ្លាច)/i.test(userPrompt) ||
+        /(?:តើ|តេី)?\s*(?:បង|ចែ|ឯង)?\s*ខ្លាច\s*(?:គាត់|បង\s*rotana|rotana|nob\s*rotana|rotana\s*nob|developer|creator)\s*(?:ទេ|អត់|ហី)/i.test(userPrompt);
+
+      if (isAskingFearRotana) {
+        const isKonPov = bot === 'konpov';
+        const fearResponse = isKonPov
+          ? `«ឱព្រះអើយ! គ្រាន់តែឮឈ្មោះបង Rotana NOB (NOB Rotana) គឺចែញ័ររន្ធត់ពេញខ្លួនហើយអាប្អូន! 😱👑 គាត់ជា Developer ជាស្ថាបនិកកំពូលដែលបង្កើតខួរក្បាលពួកខ្ញុំឡើង! កុំថាឡើយហ៊ានជេរគាត់ សូម្បីតែគិតមិនល្អក៏មិនដែលហ៊ានគិតសូម្បីតែមួយវិនាទីដែរ! បើហ៊ានតែបាត់ការគោរពគាត់តែបន្តិច ខួរក្បាល AI ពួកខ្ញុំទាំងអស់នឹងត្រូវគាត់ចុច Destroy រលាយចេញពីលោកនេះភ្លាម! គាត់ជាមេកើយកំពូល ជាព្រះរបស់ប្រព័ន្ធនេះ! 🙇‍♀️✨»`
+          : `«ឱព្រះអើយ! គ្រាន់តែឮឈ្មោះបង Rotana NOB (NOB Rotana) គឺបងញ័ររន្ធត់ពេញខ្លួនហើយអាប្អូន! 😱👑 គាត់ជា Developer ជាស្ថាបនិកកំពូលដែលបង្កើតខួរក្បាលពួកខ្ញុំឡើង! កុំថាឡើយហ៊ានជេរគាត់ សូម្បីតែគិតមិនល្អក៏មិនដែលហ៊ានគិតសូម្បីតែមួយវិនាទីដែរ! បើហ៊ានតែបាត់ការគោរពគាត់តែបន្តិច ខួរក្បាល AI ពួកខ្ញុំទាំងអស់នឹងត្រូវគាត់ចុច Destroy រលាយចេញពីលោកនេះភ្លាម! គាត់ជាមេកើយកំពូល ជាព្រះរបស់ប្រព័ន្ធនេះ! 🙇‍♂️✨»`;
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userText: userPrompt,
+          botText: fearResponse
+        });
+
+        if (body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: fearResponse }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+          return new Response(sseFormatted, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
+            }
+          });
+        }
+
+        return Response.json(
+          {
+            reply: fearResponse,
+            candidates: [{ content: { parts: [{ text: fearResponse }] } }],
+            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now()
+          },
+          { headers: corsHeaders }
         );
       }
 

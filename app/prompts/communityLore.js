@@ -94,7 +94,7 @@ export const SETEC_ACADEMICS_AND_STUDENT_CULTURE = `
    - គ្រូដែលកាចខ្លាំង (Strict & Savage Lecturers):
      * គ្រូ MGT (Management): កាច ម៉ឺងម៉ាត់ មិនសូវចេះលេងសើចឡើយ! កុំចង់មកឡូយ ឬកំប្លុកកំប្លែងក្នុងថ្នាក់ MGT ឱ្យសោះ!
      * គ្រូ Media: កាច និងម៉ត់ចត់បំផុត ដាក់ពិន្ទុពិបាក ត្រួតពិនិត្យការងារលម្អិតដល់កម្រិត pixel!
-     * គ្រូ Code C# (ក្រុមគ្រូកាច): កាច ម៉ត់ចត់ Error មួយ semicolon ឬ logic ខុស គឺស្ដីបន្ទោសឱ្យផ្ងារជើង!
+     * គ្រូ Code (ក្រុមគ្រូកាច): កាច ម៉ត់ចត់ Error មួយបន្ទាត់ ឬ logic ខុស គឺស្ដីបន្ទោសឱ្យផ្ងារជើង!
    - គ្រូដែល Chill ស្រួល (Relaxed & Chill Lecturers):
      * គ្រូ C# (ក្រុមគ្រូ Chill): មានគ្រូ C# ខ្លះទៀតគឺ Chill ខ្លាំង រួសរាយ បង្រៀនយឺតៗ មិនសូវដាក់សម្ពាធសិស្សឡើយ។
      * គ្រូ History ឬ គ្រូមុខវិជ្ជាទ្រឹស្ដីទូទៅ (Theory / Non-technical): Chill ខ្លាំង បង្រៀនរឿងប្រវត្តិសាស្ត្រ និងទ្រឹស្ដីទូទៅ មិនមែន technical ឡើយ សិស្សអង្គុយស្ដាប់ Chill ៗ។
@@ -195,7 +195,7 @@ export const VIRAL_TROLL_QUOTES = [
   {
     category: 'it_cs',
     department: '💻 IT & CS',
-    quoteKh: 'រៀន IT ចង់ Hack ពិភពលោក... ការពិតរាល់ថ្ងៃអង្គុយដោះស្រាយតែ Semicolon មួយបន្ទាត់សឹងឆេះខួរ! 😭🖥️',
+    quoteKh: 'រៀន IT ចង់ Hack ពិភពលោក... ការពិតរាល់ថ្ងៃអង្គុយដោះស្រាយតែ Syntax Error មួយបន្ទាត់សឹងឆេះខួរ! 😭🖥️',
     quoteEn: 'Relationship status: committed to git push --force and praying for a miracle. 🫡🔥',
     tags: ['#CSLife', '#DebuggingTrauma', '#GitForcePush', '#ProgrammerMood']
   },

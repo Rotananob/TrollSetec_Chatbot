@@ -9,7 +9,10 @@ import {
   alertUserReportedIssue,
   alertDevContribution,
   alertNewChatSession,
-  getCambodiaDayKey
+  getCambodiaDayKey,
+  getCambodiaTime,
+  sendTelegramMessage,
+  TOPIC_KEYS
 } from '../../../lib/telegram';
 import {
   checkDDoSFirewall,
@@ -265,6 +268,41 @@ export async function POST(req) {
 
       return Response.json(
         { success: true, message: 'New chat session notified to Rotana NOB' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Handle User Requesting Bypass Promo Code from Rotana NOB -> Alert Telegram
+    if (type === 'request_bypass_code' || action === 'request_bypass_code') {
+      const targetUser = username || body.username || 'User';
+      const targetBot = body.bot || 'chatbot';
+      const requestId = body.requestId || `req_${Date.now()}`;
+      const adminUrl = `https://troll-setec-chatbot.web.app/jam-tic-kapea-1-sin?tab=promo&req=${encodeURIComponent(requestId)}`;
+
+      const cambodiaTime = getCambodiaTime();
+      const message = [
+        `🎟️ <b>[សំណើសុំ PROMO CODE BYPASS ពីបង ROTANA]</b>`,
+        ``,
+        `👤 <b>អ្នកប្រើប្រាស់:</b> <code>${targetUser}</code>`,
+        `🤖 <b>Bot:</b> <code>${targetBot}</code>`,
+        `📱 <b>Device ID:</b> <code>${deviceId || 'N/A'}</code>`,
+        `🌐 <b>IP Address:</b> <code>${ip}</code>`,
+        `⏱️ <b>កាលបរិច្ឆេទ:</b> ${cambodiaTime}`,
+        `🆔 <b>Request ID:</b> <code>${requestId}</code>`,
+        ``,
+        `⚡ <b>ចុចទីនេះដើម្បី Approve ឬផ្ដល់កូដក្នុង Admin Panel:</b>`,
+        `<a href="${adminUrl}">${adminUrl}</a>`,
+        ``,
+        `💡 <i>ចំណាំ៖ ប្រសិនបើបងរវល់លើសពី ៣៥ វិនាទី ប្រព័ន្ធនឹង auto-grant កូដ hash ជូន User ដោយស្វ័យប្រវត្តិ។</i>`
+      ].join('\n');
+
+      sendTelegramMessage(message, TOPIC_KEYS.SPAM, {
+        parse_mode: 'HTML',
+        disable_web_page_preview: true
+      }).catch((e) => console.error('[Track] Bypass request Telegram error:', e));
+
+      return Response.json(
+        { success: true, message: 'Bypass request alerted to Rotana NOB' },
         { status: 200, headers: corsHeaders }
       );
     }

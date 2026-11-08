@@ -64,6 +64,15 @@ export default function JamTicKapeaAdminPage() {
   const isEditingNightMessageRef = useRef(false);
   const isEditingBroadcastRef = useRef(false);
 
+  // Tab 5: Promo Code & Bypass Management State
+  const [bypassRequests, setBypassRequests] = useState([]);
+  const [promoCodesList, setPromoCodesList] = useState([]);
+  const [newPromoCode, setNewPromoCode] = useState('');
+  const [newPromoMaxUses, setNewPromoMaxUses] = useState(10);
+  const [newPromoDurationHours, setNewPromoDurationHours] = useState(24);
+  const [customApproveCodes, setCustomApproveCodes] = useState({});
+  const [isSubmittingPromo, setIsSubmittingPromo] = useState(false);
+
   const eventSourceRef = useRef(null);
 
   // Clock Update Effect (UTC+7 Phnom Penh Time)
@@ -225,6 +234,170 @@ export default function JamTicKapeaAdminPage() {
       }
     };
   }, [isAuthenticated, fetchState]);
+
+  // URL Tab Sync Effect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const tabParam = new URLSearchParams(window.location.search).get('tab');
+      if (tabParam === 'promo') {
+        setActiveTab('promo');
+      }
+    }
+  }, []);
+
+  // Fetch Promo Codes and Live User Requests from RTDB
+  const fetchPromoData = useCallback(async () => {
+    try {
+      const reqRes = await fetch(`${FIREBASE_DB_URL}/bypass_requests.json`);
+      if (reqRes.ok) {
+        const data = await reqRes.json();
+        if (data && typeof data === 'object') {
+          const list = Object.keys(data).map((k) => ({
+            id: k,
+            ...data[k]
+          })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          setBypassRequests(list);
+        } else {
+          setBypassRequests([]);
+        }
+      }
+
+      const codesRes = await fetch(`${FIREBASE_DB_URL}/bypass_codes.json`);
+      if (codesRes.ok) {
+        const data = await codesRes.json();
+        if (data && typeof data === 'object') {
+          const list = Object.keys(data).map((k) => ({
+            code: k,
+            ...data[k]
+          })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          setPromoCodesList(list);
+        } else {
+          setPromoCodesList([]);
+        }
+      }
+    } catch (err) {
+      console.warn('[Admin] Failed to fetch promo data:', err);
+    }
+  }, []);
+
+  // Poll Promo Data every 4 seconds when authenticated
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetchPromoData();
+    const interval = setInterval(fetchPromoData, 4000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, fetchPromoData]);
+
+  const handleCreatePromoCode = async () => {
+    let code = (newPromoCode || '').trim().toUpperCase();
+    if (!code) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let rand = '';
+      for (let i = 0; i < 4; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+      code = `ROTANA-VIP-${rand}`;
+    }
+
+    setIsSubmittingPromo(true);
+    try {
+      const durationMs = (Number(newPromoDurationHours) || 24) * 60 * 60 * 1000;
+      const payload = {
+        code,
+        createdBy: 'Rotana NOB',
+        createdAt: Date.now(),
+        expiresAt: Date.now() + durationMs,
+        maxUses: Number(newPromoMaxUses) || 10,
+        usedCount: 0,
+        active: true
+      };
+
+      await fetch(`${FIREBASE_DB_URL}/bypass_codes/${encodeURIComponent(code)}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      setStatusMessage({ text: `បង្កើត Promo Code "${code}" ជោគជ័យ!`, type: 'success' });
+      setNewPromoCode('');
+      fetchPromoData();
+    } catch (err) {
+      setStatusMessage({ text: 'មានបញ្ហាក្នុងការបង្កើតកូដ!', type: 'error' });
+    } finally {
+      setIsSubmittingPromo(false);
+    }
+  };
+
+  const handleDeletePromoCode = async (code) => {
+    if (!confirm(`តើបងពិតជាចង់លុប Promo Code "${code}" មែនទេ?`)) return;
+    try {
+      await fetch(`${FIREBASE_DB_URL}/bypass_codes/${encodeURIComponent(code)}.json`, {
+        method: 'DELETE'
+      });
+      setStatusMessage({ text: `បានលុបកូដ "${code}" រួចរាល់!`, type: 'success' });
+      fetchPromoData();
+    } catch {
+      setStatusMessage({ text: 'មានបញ្ហាក្នុងការលុបកូដ!', type: 'error' });
+    }
+  };
+
+  const handleApproveRequest = async (requestId, customCode) => {
+    let code = (customCode || customApproveCodes[requestId] || '').trim().toUpperCase();
+    if (!code) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let rand = '';
+      for (let i = 0; i < 4; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+      code = `ROTANA-VIP-${rand}`;
+    }
+
+    try {
+      // 1. Ensure the code exists in /bypass_codes so it validates
+      await fetch(`${FIREBASE_DB_URL}/bypass_codes/${encodeURIComponent(code)}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          createdBy: 'Rotana NOB (Direct Approval)',
+          createdAt: Date.now(),
+          expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+          maxUses: 1,
+          usedCount: 0,
+          active: true
+        })
+      });
+
+      // 2. Mark request as approved with the code
+      await fetch(`${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(requestId)}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'approved',
+          code,
+          approvedAt: Date.now()
+        })
+      });
+
+      setStatusMessage({ text: `បានផ្ដល់កូដ "${code}" ជូន User រួចរាល់!`, type: 'success' });
+      fetchPromoData();
+    } catch {
+      setStatusMessage({ text: 'មានបញ្ហាក្នុងការ Approve សំណើ!', type: 'error' });
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    try {
+      await fetch(`${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(requestId)}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'rejected',
+          rejectedAt: Date.now()
+        })
+      });
+      setStatusMessage({ text: 'បានបដិសេធសំណើ!', type: 'info' });
+      fetchPromoData();
+    } catch {
+      setStatusMessage({ text: 'មានបញ្ហាក្នុងការបដិសេធសំណើ!', type: 'error' });
+    }
+  };
 
   // Handle Login Authentication
   const handleAuthenticate = async (e) => {
@@ -829,6 +1002,23 @@ export default function JamTicKapeaAdminPage() {
           >
             <i className="fa-solid fa-sliders" />
             <span>បិទបើក Bot &amp; Session Cooldown</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('promo')}
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer relative ${
+              activeTab === 'promo'
+                ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30 font-semibold'
+                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <i className="fa-solid fa-ticket-simple text-amber-400" />
+            <span>🎟️ គ្រប់គ្រង Promo Code &amp; Bypass</span>
+            {bypassRequests.filter((r) => r.status === 'pending').length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse">
+                {bypassRequests.filter((r) => r.status === 'pending').length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -1607,6 +1797,291 @@ export default function JamTicKapeaAdminPage() {
                 <i className={`fa-solid ${systemState.sessionLimitActive ? 'fa-lock' : 'fa-lock-open'}`} />
                 <span>{systemState.sessionLimitActive ? 'បិទការកំណត់ពេលគ្មានដែនកំណត់' : 'បើកការកំណត់ពេល 30 នាទី'}</span>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 5: PROMO CODE & BYPASS MANAGEMENT (ROTANA NOB 100% AUTHORITY)         */}
+        {/* ========================================================================= */}
+        {activeTab === 'promo' && (
+          <div className="space-y-6">
+            {/* Header & Refresh */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <i className="fa-solid fa-ticket-simple text-amber-400" />
+                  <span>🎟️ គ្រប់គ្រង Promo Code &amp; បញ្ចូល Bypass (Rotana 100% Authority)</span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  បង Rotana មានសិទ្ធិផ្ដល់កូដ ឬបង្កើត Promo Code ដោយផ្ទាល់ដៃសម្រាប់ bypass ម៉ោងសម្រាក +30 នាទីជូន User។
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={fetchPromoData}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <i className="fa-solid fa-rotate text-xs" />
+                <span>Refresh ទិន្នន័យ</span>
+              </button>
+            </div>
+
+            {/* SECTION 1: Live User Bypass Requests */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-white">
+                    📥 សំណើសុំ Promo Code Bypass ពីសិស្ស ({bypassRequests.filter((r) => r.status === 'pending').length} កំពុងរង់ចាំ)
+                  </h3>
+                </div>
+                <span className="text-[11px] text-slate-400">
+                  Fallback 35s អូតូផ្ដល់កូដករណីបងរវល់
+                </span>
+              </div>
+
+              {bypassRequests.length === 0 ? (
+                <div className="text-center py-8 text-slate-500 text-xs">
+                  <i className="fa-regular fa-folder-open text-2xl mb-2 block opacity-40" />
+                  មិនទាន់មានសំណើសុំ Promo Code នៅឡើយទេ
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                  {bypassRequests.map((req) => {
+                    const isPending = req.status === 'pending';
+                    const isApproved = req.status === 'approved';
+                    const isRejected = req.status === 'rejected';
+
+                    return (
+                      <div
+                        key={req.id}
+                        className={`p-4 rounded-xl border transition-all ${
+                          isPending
+                            ? 'bg-amber-950/20 border-amber-500/40 shadow-sm'
+                            : isApproved
+                            ? 'bg-emerald-950/15 border-emerald-500/30'
+                            : 'bg-slate-950/40 border-slate-800 opacity-60'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold text-slate-100">
+                                👤 {req.username || 'User'}
+                              </span>
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-indigo-300">
+                                Bot: {req.bot || 'konpov'}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                                  isPending
+                                    ? 'bg-amber-500/20 text-amber-400 animate-pulse'
+                                    : isApproved
+                                    ? 'bg-emerald-500/20 text-emerald-400'
+                                    : 'bg-rose-500/20 text-rose-400'
+                                }`}
+                              >
+                                {isPending ? '⏳ កំពុងរង់ចាំ (Pending)' : isApproved ? `✅ យល់ព្រម (${req.code})` : '❌ បានបដិសេធ'}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 font-mono">
+                              Device: {req.deviceId || 'N/A'} &bull; ម៉ោង៖ {req.createdAt ? new Date(req.createdAt).toLocaleTimeString('en-US', { hour12: true }) : 'N/A'}
+                            </p>
+                          </div>
+
+                          {/* Quick Actions for Pending Requests */}
+                          {isPending && (
+                            <div className="flex items-center gap-2 shrink-0">
+                              <input
+                                type="text"
+                                placeholder="កូដផ្ទាល់ដៃ (ឬទទេ)..."
+                                value={customApproveCodes[req.id] || ''}
+                                onChange={(e) =>
+                                  setCustomApproveCodes((prev) => ({
+                                    ...prev,
+                                    [req.id]: e.target.value
+                                  }))
+                                }
+                                className="w-36 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleApproveRequest(req.id, customApproveCodes[req.id])}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-95"
+                              >
+                                <i className="fa-solid fa-check text-[10px]" />
+                                <span>ផ្ដល់កូដ</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRejectRequest(req.id)}
+                                className="px-2.5 py-1.5 rounded-lg bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 border border-rose-500/30 text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-95"
+                              >
+                                <i className="fa-solid fa-xmark text-[10px]" />
+                                <span>បដិសេធ</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* SECTION 2: Create New Promo Code */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+              <h3 className="text-sm font-bold text-white mb-4 pb-3 border-b border-slate-800 flex items-center gap-2">
+                <i className="fa-solid fa-plus-circle text-indigo-400" />
+                <span>បង្កើត Promo Code ថ្មី (Create New Code)</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    លេខកូដ Promo Code (Code String)
+                  </label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="ឧ. ROTANA-VIP-8A2F"
+                      value={newPromoCode}
+                      onChange={(e) => setNewPromoCode(e.target.value.toUpperCase())}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-400 uppercase"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                        let rand = '';
+                        for (let i = 0; i < 4; i++) rand += chars.charAt(Math.floor(Math.random() * chars.length));
+                        setNewPromoCode(`ROTANA-VIP-${rand}`);
+                      }}
+                      className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition shrink-0"
+                      title="Randomize Code"
+                    >
+                      🎲
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    ចំនួនដងអតិបរមាដែលអាចប្រើបាន (Max Uses)
+                  </label>
+                  <select
+                    value={newPromoMaxUses}
+                    onChange={(e) => setNewPromoMaxUses(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                  >
+                    <option value={1}>1 ដង (Single-use VIP)</option>
+                    <option value={5}>5 ដង</option>
+                    <option value={10}>10 ដង (Standard)</option>
+                    <option value={50}>50 ដង</option>
+                    <option value={100}>100 ដង</option>
+                    <option value={999999}>គ្មានដែនកំណត់ (Unlimited)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    សុពលភាពម៉ោងប្រើប្រាស់ (Duration)
+                  </label>
+                  <select
+                    value={newPromoDurationHours}
+                    onChange={(e) => setNewPromoDurationHours(Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                  >
+                    <option value={12}>12 ម៉ោង</option>
+                    <option value={24}>24 ម៉ោង (1 ថ្ងៃ)</option>
+                    <option value={48}>48 ម៉ោង (2 ថ្ងៃ)</option>
+                    <option value={168}>7 ថ្ងៃ (1 សប្ដាហ៍)</option>
+                    <option value={8760}>1 ឆ្នាំ (Permanent)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCreatePromoCode}
+                disabled={isSubmittingPromo}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 text-white text-xs font-bold transition shadow-lg shadow-amber-600/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <i className="fa-solid fa-floppy-disk text-xs" />
+                <span>រក្សាទុក Promo Code ថ្មីទៅកាន់ប្រព័ន្ធ</span>
+              </button>
+            </div>
+
+            {/* SECTION 3: Active Promo Codes List Table */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl">
+              <h3 className="text-sm font-bold text-white mb-4 pb-3 border-b border-slate-800 flex items-center justify-between">
+                <span>📋 តារាង Promo Codes ក្នុងប្រព័ន្ធ ({promoCodesList.length} កូដ)</span>
+                <span className="text-[11px] text-slate-400">ផ្ទៀងផ្ទាត់ 100% ត្រឹមត្រូវតាម Database</span>
+              </h3>
+
+              {promoCodesList.length === 0 ? (
+                <div className="text-center py-8 text-slate-500 text-xs">
+                  មិនទាន់មាន Promo Code ណាត្រូវបានបង្កើតនៅឡើយទេ
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-800 text-slate-400 font-semibold">
+                        <th className="pb-2.5 px-3">លេខកូដ (Code)</th>
+                        <th className="pb-2.5 px-3">ចំនួនប្រើប្រាស់ (Used/Max)</th>
+                        <th className="pb-2.5 px-3">កាលបរិច្ឆេទបង្កើត</th>
+                        <th className="pb-2.5 px-3">ផុតកំណត់នៅ</th>
+                        <th className="pb-2.5 px-3 text-right">សកម្មភាព</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/60">
+                      {promoCodesList.map((item) => {
+                        const isExpired = item.expiresAt && Date.now() > item.expiresAt;
+                        const isMaxed = item.maxUses && item.usedCount >= item.maxUses;
+
+                        return (
+                          <tr key={item.code} className="hover:bg-slate-800/30 transition">
+                            <td className="py-3 px-3 font-mono font-bold text-amber-300">
+                              {item.code}
+                            </td>
+                            <td className="py-3 px-3 text-slate-300">
+                              <span className="font-mono font-bold">{item.usedCount || 0}</span> /{' '}
+                              <span className="text-slate-400">{item.maxUses >= 99999 ? '∞' : item.maxUses}</span>
+                            </td>
+                            <td className="py-3 px-3 text-slate-400">
+                              {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
+                            </td>
+                            <td className="py-3 px-3">
+                              {isExpired ? (
+                                <span className="text-rose-400 font-bold">ផុតកំណត់ហើយ</span>
+                              ) : isMaxed ? (
+                                <span className="text-orange-400 font-bold">អស់ចំនួនប្រើ</span>
+                              ) : (
+                                <span className="text-emerald-400 font-semibold">
+                                  {item.expiresAt ? new Date(item.expiresAt).toLocaleDateString() : 'គ្មាន'}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-3 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePromoCode(item.code)}
+                                className="p-1.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 transition cursor-pointer"
+                                title="លុបកូដនេះ"
+                              >
+                                <i className="fa-solid fa-trash-can text-xs" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}

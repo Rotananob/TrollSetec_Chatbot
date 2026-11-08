@@ -1347,12 +1347,12 @@ export default function KonBongPage() {
         setIsRotanaMasterBypass
       });
 
-      // Build multimodal contents
+      // Build multimodal contents: Keep up to last 20 messages (last 10 turns) so AI understands full session context
       const formattedContents = [];
       const recentHistory = messages
         .filter((m) => !m.isError && !m.text?.includes('កុំ spam') && !m.text?.includes('ខំចាត់ច្រើនម៉េះ'))
         .concat(userMsg)
-        .slice(-6);
+        .slice(-20);
 
       for (let i = 0; i < recentHistory.length; i++) {
         const m = recentHistory[i];
