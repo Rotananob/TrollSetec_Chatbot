@@ -81,8 +81,8 @@ async function main() {
   targetSessions.sort((a, b) => (b.lastActiveAt || 0) - (a.lastActiveAt || 0));
   console.log(`🎯 Found ${targetSessions.length} attacker/jailbreak sessions!`);
 
-  // Ensure output dir exists
-  const reportsDir = path.join(process.cwd(), 'public', 'reports');
+  // Ensure output dir exists (in private reports directory, NOT public)
+  const reportsDir = path.join(process.cwd(), 'reports');
   if (!fs.existsSync(reportsDir)) {
     fs.mkdirSync(reportsDir, { recursive: true });
   }
