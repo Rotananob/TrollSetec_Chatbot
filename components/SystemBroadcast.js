@@ -45,12 +45,43 @@ export default function SystemBroadcast() {
   // Exclude Admin Control Panel from ever seeing maintenance locks or student popups
   const isAdminRoute = pathname?.includes('jam-tic-kapea-1-sin');
 
-  // Check if Creator Rotana session is already active from admin login
+  // Check if Creator Rotana session is already active from admin login or secret bypass
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // 1. Direct Secret URL Param / Hash Bypass (e.g. ?bypass=rotana, ?bypass=2026, ?rotana=1, #rotana)
+    try {
+      const url = new URL(window.location.href);
+      const bypassParam = (url.searchParams.get('bypass') || url.searchParams.get('rotana') || url.searchParams.get('code') || '').toLowerCase().trim();
+      const hash = url.hash.toLowerCase().trim();
+      if (
+        bypassParam === 'rotana' ||
+        bypassParam === 'rotana2026' ||
+        bypassParam === 'nob' ||
+        bypassParam === '1' ||
+        bypassParam === 'true' ||
+        hash === '#bypass' ||
+        hash === '#rotana'
+      ) {
+        sessionStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
+        localStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
+        sessionStorage.setItem('rotana_admin_passcode', 'rotana2026');
+        setIsBypassed(true);
+
+        // Quietly remove bypass params from address bar so no onlooker notices
+        url.searchParams.delete('bypass');
+        url.searchParams.delete('rotana');
+        url.searchParams.delete('code');
+        const cleanPath = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '');
+        window.history.replaceState({}, document.title, cleanPath);
+      }
+    } catch {}
+
+    // 2. Check saved session bypass or admin passcode
+    const savedBypass = sessionStorage.getItem('rotana_maintenance_bypass') || localStorage.getItem('rotana_maintenance_bypass');
     const savedAdminPass = sessionStorage.getItem('rotana_admin_passcode');
     const savedUser = localStorage.getItem('chatbot_username') || '';
-    if (savedAdminPass || savedUser.toLowerCase().includes('rotana')) {
+    if (savedBypass || savedAdminPass || savedUser.toLowerCase().includes('rotana')) {
       setIsBypassed(true);
     }
 
@@ -60,6 +91,77 @@ export default function SystemBroadcast() {
       setDismissedNotice(savedDismissed);
     }
   }, []);
+
+  // Secret Hotkey Listener (Ctrl+Shift+B, Alt+B, Cmd+Shift+B)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleKeyDown = (e) => {
+      if (
+        (e.ctrlKey && e.shiftKey && (e.key === 'B' || e.key === 'b')) ||
+        (e.metaKey && e.shiftKey && (e.key === 'B' || e.key === 'b')) ||
+        (e.altKey && (e.key === 'b' || e.key === 'B'))
+      ) {
+        e.preventDefault();
+        const code = window.prompt('Bypass Code:');
+        if (code) {
+          const trimmed = code.trim().toLowerCase();
+          if (
+            trimmed === 'rotana' ||
+            trimmed === 'rotana2026' ||
+            trimmed === 'rotanabypass' ||
+            trimmed === 'bypass2026' ||
+            trimmed.includes('rotana')
+          ) {
+            sessionStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
+            localStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
+            sessionStorage.setItem('rotana_admin_passcode', 'rotana2026');
+            setIsBypassed(true);
+            alert('Bypass ជោគជ័យ! Mode Test ត្រូវបានបើកដំណើរការ។');
+          } else {
+            alert('លេខកូដមិនត្រឹមត្រូវ!');
+          }
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Secret Multi-Tap Trigger for Mobile Safari (Tap mascot / placard 5 times in 3 seconds)
+  const tapCountRef = useRef(0);
+  const lastTapRef = useRef(0);
+  const handleSecretTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current > 3000) {
+      tapCountRef.current = 1;
+    } else {
+      tapCountRef.current += 1;
+      if (tapCountRef.current >= 5) {
+        tapCountRef.current = 0;
+        const code = window.prompt('Bypass Code:');
+        if (code) {
+          const trimmed = code.trim().toLowerCase();
+          if (
+            trimmed === 'rotana' ||
+            trimmed === 'rotana2026' ||
+            trimmed === 'rotanabypass' ||
+            trimmed === 'bypass2026' ||
+            trimmed.includes('rotana')
+          ) {
+            sessionStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
+            localStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
+            sessionStorage.setItem('rotana_admin_passcode', 'rotana2026');
+            setIsBypassed(true);
+            alert('Bypass ជោគជ័យ! Mode Test ត្រូវបានបើកដំណើរការ។');
+          } else {
+            alert('លេខកូដមិនត្រឹមត្រូវ!');
+          }
+        }
+        return;
+      }
+    }
+    lastTapRef.current = now;
+  };
 
   // Update State safely from SSE Event
   const handleSsePayload = useCallback((rawData) => {
@@ -252,15 +354,19 @@ export default function SystemBroadcast() {
       {/* 2. SYSTEM MAINTENANCE / RESTING OVERLAY (GRAY MODE / HUMAN) */}
       {/* Only shown when system is actually in Maintenance/Rest   */}
       {/* ========================================================= */}
-      {isResting && (
+      {isResting && !isBypassed && (
         <div
           role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-[99999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 selection:bg-slate-300 selection:text-slate-900 overflow-y-auto"
         >
           <div className="w-full max-w-md bg-white border border-slate-300 rounded-2xl p-6 sm:p-7 shadow-xl relative text-slate-800 text-left my-auto">
-            {/* Human Cartoon Mascot holding Placard */}
-            <div className="flex flex-col items-center text-center mb-4">
+            {/* Human Cartoon Mascot holding Placard (Secret 5-Tap Bypass Trigger for Mobile Safari) */}
+            <div
+              className="flex flex-col items-center text-center mb-4 cursor-pointer select-none active:scale-95 transition-transform"
+              onClick={handleSecretTap}
+              title="សេចក្ដីជូនដំណឹងពីប្រព័ន្ធ"
+            >
               {/* Cute Chibi Human / Doll Vector SVG */}
               <svg
                 width="110"
@@ -382,6 +488,23 @@ export default function SystemBroadcast() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Covert Bypass Mode Status Dot (Creator Rotana Only) */}
+      {isBypassed && (
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm('តើអ្នកចង់ចាកចេញពី Bypass Mode វិញមែនទេ?')) {
+              sessionStorage.removeItem('rotana_maintenance_bypass');
+              localStorage.removeItem('rotana_maintenance_bypass');
+              setIsBypassed(false);
+            }
+          }}
+          aria-label="Bypass Mode Status"
+          className="fixed bottom-1 left-1 z-[99999] w-2 h-2 rounded-full bg-emerald-500/50 hover:bg-emerald-500 opacity-20 hover:opacity-100 transition-opacity cursor-pointer"
+          title="Bypass Mode Active"
+        />
       )}
     </>
   );

@@ -42,6 +42,21 @@ import {
 const getChatEndpoint = () => getApiEndpoint('/api/chat');
 const getMemeEndpoint = () => getApiEndpoint('/api/generate-meme');
 
+const getBypassHeaders = () => {
+  if (typeof window === 'undefined') return {};
+  const isBypassed =
+    sessionStorage.getItem('rotana_maintenance_bypass') ||
+    localStorage.getItem('rotana_maintenance_bypass') ||
+    sessionStorage.getItem('rotana_admin_passcode');
+  if (isBypassed) {
+    return {
+      'x-rotana-passcode': sessionStorage.getItem('rotana_admin_passcode') || 'rotana2026',
+      'x-rotana-bypass': 'rotana2026'
+    };
+  }
+  return {};
+};
+
 export default function KonPovPage() {
   const router = useRouter();
   const [theme, setTheme] = useState('light');
@@ -268,7 +283,7 @@ export default function KonPovPage() {
         headers: {
           'Content-Type': 'application/json',
           'x-device-id': deviceId,
-          ...(typeof window !== 'undefined' && sessionStorage.getItem('rotana_admin_passcode') ? { 'x-rotana-passcode': sessionStorage.getItem('rotana_admin_passcode') } : {})
+          ...getBypassHeaders()
         },
         body: JSON.stringify({
           prompt: speechText,
@@ -451,7 +466,7 @@ export default function KonPovPage() {
       const devId = getDeviceId();
       fetch(getChatEndpoint(), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-device-id': devId },
+        headers: { 'Content-Type': 'application/json', 'x-device-id': devId, ...getBypassHeaders() },
         body: JSON.stringify({ action: 'check-session', username, deviceId: devId })
       })
         .then((res) => res.json())
@@ -1693,7 +1708,8 @@ export default function KonPovPage() {
           headers: {
             'Content-Type': 'application/json',
             'x-device-id': deviceId,
-            'x-session-id': currentSessionId || ''
+            'x-session-id': currentSessionId || '',
+            ...getBypassHeaders()
           },
           body: JSON.stringify({
             contents: formattedContents,
@@ -1816,7 +1832,8 @@ export default function KonPovPage() {
             headers: {
               'Content-Type': 'application/json',
               'x-device-id': deviceId,
-              'x-session-id': currentSessionId || ''
+              'x-session-id': currentSessionId || '',
+              ...getBypassHeaders()
             },
             body: JSON.stringify({
               contents: formattedContents,

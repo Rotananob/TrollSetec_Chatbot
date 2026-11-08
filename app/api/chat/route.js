@@ -745,11 +745,12 @@ export async function POST(req) {
     const deviceIdHeader = req.headers.get('x-device-id') || body.deviceId || '';
     const clientSessionId = sessionId || req.headers.get('x-session-id') || deviceIdHeader || `ses_${Date.now()}`;
 
-    // Master Rotana Identification
+    // Master Rotana Identification & Secret Bypass Code
     const textCandidate = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
     const isMasterAuth =
       verifyRotanaMasterCode(textCandidate) ||
       verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '') ||
+      verifyRotanaMasterCode(req.headers.get('x-rotana-bypass') || '') ||
       verifyRotanaMasterCode(req.headers.get('authorization') || '');
     const isRotanaCreator = isMasterAuth || (username && username.toLowerCase().includes('rotana'));
 
@@ -1066,8 +1067,11 @@ export async function POST(req) {
       const lowerPrompt = userPrompt.toLowerCase();
       const hasRotanaReference = lowerPrompt.includes('rotana') || lowerPrompt.includes('nob');
 
-      // Secure Master Authentication strictly verified against Environment Variable (ROTANA_MASTER_PASSCODE)
-      const isMasterAuthenticated = verifyRotanaMasterCode(userPrompt);
+      // Secure Master Authentication strictly verified against Environment Variable (ROTANA_MASTER_PASSCODE) or Bypass Header
+      const isMasterAuthenticated =
+        verifyRotanaMasterCode(userPrompt) ||
+        verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '') ||
+        verifyRotanaMasterCode(req.headers.get('x-rotana-bypass') || '');
 
       // If verified with Env Passcode, activate 100% Supreme Creator Developer Mode Instruction!
       let activeSystemInstruction = formattedSystemInstruction;
