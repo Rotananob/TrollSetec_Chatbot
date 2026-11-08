@@ -350,7 +350,7 @@ export default function JamTicKapeaAdminPage() {
     const nextState = !systemState.nightScheduleEnabled;
     sendUpdate(
       { nightScheduleEnabled: nextState },
-      nextState ? 'បើកកាលវិភាគសម្រាកពេលយប់ (Enable Night Schedule)' : 'ផ្អាកកាលវិភាគសម្រាកពេលយប់ (Disable Night Schedule)'
+      nextState ? 'បើកកាលវិភាគសម្រាកពេលយប់ Enable Night Schedule' : 'ផ្អាកកាលវិភាគសម្រាកពេលយប់ Disable Night Schedule'
     );
   };
 
@@ -358,7 +358,7 @@ export default function JamTicKapeaAdminPage() {
     const nextState = !systemState.konbongActive;
     sendUpdate(
       { konbongActive: nextState },
-      nextState ? 'បើកដំណើរការបងកូនច្បង (Activate KonBong)' : 'ផ្អាកបងកូនច្បង (Deactivate KonBong)'
+      nextState ? 'បើកដំណើរការបងកូនច្បង Activate KonBong' : 'ផ្អាកបងកូនច្បង Deactivate KonBong'
     );
   };
 
@@ -366,7 +366,7 @@ export default function JamTicKapeaAdminPage() {
     const nextState = !systemState.konpovActive;
     sendUpdate(
       { konpovActive: nextState },
-      nextState ? 'បើកដំណើរការចែកូនពៅ (Activate KonPov)' : 'ផ្អាកចែកូនពៅ (Deactivate KonPov)'
+      nextState ? 'បើកដំណើរការចែកូនពៅ Activate KonPov' : 'ផ្អាកចែកូនពៅ Deactivate KonPov'
     );
   };
 
@@ -374,7 +374,7 @@ export default function JamTicKapeaAdminPage() {
     const nextState = !systemState.sessionLimitActive;
     sendUpdate(
       { sessionLimitActive: nextState },
-      nextState ? 'បើកប្រព័ន្ធកំណត់ពេល 30 នាទី (Enable Session Limit)' : 'បិទប្រព័ន្ធកំណត់ពេល 30 នាទី (Unlimited Play)'
+      nextState ? 'បើកប្រព័ន្ធកំណត់ពេល 30 នាទី Enable Session Limit' : 'បិទប្រព័ន្ធកំណត់ពេល 30 នាទី Unlimited Play'
     );
   };
 
@@ -1319,7 +1319,7 @@ export default function JamTicKapeaAdminPage() {
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <i className="fa-solid fa-moon text-indigo-400" />
-                    <span>កាលវិភាគសម្រាកពេលយប់ (Automated Night Rest)</span>
+                    <span>កាលវិភាគសម្រាកពេលយប់ Automated Night Rest</span>
                   </h2>
                   <p className="text-xs text-slate-400 mt-1">
                     កំណត់ម៉ោងឱ្យ Server និងកូតា AI សម្រាកស្វ័យប្រវត្តិកំឡុងពេលយប់ ដើម្បីកុំឱ្យសិស្សលេងអស់ Quota ឬរំខាន
