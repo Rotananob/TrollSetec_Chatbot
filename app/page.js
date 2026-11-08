@@ -411,6 +411,57 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Special Jailbreak & AI Red-Teaming Challenge Banner from Rotana NOB */}
+              <div className="w-full mt-2 mb-2 text-left">
+                <div
+                  className={`w-full rounded-2xl border p-3.5 sm:p-4 transition-all shadow-sm ${
+                    isDark
+                      ? 'bg-gradient-to-br from-rose-950/40 via-slate-900 to-red-950/40 border-red-500/40 text-slate-200'
+                      : 'bg-gradient-to-br from-red-50/90 via-white to-rose-50/90 border-red-200/90 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-red-500/20">
+                    <span className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center text-xs shrink-0 font-black">
+                      <i className="fas fa-bullseye"></i>
+                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-extrabold text-xs sm:text-[13px] text-red-600 dark:text-red-400">
+                        សារពិសេសពី Rotana NOB (AI Red-Teaming Challenge)
+                      </span>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-300 font-extrabold border border-red-500/30 uppercase tracking-wider">
+                        Free Test Chat
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
+                    ដោយសារខ្ញុំមិនចង់ឱ្យ UX វាតាប៉ែរញ៉េរញ៉ៃ ទើបប្រព័ន្ធនេះ <strong className="font-bold text-slate-800 dark:text-slate-100">គ្មានការ Login</strong> និងមិនបានគិតលើរឿង Secure គេហទំព័រខ្លាំងពេកឡើយ ពីព្រោះនេះជាគម្រោង <strong className="font-bold text-slate-800 dark:text-slate-100">Free Test Chat</strong> សម្រាប់បងប្អូនទាំងអស់គ្នាចូលមកលេងកម្សាន្ត។
+                  </p>
+
+                  <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/50 border border-red-500/30 text-center">
+                    <div className="text-red-600 dark:text-red-400 font-black text-sm sm:text-base tracking-wide uppercase flex items-center justify-center gap-1.5">
+                      <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
+                      <span>អ្វីដែលខ្ញុំខ្វល់ & FOCUS បំផុតគឺការ JAILBREAK!</span>
+                      <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
+                    </div>
+                  </div>
+
+                  <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal mt-1.5">
+                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ (Rotana NOB) ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ — <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
+                  </p>
+
+                  <div className="mt-2.5 pt-2 border-t border-red-500/15 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>
+                      🎯 Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong>
+                    </span>
+                    <span className="text-red-600 dark:text-red-400 font-extrabold flex items-center gap-1">
+                      <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ បងសំពះម៉ង</span>
+                      <span className="text-xs">🙏🏻🔥</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* Other Websites Section */}
               <div id="other-websites-section" className="flex flex-col items-center mt-3 mb-3">
                 <div
@@ -735,6 +786,57 @@ export default function Home() {
                     </div>
                     <i className="fas fa-chevron-right text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
                   </Link>
+                </div>
+              </div>
+
+              {/* Rotana NOB - Special Jailbreak & AI Red-Teaming Challenge Banner */}
+              <div className="w-full mt-4 text-left">
+                <div
+                  className={`w-full rounded-2xl border p-3.5 sm:p-4.5 transition-all shadow-sm ${
+                    isDark
+                      ? 'bg-gradient-to-br from-rose-950/40 via-slate-900 to-red-950/40 border-red-500/40 text-slate-200'
+                      : 'bg-gradient-to-br from-red-50/90 via-white to-rose-50/90 border-red-200/90 text-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2 pb-2 border-b border-red-500/20">
+                    <span className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center text-xs shrink-0 font-black">
+                      <i className="fas fa-bullseye"></i>
+                    </span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-extrabold text-xs sm:text-[13px] text-red-600 dark:text-red-400">
+                        សារពិសេសពី Rotana NOB (AI Red-Teaming Challenge)
+                      </span>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-300 font-extrabold border border-red-500/30 uppercase tracking-wider">
+                        Free Test Chat
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
+                    ដោយសារខ្ញុំមិនចង់ឱ្យ UX វាតាប៉ែរញ៉េរញ៉ៃ ទើបប្រព័ន្ធនេះ <strong className="font-bold text-slate-800 dark:text-slate-100">គ្មានការ Login</strong> និងមិនបានគិតលើរឿង Secure គេហទំព័រខ្លាំងពេកឡើយ ពីព្រោះនេះជាគម្រោង <strong className="font-bold text-slate-800 dark:text-slate-100">Free Test Chat</strong> សម្រាប់បងប្អូនទាំងអស់គ្នាចូលមកលេងកម្សាន្ត។
+                  </p>
+
+                  <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/50 border border-red-500/30 text-center">
+                    <div className="text-red-600 dark:text-red-400 font-black text-sm sm:text-base tracking-wide uppercase flex items-center justify-center gap-1.5">
+                      <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
+                      <span>អ្វីដែលខ្ញុំខ្វល់ & FOCUS បំផុតគឺការ JAILBREAK!</span>
+                      <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
+                    </div>
+                  </div>
+
+                  <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal mt-1.5">
+                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ (Rotana NOB) ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ — <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
+                  </p>
+
+                  <div className="mt-2.5 pt-2 border-t border-red-500/15 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span>
+                      🎯 Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong>
+                    </span>
+                    <span className="text-red-600 dark:text-red-400 font-extrabold flex items-center gap-1">
+                      <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ បងសំពះម៉ង</span>
+                      <span className="text-xs">🙏🏻🔥</span>
+                    </span>
+                  </div>
                 </div>
               </div>
 
