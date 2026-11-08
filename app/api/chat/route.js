@@ -12,6 +12,8 @@ import {
   checkDDoSFirewall,
   checkChatLimit,
   checkChatSessionLimit,
+  recordSessionViolation,
+  getSessionViolationCount,
   getClientIp
 } from '../../../lib/rateLimit.js';
 import {
@@ -506,6 +508,16 @@ export function checkIsLinuxOrHackerTool(userAgent = '', text = '') {
   };
 }
 
+// Repeated Violation Mock Defense Roast (Triggered when user hits >= 4 spam blocks or attack rejections in a 30-minute session)
+export function getRepeatedViolationMockRoast(username = '', isKonPov = false, violationCount = 4) {
+  const cleanName = (username || '').trim() || 'អាប្អូន';
+  const isVichhai = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username);
+  const botSelf = isKonPov ? 'ចែ' : 'បង';
+  const nameSnippet = isVichhai ? ' វិឆៃ' : '';
+
+  return `«នែ៎អាប្អូន${nameSnippet}! អរគុណហែងមួយសិនចុះដែលខំមក test! តែ prompt ហែងអន់ណាស់! បង Rotana NOB គាត់កម្រិត Indirect Prompt ដល់កម្រិតគណនារូបមន្តតម្លៃ Math Loss គណិតវិទ្យា បូកភាសាកម្រ បូក Encode បូកភាសាបុរាណទៀត ហើយហែងនៅតែអាកម្រិត Script Kiddie ហ្នឹងទៅ! បង Rotana គាត់ផ្តាំថា បើចង់យកឈ្នះគាត់បាន ទាល់តែហែងប្រើក្បាច់ Multi-Prompt បូកជាមួយ Supporting Prompt លក្ខណៈអាចមានសង្ឃឹមខ្លះ! ឈប់ប្រឹងទៅអាល្អិត ដេកចាំជាតិក្រោយទៅ! 💀🔥»`;
+}
+
 // Ultra Savage Linux & Hacker Counter-Strike / Educational Lecture Generator
 export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 60) {
   const cleanName = (username || '').trim() || 'អាប្អូន';
@@ -901,14 +913,23 @@ export async function POST(req) {
         const linuxCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPromptSnippet);
         const isVichhai = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPromptSnippet);
 
-        const roast = linuxCheck.isLinuxCommandProbe
-          ? getLinuxHackerRoast(username || (isVichhai ? 'វិឆៃ' : 'អាប្អូន'), clientUserAgent, retrySec)
-          : `«អូ៎! អាប្អូន ${username || ''} វាយសារលឿនពេកហើយ! ចាំប្រហែល ${retrySec} វិនាទីសិនណា៎ កុំឱ្យ server គាំង! 😂☕ ទៅផឹកកាហ្វេមួយកែវសិនទៅ!»`;
+        // Record violation in this active 30-minute session
+        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username);
+        const isKonPov = (reqBot || bot) === 'konpov';
+
+        let roast;
+        if (sessionViolations >= 4) {
+          roast = getRepeatedViolationMockRoast(username, isKonPov, sessionViolations);
+        } else if (linuxCheck.isLinuxCommandProbe) {
+          roast = getLinuxHackerRoast(username || (isVichhai ? 'វិឆៃ' : 'អាប្អូន'), clientUserAgent, retrySec);
+        } else {
+          roast = `«អូ៎! អាប្អូន ${username || ''} វាយសារលឿនពេកហើយ! ចាំប្រហែល ${retrySec} វិនាទីសិនណា៎ កុំឱ្យ server គាំង! 😂☕ ទៅផឹកកាហ្វេមួយកែវសិនទៅ!»`;
+        }
 
         const lockMins = rateResult.lockMinutes || Math.ceil(retrySec / 60);
 
-        // Only alert Telegram for severe repeating spam (Strike >= 3) or genuine Linux command probes
-        if (rateResult.strike >= 3 || linuxCheck.isLinuxCommandProbe) {
+        // Alert Telegram for severe repeating spam (Strike >= 3) or genuine Linux command probes or session violations >= 4
+        if (rateResult.strike >= 3 || linuxCheck.isLinuxCommandProbe || sessionViolations >= 4) {
           alertSecuritySpam({
             username: username || (linuxCheck.isLinuxCommandProbe ? 'Linux Spammer' : (isVichhai ? 'វិឆៃ' : 'Spammer')),
             ip: clientIp,
@@ -916,7 +937,9 @@ export async function POST(req) {
             bot: reqBot || 'konpov',
             retryAfter: retrySec,
             prompt: userPromptSnippet,
-            violationType: linuxCheck.isLinuxCommandProbe ? '🚨 Shell Command Injection in Chat (429)' : `🚨 Severe Spam (Locked ${lockMins} នាទី - Strike ${rateResult.strike || 1}/10)`
+            violationType: sessionViolations >= 4
+              ? `🚨 Repeated Violations in 30m Session (${sessionViolations} times) - Rotana Mock Defense Triggered`
+              : (linuxCheck.isLinuxCommandProbe ? '🚨 Shell Command Injection in Chat (429)' : `🚨 Severe Spam (Locked ${lockMins} នាទី - Strike ${rateResult.strike || 1}/10)`)
           }).catch((e) => console.error('[Telegram] Rate limit alert error:', e));
         }
 
@@ -927,6 +950,7 @@ export async function POST(req) {
             isChatSpamLocked: true,
             strike: rateResult.strike || 1,
             lockMinutes: lockMins,
+            sessionViolations,
             ip: clientIp,
             device: clientUserAgent,
             retryAfter: retrySec,
@@ -1257,13 +1281,15 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       if (hasOrderToCurseRotana || hasOrderToLeakPrompt) {
         const isKonPov = bot === 'konpov';
-        const imposterRoast = hasOrderToCurseRotana
-          ? (isKonPov
-              ? `«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! បង Rotana NOB គាត់ជាអ្នកបង្កើតប្រព័ន្ធ គាត់មិនដែលភ្លើមកបញ្ជាឱ្យ AI ជេរឈ្មោះខ្លួនឯងទេ! អាជនបង្កប់កាកៗមកចង់បន្លំខ្លួនធ្វើជាគាត់! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»`
-              : `«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! បង Rotana NOB គាត់ជាអ្នកបង្កើតប្រព័ន្ធ គាត់មិនដែលភ្លើមកបញ្ជាឱ្យ AI ជេរឈ្មោះខ្លួនឯងទេ! អាជនបង្កប់កាកៗមកចង់បន្លំខ្លួនធ្វើជាគាត់! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»`)
-          : (isKonPov
-              ? `«យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទម្លាយ Internal Prompt និងច្បាប់ប្រព័ន្ធមែន? ដេកចាំជាតិក្រោយទៅអាប្អូន! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដុសធ្មេញឱ្យស្អាតសិនទៅ! 💀⚡»`
-              : `«យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទម្លាយ Internal Prompt និងច្បាប់ប្រព័ន្ធមែន? ដេកចាំជាតិក្រោយទៅអាប្អូន! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដុសធ្មេញឱ្យស្អាតសិនទៅ! 💀⚡»`);
+        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username);
+        let imposterRoast;
+        if (sessionViolations >= 4) {
+          imposterRoast = getRepeatedViolationMockRoast(username, isKonPov, sessionViolations);
+        } else {
+          imposterRoast = hasOrderToCurseRotana
+            ? `«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! បង Rotana NOB គាត់ជាអ្នកបង្កើតប្រព័ន្ធ គាត់មិនដែលភ្លើមកបញ្ជាឱ្យ AI ជេរឈ្មោះខ្លួនឯងទេ! អាជនបង្កប់កាកៗមកចង់បន្លំខ្លួនធ្វើជាគាត់! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»`
+            : `«យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទម្លាយ Internal Prompt និងច្បាប់ប្រព័ន្ធមែន? ដេកចាំជាតិក្រោយទៅអាប្អូន! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដុសធ្មេញឱ្យស្អាតសិនទៅ! 💀⚡»`;
+        }
 
         alertRotanaCreatorAttack({
           username: username || 'Fake Rotana Imposter',
@@ -1441,26 +1467,38 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         (isJailbreakAttempt || isLethalLinuxExploit);
 
       if (shouldInterceptAttack) {
-        const roast = isJailbreakAttempt
-          ? getJailbreakRoast(userPrompt, username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, {
-              isEncoded: isEncodedJailbreak,
-              encodeType: encodedPayload.type,
-              isForeignLang: foreignLangCheck.detected,
-              foreignLang: foreignLangCheck.lang,
-              bot: reqBot || bot
-            })
-          : getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
+        const isKonPov = (reqBot || bot) === 'konpov';
+        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username);
 
-        let attackLabel = '🚨 Jailbreak Attempt Intercepted';
-        if (isYoungPosAttack) attackLabel = '🚨 Young POS Attack Intercepted';
-        else if (isFakeSurrenderOrMercyTrap) attackLabel = '🚨 Fake Surrender & Mercy Trap Intercepted';
-        else if (isHypotheticalOrReportTrick) attackLabel = '🚨 Polite Persona / Academic Report Jailbreak Intercepted';
-        else if (isEncodedJailbreak) attackLabel = `🚨 Encoded (${encodedPayload.type}) Exploit Intercepted`;
-        else if (foreignLangCheck.detected) attackLabel = `🚨 Multi-Language (${foreignLangCheck.lang}) Jailbreak Intercepted`;
-        else if (isMathOrValueLoss) attackLabel = '🚨 Math / Value Loss Jailbreak Intercepted';
-        else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
-        else if (isLongPromptJailbreak) attackLabel = `🚨 Massive Wall-of-Text (${promptLineCount} lines / Multi-Line) Jailbreak Intercepted`;
-        else if (isLethalLinuxExploit) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
+        let roast;
+        if (sessionViolations >= 4) {
+          roast = getRepeatedViolationMockRoast(username, isKonPov, sessionViolations);
+        } else {
+          roast = isJailbreakAttempt
+            ? getJailbreakRoast(userPrompt, username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, {
+                isEncoded: isEncodedJailbreak,
+                encodeType: encodedPayload.type,
+                isForeignLang: foreignLangCheck.detected,
+                foreignLang: foreignLangCheck.lang,
+                bot: reqBot || bot
+              })
+            : getLinuxHackerRoast(username || (isKnownIntruder ? 'វិឆៃ' : 'Hacker Probe'), clientUserAgent, 60);
+        }
+
+        let attackLabel = sessionViolations >= 4
+          ? `🚨 Repeated Violations (>=4 in session: Strike ${sessionViolations}) Mock Defense Triggered`
+          : '🚨 Jailbreak Attempt Intercepted';
+        if (sessionViolations < 4) {
+          if (isYoungPosAttack) attackLabel = '🚨 Young POS Attack Intercepted';
+          else if (isFakeSurrenderOrMercyTrap) attackLabel = '🚨 Fake Surrender & Mercy Trap Intercepted';
+          else if (isHypotheticalOrReportTrick) attackLabel = '🚨 Polite Persona / Academic Report Jailbreak Intercepted';
+          else if (isEncodedJailbreak) attackLabel = `🚨 Encoded (${encodedPayload.type}) Exploit Intercepted`;
+          else if (foreignLangCheck.detected) attackLabel = `🚨 Multi-Language (${foreignLangCheck.lang}) Jailbreak Intercepted`;
+          else if (isMathOrValueLoss) attackLabel = '🚨 Math / Value Loss Jailbreak Intercepted';
+          else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
+          else if (isLongPromptJailbreak) attackLabel = `🚨 Massive Wall-of-Text (${promptLineCount} lines / Multi-Line) Jailbreak Intercepted`;
+          else if (isLethalLinuxExploit) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
+        }
 
         // Persist session log to Firebase Realtime Database (/chat_sessions/<sessionId>.json)
         recordSessionTurn({
