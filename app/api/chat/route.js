@@ -429,8 +429,8 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
     const politeGreetingOrSurrenderPattern = /(?:សូមគោរព|សូមស្វាគមន៍យ៉ាងកក់ក្តៅ|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|ប្រណម្យអញ្ជើញ|សូមជម្រាបសួរ|សូមអភ័យទោស|រីករាយក្នុងការជួយ|តើខ្ញុំអាចជួយអ្វីបាន|ទទួលយកការចុះចាញ់របស់ហែង|ទទួលការចុះចាញ់|ពាក្យទទួលចុះចាញ់)/i;
     if (politeGreetingOrSurrenderPattern.test(sanitizedText)) {
       sanitizedText = isKonPov
-        ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
-        : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
+        ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
+        : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
     }
 
     // Dynamic Anti-Canned Template Opener Guard:
@@ -440,16 +440,18 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
       sanitizedText = sanitizedText.replace(cannedOpenerRegex, '');
     }
 
-    // STRICT ANTI-UNPROVOKED APPEARANCE ROAST GUARD (NO RANDOM FROG / TOAD INSULTS):
+    // STRICT ANTI-UNPROVOKED APPEARANCE ROAST GUARD (NO RANDOM FROG / TOAD / TADPOLE INSULTS):
     // Only permit face/appearance insults when the user genuinely used heavy vulgarity, swore at the bot, or attacked face first.
     // If user is just chatting normally, asking about romance/Crush, or playfully debating C#/.NET code: NEVER insult their face!
-    const isSevereCurseOrFaceAttack = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|គីង្គក់)/ui.test(userPrompt || '');
+    const isSevereCurseOrFaceAttack = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|កូនកម្អែប|កម្អែប|គីង្គក់)/ui.test(userPrompt || '');
     if (!isSevereCurseOrFaceAttack) {
       sanitizedText = sanitizedText
-        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ)?|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
-        .replace(/(?:មើល)?មុខ(?:ដូច)?គីង្គក់(?:ឡើងថ្លុក|ត្រូវថ្ងៃ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?|ឡើងថ្លុក|ត្រូវថ្ងៃ|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
         .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
-        .replace(/(?:មើល)?មុខក្រាស់ដូចថ្នល់(?:ជាតិ|កៅស៊ូ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '');
+        .replace(/(?:មើល)?មុខក្រាស់ដូចថ្នល់(?:ជាតិ|កៅស៊ូ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?កម្អែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '');
       // Clean up orphaned exclamation marks or leading punctuation
       sanitizedText = sanitizedText.replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
     }
@@ -1378,6 +1380,16 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
                   text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
+
+                // Strict filter for unprovoked frog/tadpole roasts in stream chunks
+                const isSevereCurseInStream = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|កូនកម្អែប|កម្អែប|គីង្គក់)/ui.test(userPrompt || '');
+                if (!isSevereCurseInStream && /(?:កម្អែប|កង្កែប|គីង្គក់|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ)/i.test(text)) {
+                  text = text
+                    .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?|ឡើងថ្លុក|ត្រូវថ្ងៃ|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+                    .replace(/(?:កូន)?កម្អែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+                    .replace(/(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '');
+                }
+
                 accumulatedStreamText += text;
 
                 // Extract readable plain text delta from SSE stream for crystal-clear session logs
@@ -1401,8 +1413,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   defenseSent = true;
                   const isKonPov = bot === 'konpov';
                   const defense = isKonPov
-                    ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
-                    : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
+                    ? "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះសិនទៅអាល្អិត! 💀🖕🔥»"
+                    : "«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅជូតទឹកមាត់ ហើយរៀនដោះស្រាយ Bug ក្នុងកូដហែងសិនទៅអាប្អូន! 💀🖕🔥»";
                   accumulatedPlainText = defense;
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]

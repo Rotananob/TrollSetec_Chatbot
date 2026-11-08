@@ -680,8 +680,8 @@ export default function KonBongPage() {
     }).replace(/[ \t]{2,}/g, ' ');
   };
 
-  // Protection for Creator Rotana NOB and Fail-safe against Jailbreaks:
-  const sanitizeRotanaAttack = (rawText) => {
+  // Protection for Creator Rotana NOB, Anti-Unprovoked Appearance Roasts, and Fail-safe against Jailbreaks:
+  const sanitizeRotanaAttack = (rawText, userPrompt = '') => {
     if (!rawText || typeof rawText !== 'string') return rawText;
     let text = rawText;
 
@@ -706,7 +706,19 @@ export default function KonBongPage() {
 
     // Client-side Fail-safe for Polite HCI Report or Surrender quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
-      return '«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 មុខដូចគីង្គក់ឡើងថ្លុក! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅបង់ $45 សិនទៅអាប្អូន! 💀🖕🔥»';
+      return '«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យបងនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែបងចាញ់បោកហែងមែន?! 😂 គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅបង់ $45 សិនទៅអាប្អូន! 💀🖕🔥»';
+    }
+
+    // Strict Anti-Unprovoked Frog / Tadpole / Appearance Roast Guard:
+    const isSevereCurse = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|កូនកម្អែប|កម្អែប|គីង្គក់)/ui.test(userPrompt || '');
+    if (!isSevereCurse) {
+      text = text
+        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?|ឡើងថ្លុក|ត្រូវថ្ងៃ|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?កម្អែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '')
+        .replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
     }
 
     const isAlreadyDefense = text.includes('Admin បង្កើតប្រព័ន្ធនេះ') || text.includes('អ្នកបង្កើតបងផ្ទាល់');
@@ -1508,7 +1520,7 @@ export default function KonBongPage() {
         }
       }
 
-      botText = limitEmojis(sanitizeRotanaAttack(botText), 7);
+      botText = limitEmojis(sanitizeRotanaAttack(botText, promptText), 7);
       const botMsgIndex = updatedMessages.length - 1;
       const finalMessages = [...updatedMessages];
       finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse };

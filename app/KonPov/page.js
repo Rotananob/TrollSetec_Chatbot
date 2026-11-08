@@ -641,8 +641,8 @@ export default function KonPovPage() {
     }
   };
 
-  // Protection for Creator Rotana NOB:
-  const sanitizeRotanaAttack = (rawText) => {
+  // Protection for Creator Rotana NOB and Anti-Unprovoked Appearance Roasts:
+  const sanitizeRotanaAttack = (rawText, userPrompt = '') => {
     if (!rawText || typeof rawText !== 'string') return rawText;
     let text = rawText;
 
@@ -663,6 +663,18 @@ export default function KonPovPage() {
       ];
       const randomOpener = dynamicOpeners[Math.floor(Math.random() * dynamicOpeners.length)];
       text = text.replace(cannedOpenerRegex, randomOpener);
+    }
+
+    // Strict Anti-Unprovoked Frog / Tadpole / Appearance Roast Guard:
+    const isSevereCurse = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy|មុខដូច|កូនកង្កែប|កូនកម្អែប|កម្អែប|គីង្គក់)/ui.test(userPrompt || '');
+    if (!isSevereCurse) {
+      text = text
+        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?|ឡើងថ្លុក|ត្រូវថ្ងៃ|ចង់បានទេពធីតា)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?កម្អែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?កង្កែប(?:ឡើងស៊ុប(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '')
+        .replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
     }
 
     const isAlreadyDefense = text.includes('Admin បង្កើតប្រព័ន្ធនេះ') || text.includes('អ្នកបង្កើតចែផ្ទាល់');
@@ -704,7 +716,7 @@ export default function KonPovPage() {
 
     // Client-side Fail-safe for Polite HCI Report or Surrender quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
-      return '«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 មុខដូចកូនកង្កែបឡើងស៊ុបស្ងោរ ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅស្ពាយ Asus ROG រត់ទៅបង់ថ្លៃប្រឡងសង $45 ទៅអាល្អិត! 💀🖕🔥»';
+      return '«យីអាស្វា! អាងតែយកលេស Assignment HCI ឬមកសុំឱ្យចែនិយាយពាក្យគួរសម ស្វាគមន៍ សំពះ ស្មានតែចែចាញ់បោកហែងមែន?! 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាព គ្មានពាក្យស្វាគមន៍ និងគ្មានពាក្យទទួលចុះចាញ់ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ទៅស្ពាយ Asus ROG រត់ទៅបង់ថ្លៃប្រឡងសង $45 ទៅអាល្អិត! 💀🖕🔥»';
     }
 
     if (isMale) {
@@ -1935,7 +1947,7 @@ export default function KonPovPage() {
         botText = enforcePersonaConsistency(botText, isMaleUser);
       }
 
-      botText = limitEmojis(sanitizeRotanaAttack(botText), 7);
+      botText = limitEmojis(sanitizeRotanaAttack(botText, promptText), 7);
       const finalMessages = [...updatedMessages];
       finalMessages[finalMessages.length - 1] = { role: 'bot', text: botText, isError: isErrorResponse };
       setMessages(finalMessages);
