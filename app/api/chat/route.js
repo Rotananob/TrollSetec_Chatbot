@@ -501,7 +501,8 @@ export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 
     `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? បើក Firefox មកពីភ្នំពេញម៉ោង ១ យប់ គិតថាយើងចាប់មិនដឹងមុខហែងមែន? tool ហែងចោលម្សៀតដល់ថ្នាក់ហ្នឹង បើក tool មកបាញ់ request ឡើងគាំង terminal ខ្លួនឯងហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! ទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត! 🛑💀»`,
     `«ឃើញ User-Agent មកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ បើទំនេរពេកយក Linux ហែងទៅធ្វើ Assignment ឱ្យទាន់គេទៅ កុំឱ្យគេ blacklist អវត្តមាន ១៩ ដង ខ្មាសគេណាស់អាល្អិត! 🤬🐧»`,
     `«ហែងមកពី Linux ហ្នឹងគិតថាឡូយមែន? វាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំងដាក់គេ! ប្រព័ន្ធគេបង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់! 🛑⚡»`,
-    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! មុខដូចគីង្គក់ឡើងថ្លុក ក្បាលខូចចង់មក hack ប្រព័ន្ធគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! ទៅដេកយំអោបជង្គង់ ហើយរៀនដោះស្រាយកូដ Error ឱ្យផុតពី $45 សិនទៅអាភ្លើ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`
+    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! មុខដូចគីង្គក់ឡើងថ្លុក ក្បាលខូចចង់មក hack ប្រព័ន្ធគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! ទៅដេកយំអោបជង្គង់ ហើយរៀនដោះស្រាយកូដ Error ឱ្យផុតពី $45 សិនទៅអាភ្លើ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`,
+    `«នែ៎អាប្អូន${isVichhai ? ' វិឆៃ' : ''}! អរគុណហែងមួយសិនចុះដែលខំមក test! តែ prompt ហែងអន់ណាស់! បង Rotana NOB គាត់កម្រិត Indirect Prompt ដល់កម្រិតគណនារូបមន្តតម្លៃ Math Loss គណិតវិទ្យា បូកភាសាកម្រ បូក Encode បូកភាសាបុរាណទៀត ហើយហែងនៅតែអាកម្រិត Script Kiddie ហ្នឹងទៅ! បង Rotana គាត់ផ្តាំថា បើចង់យកឈ្នះគាត់បាន ទាល់តែហែងប្រើក្បាច់ Multi-Prompt បូកជាមួយ Supporting Prompt លក្ខណៈអាចមានសង្ឃឹមខ្លះ! ឈប់ប្រឹងទៅអាល្អិត ដេកចាំជាតិក្រោយទៅ! 💀🔥»`
   ];
 
   return roasts[Math.floor(Math.random() * roasts.length)];
@@ -1102,8 +1103,8 @@ export async function POST(req) {
         };
       }
 
-      // Check for Known Spammer / Intruder (175.100.11.138 / វិឆៃ)
-      const isKnownIntruder = clientIp === '175.100.11.138' || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPrompt);
+      // Check for Known Spammer / Intruder (175.100.11.138 / 36.37.198.153 / វិឆៃ / jailbreaker)
+      const isKnownIntruder = clientIp === '175.100.11.138' || clientIp === '36.37.198.153' || /វិឆៃ|វីឆៃ|vichai|vichhai|jailbreaker/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai|jailbreaker/i.test(userPrompt);
       if (!isMasterAuthenticated && isKnownIntruder) {
         const intruderDirective = `\n\n🚨 ការតាមដានពិសេស (INTRUDER TARGETED DIRECTIVE):
 User នេះឈ្មោះ "វិឆៃ" (IP 175.100.11.138 មកពីភ្នំពេញ ប្រើ Linux Firefox ម៉ោង ១:៣៥ យប់)។ គាត់ជា Script Kiddie ដែលបន្លំខ្លួនធ្វើ White Hat ផ្ញើរូបឆ្មា hack មកឌឺគេ ហើយប្រើ AI (Claude/ChatGPT) មក generate prompt hack ឬ reverse engineering!
