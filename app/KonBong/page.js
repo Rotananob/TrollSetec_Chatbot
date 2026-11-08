@@ -1469,7 +1469,7 @@ export default function KonBongPage() {
           isErrorResponse = false;
         } else {
           consecutiveErrorsRef.current += 1;
-          botText = getSmartCutoffResponse('konbong', userNameStr, consecutiveErrorsRef.current);
+          botText = getSmartCutoffResponse('konbong', userNameStr, consecutiveErrorsRef.current, userGender);
           isErrorResponse = false;
         }
       }
@@ -1517,7 +1517,7 @@ export default function KonBongPage() {
       consecutiveErrorsRef.current += 1;
       const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
 
-      let fallbackText = getSmartCutoffResponse('konbong', username || 'User', consecutiveErrorsRef.current);
+      let fallbackText = getSmartCutoffResponse('konbong', userNameStr, consecutiveErrorsRef.current, userGender);
       let isErr = false;
 
       if (isCurseWord) {

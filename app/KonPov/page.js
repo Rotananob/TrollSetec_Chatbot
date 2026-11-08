@@ -1894,7 +1894,7 @@ export default function KonPovPage() {
           isErrorResponse = false;
         } else {
           consecutiveErrorsRef.current += 1;
-          botText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current);
+          botText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
           isErrorResponse = false;
         }
       } else {
@@ -1945,7 +1945,7 @@ export default function KonPovPage() {
       const userNameStr = username || 'User';
       const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
 
-      let fallbackText = getSmartCutoffResponse('konpov', username || 'User', consecutiveErrorsRef.current);
+      let fallbackText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
       let isErr = false;
 
       if (isCurseWord) {
