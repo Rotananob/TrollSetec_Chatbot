@@ -134,7 +134,7 @@ export default function ErrorReportModal({
               <i className="fas fa-paper-plane"></i>
             </div>
             <h3 className="text-base sm:text-lg font-black mb-1.5 text-emerald-400">
-              បានបញ្ជូន Alert ទៅកាន់អ្នកគ្រប់គ្រងរួចរាល់!
+              បានបញ្ជូន Alert ទៅកាន់ Rotana NOB រួចរាល់!
             </h3>
             
             {/* 180s Realtime Countdown Badge */}
@@ -149,7 +149,7 @@ export default function ErrorReportModal({
             }`}>
               <p className="font-bold flex items-center gap-1.5">
                 <i className="fas fa-circle-check text-emerald-400 text-xs"></i>
-                <span>បន្តិចទៀតនេះ អ្នកគ្រប់គ្រងនឹងបើកតាម Telegram ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
+                <span>បន្តិចទៀតនេះ Rotana NOB នឹងបើកតាម Telegram ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
               </p>
               <p className="text-[11px] opacity-80 pl-4">
                 សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ សុវត្ថិភាពកម្រិតខ្ពស់។
@@ -162,7 +162,7 @@ export default function ErrorReportModal({
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
             >
               <i className="fas fa-comments"></i>
-              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំអ្នកគ្រប់គ្រង {countdown} វិនាទី</span>
+              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំ Rotana NOB {countdown} វិនាទី</span>
             </button>
           </div>
         ) : (
@@ -173,10 +173,10 @@ export default function ErrorReportModal({
                 <i className="fas fa-triangle-exclamation"></i>
               </div>
               <h3 className="text-base sm:text-lg font-black tracking-tight mb-1">
-                រាយការណ៍បញ្ហាទៅអ្នកគ្រប់គ្រង
+                រាយការណ៍បញ្ហាទៅកាន់ Rotana NOB
               </h3>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមផ្ញើ Alert រាយការណ៍ជូនអ្នកគ្រប់គ្រងដើម្បីជួយដោះស្រាយ៖
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមផ្ញើ Alert រាយការណ៍ជូន Rotana NOB ដើម្បីជួយដោះស្រាយ៖
               </p>
             </div>
 
@@ -243,7 +243,7 @@ export default function ErrorReportModal({
                   ) : (
                     <>
                       <i className="fas fa-paper-plane"></i>
-                      <span>ផ្ញើ Alert ទៅអ្នកគ្រប់គ្រង</span>
+                      <span>ផ្ញើ Alert ទៅកាន់ Rotana NOB</span>
                     </>
                   )}
                 </button>

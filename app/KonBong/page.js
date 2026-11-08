@@ -99,6 +99,7 @@ export default function KonBongPage() {
   const [spamInfo, setSpamInfo] = useState({ ip: '', device: '', retryAfter: 60 });
   const [spamLockUntil, setSpamLockUntil] = useState(0);
   const [fallbackAudioMap, setFallbackAudioMap] = useState({});
+  const [botReadingNotice, setBotReadingNotice] = useState(false);
 
   // Error Report to Rotana NOB Modal State
   const [errorReportModalOpen, setErrorReportModalOpen] = useState(false);
@@ -158,11 +159,50 @@ export default function KonBongPage() {
   const activeAudioUrlRef = useRef(null);
   const audioCacheRef = useRef(new Map());
   const pendingAudioFetchesRef = useRef(new Map());
+  const audioDataMapRef = useRef(new Map());
+  const audioBufferCacheRef = useRef(new Map());
+  const audioContextRef = useRef(null);
+  const activeSourceNodeRef = useRef(null);
   const autoPlayTimerRef = useRef(null);
   const [audioStates, setAudioStates] = useState({}); // key: msgIndex -> 'loading'|'ready'|'playing'|'paused'|'ended'|'error'
   const [activeAudioIndex, setActiveAudioIndex] = useState(null);
   const activeAudioRequestRef = useRef(0);
   const consecutiveErrorsRef = useRef(0);
+
+  // Helper to decode Base64 string to ArrayBuffer for Web Audio API
+  function base64ToArrayBuffer(b64Data) {
+    try {
+      if (!b64Data || typeof b64Data !== 'string') return null;
+      const cleanB64 = b64Data.replace(/^data:[^;]+;base64,/, '').replace(/\s+/g, '');
+      if (!cleanB64) return null;
+      const binStr = atob(cleanB64);
+      const len = binStr.length;
+      if (len === 0) return null;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binStr.charCodeAt(i);
+      return bytes.buffer;
+    } catch {
+      return null;
+    }
+  }
+
+  // Synchronously initialize and unlock Web Audio API Context (Critical for iOS Safari)
+  const getOrCreateAudioContext = () => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      if (!audioContextRef.current) {
+        audioContextRef.current = new AudioCtx();
+      }
+      if (audioContextRef.current.state === 'suspended') {
+        audioContextRef.current.resume().catch(() => {});
+      }
+      return audioContextRef.current;
+    } catch {
+      return null;
+    }
+  };
 
   // PCM to WAV conversion for audio
   function pcmToWav(pcmData, sampleRate) {
@@ -295,8 +335,12 @@ export default function KonBongPage() {
       if (typeof index === 'number') {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: isFallback }));
       }
+      if (isFallback) {
+        setBotReadingNotice(true);
+        setTimeout(() => setBotReadingNotice(false), 4500);
+      }
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
-      if (!inlineData?.data) return { blob: null, isFallback: true };
+      if (!inlineData?.data) return { blob: null, isFallback: true, b64Data: null };
 
       // Persist to sessionStorage for instant replay without re-fetching
       if (typeof window !== 'undefined') {
@@ -305,13 +349,16 @@ export default function KonBongPage() {
           sessionStorage.setItem('troll_audio_v5_' + hash, inlineData.data);
           sessionStorage.setItem('troll_audio_v5_mime_' + hash, inlineData.mimeType || (isFallback ? 'audio/mpeg' : 'audio/wav'));
           sessionStorage.setItem('troll_audio_v5_fallback_' + hash, isFallback ? '1' : '0');
+          localStorage.setItem('konbong_audio_is_fallback_' + hashText(text), isFallback ? '1' : '0');
         } catch {}
       }
 
       const blob = createAudioBlob(inlineData.data, inlineData.mimeType);
       return {
         blob,
-        isFallback
+        isFallback,
+        b64Data: inlineData.data,
+        mimeType: inlineData.mimeType
       };
     } catch (e) {
       console.warn('[Audio] fetchAudio error:', e);
@@ -489,7 +536,7 @@ export default function KonBongPage() {
       const expireMsg = {
         role: 'bot',
         isExpireAlertPrompt: true,
-        text: 'ផុតកំណត់ម៉ោងរង់ចាំរយៈពេល 180 វិនាទី! អ្នកគ្រប់គ្រងអាចកំពុងរវល់ ឬជាប់ភារកិច្ចបន្ទាន់។ ប្អូនអាចចុច Re-send Alert ម្ដងទៀត ឬផ្ញើសារ Report ទុកដើម្បីឱ្យក្រុមការងារចូលមកពិនិត្យនៅពេលក្រោយបាន។',
+        text: 'ផុតកំណត់ម៉ោងរង់ចាំរយៈពេល 180 វិនាទី! Rotana NOB អាចកំពុងរវល់ ឬជាប់ភារកិច្ចបន្ទាន់។ ប្អូនអាចចុច Re-send Alert ម្ដងទៀត ឬផ្ញើសារ Report ទុកដើម្បីឱ្យ Rotana NOB ចូលមកពិនិត្យនៅពេលក្រោយបាន។',
         timestamp: Date.now()
       };
       const updated = [...prev, expireMsg];
@@ -588,6 +635,11 @@ export default function KonBongPage() {
     localStorage.setItem('troll_audio_speed', String(next));
     if (audioPlayerRef.current) {
       audioPlayerRef.current.playbackRate = next;
+    }
+    if (activeSourceNodeRef.current) {
+      try {
+        activeSourceNodeRef.current.playbackRate.value = next;
+      } catch {}
     }
   };
 
@@ -1113,6 +1165,9 @@ export default function KonBongPage() {
   };
 
   const handleSendMessageOrQueue = () => {
+    // Unlock AudioContext synchronously inside user touch gesture
+    getOrCreateAudioContext();
+
     if (isGeneratingMeme) return;
 
     // Check if user is actively locked under a Spam Lockout penalty
@@ -1692,7 +1747,7 @@ export default function KonBongPage() {
     }, 4200);
   }
 
-  // Load or fetch audio URL with instant persistent caching (No duplicate API calls)
+  // Load or fetch audio data with instant persistent caching (No duplicate API calls)
   const loadAudioUrl = async (text, index) => {
     const activeGender = userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ប្រុស';
     const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
@@ -1701,6 +1756,12 @@ export default function KonBongPage() {
 
     // 1. Instant in-memory cache (0ms, 0 API calls)
     if (audioCacheRef.current.has(hash)) {
+      const storedFallback =
+        (typeof window !== 'undefined' && sessionStorage.getItem('troll_audio_v5_fallback_' + hash) === '1') ||
+        (typeof window !== 'undefined' && localStorage.getItem('konbong_audio_is_fallback_' + hashText(text)) === '1');
+      if (typeof index === 'number' && storedFallback) {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+      }
       return audioCacheRef.current.get(hash);
     }
 
@@ -1709,11 +1770,24 @@ export default function KonBongPage() {
       try {
         const storedB64 = sessionStorage.getItem('troll_audio_v6_' + hash) || sessionStorage.getItem('troll_audio_v5_' + hash);
         const storedMime = sessionStorage.getItem('troll_audio_v6_mime_' + hash) || sessionStorage.getItem('troll_audio_v5_mime_' + hash) || 'audio/mpeg';
+        const storedFallback =
+          sessionStorage.getItem('troll_audio_v5_fallback_' + hash) === '1' ||
+          localStorage.getItem('konbong_audio_is_fallback_' + hashText(text)) === '1';
+
         if (storedB64) {
+          if (typeof index === 'number' && storedFallback) {
+            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+          }
           const blob = createAudioBlob(storedB64, storedMime);
           if (blob) {
             const url = URL.createObjectURL(blob);
             audioCacheRef.current.set(hash, url);
+            audioDataMapRef.current.set(hash, {
+              url,
+              b64Data: storedB64,
+              blob,
+              isFallback: storedFallback
+            });
             return url;
           }
         }
@@ -1728,9 +1802,15 @@ export default function KonBongPage() {
     const fetchPromise = (async () => {
       try {
         const audioRes = await fetchAudio(text, index);
-        if (audioRes && audioRes.blob) {
-          const url = URL.createObjectURL(audioRes.blob);
-          audioCacheRef.current.set(hash, url);
+        if (audioRes && (audioRes.blob || audioRes.b64Data)) {
+          const url = audioRes.blob ? URL.createObjectURL(audioRes.blob) : null;
+          if (url) audioCacheRef.current.set(hash, url);
+          audioDataMapRef.current.set(hash, {
+            url,
+            b64Data: audioRes.b64Data,
+            blob: audioRes.blob,
+            isFallback: audioRes.isFallback
+          });
           return url;
         }
         return null;
@@ -1787,6 +1867,8 @@ export default function KonBongPage() {
 
       if (typeof index === 'number') {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+        setBotReadingNotice(true);
+        setTimeout(() => setBotReadingNotice(false), 4500);
         setActiveAudioIndex(index);
         setExclusiveAudioState(index, 'playing');
       }
@@ -1829,6 +1911,9 @@ export default function KonBongPage() {
       return;
     }
 
+    // Synchronously initialize and unlock Web Audio API Context (Critical for iOS Safari)
+    const audioCtx = getOrCreateAudioContext();
+
     if (!audioPlayerRef.current && typeof window !== 'undefined') {
       audioPlayerRef.current = new Audio();
     }
@@ -1858,18 +1943,37 @@ export default function KonBongPage() {
     }
 
     // Toggle pause/play on currently active audio item
-    if (activeAudioIndex === index && player) {
-      if (!player.paused) {
-        player.pause();
+    if (activeAudioIndex === index) {
+      if (activeSourceNodeRef.current) {
+        try {
+          activeSourceNodeRef.current.onended = null;
+          activeSourceNodeRef.current.stop();
+        } catch {}
+        activeSourceNodeRef.current = null;
         setExclusiveAudioState(index, 'paused');
-      } else {
-        player.play().catch(() => {});
-        setExclusiveAudioState(index, 'playing');
+        setActiveAudioIndex(null);
+        return;
       }
-      return;
+      if (player) {
+        if (!player.paused) {
+          player.pause();
+          setExclusiveAudioState(index, 'paused');
+        } else {
+          player.play().catch(() => {});
+          setExclusiveAudioState(index, 'playing');
+        }
+        return;
+      }
     }
 
-    // Immediately stop and pause ANY existing audio player and speech synthesis
+    // Immediately stop and pause ANY existing audio player and Web Audio
+    if (activeSourceNodeRef.current) {
+      try {
+        activeSourceNodeRef.current.onended = null;
+        activeSourceNodeRef.current.stop();
+      } catch {}
+      activeSourceNodeRef.current = null;
+    }
     if (player) {
       try {
         player.pause();
@@ -1898,36 +2002,36 @@ export default function KonBongPage() {
     const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
     const hash = hashText(text) + '_' + voiceTag;
 
-    // Instant replay check: if sound is in memory cache, play immediately with 0ms delay (Zero API calls)
-    const cachedUrl = audioCacheRef.current.get(hash);
-    if (cachedUrl && player) {
-      player.onerror = null;
-      player.src = cachedUrl;
-      player.currentTime = 0;
-      player.playbackRate = playbackSpeed;
-      setActiveAudioIndex(index);
-      player.onended = () => {
-        setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
-        setActiveAudioIndex((curr) => (curr === index ? null : curr));
-        triggerEmojiShower();
-      };
-      player.onerror = () => {
-        player.onerror = null;
-        const spoke = speakWithWebSpeech(text, index);
-        if (!spoke) {
-          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-          setActiveAudioIndex((curr) => (curr === index ? null : curr));
-        }
-      };
-      player.play()
-        .then(() => setExclusiveAudioState(index, 'playing'))
-        .catch(() => {});
-      return;
+    // Instant replay check: if decoded AudioBuffer is in memory cache, play immediately with 0ms delay!
+    const cachedBuffer = audioBufferCacheRef.current.get(hash);
+    if (cachedBuffer && audioCtx) {
+      try {
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        const source = audioCtx.createBufferSource();
+        source.buffer = cachedBuffer;
+        source.playbackRate.value = playbackSpeed;
+        source.connect(audioCtx.destination);
+        activeSourceNodeRef.current = source;
+        setActiveAudioIndex(index);
+        setExclusiveAudioState(index, 'playing');
+        source.onended = () => {
+          if (activeSourceNodeRef.current === source) {
+            activeSourceNodeRef.current = null;
+            setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
+            setActiveAudioIndex((curr) => (curr === index ? null : curr));
+            triggerEmojiShower();
+          }
+        };
+        source.start(0);
+        return;
+      } catch (e) {
+        console.warn('[Audio] Cached Web Audio play failed, trying HTML5:', e);
+      }
     }
 
     const reqId = ++activeAudioRequestRef.current;
 
-    if (!audioCacheRef.current.has(hash)) {
+    if (!audioCacheRef.current.has(hash) && !audioBufferCacheRef.current.has(hash)) {
       setExclusiveAudioState(index, 'loading');
       setTimeout(() => {
         setAudioStates((prev) => (prev[index] === 'loading' ? { ...prev, [index]: 'ready' } : prev));
@@ -1937,6 +2041,68 @@ export default function KonBongPage() {
     const audioUrl = await loadAudioUrl(text, index);
     if (activeAudioRequestRef.current !== reqId) return;
 
+    const audioData = audioDataMapRef.current.get(hash);
+    const isFallback = !!(audioData?.isFallback || fallbackAudioMap[index]);
+    if (isFallback) {
+      setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+      setBotReadingNotice(true);
+      setTimeout(() => setBotReadingNotice(false), 4500);
+    }
+
+    // Primary Playback Engine: Web Audio API (Decodes ArrayBuffer asynchronously & plays on unlocked AudioContext)
+    let playedWithWebAudio = false;
+    if (audioCtx) {
+      try {
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        let ab = null;
+        if (audioData?.b64Data) {
+          ab = base64ToArrayBuffer(audioData.b64Data);
+        } else if (audioData?.blob) {
+          ab = await audioData.blob.arrayBuffer();
+        } else if (audioUrl) {
+          const resp = await fetch(audioUrl);
+          ab = await resp.arrayBuffer();
+        }
+
+        if (ab) {
+          const decodedBuffer = await audioCtx.decodeAudioData(ab.slice(0));
+          if (decodedBuffer) {
+            audioBufferCacheRef.current.set(hash, decodedBuffer);
+            if (activeSourceNodeRef.current) {
+              try {
+                activeSourceNodeRef.current.onended = null;
+                activeSourceNodeRef.current.stop();
+              } catch {}
+            }
+            const source = audioCtx.createBufferSource();
+            source.buffer = decodedBuffer;
+            source.playbackRate.value = playbackSpeed;
+            source.connect(audioCtx.destination);
+            activeSourceNodeRef.current = source;
+            setActiveAudioIndex(index);
+            setExclusiveAudioState(index, 'playing');
+
+            source.onended = () => {
+              if (activeSourceNodeRef.current === source) {
+                activeSourceNodeRef.current = null;
+                setAudioStates((prev) => ({ ...prev, [index]: 'ended' }));
+                setActiveAudioIndex((curr) => (curr === index ? null : curr));
+                triggerEmojiShower();
+              }
+            };
+
+            source.start(0);
+            playedWithWebAudio = true;
+          }
+        }
+      } catch (e) {
+        console.warn('[Audio] Web Audio decode/play failed, falling back to HTML5 Audio:', e);
+      }
+    }
+
+    if (playedWithWebAudio) return;
+
+    // Secondary Playback Engine: HTML5 Audio Player
     if (audioUrl && player) {
       player.onerror = null;
       player.src = audioUrl;
@@ -2012,6 +2178,13 @@ export default function KonBongPage() {
         isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
       }`}
     >
+      {/* Bot Reading Instead Notice / Toast */}
+      {botReadingNotice && (
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-purple-950/95 border border-purple-500/50 text-purple-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
+          <i className="fas fa-robot text-purple-400 text-sm"></i>
+          <span>🤖 Bot កំពុងអានជំនួស (AI Voice ជាប់ Limit ប្រចាំថ្ងៃ)</span>
+        </div>
+      )}
       {/* Side Drawer */}
       <div
         className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
@@ -3023,28 +3196,36 @@ export default function KonBongPage() {
                                   <span className="w-0.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-eq-2 inline-block"></span>
                                   <span className="w-0.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-eq-3 inline-block"></span>
                                 </div>
-                                <span>កំពុងអាន...</span>
+                                <span>{isFallbackVoice ? '🤖 Bot កំពុងអានជំនួស...' : 'កំពុងអាន...'}</span>
                               </>
                             )}
                             {isThisItemPaused && (
                               <>
                                 <i className="fas fa-play text-amber-500 dark:text-amber-400"></i>{' '}
-                                <span>បន្តស្ដាប់</span>
+                                <span>{isFallbackVoice ? '🤖 បន្តស្ដាប់ (Bot អាន)' : 'បន្តស្ដាប់'}</span>
                               </>
                             )}
                             {isThisItemEnded && (
                               <>
                                 <i className="fas fa-rotate text-amber-500 dark:text-amber-400"></i>{' '}
-                                <span>ស្ដាប់ឡើងវិញ</span>
+                                <span>{isFallbackVoice ? '🤖 ស្ដាប់ឡើងវិញ (Bot អាន)' : 'ស្ដាប់ឡើងវិញ'}</span>
                               </>
                             )}
                             {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
                               <>
                                 <i className="fas fa-volume-high text-amber-500 dark:text-amber-400 text-xs"></i>{' '}
-                                <span>ស្ដាប់សំឡេង</span>
+                                <span>{isFallbackVoice ? '🤖 ស្ដាប់ (Bot អានជំនួស)' : 'ស្ដាប់សំឡេង'}</span>
                               </>
                             )}
                           </button>
+
+                          {/* Bot Fallback Pill Badge */}
+                          {isFallbackVoice && (
+                            <span className="px-2 py-1 rounded-xl text-[10px] font-black bg-purple-500/20 text-purple-400 dark:text-purple-300 border border-purple-500/40 flex items-center gap-1.5 shadow-xs">
+                              <i className="fas fa-robot text-purple-400 text-[10px]"></i>
+                              <span>Bot កំពុងអានជំនួស</span>
+                            </span>
+                          )}
 
                           {/* Upgraded Audio Speed Controller */}
                           <button
@@ -3108,7 +3289,7 @@ export default function KonBongPage() {
                           className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-[11px] shadow-xs flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
                         >
                           <i className="fas fa-triangle-exclamation text-amber-300"></i>
-                          <span>Send Alert ទៅអ្នកគ្រប់គ្រង</span>
+                          <span>Send Alert ទៅកាន់ Creator (Rotana NOB)</span>
                         </button>
 
                         <a

@@ -216,8 +216,8 @@ async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 250
         }
       } else {
         if (res.status === 429) {
-          // Free tier rate limit exhausted (10 req/day). Break immediately without delaying.
-          break;
+          // Free tier rate limit exhausted on this key. Try next available key in pool
+          continue;
         }
       }
     } catch {
@@ -1038,7 +1038,7 @@ export async function POST(req) {
       if (fallbackAudioB64) {
         return Response.json(
           {
-            isFallbackBotVoice: false,
+            isFallbackBotVoice: true,
             candidates: [
               {
                 content: {
