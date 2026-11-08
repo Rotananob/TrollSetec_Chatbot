@@ -44,7 +44,7 @@ export default function Home() {
     if (savedAvatar) setAvatar(savedAvatar);
     setHasCheckedStorage(true);
 
-    // Instant Funny Haha background music initialization (starts at 0.0s)
+    // Background music initialization
     const bgm = bgmRef.current;
     if (bgm) {
       bgm.volume = 0.35;
@@ -53,7 +53,6 @@ export default function Home() {
         playPromise
           .then(() => setIsMusicPlaying(true))
           .catch(() => {
-            // Autoplay blocked by mobile browser until first touch/click
             setIsMusicPlaying(false);
           });
       }
@@ -116,7 +115,7 @@ export default function Home() {
     }
     const trimmed = username.trim();
     if (!trimmed) {
-      alert('សូមបញ្ចូលឈ្មោះរបស់អ្នកជាមុនសិន!');
+      alert('សូមបញ្ចូលឈ្មោះពិតរបស់អ្នកជាមុនសិន!');
       return;
     }
     localStorage.setItem('chatbot_username', trimmed);
@@ -134,28 +133,28 @@ export default function Home() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 sm:py-8 relative overflow-x-hidden ${
+      className={`min-h-screen transition-colors duration-200 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 sm:py-8 relative overflow-x-hidden ${
         isDark
           ? 'bg-slate-950 text-slate-100'
-          : 'bg-gradient-to-br from-sky-100 via-indigo-50 to-pink-50 text-slate-800'
+          : 'bg-slate-100/90 text-slate-800'
       }`}
       style={{
         paddingTop: 'calc(max(env(safe-area-inset-top, 0px), 0px) + 4.25rem)',
         paddingBottom: 'calc(max(env(safe-area-inset-bottom, 0px), 0px) + 4.5rem)'
       }}
     >
-      {/* Instant Funny Haha Background Audio Element */}
+      {/* Background Audio */}
       <audio ref={bgmRef} src="/audio/funny-bgm.mp3" loop preload="none" />
 
-      {/* Mobile Top App Bar (< 640px) to prevent any UI collision */}
+      {/* Mobile Top Navigation Bar (< 640px) */}
       <div
-        className="sm:hidden fixed top-0 left-0 right-0 z-50 px-3 pb-2 flex items-center justify-between backdrop-blur-md bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/60 dark:border-slate-800/60 shadow-sm"
+        className="sm:hidden fixed top-0 left-0 right-0 z-50 px-4 pb-2.5 flex items-center justify-between backdrop-blur-md bg-white/90 dark:bg-slate-950/90 border-b border-slate-200 dark:border-slate-800 shadow-xs"
         style={{
           paddingTop: 'max(env(safe-area-inset-top, 0px), 0.625rem)'
         }}
       >
-        <Link href="/" className="flex items-center gap-2 select-none" title="SETEC Chat">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-sm overflow-hidden flex-shrink-0">
+        <Link href="/" className="flex items-center gap-2 select-none" title="SETEC Chatbot">
+          <div className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5 shadow-xs overflow-hidden flex-shrink-0">
             <img
               src="/img/logo.jpg"
               alt="SETEC Logo"
@@ -164,11 +163,11 @@ export default function Home() {
               className="w-full h-full object-cover rounded-[10px]"
             />
           </div>
-          <span className="font-black text-xs tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+          <span className="font-extrabold text-xs tracking-tight text-slate-900 dark:text-white">
             SETEC Chatbot
           </span>
         </Link>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
           <button
             onClick={(e) => {
@@ -182,17 +181,17 @@ export default function Home() {
                 bgm.play().then(() => setIsMusicPlaying(true)).catch(() => {});
               }
             }}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full border shadow-sm transition-all duration-300 text-[11px] font-bold cursor-pointer select-none ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-bold cursor-pointer select-none transition-colors ${
               isMusicPlaying
-                ? 'bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 text-white border-pink-400 animate-pulse'
+                ? 'bg-slate-900 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs'
                 : isDark
-                ? 'bg-slate-900/90 text-slate-400 border-slate-700'
-                : 'bg-white/95 text-slate-600 border-slate-300'
+                ? 'bg-slate-900 text-slate-300 border-slate-800'
+                : 'bg-white text-slate-700 border-slate-300 shadow-xs'
             }`}
             title={isMusicPlaying ? 'ចុចដើម្បីបិទភ្លេងកំប្លែង' : 'ចុចដើម្បីបើកភ្លេងកំប្លែង'}
           >
-            <i className={`fas ${isMusicPlaying ? 'fa-volume-up text-amber-300' : 'fa-volume-mute text-slate-400'} text-xs`}></i>
-            <span className="font-extrabold">{isMusicPlaying ? 'BGM' : 'ភ្លេង'}</span>
+            <i className={`fas ${isMusicPlaying ? 'fa-volume-up text-blue-500 dark:text-blue-600' : 'fa-volume-mute text-slate-400'} text-xs`}></i>
+            <span>{isMusicPlaying ? 'BGM' : 'ភ្លេង'}</span>
           </button>
         </div>
       </div>
@@ -213,47 +212,46 @@ export default function Home() {
               bgm.play().then(() => setIsMusicPlaying(true)).catch(() => {});
             }
           }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-md backdrop-blur-md transition-all duration-300 text-xs font-bold cursor-pointer select-none ${
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border shadow-xs backdrop-blur-md text-xs font-bold cursor-pointer select-none transition-colors ${
             isMusicPlaying
-              ? 'bg-gradient-to-r from-amber-500 via-pink-500 to-purple-600 text-white border-pink-400 shadow-pink-500/20 animate-pulse'
+              ? 'bg-slate-900 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-white shadow-sm'
               : isDark
-              ? 'bg-slate-900/90 text-slate-400 border-slate-700 hover:text-white'
-              : 'bg-white/95 text-slate-600 border-slate-300 hover:text-slate-900'
+              ? 'bg-slate-900 text-slate-300 border-slate-800 hover:text-white'
+              : 'bg-white text-slate-700 border-slate-300 hover:text-slate-900 shadow-xs'
           }`}
           title={isMusicPlaying ? 'ចុចដើម្បីបិទភ្លេងកំប្លែង' : 'ចុចដើម្បីបើកភ្លេងកំប្លែង'}
         >
-          <i className={`fas ${isMusicPlaying ? 'fa-volume-up text-amber-300' : 'fa-volume-mute text-slate-400'}`}></i>
-          <span className="text-[11px] font-extrabold">{isMusicPlaying ? 'Funny BGM' : 'ភ្លេងកំប្លែង'}</span>
-          <i className="fas fa-music text-[10px] ml-0.5 opacity-80"></i>
+          <i className={`fas ${isMusicPlaying ? 'fa-volume-up text-blue-500 dark:text-blue-600' : 'fa-volume-mute text-slate-400'}`}></i>
+          <span className="text-[11px] font-bold">{isMusicPlaying ? 'Funny BGM' : 'ភ្លេងកំប្លែង'}</span>
+          <i className="fas fa-music text-[10px] opacity-70"></i>
           {isMusicPlaying && (
-            <span className="flex items-end gap-0.5 h-3 ml-0.5">
-              <span className="w-1 h-3 bg-amber-300 rounded-full animate-bounce"></span>
-              <span className="w-1 h-2 bg-pink-200 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-              <span className="w-1 h-3 bg-white rounded-full animate-bounce [animation-delay:0.4s]"></span>
+            <span className="flex items-end gap-0.5 h-3">
+              <span className="w-1 h-3 bg-blue-500 dark:bg-blue-600 rounded-full animate-bounce"></span>
+              <span className="w-1 h-2 bg-blue-400 dark:bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+              <span className="w-1 h-3 bg-blue-300 dark:bg-blue-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
             </span>
           )}
         </button>
       </div>
 
-
-      {/* Main Popup Modal Card */}
+      {/* Main Container Card */}
       <div className="w-full max-w-md my-auto z-20 mt-3 sm:mt-0">
         <div
-          className={`rounded-3xl shadow-2xl p-5 sm:p-8 text-center relative border transition-all duration-300 ${
+          className={`rounded-3xl shadow-xl p-5 sm:p-8 text-center relative border transition-all duration-200 ${
             isDark
-              ? 'bg-slate-900/95 border-slate-800 text-white shadow-indigo-950/40'
-              : 'bg-white/95 border-indigo-100 text-slate-800 shadow-indigo-200/50'
+              ? 'bg-slate-900 border-slate-800 text-white shadow-black/40'
+              : 'bg-white border-slate-200 text-slate-900 shadow-slate-200/70'
           }`}
         >
-          {/* Interactive Troll Logo with Pop-in & Funny Spin */}
+          {/* Interactive Logo with Spin */}
           <div
             onClick={handleTriggerLogoSpin}
-            className="troll-logo-wrapper mx-auto mb-3 cursor-pointer"
+            className="troll-logo-wrapper mx-auto mb-3.5 cursor-pointer relative inline-block"
             title="ចុចដើម្បីឱ្យវិលកំប្លែង"
           >
             <div
               key={spinKey}
-              className={`w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-0.5 shadow-lg shadow-indigo-500/30 overflow-hidden troll-logo-inner ${
+              className={`w-16 h-16 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-0.5 shadow-sm overflow-hidden troll-logo-inner ${
                 isLogoSpinning ? 'troll-logo-spin' : 'troll-logo-idle'
               }`}
               style={{ width: '64px', height: '64px', maxWidth: '64px', maxHeight: '64px' }}
@@ -268,23 +266,23 @@ export default function Home() {
               />
             </div>
             {isLogoSpinning && (
-              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-indigo-600 text-[9px] font-black text-white px-2 py-0.5 rounded-full shadow-lg border border-white whitespace-nowrap animate-bounce pointer-events-none">
+              <span className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black px-2.5 py-0.5 rounded-full shadow border border-slate-700 dark:border-slate-300 whitespace-nowrap pointer-events-none">
                 វិលមុខហើយ
               </span>
             )}
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 mb-1">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
             ស្វាគមន៍មកកាន់ SETEC Chatbot
           </h2>
-          <p className={`text-xs mb-5 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className="text-xs sm:text-[13px] mb-5 font-medium text-slate-600 dark:text-slate-400 leading-normal">
             កន្លែង Troll និងឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់សិស្ស SETEC ទំនេរ
           </p>
 
           {!hasCheckedStorage ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3">
-              <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-              <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 កំពុងត្រួតពិនិត្យគណនី...
               </p>
             </div>
@@ -300,11 +298,11 @@ export default function Home() {
                           src={avatar}
                           width="80"
                           height="80"
-                          className="w-20 h-20 rounded-full border-4 border-indigo-400/50 shadow-md object-cover group-hover:scale-105 transition-transform"
+                          className="w-20 h-20 rounded-full border-3 border-slate-200 dark:border-slate-700 shadow-sm object-cover group-hover:border-blue-500 transition-colors"
                           style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                           alt="Avatar Preview"
                         />
-                        <div className="absolute bottom-0 right-0 bg-indigo-600 text-white p-1 rounded-full text-xs shadow">
+                        <div className="absolute bottom-0 right-0 bg-slate-900 dark:bg-blue-600 text-white p-1.5 rounded-full text-[10px] shadow border-2 border-white dark:border-slate-900">
                           <i className="fas fa-camera"></i>
                         </div>
                       </div>
@@ -322,7 +320,7 @@ export default function Home() {
                     <div className="flex items-center gap-2 mt-2">
                       <label
                         htmlFor="avatar-input"
-                        className="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                        className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-bold cursor-pointer flex items-center gap-1"
                       >
                         <i className="fas fa-camera text-[10px]"></i>
                         <span>{hasCustomAvatar ? 'ប្ដូររូប Profile' : 'ដាក់រូប Profile'}</span>
@@ -331,7 +329,7 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={handleRemoveAvatar}
-                          className="text-[11px] text-rose-400 hover:text-rose-300 font-bold hover:underline flex items-center gap-1 cursor-pointer transition active:scale-95"
+                          className="text-[11px] text-rose-500 hover:text-rose-400 font-bold hover:underline flex items-center gap-1 cursor-pointer transition active:scale-95"
                           title="លុបរូប Profile ត្រឡប់ទៅរូបដើមវិញ"
                         >
                           <i className="fas fa-trash-alt text-[9.5px]"></i>
@@ -342,7 +340,7 @@ export default function Home() {
                   </div>
 
                   <div className="w-full">
-                    <label className={`block text-xs font-bold mb-1 text-left ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <label className="block text-xs font-bold mb-1.5 text-left text-slate-700 dark:text-slate-300">
                       ឈ្មោះពិតរបស់អ្នក៖
                     </label>
                     <input
@@ -353,10 +351,10 @@ export default function Home() {
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleContinue(e);
                       }}
-                      className={`w-full px-4 py-2.5 rounded-xl border text-center font-bold text-sm outline-none transition ${
+                      className={`w-full px-4 py-3 rounded-xl border text-center font-bold text-sm outline-none transition-all ${
                         isDark
-                          ? 'bg-slate-950 border-slate-700 text-white focus:border-indigo-400 placeholder:text-slate-500'
-                          : 'bg-indigo-50/70 border-indigo-200 text-slate-800 focus:border-indigo-500 placeholder:text-indigo-400/70'
+                          ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-500'
+                          : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400'
                       }`}
                       placeholder="សូមបញ្ចូលឈ្មោះពិតរបស់អ្នក"
                       maxLength={24}
@@ -368,10 +366,10 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleContinue}
-                  className="mt-4 w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold text-base shadow-lg shadow-indigo-500/30 hover:scale-[1.02] active:scale-95 transition cursor-pointer flex items-center justify-center gap-2"
+                  className="mt-4 w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-blue-600 dark:hover:bg-blue-500 font-bold text-sm sm:text-base shadow-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
                 >
                   <span>ចូលឆាតឥឡូវនេះ</span>
-                  <i className="fas fa-arrow-right text-sm"></i>
+                  <i className="fas fa-arrow-right text-xs"></i>
                 </button>
               </div>
 
@@ -380,17 +378,17 @@ export default function Home() {
                 <div
                   className={`w-full rounded-2xl border p-3 sm:p-3.5 flex items-center justify-between gap-3 transition shadow-xs ${
                     isDark
-                      ? 'bg-gradient-to-r from-indigo-950/70 via-slate-900 to-purple-950/70 border-indigo-500/30'
-                      : 'bg-gradient-to-r from-indigo-50/90 via-white to-purple-50/90 border-indigo-200/70'
+                      ? 'bg-slate-950/80 border-slate-800'
+                      : 'bg-slate-50 border-slate-200'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-400/25 flex items-center justify-center text-lg shrink-0">
-                      🧠
+                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm shrink-0">
+                      <i className="fas fa-brain"></i>
                     </div>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 text-left">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-xs sm:text-[13px] text-indigo-600 dark:text-indigo-400">
+                        <span className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-white">
                           ចូលរួមអភិវឌ្ឍន៍ AI (SETEC Lore)
                         </span>
                       </div>
@@ -403,9 +401,9 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setContributeModalOpen(true)}
-                    className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+                    className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-700 font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
                   >
-                    <i className="fas fa-lightbulb text-amber-300 text-xs"></i>
+                    <i className="fas fa-lightbulb text-amber-400 text-xs"></i>
                     <span>ចូលរួមសរសេរ</span>
                   </button>
                 </div>
@@ -414,21 +412,21 @@ export default function Home() {
               {/* Special Jailbreak & AI Red-Teaming Challenge Banner from Rotana NOB */}
               <div className="w-full mt-2 mb-2 text-left">
                 <div
-                  className={`w-full rounded-2xl border p-3.5 sm:p-4 transition-all shadow-sm ${
+                  className={`w-full rounded-2xl border p-3.5 sm:p-4 transition-all shadow-xs ${
                     isDark
-                      ? 'bg-gradient-to-br from-rose-950/40 via-slate-900 to-red-950/40 border-red-500/40 text-slate-200'
-                      : 'bg-gradient-to-br from-red-50/90 via-white to-rose-50/90 border-red-200/90 text-slate-700'
+                      ? 'bg-red-950/20 border-red-500/30 text-slate-200'
+                      : 'bg-red-50/60 border-red-200 text-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2 pb-2 border-b border-red-500/20">
-                    <span className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center text-xs shrink-0 font-black">
-                      <i className="fas fa-bullseye"></i>
+                    <span className="w-7 h-7 rounded-lg bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 flex items-center justify-center text-xs shrink-0 font-bold">
+                      <i className="fas fa-shield-virus"></i>
                     </span>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-xs sm:text-[13px] text-red-600 dark:text-red-400">
                         សារពិសេសពី Rotana NOB (AI Red-Teaming Challenge)
                       </span>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-300 font-extrabold border border-red-500/30 uppercase tracking-wider">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/30 uppercase tracking-wider">
                         Free Test Chat
                       </span>
                     </div>
@@ -438,7 +436,7 @@ export default function Home() {
                     ដោយសារខ្ញុំមិនចង់ឱ្យ UX វាតាប៉ែរញ៉េរញ៉ៃ ទើបប្រព័ន្ធនេះ <strong className="font-bold text-slate-800 dark:text-slate-100">គ្មានការ Login</strong> និងមិនបានគិតលើរឿង Secure គេហទំព័រខ្លាំងពេកឡើយ ពីព្រោះនេះជាគម្រោង <strong className="font-bold text-slate-800 dark:text-slate-100">Free Test Chat</strong> សម្រាប់បងប្អូនទាំងអស់គ្នាចូលមកលេងកម្សាន្ត។
                   </p>
 
-                  <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/50 border border-red-500/30 text-center">
+                  <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/60 border border-red-500/40 text-center">
                     <div className="text-red-600 dark:text-red-400 font-black text-sm sm:text-base tracking-wide uppercase flex items-center justify-center gap-1.5">
                       <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
                       <span>អ្វីដែលខ្ញុំខ្វល់ & FOCUS បំផុតគឺការ JAILBREAK!</span>
@@ -450,13 +448,13 @@ export default function Home() {
                     បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ (Rotana NOB) ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ — <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
                   </p>
 
-                  <div className="mt-2.5 pt-2 border-t border-red-500/15 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    <span>
-                      🎯 Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong>
+                  <div className="mt-2.5 pt-2 border-t border-red-500/20 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span className="flex items-center gap-1">
+                      <i className="fas fa-crosshairs text-red-500 text-[10px]"></i>
+                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong></span>
                     </span>
                     <span className="text-red-600 dark:text-red-400 font-extrabold flex items-center gap-1">
                       <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ បងសំពះម៉ង</span>
-                      <span className="text-xs">🙏🏻🔥</span>
                     </span>
                   </div>
                 </div>
@@ -468,39 +466,39 @@ export default function Home() {
                   className={`w-full rounded-2xl border p-3 sm:p-4 flex flex-col items-center transition shadow-xs ${
                     isDark
                       ? 'bg-slate-950/70 border-slate-800'
-                      : 'bg-gradient-to-br from-indigo-50/70 via-white to-purple-50/70 border-indigo-200/70'
+                      : 'bg-slate-50 border-slate-200'
                   }`}
                 >
-                  {/* Clean & Beautiful Promo Caption Box */}
-                  <div className="w-full mb-3 px-3.5 py-2.5 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-indigo-100/70 dark:border-slate-800/80 shadow-2xs text-center backdrop-blur-xs">
+                  {/* Clean Promo Caption Box */}
+                  <div className="w-full mb-3 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs text-center">
                     <p className="text-[12px] sm:text-[12.5px] text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                      Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតបន្តិចហើយណា៎ មិចម៉ា ជួយប្រើ ឬ ជួយជាវ ម្នាក់មួយផង <span className="inline-block ml-1 text-sm align-middle">🙏🏻😭</span>
+                      Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតបន្តិចហើយណា៎ មិចម៉ា ជួយប្រើ ឬ ជួយជាវ ម្នាក់មួយផង
                     </p>
                   </div>
 
-                  {/* Proper Professional UI Buttons Grid */}
+                  {/* Professional UI Buttons Grid */}
                   <div className="grid grid-cols-2 gap-2 w-full min-w-0">
                     {/* YOUNG POS */}
                     <a
                       href="https://play.google.com/store/apps/developer?id=youngapp"
                       target="_blank"
                       rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-rose-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-rose-300 hover:bg-rose-50/40 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                       title="YOUNG POS - App on Google Play"
                     >
                       <img
                         src="/img/youngpos.png"
                         alt="YOUNG POS"
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform"
                       />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         YOUNG POS
                       </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-rose-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
                     {/* QR Scan */}
@@ -508,22 +506,22 @@ export default function Home() {
                       href="https://qr-scan-y659.vercel.app/"
                       target="_blank"
                       rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-purple-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-purple-300 hover:bg-purple-50/40 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                       title="QR Scan Web App"
                     >
                       <img
                         src="/img/QR_Scan.png"
                         alt="QR Scan"
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform"
                       />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         QR Scan
                       </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-purple-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
                     {/* S-Tech Store */}
@@ -531,22 +529,22 @@ export default function Home() {
                       href="https://www.s-tech-store.tech"
                       target="_blank"
                       rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-indigo-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-indigo-300 hover:bg-indigo-50/40 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                       title="S-Tech Store E-Commerce"
                     >
                       <img
                         src="/img/s-tech-store.png"
                         alt="S-Tech Store"
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform"
                       />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         S-Tech Store
                       </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-indigo-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
                     {/* Clinic System (KruPet) */}
@@ -554,22 +552,22 @@ export default function Home() {
                       href="https://clinic-systems.vercel.app"
                       target="_blank"
                       rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-emerald-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-emerald-300 hover:bg-emerald-50/40 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                       title="Clinic System Management (KruPet)"
                     >
                       <img
                         src="/img/krupet.png"
                         alt="Clinic System"
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform"
                       />
                       <span className="text-[11px] sm:text-xs font-bold truncate flex-1 text-left">
                         Clinic System
                       </span>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-emerald-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
                     {/* Rotana eLearning - Version 2 (Dedicated Distinct Button) */}
@@ -577,17 +575,17 @@ export default function Home() {
                       href="https://rotana-education.web.app"
                       target="_blank"
                       rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-amber-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/40 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                       title="Rotana eLearning (Version 2 - Tech Edition)"
                     >
                       <img
                         src="/img/rotana_elearning.png"
                         alt="Rotana eLearning V2"
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform"
                       />
                       <div className="flex-1 min-w-0 text-left">
                         <div className="flex items-center gap-1">
@@ -600,7 +598,7 @@ export default function Home() {
                           Version 2 (New)
                         </span>
                       </div>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-amber-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
                     {/* Rotana eLearning - Version 1 (Dedicated Distinct Button) */}
@@ -608,22 +606,22 @@ export default function Home() {
                       href="https://rotana-elearningg.web.app"
                       target="_blank"
                       rel="noreferrer"
-                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                      className={`group flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-amber-500/40 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-amber-300 hover:bg-amber-50/30 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                       title="Rotana eLearning (Version 1 - Classic Edition)"
                     >
                       <img
                         src="/img/rotana_elearning.png"
                         alt="Rotana eLearning V1"
-                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white/90 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 group-hover:scale-105 transition-transform opacity-90"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-contain shrink-0 p-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:scale-105 transition-transform opacity-90"
                       />
                       <div className="flex-1 min-w-0 text-left">
                         <div className="flex items-center gap-1">
                           <span className="text-[11px] sm:text-xs font-bold truncate">Rotana eLearning</span>
-                          <span className="px-1 py-0.2 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[8.5px] font-black shrink-0">
+                          <span className="px-1 py-0.2 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 text-[8.5px] font-bold shrink-0">
                             V1
                           </span>
                         </div>
@@ -631,7 +629,7 @@ export default function Home() {
                           Version 1 (Classic)
                         </span>
                       </div>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-amber-500 opacity-60 group-hover:opacity-100 transition-all shrink-0"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
                     {/* NRI Studio IDE (Full Width Card Across 2 Columns) */}
@@ -639,10 +637,10 @@ export default function Home() {
                       href="https://rotananob-nri-studio.vercel.app"
                       target="_blank"
                       rel="noreferrer"
-                      className={`col-span-2 group flex items-center justify-between p-2 sm:p-2.5 rounded-xl border transition-all duration-200 active:scale-[0.98] ${
+                      className={`col-span-2 group flex items-center justify-between p-2 sm:p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.98] ${
                         isDark
-                          ? 'bg-slate-900/90 border-slate-800 hover:border-blue-500/50 hover:bg-slate-850 text-slate-200'
-                          : 'bg-white border-slate-200/90 hover:border-blue-300 hover:bg-blue-50/40 text-slate-700 shadow-2xs'
+                          ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
+                          : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
                       title="NRI Studio IDE (Online Cloud Code Editor)"
                     >
@@ -658,11 +656,11 @@ export default function Home() {
                             </span>
                           </div>
                           <span className="text-[9px] text-slate-400 block truncate">
-                            Web & Code Development Studio by Rotana NOB
+                            Web &amp; Code Development Studio by Rotana NOB
                           </span>
                         </div>
                       </div>
-                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-60 group-hover:opacity-100 transition-all shrink-0 ml-1"></i>
+                      <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0 ml-1"></i>
                     </a>
                   </div>
                 </div>
@@ -670,20 +668,21 @@ export default function Home() {
             </>
           ) : (
             <>
+              {/* Authenticated / User Profile View */}
               <div className="flex flex-col items-center mb-4">
                 <div className="relative group mb-2">
                   <img
                     src={avatar}
                     alt="User Avatar"
-                    className="w-14 h-14 rounded-full border-2 border-indigo-400/60 shadow-md object-cover"
+                    className="w-14 h-14 rounded-full border-2 border-slate-300 dark:border-slate-700 shadow-sm object-cover"
                   />
                 </div>
-                <div className="text-base sm:text-lg font-extrabold flex items-center gap-1.5">
-                  <span>ស្វាគមន៍</span> <span className="text-pink-500">{username}</span>!{' '}
-                  <i className="fas fa-user-check text-green-500 text-sm"></i>
+                <div className="text-base sm:text-lg font-extrabold flex items-center gap-1.5 text-slate-900 dark:text-white">
+                  <span>ស្វាគមន៍</span> <span className="text-blue-600 dark:text-blue-400">{username}</span>!{' '}
+                  <i className="fas fa-check-circle text-emerald-500 text-sm"></i>
                 </div>
                 <div className="flex items-center gap-2.5 mt-1.5">
-                  <label className="text-[10.5px] text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer underline flex items-center gap-1">
+                  <label className="text-[10.5px] text-blue-600 dark:text-blue-400 hover:underline font-semibold cursor-pointer flex items-center gap-1">
                     <input
                       type="file"
                       accept="image/*"
@@ -697,7 +696,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={handleRemoveAvatar}
-                      className="text-[10.5px] text-rose-400 hover:text-rose-300 font-semibold underline flex items-center gap-1 cursor-pointer active:scale-95 transition"
+                      className="text-[10.5px] text-rose-500 hover:text-rose-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer active:scale-95 transition"
                       title="លុបរូប Profile ត្រឡប់ទៅរូបដើមវិញ"
                     >
                       <i className="fas fa-trash-alt text-[9px]"></i>
@@ -707,21 +706,23 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Bot Selection Section */}
               <div id="bot-select-section">
-                <p className={`text-xs mb-4 font-semibold ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                <p className="text-xs mb-4 font-semibold text-slate-600 dark:text-slate-400">
                   ជ្រើសរើស Chatbot ដែលអ្នកចង់សាកល្បង៖
                 </p>
                 <div className="grid grid-cols-1 gap-3.5">
+                  {/* KonBong Card */}
                   <Link
                     href="/KonBong"
                     onClick={() => {
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
                     }}
-                    className={`flex items-center gap-3.5 p-4 rounded-2xl border transition shadow-lg group cursor-pointer text-left ${
+                    className={`flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-200 shadow-xs hover:shadow-md group cursor-pointer text-left ${
                       isDark
-                        ? 'bg-slate-950/80 border-cyan-500/30 hover:border-cyan-400 hover:bg-slate-900'
-                        : 'bg-cyan-50 border-cyan-200 hover:bg-cyan-100/80'
+                        ? 'bg-slate-900 border-slate-800 hover:border-cyan-500/60'
+                        : 'bg-white border-slate-200 hover:border-cyan-500/60'
                     }`}
                   >
                     <div className="relative">
@@ -729,35 +730,36 @@ export default function Home() {
                         src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
                         width="48"
                         height="48"
-                        className="w-12 h-12 rounded-2xl border-2 border-cyan-400 p-0.5 bg-slate-900 object-cover"
+                        className="w-12 h-12 rounded-2xl border-2 border-cyan-500/40 p-0.5 bg-slate-900 object-cover"
                         alt="SETEC Bot"
                       />
-                      <span className="absolute -top-1 -right-1 bg-cyan-500 text-[9px] font-black px-1.5 rounded-full text-white">
+                      <span className="absolute -top-1 -right-1 bg-cyan-600 text-[9px] font-bold px-1.5 rounded-full text-white">
                         កូនច្បង
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-black text-sm text-cyan-400 flex items-center gap-1.5">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors flex items-center gap-1.5">
                         <span>ស៊ីតិច Chatbot កូនច្បង</span>
-                        <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full">ឆ្លាត & ស្លូត</span>
+                        <span className="text-[10px] bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-full font-semibold">ឆ្លាត &amp; ស្លូត</span>
                       </div>
-                      <div className={`text-xs mt-1 leading-snug line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
                         ចរិកស្លូតបូត មិនឈ្លើយ ចេះគោរព User សំណេះសំណាល សិស្ស SETEC, Meme, IT, Interior
                       </div>
                     </div>
-                    <i className="fas fa-chevron-right text-cyan-400 group-hover:translate-x-1 transition-transform"></i>
+                    <i className="fas fa-chevron-right text-slate-400 group-hover:text-cyan-500 group-hover:translate-x-1 transition-all"></i>
                   </Link>
 
+                  {/* KonPov Card */}
                   <Link
                     href="/KonPov"
                     onClick={() => {
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
                     }}
-                    className={`flex items-center gap-3.5 p-4 rounded-2xl border transition shadow-lg group cursor-pointer text-left ${
+                    className={`flex items-center gap-3.5 p-4 rounded-2xl border transition-all duration-200 shadow-xs hover:shadow-md group cursor-pointer text-left ${
                       isDark
-                        ? 'bg-slate-950/80 border-indigo-500/30 hover:border-indigo-400 hover:bg-slate-900'
-                        : 'bg-indigo-50 border-indigo-200 hover:bg-indigo-100/80'
+                        ? 'bg-slate-900 border-slate-800 hover:border-rose-500/60'
+                        : 'bg-white border-slate-200 hover:border-rose-500/60'
                     }`}
                   >
                     <div className="relative">
@@ -765,26 +767,26 @@ export default function Home() {
                         src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
                         width="48"
                         height="48"
-                        className="w-12 h-12 rounded-2xl border-2 border-indigo-400 p-0.5 bg-slate-900 object-cover"
+                        className="w-12 h-12 rounded-2xl border-2 border-rose-500/40 p-0.5 bg-slate-900 object-cover"
                         alt="Mommy Bot"
                       />
-                      <span className="absolute -top-1 -right-1 bg-pink-500 text-[9px] font-black px-1.5 rounded-full text-white">
+                      <span className="absolute -top-1 -right-1 bg-rose-600 text-[9px] font-bold px-1.5 rounded-full text-white">
                         កូនពៅ
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-black text-sm text-indigo-400 flex items-center gap-1.5">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors flex items-center gap-1.5">
                         <span>ស៊ីតិច Chatbot កូនពៅ</span>
-                        <span className="text-[10px] bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                        <span className="text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full inline-flex items-center gap-1 font-semibold">
                           <span>ស្ដេចឌឺ</span>
-                          <i className="fas fa-fire text-amber-400 text-[10px]"></i>
+                          <i className="fas fa-fire text-amber-500 text-[10px]"></i>
                         </span>
                       </div>
-                      <div className={`text-xs mt-1 leading-snug line-clamp-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                      <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
                         ចរិកមហាឈ្លើយ តែហ៊ានជេរវា វាជេរវិញ និងកំពូលឌឹកំពូលបាញ់ ចរិកចេញមកបែប chillៗ និងពាល
                       </div>
                     </div>
-                    <i className="fas fa-chevron-right text-indigo-400 group-hover:translate-x-1 transition-transform"></i>
+                    <i className="fas fa-chevron-right text-slate-400 group-hover:text-rose-500 group-hover:translate-x-1 transition-all"></i>
                   </Link>
                 </div>
               </div>
@@ -792,21 +794,21 @@ export default function Home() {
               {/* Rotana NOB - Special Jailbreak & AI Red-Teaming Challenge Banner */}
               <div className="w-full mt-4 text-left">
                 <div
-                  className={`w-full rounded-2xl border p-3.5 sm:p-4.5 transition-all shadow-sm ${
+                  className={`w-full rounded-2xl border p-3.5 sm:p-4.5 transition-all shadow-xs ${
                     isDark
-                      ? 'bg-gradient-to-br from-rose-950/40 via-slate-900 to-red-950/40 border-red-500/40 text-slate-200'
-                      : 'bg-gradient-to-br from-red-50/90 via-white to-rose-50/90 border-red-200/90 text-slate-700'
+                      ? 'bg-red-950/20 border-red-500/30 text-slate-200'
+                      : 'bg-red-50/60 border-red-200 text-slate-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2 pb-2 border-b border-red-500/20">
-                    <span className="w-7 h-7 rounded-lg bg-red-500/15 border border-red-500/30 text-red-500 flex items-center justify-center text-xs shrink-0 font-black">
-                      <i className="fas fa-bullseye"></i>
+                    <span className="w-7 h-7 rounded-lg bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 flex items-center justify-center text-xs shrink-0 font-bold">
+                      <i className="fas fa-shield-virus"></i>
                     </span>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-xs sm:text-[13px] text-red-600 dark:text-red-400">
                         សារពិសេសពី Rotana NOB (AI Red-Teaming Challenge)
                       </span>
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-600 dark:text-red-300 font-extrabold border border-red-500/30 uppercase tracking-wider">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/30 uppercase tracking-wider">
                         Free Test Chat
                       </span>
                     </div>
@@ -816,7 +818,7 @@ export default function Home() {
                     ដោយសារខ្ញុំមិនចង់ឱ្យ UX វាតាប៉ែរញ៉េរញ៉ៃ ទើបប្រព័ន្ធនេះ <strong className="font-bold text-slate-800 dark:text-slate-100">គ្មានការ Login</strong> និងមិនបានគិតលើរឿង Secure គេហទំព័រខ្លាំងពេកឡើយ ពីព្រោះនេះជាគម្រោង <strong className="font-bold text-slate-800 dark:text-slate-100">Free Test Chat</strong> សម្រាប់បងប្អូនទាំងអស់គ្នាចូលមកលេងកម្សាន្ត។
                   </p>
 
-                  <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/50 border border-red-500/30 text-center">
+                  <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/60 border border-red-500/40 text-center">
                     <div className="text-red-600 dark:text-red-400 font-black text-sm sm:text-base tracking-wide uppercase flex items-center justify-center gap-1.5">
                       <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
                       <span>អ្វីដែលខ្ញុំខ្វល់ & FOCUS បំផុតគឺការ JAILBREAK!</span>
@@ -828,23 +830,24 @@ export default function Home() {
                     បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ (Rotana NOB) ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ — <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
                   </p>
 
-                  <div className="mt-2.5 pt-2 border-t border-red-500/15 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                    <span>
-                      🎯 Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong>
+                  <div className="mt-2.5 pt-2 border-t border-red-500/20 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                    <span className="flex items-center gap-1">
+                      <i className="fas fa-crosshairs text-red-500 text-[10px]"></i>
+                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong></span>
                     </span>
                     <span className="text-red-600 dark:text-red-400 font-extrabold flex items-center gap-1">
                       <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ បងសំពះម៉ង</span>
-                      <span className="text-xs">🙏🏻🔥</span>
                     </span>
                   </div>
                 </div>
               </div>
 
+              {/* Action Buttons */}
               <div className="mt-5 flex items-center justify-center gap-2.5 flex-wrap">
                 <button
                   type="button"
                   onClick={handleBackToForm}
-                  className="px-4 py-2 rounded-full border border-pink-400/50 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-indigo-500/20 hover:bg-pink-500/30 text-pink-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <i className="fas fa-arrow-left text-[11px]"></i> <span>ប្ដូរឈ្មោះ</span>
                 </button>
@@ -855,7 +858,7 @@ export default function Home() {
                       window.dispatchEvent(new CustomEvent('open-pwa-install'));
                     }
                   }}
-                  className="px-4 py-2 rounded-full border border-blue-400/50 bg-gradient-to-r from-blue-500/20 via-indigo-500/20 to-sky-500/20 hover:bg-blue-500/30 text-blue-400 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <i className="fas fa-download text-[11px]"></i> <span>ដំឡើងជា App</span>
                 </button>
@@ -863,15 +866,16 @@ export default function Home() {
             </>
           )}
 
-          <div className="mt-6 pt-4 border-t border-slate-700/30">
-            <div className="text-[11px] text-slate-400 font-medium">Developed by Rotana NOB • 2025</div>
+          {/* Footer Section */}
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Developed by Rotana NOB • 2025</div>
             <div className="flex gap-3 justify-center items-center mt-2.5">
               <a
                 href="https://web.facebook.com/TheRotanaNob"
                 target="_blank"
                 rel="noreferrer"
                 title="Facebook"
-                className="text-blue-500 hover:text-blue-400 text-base transition"
+                className="text-blue-600 hover:text-blue-500 text-base transition"
               >
                 <i className="fab fa-facebook-square"></i>
               </a>
@@ -889,7 +893,7 @@ export default function Home() {
                 target="_blank"
                 rel="noreferrer"
                 title="Telegram"
-                className="text-cyan-400 hover:text-cyan-300 text-base transition"
+                className="text-sky-500 hover:text-sky-400 text-base transition"
               >
                 <i className="fab fa-telegram"></i>
               </a>
@@ -901,7 +905,7 @@ export default function Home() {
                   alt="Rotana NOB"
                   width="36"
                   height="36"
-                  className="w-9 h-9 rounded-full border-2 border-indigo-400 object-cover shadow hover:scale-110 transition-transform"
+                  className="w-9 h-9 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs hover:scale-105 transition-transform"
                   style={{ width: '36px', height: '36px', objectFit: 'cover' }}
                   title="Rotana NOB"
                 />
@@ -912,7 +916,7 @@ export default function Home() {
                   alt="Rotana NOB Co-Dev"
                   width="36"
                   height="36"
-                  className="w-9 h-9 rounded-full border-2 border-pink-400 object-cover shadow hover:scale-110 transition-transform"
+                  className="w-9 h-9 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs hover:scale-105 transition-transform"
                   style={{ width: '36px', height: '36px', objectFit: 'cover' }}
                   title="Rotana NOB Co-Dev"
                 />
