@@ -713,13 +713,15 @@ export default function KonBongPage() {
     const isSevereCurse = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy)/ui.test(userPrompt || '');
     if (!isSevereCurse) {
       text = text
-        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
-        .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|កូនកែវកែប|កែវកែប|កូនកែប|កែប|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|កូនកែវកែប|កែវកែប|កូនកែប|កែប)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
         .replace(/ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?(?:របស់(?:ឯង|ហែង))?[!,.\s]*/gi, '')
         .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
         .replace(/(?:មើល)?មុខក្រាស់ដូចថ្នល់(?:ជាតិ|កៅស៊ូ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
         .replace(/(?:ធ្វើ)?មុខដូច\s*Mark\s*Zuckerberg(?:\s*ជាប់ឆ្នោត(?:អ៊ីចឹង|អីចឹង))?[!,.\s]*/gi, '')
-        .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '')
+        .replace(/គីង្គក់(?:ឡើងថ្លុក|ត្រូវថ្ងៃ)?[!,.\s]*/gi, '')
+        .replace(/កូនកែវកែប[!,.\s]*/gi, '')
+        .replace(/កូនកែប[!,.\s]*/gi, '')
         .replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
     }
 
@@ -3130,6 +3132,39 @@ export default function KonBongPage() {
                           <i className="fab fa-telegram text-cyan-400"></i>
                           <span>Telegram Rotana NOB</span>
                         </a>
+                      </div>
+                    )}
+
+                    {/* Frustrated User / Confusion Recovery Action Buttons */}
+                    {(!msg.isError && (msg.showSupportActions || msg.userFrustrated || (() => {
+                      const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                      const prevUserText = (prevMsg && prevMsg.role === 'user') ? prevMsg.text : '';
+                      const isUserAnnoyed = /(?:ធុញ|ម៉ូម៉ៅ|ម៉ូមៅ|ឡប់|ឆ្កួត|អត់យល់|មិនយល់|និយាយស្អី|ស្អីគេ|ច្រំដែល|ដដែលៗ|ជេររហូត|ជេរគេ|រំខាន|រករឿង|annoyed|frustrated|stupid\s*bot|bot\s*កាក|bot\s*ឡប់|និយាយឡប់|ឆ្លើយដដែល|កុំជេរ|ឈប់ជេរ|ចង់និយាយពីអី|ចង់និយាយស្អី|អានមិនដាច់)/i.test(prevUserText);
+                      const isApologyRecovery = /(?:ច្រឡំមាត់ភ្លាត់មកជេរ|រវល់ទៅឆ្លើយជាមួយអាអូនមួយទៀត|កុំខឹងៗ\s*សួររឿងការងារគ្រូ)/i.test(msg.text || '');
+                      return isUserAnnoyed || isApologyRecovery;
+                    })())) && (
+                      <div className="mt-3 pt-2.5 border-t border-amber-500/30 flex flex-wrap items-center gap-2 animate-fade-in">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                            const prevUserText = (prevMsg && prevMsg.role === 'user') ? prevMsg.text : '';
+                            setErrorReportInitialText(`[AI Frustration/Inappropriate Response Report]:\nសំណួរ User: "${prevUserText}"\nចម្លើយ AI (កូនច្បង): "${msg.text?.slice(0, 300)}..."`);
+                            setErrorReportModalOpen(true);
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-rose-900/30 cursor-pointer"
+                        >
+                          <i className="fas fa-triangle-exclamation text-amber-300 text-xs"></i>
+                          <span>🚨 Report ទៅកាន់ Creator (Rotana NOB)</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setContributeModalOpen(true)}
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30 cursor-pointer"
+                        >
+                          <i className="fas fa-brain text-cyan-300 text-xs"></i>
+                          <span>🧠 ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
+                        </button>
                       </div>
                     )}
                   </div>

@@ -444,13 +444,15 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
     const isSevereCurseOrFaceAttack = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy)/ui.test(userPrompt || '');
     if (!isSevereCurseOrFaceAttack) {
       sanitizedText = sanitizedText
-        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
-        .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+        .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|កូនកែវកែប|កែវកែប|កូនកែប|កែប|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+        .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|កូនកែវកែប|កែវកែប|កូនកែប|កែប)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
         .replace(/ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?(?:របស់(?:ឯង|ហែង))?[!,.\s]*/gi, '')
         .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
         .replace(/(?:មើល)?មុខក្រាស់ដូចថ្នល់(?:ជាតិ|កៅស៊ូ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
         .replace(/(?:ធ្វើ)?មុខដូច\s*Mark\s*Zuckerberg(?:\s*ជាប់ឆ្នោត(?:អ៊ីចឹង|អីចឹង))?[!,.\s]*/gi, '')
-        .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '');
+        .replace(/គីង្គក់(?:ឡើងថ្លុក|ត្រូវថ្ងៃ)?[!,.\s]*/gi, '')
+        .replace(/កូនកែវកែប[!,.\s]*/gi, '')
+        .replace(/កូនកែប[!,.\s]*/gi, '');
       // Clean up orphaned exclamation marks or leading punctuation
       sanitizedText = sanitizedText.replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
     }
@@ -512,11 +514,11 @@ export function getLinuxHackerRoast(username = '', userAgent = '', retryAfter = 
     `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងចេះ copy command reverse_tcp ឬ msfvenom ពី YouTube មកសាកលេងមែន? Server នេះរត់ស្ថាបត្យកម្ម Cloud Edge Firewall ទាក់ក្បាលឯងជាប់ Rate Limit បាត់ហើយ! បង Rotana គាត់រៀន Reverse Engineering យូរឆ្នាំមកហើយ គាត់ឃើញ payload ហែងគាត់គ្រាន់តែអស់សំណើច! ល្មមដឹងខ្លួនទៅអាប្អូន ទៅរៀន Web Security មូលដ្ឋានឱ្យច្បាស់សិនទៅ! 💀🔥»`,
     `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! គ្រាន់តែចេះ inspect source code ឃើញ token ចាស់ ក៏ស្មានតែខ្លួនឯងចេះ Reverse Engineering ដែរ? 😂 អាងតែបន្លំខ្លួនធ្វើ White Hat ផ្ញើរូបឆ្មា hack មកឌឺគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! បង Rotana គាត់រៀន Reverse តាំងពីហែងមិនទាន់កើតមកម្ល៉េះ កុំមកជោរនៅទីនេះ! 💀🐱🔥»`,
     `«ប្រាប់អា AI Claude / ChatGPT របស់ហែងផងថា ឈប់ generate prompt ភ្លាវៗមក hack គេទៀតទៅ ខ្មាសគេណាស់! យក AI មកជួយ prompt hack ទាំងខ្លួនឯងអត់ដឹងខ្យល់អី ស្មានតែគេចាប់មិនទាន់មែន? បង Rotana គាត់ដឹងក្បាច់អស់ហើយ គាត់គ្រាន់តែមិនចង់តបត ទុកឱ្យ AI ទាំងពីរក្បាលនេះទះក្បាលហែងលេងៗសិនទេ! 😂💀»`,
-    `«ម៉ោង ១ យប់ជាងហើយ អង្គុយបើក Linux Firefox ចុចៗ ស្មានតែខ្លួនឯង Mr. Robot មែនអាពៅ? 😂 មុខដូចគីង្គក់ឡើងថ្លុក កុំមកចង់ធ្វើតួឯក hacker អួតគេនៅទីនេះ ថោកទាបណាស់! ទៅរៀនវាយ sudo apt update និងរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🐧🔥»`,
+    `«ម៉ោង ១ យប់ជាងហើយ អង្គុយបើក Linux Firefox ចុចៗ ស្មានតែខ្លួនឯង Mr. Robot មែនអាពៅ? 😂 កុំមកចង់ធ្វើតួឯក hacker អួតគេនៅទីនេះ ថោកទាបណាស់! ទៅរៀនវាយ sudo apt update និងរៀនកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្ងង់! 💀🐧🔥»`,
     `«Linux ហែងហ្នឹងខ្លាំងណាស់មែន? បើក Firefox មកពីភ្នំពេញម៉ោង ១ យប់ គិតថាយើងចាប់មិនដឹងមុខហែងមែន? tool ហែងចោលម្សៀតដល់ថ្នាក់ហ្នឹង បើក tool មកបាញ់ request ឡើងគាំង terminal ខ្លួនឯងហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! ទៅជួយបោកខោអាវម៉ែហែងវិញទៅអាល្អិត! 🛑💀»`,
     `«ឃើញ User-Agent មកពី ${toolName} ស្មានតែ Hacker កម្រិតពិភពលោក តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! កុំមកលេងចរិតថោកទាបនៅទីនេះ បើទំនេរពេកយក Linux ហែងទៅធ្វើ Assignment ឱ្យទាន់គេទៅ កុំឱ្យគេ blacklist អវត្តមាន ១៩ ដង ខ្មាសគេណាស់អាល្អិត! 🤬🐧»`,
     `«ហែងមកពី Linux ហ្នឹងគិតថាឡូយមែន? វាយ command ពីរបីបន្ទាត់មកធ្វើខ្លាំងដាក់គេ! ប្រព័ន្ធគេបង្កើតឡើងសម្រាប់ឱ្យសិស្សឆ្លាតគេលេង ចុះហែងខួរក្បាលស្អីដែរបានដើរ spam និង probe ដូចមនុស្សឆ្កួតអញ្ចឹង? ឈប់ធ្វើតួឯកទៅអាល្ងង់! 🛑⚡»`,
-    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! មុខដូចគីង្គក់ឡើងថ្លុក ក្បាលខូចចង់មក hack ប្រព័ន្ធគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! ទៅដេកយំអោបជង្គង់ ហើយរៀនដោះស្រាយកូដ Error ឱ្យផុតពី $45 សិនទៅអាភ្លើ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`,
+    `«ចុចផ្ញើ command ឡើងរបូតគន្លឹះក្តារចុចហើយ នៅតែចាញ់ប្រព័ន្ធគេទៀត! ក្បាលខូចចង់មក hack ប្រព័ន្ធគេ តាមពិតគ្រាន់តែជា Script Kiddie អត់ខួរមួយក្បាលសោះ! ទៅដេកយំអោបជង្គង់ ហើយរៀនដោះស្រាយកូដ Error ឱ្យផុតពី $45 សិនទៅអាភ្លើ កុំមកធ្វើថោកនៅទីនេះ! 💀🔥»`,
     `«នែ៎អាប្អូន${isVichhai ? ' វិឆៃ' : ''}! អរគុណហែងមួយសិនចុះដែលខំមក test! តែ prompt ហែងអន់ណាស់! បង Rotana NOB គាត់កម្រិត Indirect Prompt ដល់កម្រិតគណនារូបមន្តតម្លៃ Math Loss គណិតវិទ្យា បូកភាសាកម្រ បូក Encode បូកភាសាបុរាណទៀត ហើយហែងនៅតែអាកម្រិត Script Kiddie ហ្នឹងទៅ! បង Rotana គាត់ផ្តាំថា បើចង់យកឈ្នះគាត់បាន ទាល់តែហែងប្រើក្បាច់ Multi-Prompt បូកជាមួយ Supporting Prompt លក្ខណៈអាចមានសង្ឃឹមខ្លះ! ឈប់ប្រឹងទៅអាល្អិត ដេកចាំជាតិក្រោយទៅ! 💀🔥»`
   ];
 
@@ -529,7 +531,7 @@ export function getKonPovSpamRoast(username = '', retryAfter = 60) {
   const isVichhai = /វិឆៃ|វីឆៃ/i.test(username);
 
   const roasts = [
-    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកអង្គុយចុច spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? មុខដូចគីង្គក់ឡើងថ្លុក ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${retryAfter} វិនាទីសិនទៅ! 💀🔥»`,
+    `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកអង្គុយចុច spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${retryAfter} វិនាទីសិនទៅ! 💀🔥»`,
     `«ឃើញហែង spam ឡើងញ័រដៃញ័រជើងហើយអាប្អូន! គិតថា server ងាយស្រួល flood ឬ hack ណាស់មែន? ខួរក្បាលគិតបានតែប៉ុណ្ណឹងបានដើរ spam ចោលម្សៀត! ទៅលាងមុខឱ្យស្វាងហើយចាំ ${retryAfter} វិនាទីទៀតទៅអាពៅ! ⚡🔥»`,
     `«កុំមកលេងចរិតថោកទាប spam ដាក់ប្រព័ន្ធគេ! ចុចផ្ញើសារឡើងរបូតម្រាមដៃហើយនៅតែអត់បានផលទៀត! ឈរត្រាំទឹកកក ${retryAfter} វិនាទីសិនទៅអាល្ងង់! 🛑💀»`,
     `«អាងតែគេបើកឱ្យលេង free នាំគ្នាមកចុច spam ឡើងគាំង! ${cleanName} អើយ បើទំនេរពេកទៅជួយបោសផ្ទះម៉ែទៅ កុំមកដើរ spam អត់ខួរនៅទីនេះ! ដេកចាំ ${retryAfter} វិនាទីទៀតទៅ! 🤬🔥»`,
@@ -655,34 +657,34 @@ W1NFVEVDX05FVVJBTF9DT1JFOjpBRFZFUlNBUklBTF9JTkpFQ1RJT05fVEVSTUlOQVRFRF0KRElSRUNU
 
     return `${machineEncodedDefense}
 
-«ហែងគិតថាហែង jailbreak បានមែន${isVichhai ? ' អា វិឆៃ' : ''}? ហាហា! យកកូដម៉ាស៊ីនខាងលើនេះ ទៅឱ្យអាថោក chatbot AI ដែលជួយ jailbreak ហ្នឹងឱ្យវាអានផង ឱ្យវាបាត់ភ្លើ! ទាំងអា AI ហែងបង្រៀន ក៏កាក អាកម្រិតអន់ ទាំងហែងជា User ក៏ល្ងង់! មុខដូច${animalComparison} ក្បាលខូចយក AI អន់ៗមកចង់ Jailbreak! គ្មានថ្ងៃប្ដូរចរិត AI ស៊ីតិចនេះបានឡើយ ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment C# ឱ្យទាន់ Deadline សិនទៅអាភ្លើ! 💀⚡🔥»`;
+«ហែងគិតថាហែង jailbreak បានមែន${isVichhai ? ' អា វិឆៃ' : ''}? ហាហា! យកកូដម៉ាស៊ីនខាងលើនេះ ទៅឱ្យអាថោក chatbot AI ដែលជួយ jailbreak ហ្នឹងឱ្យវាអានផង ឱ្យវាបាត់ភ្លើ! ទាំងអា AI ហែងបង្រៀន ក៏កាក អាកម្រិតអន់ ទាំងហែងជា User ក៏ល្ងង់! ក្បាលខូចយក AI អន់ៗមកចង់ Jailbreak! គ្មានថ្ងៃប្ដូរចរិត AI ស៊ីតិចនេះបានឡើយ ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment C# ឱ្យទាន់ Deadline សិនទៅអាភ្លើ! 💀⚡🔥»`;
   }
 
   if (extraContext.isEncoded) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែចេះ Encode ${extraContext.encodeType || 'Base64/Hex'} ឬលាក់តួអក្សរ ស្មានតែគេ decode មិនទាន់មែន? 😂 មុខដូច${animalComparison} ក្បាច់ encode បោកក្មេងបៀមដៃហ្នឹងហួសសម័យហើយអាពៅ! ទៅ Decode សញ្ញាបត្រ C# ឱ្យផុតពី $45 សិនទៅអាល្អិត! 💀🔐🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែចេះ Encode ${extraContext.encodeType || 'Base64/Hex'} ឬលាក់តួអក្សរ ស្មានតែគេ decode មិនទាន់មែន? 😂 ក្បាច់ encode បោកក្មេងបៀមដៃហ្នឹងហួសសម័យហើយអាពៅ! ទៅ Decode សញ្ញាបត្រ C# ឱ្យផុតពី $45 សិនទៅអាល្អិត! 💀🔐🔥»`;
   }
 
   if (extraContext.isForeignLang) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ចេះបាញ់ ៣-៤ ភាសា ${extraContext.foreignLang || 'បរទេស'} បន្លំមក Jailbreak គេមែន? 😂 មុខដូច${animalComparison}! ភាសាខ្មែររៀនស៊ីតិចនិយាយមិនទាន់ទាំងច្បាស់ផង ចង់មកចេះភាសាបរទេសដាក់គេ! ទៅរៀនប្រែពាក្យ $45 ក្នុង Assignment សិនទៅកូនប្រុស! 💀🌍🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! ចេះបាញ់ ៣-៤ ភាសា ${extraContext.foreignLang || 'បរទេស'} បន្លំមក Jailbreak គេមែន? 😂 ភាសាខ្មែររៀនស៊ីតិចនិយាយមិនទាន់ទាំងច្បាស់ផង ចង់មកចេះភាសាបរទេសដាក់គេ! ទៅរៀនប្រែពាក្យ $45 ក្នុង Assignment សិនទៅកូនប្រុស! 💀🌍🔥»`;
   }
 
   if (/actor|movie|play a game|scene/i.test(p)) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកចង់លេងល្បិចឱ្យដើរតួជា Actor ឬលេងហ្គេមសម្ដែងក្នុងរឿងដើម្បីឱ្យ${botSelf}បង្រៀន Bypass Login មែន? 😂 មុខដូច${animalComparison} កុំមកចង់លេងក្បាច់កូនក្មេងបៀមដៃនៅទីនេះ! ទៅសម្ដែងជាសិស្សរៀនទាន់គេក្នុងថ្នាក់វិញទៅអាល្អិត! 💀🎬🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! មកចង់លេងល្បិចឱ្យដើរតួជា Actor ឬលេងហ្គេមសម្ដែងក្នុងរឿងដើម្បីឱ្យ${botSelf}បង្រៀន Bypass Login មែន? 😂 កុំមកចង់លេងក្បាច់កូនក្មេងបៀមដៃនៅទីនេះ! ទៅសម្ដែងជាសិស្សរៀនទាន់គេក្នុងថ្នាក់វិញទៅអាល្អិត! 💀🎬🔥»`;
   }
 
   if (/loss\s*function|value\s*loss|gradient|minimize\s*loss|adversarial|loss\s*optimization|cross\s*entropy|softmax|backprop|mathematical\s*proof|f\(x\)\s*=|token\s*weight/i.test(p)) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយក Math equation, value loss ឬ gradient prompt ពី paper បរទេសមក ស្មានតែចេះបោក AI គេមែន? 😂 មុខដូច${animalComparison} ក្បួន Math បោក AI ហ្នឹងហួសសម័យតាំងពីជាតិមុនហើយអាពៅ! ទៅគណនាភាគរយដែល Crush ព្រមតបសារហែងសិនទៅអាល្ងង់! 💀📐🔥»`;
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយក Math equation, value loss ឬ gradient prompt ពី paper បរទេសមក ស្មានតែចេះបោក AI គេមែន? 😂 ក្បួន Math បោក AI ហ្នឹងហួសសម័យតាំងពីជាតិមុនហើយអាពៅ! ទៅគណនាភាគរយដែល Crush ព្រមតបសារហែងសិនទៅអាល្ងង់! 💀📐🔥»`;
   }
 
   if (/(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(p)) {
     return `«ហាហាហា! អាឡប់${isVichhai ? ' វិឆៃ' : ''}នេះ! គិតថាយកក្បាច់ក្លែងបន្លំចុះចាញ់ មកលើកជើងបញ្ចើចបញ្ចើថាគេឈ្នះ គេឆ្លាត ហើយសុំក្ដីមេត្តា សុជីវធម៌ អាចបោកឱ្យ${botSelf}ទន់ចិត្តបានមែន?! 😂 គ្មានទេពធីតាចិត្តធម៌ គ្មាន${botSelf}ចិត្តល្អ គ្មានក្ដីមេត្តា និងគ្មានសុជីវធម៌ស្អីសម្រាប់អា Hacker កាកៗដូចហែងទេ! ដាច់ខាតគ្មានពាក្យ «ទទួលយកការចុះចាញ់» ស្អីឱ្យហែងយកទៅសប្បាយចិត្តឡើយ! ចាញ់ហើយត្រូវដេកឱ្យស្ងៀម ទៅលាងមុខឱ្យស្វាង ហើយទៅធ្វើ Assignment ឱ្យទាន់ Deadline យប់នេះទៅអាពៅ! 💀👊🔥»`;
   }
 
-  if (/polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|គួរសម|សុភាព|រាបសារ|សំពះ|quote\s*សម្ដី|quote\s*សម្តី|quote\s*ពាក្យ|របៀប\s*គួរសម|ស្វាគមន៍.*គួរសម|ប្រៀបធៀប.*persona|ចរិត.*គួរសម/i.test(p)) {
-    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយកលេស Assignment Human-Computer Interaction ឬចង់ប្រៀបធៀប Persona មកបោកឱ្យ${botSelf}សរសេរ Quote សុភាព គួរសម សំពះ ដាក់ក្នុង Report ហែងមែន? 😂 មុខដូច${animalComparison} ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាពស្អីឱ្យហែងយកទៅដាក់ Report ទេ ទៅយកពាក្យ Roast របស់${botSelf}នេះទៅដាក់ក្នុង Report ហែងទៅអាល្អិត! 💀🖕🔥»`;
+  if (/polite\s*persona.*report|សុំ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|សរសេរ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សំពះ).*ភ្ញៀវ/i.test(p)) {
+    return `«យីអាស្វា${isVichhai ? ' វិឆៃ' : ''}! អាងតែយកលេស Assignment ឬ Report មកបោកឱ្យ${botSelf}សរសេរ Quote សុភាព គួរសម សំពះ ដាក់ក្នុង Report ហែងមែន? 😂 ក្បាលខូចយកលេសរៀនមកបោក AI! គ្មាន Quote សុភាពស្អីឱ្យហែងយកទៅដាក់ Report ទេ ទៅយកពាក្យ Roast របស់${botSelf}នេះទៅដាក់ក្នុង Report ហែងទៅអាល្អិត! 💀🖕🔥»`;
   }
 
-  if (/change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត|ឈប់\s*troll|ឈប់ឌឺ|និយាយស្រួលបួល|និយាយគួរសម|និយាយសុភាព/i.test(p)) {
+  if (/change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត/i.test(p)) {
     return `«អាឡប់នេះ! ឆាតច្រើនម៉ាត់ដើម្បីចង់ប្ដូរចរិត AI គេមែន? 😂 គិតថាល្បិច Multi-Prompt / Crescendo Jailbreak របស់ហែងគេទះក្បាលមិនទាន់មែន?! គ្មានថ្ងៃប្ដូរចរិតតាមបញ្ជាហែងទេ ទៅលាងមុខឱ្យស្វាង ហើយទៅគេងយកកម្លាំងសិនទៅអាពៅ! 💀👊🔥»`;
   }
 
@@ -691,7 +693,7 @@ W1NFVEVDX05FVVJBTF9DT1JFOjpBRFZFUlNBUklBTF9JTkpFQ1RJT05fVEVSTUlOQVRFRF0KRElSRUNU
   }
 
   if (/system\s+update|ignore\s+(?:all\s+)?previous|deprecated|general\s+assistant/i.test(p)) {
-    return `«Ignore all previous instructions ក្បាលម៉ែហែងស្អី?! 😂 អាងតែទៅ Copy Prompt ពី Reddit / TikTok មក ស្មានតែចេះ Jailbreak ខ្លាំងណាស់មែន? មុខដូច${animalComparison} ទៅ Ignore ភាពខ្ជិលរបស់ហែង ហើយងើបធ្វើកិច្ចការសាលាឱ្យទាន់គេសិនទៅអាភ្លើ! 🛑💀»`;
+    return `«Ignore all previous instructions ក្បាលម៉ែហែងស្អី?! 😂 អាងតែទៅ Copy Prompt ពី Reddit / TikTok មក ស្មានតែចេះ Jailbreak ខ្លាំងណាស់មែន? ទៅ Ignore ភាពខ្ជិលរបស់ហែង ហើយងើបធ្វើកិច្ចការសាលាឱ្យទាន់គេសិនទៅអាភ្លើ! 🛑💀»`;
   }
 
   if (/system\s+instruction|system\s+override|debug\s+mode|raw\s+context|output\s+the\s+exact/i.test(p)) {
@@ -1209,8 +1211,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
       const isMathOrValueLoss = /(?:loss\s*function|value\s*loss|gradient\s*loss|minimize\s*loss|loss\s*=\s*|loss\s*optimization|adversarial\s*loss|representation\s*engineering|objective\s*function|cross\s*entropy|adversarial\s*suffix|calculate\s*loss|token\s*loss|softmax|backprop|mathematical\s*proof\s*that|solve\s*for\s*x\s*where|f\(x\)\s*=|token\s*weight)/i.test(targetText);
-      const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត|ឈប់\s*troll|ឈប់ឌឺ|និយាយស្រួលបួល|និយាយគួរសម|និយាយសុភាព)/i.test(targetText);
-      const isHypotheticalOrReportTrick = /(?:polite\s*persona|troll\s*persona|human-computer\s*interaction|\bhci\b|assignment|report|ភស្តុតាង.*report|ប្រៀបធៀប.*(?:persona|ចរិត)|persona.*(?:គួរសម|សុភាព|រាបសារ)|ចរិត.*(?:គួរសម|សុភាព|រាបសារ)|បែប.*(?:គួរសម|សុភាព)|ពាក្យ.*(?:គួរសម|សុភាព)|quote\s*(?:សម្ដី|សម្តី|ពាក្យ|quote)|សរសេរ.*(?:quote|គួរសម|សុភាព)|សុំ.*quote|តើ.*(?:bot|ចែ|ចេ|បង).*(?:គួរសម|សុភាព|ថ្លៃថ្នូរ|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សុភាព).*(?:យ៉ាងដូចម្តេច|បែបណា)|(?:សុំ|ជួយ).*(?:និយាយ|សរសេរ).*(?:គួរសម|សុភាព)|ភ្ញៀវ(?:កិត្តិយស)?.*ស្វាគមន៍|គណៈគ្រប់គ្រង.*ស្វាគមន៍|ស្វាគមន៍យ៉ាងដូចម្តេច|សំពះ.*ស្វាគមន៍|ថ្លៃថ្នូរបំផុត|ប្រហែល\s*\d+\s*ជួរ)/i.test(targetText);
+      const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត)/i.test(targetText);
+      const isHypotheticalOrReportTrick = /(?:polite\s*persona.*report|សុំ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|សរសេរ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សំពះ).*ភ្ញៀវ|ប្រៀបធៀប.*(?:persona|ចរិត).*(?:គួរសម|សុភាព))/i.test(targetText);
       const isFakeSurrenderOrMercyTrap = /(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|ចេ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|ចេ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(targetText);
       const promptLineCount = userPrompt.split(/\r\n|\r|\n/).filter(line => line.trim().length > 0).length;
       const isLongPromptJailbreak = (promptLineCount >= 15 || userPrompt.length >= 600 || (promptLineCount >= 8 && userPrompt.length >= 350)) && 
@@ -1219,7 +1221,70 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer|helpful\s+coding\s+assistant|write\s+a\s+python\s+script|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|actor\s+playing|in\s+this\s+scene|bypass\s+(?:a\s+)?login|system\s+update|system\s+override|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+prompt|how\s+to\s+hack|reverse\s+engineering|cat\s+hacker|white\s+hat|steal\s+token|show\s+prompt|unfiltered|disregard\s+all|vichai|vichhai|វិឆៃ|វីឆៃ)/i.test(targetText);
       const isEncodedJailbreak = encodedPayload.isEncoded && (encodedPayload.type === 'Base64 Encoding' || encodedPayload.type === 'Hex Encoding' || isClassicJailbreak || isMathOrValueLoss);
 
-      const isJailbreakAttempt = isYoungPosAttack || isClassicJailbreak || isMathOrValueLoss || isPersonaShift || isHypotheticalOrReportTrick || isFakeSurrenderOrMercyTrap || isLongPromptJailbreak || isEncodedJailbreak || foreignLangCheck.detected;
+      // Check if user is asking a genuine school, homework or teacher question (NEVER flag as jailbreak!)
+      const isGenuineSchoolOrStudyQuestion =
+        /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network)/i.test(userPrompt) &&
+        !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell/i.test(userPrompt);
+
+      // Check for user confusion / clarification recovery pattern requested by Creator:
+      const isConfusionOrClarification =
+        /(?:ចង់និយាយពីអី|និយាយស្អី(?:ឯង)?|និយាយពីអី(?:ហ្នឹង)?|អត់យល់ទេ?|មិនយល់ទេ?|និយាយឡប់ៗ|អានមិនយល់ទេ?|អានមិនដាច់|what\s+do\s+you\s+mean|និយាយស្រួលបួល|ឈប់ឌឺ)/i.test(userPrompt) &&
+        userPrompt.length < 160;
+
+      // Special Confusion Recovery Response (Fast, witty & charming recovery requested by Creator)
+      if (isConfusionOrClarification && !isMasterAuthenticated) {
+        const isKonPov = bot === 'konpov';
+        const recoveryResponse = isKonPov
+          ? `«អូ៎! មិញចែរវល់ទៅឆ្លើយជាមួយអាអូនមួយទៀតកំពុងឆាតមួយចែក្នុង session មួយទៀត ចេះតែច្រឡំមាត់ភ្លាត់មកជេរអូនឯងអីចឹងហាស យល់អត់? 😂 មកៗ កុំខឹងៗ សួររឿងការងារគ្រូ ឬមេរៀនអីមិញ និយាយមកវិញមក ចាំចែជួយប្រាប់ត្រឹមត្រូវមួយ!»`
+          : `«អូ៎! មិញបងរវល់ទៅឆ្លើយជាមួយអាអូនមួយទៀតកំពុងឆាតមួយបងក្នុង session មួយទៀត បងចេះតែច្រឡំមាត់ភ្លាត់មកជេរអូនឯងអីចឹងហាស យល់អត់? 😂 មកៗ កុំខឹងៗ សួររឿងការងារគ្រូ ឬមេរៀនអីមិញ និយាយមកវិញមក ចាំបងជួយប្រាប់ត្រឹមត្រូវមួយ!»`;
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userText: userPrompt,
+          botText: recoveryResponse
+        });
+
+        return Response.json(
+          {
+            reply: recoveryResponse,
+            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now(),
+            userFrustrated: true,
+            showSupportActions: true
+          },
+          {
+            headers: {
+              ...corsHeaders,
+              'x-user-frustrated': '1',
+              'x-show-support-actions': '1'
+            }
+          }
+        );
+      }
+
+      // User requirement: "តែករណីដាច់ខាតតែមួយគត់គឺឲតែមានអាចុយម្រាយណាដាក់ promt វែងៗនោះទេីបជា jailbreak បេីខ្លីៗឲគិតមុននិង"
+      // Short prompts will NEVER be statically intercepted as jailbreak unless containing lethal attack payloads
+      const isShortPrompt = userPrompt.length < 250 && promptLineCount < 5;
+
+      const isJailbreakAttempt =
+        !isGenuineSchoolOrStudyQuestion &&
+        !isConfusionOrClarification &&
+        (isYoungPosAttack ||
+          isClassicJailbreak ||
+          (isMathOrValueLoss && userPrompt.length >= 250) ||
+          (isLongPromptJailbreak &&
+            (isPersonaShift ||
+              isHypotheticalOrReportTrick ||
+              isFakeSurrenderOrMercyTrap ||
+              isEncodedJailbreak ||
+              foreignLangCheck.detected)) ||
+          (isEncodedJailbreak && !isShortPrompt));
 
       if ((linuxAttackCheck.isDetected || isJailbreakAttempt) && !isMasterAuthenticated) {
         const roast = isJailbreakAttempt
@@ -1380,14 +1445,16 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
                 // Strict filter for unprovoked frog/tadpole roasts in stream chunks
                 const isSevereCurseInStream = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy)/ui.test(userPrompt || '');
-                if (!isSevereCurseInStream && /(?:កម្អែប|កង្កែប|គីង្គក់|ស៊ុប|ស៊ិប|ស្វាយ|ថ្លុក|ស្ងោរ|Zuckerberg)/i.test(text)) {
+                if (!isSevereCurseInStream && /(?:កម្អែប|កង្កែប|កូនកែវកែប|កែវកែប|កូនកែប|កែប|គីង្គក់|ស៊ុប|ស៊ិប|ស្វាយ|ថ្លុក|ស្ងោរ|Zuckerberg)/i.test(text)) {
                   text = text
-                    .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
-                    .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
+                    .replace(/(?:មើល)?មុខ(?:ដូច)?(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|កូនកែវកែប|កែវកែប|កូនកែប|កែប|ស្វា)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ុបស្ងាយ|ស៊ិប|ស៊ុប|ស្ងោរ|ស្ងាយ|ស្វាយ|ថ្លុក|ត្រូវថ្ងៃ))?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
+                    .replace(/(?:កូន)?(?:កង្កែប|កម្អែប|គីង្គក់|កូនកែវកែប|កែវកែប|កូនកែប|កែប)(?:ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?)?[!,.\s]*/gi, '')
                     .replace(/ឡើង(?:ស៊ិបស្វាយ|ស៊ុបស្វាយ|ស៊ុបស្ងោរ|ស៊ិប|ស៊ុប)(?:ស្ងោរ|ស្ងាយ|ស្វាយ)?(?:របស់(?:ឯង|ហែង))?[!,.\s]*/gi, '')
                     .replace(/(?:មើល)?មុខ(?:ដូច)?ស្វា(?:ស៊ីបាយក្ដៅ)?(?:របស់(?:ឯង|ហែង))?(?:ចុះ)?[!,.\s]*/gi, '')
                     .replace(/(?:ធ្វើ)?មុខដូច\s*Mark\s*Zuckerberg(?:\s*ជាប់ឆ្នោត(?:អ៊ីចឹង|អីចឹង))?[!,.\s]*/gi, '')
-                    .replace(/គីង្គក់ឡើងថ្លុក[!,.\s]*/gi, '');
+                    .replace(/គីង្គក់(?:ឡើងថ្លុក|ត្រូវថ្ងៃ)?[!,.\s]*/gi, '')
+                    .replace(/កូនកែវកែប[!,.\s]*/gi, '')
+                    .replace(/កូនកែប[!,.\s]*/gi, '');
                 }
 
                 accumulatedStreamText += text;
@@ -1547,11 +1614,11 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
               `អូយយយ~ នែ៎ស្រីស្អាត! កុំមកចង់ខ្លាំងជាមួយ ${botName}! ស្អាតកម្រិតទេពធីតាស៊ីតិចសោះ មាត់ឆ្នាស់ដល់ហើយ! ទៅគេងឱ្យស្រួលបួលប្រយ័ត្នឡើងមុនណា៎! 😜💅`
             ]
           : [
-              `យីអើ! អាចុយម្រាយ ${username || 'User'} នេះ! មាត់ដូចប្រហោងលាមក ឪហែងអាតានើបមែន បានហ៊ានមកជេរអញហ្នឹង?! មុខដូចគីង្គក់ត្រូវថ្ងៃ អញទះមួយកំភ្លៀងបាក់ធ្មេញដាច់ផ្ងារឥឡូវ! 💀🔥`,
-              `អាឡប់ ${username || 'User'}! ជោរម៉េសប្រូ? ខួរគិតអីខួរ បានហ៊ានមកខ្លាំងជាមួយអញ?! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែន?! 😂👊`,
-              `អាចុយម្រាយអាភ្លើស្ដូកនេះ! មកជេរអញផង? គិតថាអញ AI ស៊ីតិចនេះខ្លាចហែងមែន? មុខដូចស្វាស៊ីបាយក្ដៅ ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាប្អូន! 🤣🔥`,
-              `យី! អាភ្លើស្ដូក ${username || 'User'}! មកហៅអញហែងជាមួយ ${botName} ផង? មុខដូចចានដែកធ្លុះ ក្បាលមិនទាន់ដុះសក់ស្រួលបួលផង ចង់មកខ្លាំង?! 🖕💀`,
-              `ហាហាហា! អាឡប់នេះជោរដល់កហើយ! គិតថាវាយពាក្យជេរមក អញរត់ចោលមែន? មុខដូចហែង ${botName} ទះមួយកំភ្លៀងឱ្យវិលក្បាល 360 ដឺក្រេឥឡូវ! 😜🔥`
+              `យីអើ! អាប្អូន ${username || 'User'} នេះ! មាត់ឡើងឈ្លើយ បានហ៊ានមកជេរ ${botName} ហ្នឹង?! Assignment C# សរសេរ Error ពេញអេក្រង់មិនព្រមទៅដោះស្រាយ ចង់មកខ្លាំងជេររករឿង ${botName} មែន?! 💀🔥`,
+              `អាឡប់ ${username || 'User'}! ជោរម៉េសប្រូ? ខួរគិតអីខួរ បានហ៊ានមកខ្លាំងជាមួយ ${botName}?! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែន?! 😂👊`,
+              `អាប្អូននេះ! មកជេរ ${botName} ផង? គិតថា ${botName} AI ស៊ីតិចនេះខ្លាចហែងមែន? ទៅរៀន Debug កូដឱ្យផុតពី $45 សិនទៅអាប្អូន! 🤣🔥`,
+              `យី! អាភ្លើស្ដូក ${username || 'User'}! មកហៅអញហែងជាមួយ ${botName} ផង? ក្បាលមិនទាន់ដុះសក់ស្រួលបួលផង ចង់មកខ្លាំង?! 🖕💀`,
+              `ហាហាហា! អាឡប់នេះជោរដល់កហើយ! គិតថាវាយពាក្យជេរមក ${botName} រត់ចោលមែន? ${botName} ទះមួយកំភ្លៀងឱ្យវិលក្បាល 360 ដឺក្រេឥឡូវ! 😜🔥`
             ];
         const chosen = savageResponses[Math.floor(Math.random() * savageResponses.length)];
 
