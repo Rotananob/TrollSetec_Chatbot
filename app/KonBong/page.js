@@ -38,8 +38,8 @@ import {
   deleteAllChatSessionsFromDatabase
 } from '../utils/realtimeChat';
 
-const API_ENDPOINT = getApiEndpoint('/api/chat');
-const MEME_ENDPOINT = getApiEndpoint('/api/generate-meme');
+const getChatEndpoint = () => getApiEndpoint('/api/chat');
+const getMemeEndpoint = () => getApiEndpoint('/api/generate-meme');
 
 export default function KonBongPage() {
   const router = useRouter();
@@ -422,7 +422,7 @@ export default function KonBongPage() {
     // Background sync with server to prevent browser tampering/clearing bypass
     try {
       const devId = getDeviceId();
-      fetch(API_ENDPOINT, {
+      fetch(getChatEndpoint(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-device-id': devId },
         body: JSON.stringify({ action: 'check-session', username, deviceId: devId })
@@ -952,7 +952,7 @@ export default function KonBongPage() {
     saveCurrentSessionMessages(updatedWithUser);
 
     try {
-      const res = await fetch(MEME_ENDPOINT, {
+      const res = await fetch(getMemeEndpoint(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1257,7 +1257,7 @@ export default function KonBongPage() {
 
       let botText = '';
       try {
-        const response = await fetch(API_ENDPOINT, {
+        const response = await fetch(getChatEndpoint(), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1379,7 +1379,7 @@ export default function KonBongPage() {
       // High-Reliability Fallback: If streaming produced empty or incomplete text (<8 chars), fetch non-streaming directly
       if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
-          const fallbackRes = await fetch(API_ENDPOINT, {
+          const fallbackRes = await fetch(getChatEndpoint(), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1627,16 +1627,12 @@ export default function KonBongPage() {
     if (typeof window !== 'undefined') {
       try {
         const storedB64 = sessionStorage.getItem('troll_audio_v6_' + hash) || sessionStorage.getItem('troll_audio_v5_' + hash);
-        const storedFallback = sessionStorage.getItem('troll_audio_v6_fallback_' + hash) || sessionStorage.getItem('troll_audio_v5_fallback_' + hash);
-        const storedMime = sessionStorage.getItem('troll_audio_v6_mime_' + hash) || 'audio/mpeg';
+        const storedMime = sessionStorage.getItem('troll_audio_v6_mime_' + hash) || sessionStorage.getItem('troll_audio_v5_mime_' + hash) || 'audio/mpeg';
         if (storedB64) {
           const blob = createAudioBlob(storedB64, storedMime);
           if (blob) {
             const url = URL.createObjectURL(blob);
             audioCacheRef.current.set(hash, url);
-            if (typeof index === 'number') {
-              setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-            }
             return url;
           }
         }
@@ -1654,31 +1650,11 @@ export default function KonBongPage() {
         if (audioRes && audioRes.blob) {
           const url = URL.createObjectURL(audioRes.blob);
           audioCacheRef.current.set(hash, url);
-          if (typeof index === 'number') {
-            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-          }
           return url;
-        }
-
-        // Direct browser stream fallback (guarantees 100% sound playback even if backend proxy drops)
-        const clean = cleanSpeechText(text).slice(0, 200);
-        if (clean) {
-          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(clean)}&tl=km&client=tw-ob`;
-          audioCacheRef.current.set(hash, directUrl);
-          if (typeof index === 'number') {
-            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-          }
-          return directUrl;
         }
         return null;
       } catch (err) {
         console.warn('[Audio] loadAudioUrl error:', err);
-        const clean = cleanSpeechText(text).slice(0, 200);
-        if (clean) {
-          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(clean)}&tl=km&client=tw-ob`;
-          audioCacheRef.current.set(hash, directUrl);
-          return directUrl;
-        }
         return null;
       } finally {
         pendingAudioFetchesRef.current.delete(hash);
@@ -1844,6 +1820,7 @@ export default function KonBongPage() {
     // Instant replay check: if sound is in memory cache, play immediately with 0ms delay (Zero API calls)
     const cachedUrl = audioCacheRef.current.get(hash);
     if (cachedUrl && player) {
+      player.onerror = null;
       player.src = cachedUrl;
       player.currentTime = 0;
       player.playbackRate = playbackSpeed;
@@ -1854,10 +1831,11 @@ export default function KonBongPage() {
         triggerEmojiShower();
       };
       player.onerror = () => {
-        const clean = cleanSpeechText(text).slice(0, 200);
-        if (clean) {
-          player.src = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(clean)}&tl=km&client=tw-ob`;
-          player.play().catch(() => {});
+        player.onerror = null;
+        const spoke = speakWithWebSpeech(text, index);
+        if (!spoke) {
+          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+          setActiveAudioIndex((curr) => (curr === index ? null : curr));
         }
       };
       player.play()
@@ -1879,6 +1857,7 @@ export default function KonBongPage() {
     if (activeAudioRequestRef.current !== reqId) return;
 
     if (audioUrl && player) {
+      player.onerror = null;
       player.src = audioUrl;
       player.playbackRate = playbackSpeed;
       setActiveAudioIndex(index);
@@ -1889,17 +1868,12 @@ export default function KonBongPage() {
         triggerEmojiShower();
       };
       player.onerror = (e) => {
-        console.warn('[Audio] HTML5 audio error, falling back to direct stream:', e);
-        const clean = cleanSpeechText(text).slice(0, 200);
-        if (clean) {
-          player.src = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(clean)}&tl=km&client=tw-ob`;
-          player.play().catch(() => {
-            const spoke = speakWithWebSpeech(text, index);
-            if (!spoke) {
-              setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
-              setActiveAudioIndex((curr) => (curr === index ? null : curr));
-            }
-          });
+        player.onerror = null;
+        console.warn('[Audio] HTML5 audio error, falling back to Web Speech API:', e);
+        const spoke = speakWithWebSpeech(text, index);
+        if (!spoke) {
+          setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
+          setActiveAudioIndex((curr) => (curr === index ? null : curr));
         }
       };
 
@@ -1917,10 +1891,6 @@ export default function KonBongPage() {
           });
       }
     } else {
-      // Direct Web Speech API fallback
-      if (typeof index === 'number') {
-        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-      }
       const spoke = speakWithWebSpeech(text, index);
       if (!spoke) {
         setAudioStates((prev) => ({ ...prev, [index]: 'ready' }));
@@ -2957,12 +2927,12 @@ export default function KonBongPage() {
                                 ? 'bg-amber-500/20 text-amber-300 border-amber-400 hover:bg-amber-500/30 shadow-md shadow-amber-500/20 ring-1 ring-amber-400/40'
                                 : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 shadow-xs ring-1 ring-amber-400/30 font-black'
                             }`}
-                            title="សំឡេង Bot អានជំនួសសំឡេង AI (100% ដំណើរការ)"
+                            title="ចុចដើម្បីស្ដាប់សំឡេង"
                           >
                             {isThisItemLoading && (
                               <>
                                 <i className="fas fa-spinner fa-spin text-amber-500 dark:text-amber-400"></i>{' '}
-                                <span>កំពុងរៀបចំ (សំឡេង Bot អានជំនួសសំឡេង AI)...</span>
+                                <span>កំពុងរៀបចំសំឡេង...</span>
                               </>
                             )}
                             {isThisItemPlaying && (
@@ -2972,25 +2942,25 @@ export default function KonBongPage() {
                                   <span className="w-0.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-eq-2 inline-block"></span>
                                   <span className="w-0.5 bg-amber-500 dark:bg-amber-400 rounded-full animate-eq-3 inline-block"></span>
                                 </div>
-                                <span>កំពុងអាន (សំឡេង Bot អានជំនួសសំឡេង AI)...</span>
+                                <span>កំពុងអាន...</span>
                               </>
                             )}
                             {isThisItemPaused && (
                               <>
                                 <i className="fas fa-play text-amber-500 dark:text-amber-400"></i>{' '}
-                                <span>បន្តស្ដាប់ (សំឡេង Bot អានជំនួសសំឡេង AI)</span>
+                                <span>បន្តស្ដាប់</span>
                               </>
                             )}
                             {isThisItemEnded && (
                               <>
                                 <i className="fas fa-rotate text-amber-500 dark:text-amber-400"></i>{' '}
-                                <span>ស្ដាប់ឡើងវិញ (សំឡេង Bot អានជំនួស)</span>
+                                <span>ស្ដាប់ឡើងវិញ</span>
                               </>
                             )}
                             {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
                               <>
-                                <i className="fas fa-robot text-amber-500 dark:text-amber-400 text-xs"></i>{' '}
-                                <span>ស្ដាប់ (សំឡេង Bot អានជំនួសសំឡេង AI)</span>
+                                <i className="fas fa-volume-high text-amber-500 dark:text-amber-400 text-xs"></i>{' '}
+                                <span>ស្ដាប់សំឡេង</span>
                               </>
                             )}
                           </button>

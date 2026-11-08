@@ -8,7 +8,7 @@ import {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-device-id, x-session-id, x-requested-with',
   'X-Engine': 'setec-neural-vision-v3',
   'X-Powered-By': 'SETEC Vision Core v3.8',
   'Server': 'SETEC-Cloud-Gateway'

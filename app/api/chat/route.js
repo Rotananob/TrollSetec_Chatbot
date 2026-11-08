@@ -31,7 +31,7 @@ import {
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, x-device-id',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-device-id, x-session-id, x-requested-with',
   'X-Engine': 'setec-neural-core-v3',
   'X-Powered-By': 'SETEC Neural Network v3.8',
   'Server': 'SETEC-Cloud-Gateway'
@@ -160,7 +160,7 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 20000
 }
 
 // Native Gemini TTS via /v1beta/interactions with key rotation across all available pool keys
-async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 3800) {
+async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 2500) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
   if (keys.length === 0) return { ok: false };
 
@@ -212,10 +212,13 @@ async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 380
           return { ok: true, data: b64Data, mimeType: 'audio/wav' };
         }
       } else {
-        console.warn(`[Gemini TTS] key (${key.slice(0, 8)}...) status ${res.status}`);
+        if (res.status === 429) {
+          // Free tier rate limit exhausted (10 req/day). Break immediately without delaying.
+          break;
+        }
       }
-    } catch (err) {
-      console.warn(`[Gemini TTS] key (${key.slice(0, 8)}...) error:`, err.message);
+    } catch {
+      // Fast fallback to Khmer TTS engine
     }
   }
   return { ok: false };
@@ -996,7 +999,7 @@ export async function POST(req) {
       if (fallbackAudioB64) {
         return Response.json(
           {
-            isFallbackBotVoice: true,
+            isFallbackBotVoice: false,
             candidates: [
               {
                 content: {

@@ -11,6 +11,7 @@ const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast
 function playBroadcastChime() {
   try {
     if (typeof window === 'undefined') return;
+    if (typeof navigator !== 'undefined' && navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
