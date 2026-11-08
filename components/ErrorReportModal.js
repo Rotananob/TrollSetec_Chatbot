@@ -35,13 +35,20 @@ export default function ErrorReportModal({
     let timer = null;
     if (sentSuccess && countdown > 0) {
       timer = setInterval(() => {
-        setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            if (onClose) onClose();
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
     }
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [sentSuccess, countdown]);
+  }, [sentSuccess, countdown, onClose]);
 
   if (!isOpen) return null;
 

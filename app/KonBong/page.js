@@ -531,12 +531,25 @@ export default function KonBongPage() {
   };
 
   const handleCountdownExpired = () => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    if (activeLiveSessionId) {
+      updateLiveSessionState(activeLiveSessionId, {
+        status: 'expired',
+        alertActive: false
+      }).catch(() => {});
+    }
+    setActiveLiveSessionId(null);
+    setCountdownRemaining(null);
+
     setMessages((prev) => {
       if (prev.some((m) => m.isExpireAlertPrompt)) return prev;
       const expireMsg = {
         role: 'bot',
         isExpireAlertPrompt: true,
-        text: 'ផុតកំណត់ម៉ោងរង់ចាំរយៈពេល 180 វិនាទី! Rotana NOB អាចកំពុងរវល់ ឬជាប់ភារកិច្ចបន្ទាន់។ ប្អូនអាចចុច Re-send Alert ម្ដងទៀត ឬផ្ញើសារ Report ទុកដើម្បីឱ្យ Rotana NOB ចូលមកពិនិត្យនៅពេលក្រោយបាន។',
+        text: 'ផុតកំណត់ម៉ោងរង់ចាំរយៈពេល 3 នាទី! Rotana NOB អាចកំពុងរវល់ ឬជាប់ភារកិច្ចបន្ទាន់។ ប្រព័ន្ធបានបិទផ្ទាំងរង់ចាំនេះដោយស្វ័យប្រវត្តិ។ ប្អូនអាចចុចផ្ញើសារ Report ឬ Alert ម្ដងទៀតនៅពេលក្រោយបាន។',
         timestamp: Date.now()
       };
       const updated = [...prev, expireMsg];
@@ -564,6 +577,15 @@ export default function KonBongPage() {
 
       setIsRotanaOnline(!!sessionData.rotanaActive);
       setIsBotPaused(!!sessionData.botPaused);
+
+      // If session ended or expired, immediately reset live session and remove banner
+      if (sessionData.status === 'ended' || sessionData.status === 'expired') {
+        setIsRotanaOnline(false);
+        setIsBotPaused(false);
+        setActiveLiveSessionId(null);
+        setCountdownRemaining(null);
+        return;
+      }
 
       // If Rotana joined, clear user countdown
       if (sessionData.rotanaActive) {
@@ -2692,7 +2714,7 @@ export default function KonBongPage() {
         </div>
       )}
 
-      {!isRotanaAdmin && (isRotanaOnline || activeLiveSessionId) && (
+      {!isRotanaAdmin && (isRotanaOnline || (activeLiveSessionId && countdownRemaining !== null && countdownRemaining > 0)) && (
         <div className="shrink-0 z-20 px-3 sm:px-6 pt-2 pb-1 bg-inherit">
           <div
             className={`p-3 rounded-2xl shadow-xl flex items-center justify-between gap-3 animate-fade-in border ${
@@ -2747,9 +2769,29 @@ export default function KonBongPage() {
                 1-1 LIVE
               </span>
             ) : countdownRemaining !== null && countdownRemaining > 0 ? (
-              <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black font-mono shrink-0 border border-amber-500/30">
-                {Math.floor(countdownRemaining / 60)}:{(countdownRemaining % 60).toString().padStart(2, '0')}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black font-mono border border-amber-500/30">
+                  {Math.floor(countdownRemaining / 60)}:{(countdownRemaining % 60).toString().padStart(2, '0')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (countdownIntervalRef.current) {
+                      clearInterval(countdownIntervalRef.current);
+                      countdownIntervalRef.current = null;
+                    }
+                    if (activeLiveSessionId) {
+                      updateLiveSessionState(activeLiveSessionId, { status: 'cancelled', alertActive: false }).catch(() => {});
+                    }
+                    setActiveLiveSessionId(null);
+                    setCountdownRemaining(null);
+                  }}
+                  className="w-6 h-6 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer border border-amber-500/30"
+                  title="បិទ (Dismiss)"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
             ) : null}
           </div>
         </div>
