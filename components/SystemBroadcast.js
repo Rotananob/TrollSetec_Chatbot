@@ -302,7 +302,7 @@ export default function SystemBroadcast() {
                   សារលើកផ្លាកប្រាប់ដំណឹង
                 </span>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
-                  "ចាំតិចបងអើយ ញុមរវល់ភ្លេចបើកមើលថែមៗ"
+                  សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រងប្រព័ន្ធ
                 </h3>
               </div>
             </div>
@@ -311,16 +311,16 @@ export default function SystemBroadcast() {
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 text-left space-y-2.5">
               <div>
                 <span className="text-[11px] font-bold text-slate-500 block uppercase tracking-wider mb-1">
-                  មូលហេតុបិទប្រព័ន្ធ (Server Maintenance Notice)
+                  មូលហេតុបិទប្រព័ន្ធ
                 </span>
                 <p className="text-sm sm:text-base font-sans text-slate-900 font-semibold leading-relaxed whitespace-pre-wrap break-words">
-                  {systemState.maintenanceReason || activeNotice || 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban\n(សម្រាកប្រហែលជា ៣ ម៉ោងសិន)'}
+                  {systemState.maintenanceReason || activeNotice || 'Jam tic nh bit mlat sin srul Kom oy klas kaeng klas chat ban klas ort ban'}
                 </p>
               </div>
 
               {/* Creative Chill Student Vibe Note */}
               <div className="pt-2 border-t border-slate-200/80 text-xs sm:text-sm text-slate-600 leading-relaxed font-sans">
-                កុំទាន់ស្លន់! Creator កំពុងរៀបចំសម្រួលប្រព័ន្ធឱ្យស្រួលបួលឡើងវិញ តិចទៀតរួចរាល់ហើយ។ អង្គុយ Chill ផឹកកាហ្វេសិនទៅ!
+                អ្នកគ្រប់គ្រងកំពុងរៀបចំសម្រួលប្រព័ន្ធឱ្យស្រួលបួលឡើងវិញ បន្តិចទៀតរួចរាល់ហើយ។
               </div>
             </div>
 
@@ -333,13 +333,13 @@ export default function SystemBroadcast() {
                 </span>
                 Auto-Syncing Real-time
               </span>
-              <span>ម៉ោងនៅភ្នំពេញ: {String(cambodiaHour).padStart(2, '0')}:00 (UTC+7)</span>
+              <span>ម៉ោងនៅភ្នំពេញ: {String(cambodiaHour).padStart(2, '0')}:00</span>
             </div>
 
             {/* Auto-reconnect notification box (NO REFRESH BUTTON) */}
             <div className="p-3 rounded-xl bg-slate-100 border border-slate-200 text-center">
               <p className="text-xs text-slate-700 font-sans font-medium">
-                ទំព័រនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិតែម្ដង នៅពេល Server បើកវិញ (ពុំបាច់ចុច Refresh ឡើយ)
+                ទំព័រនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិតែម្ដង នៅពេល Server បើកវិញ
               </p>
             </div>
           </div>

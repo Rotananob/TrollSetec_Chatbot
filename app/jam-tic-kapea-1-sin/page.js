@@ -326,12 +326,16 @@ export default function JamTicKapeaAdminPage() {
   // Quick Action Handlers
   const handleToggleServer = () => {
     const nextState = !systemState.serverOnline;
+    const patch = {
+      serverOnline: nextState,
+      maintenanceMode: !nextState
+    };
+    if (!nextState && editMaintenanceReason && editMaintenanceReason.trim()) {
+      patch.maintenanceReason = editMaintenanceReason.trim();
+    }
     sendUpdate(
-      {
-        serverOnline: nextState,
-        maintenanceMode: !nextState
-      },
-      nextState ? 'បើកដំណើរការ Server ឡើងវិញ (Resume Server)' : 'បិទ Server ដាក់ថែទាំភ្លាមៗ (Emergency Stop / Maintenance)'
+      patch,
+      nextState ? 'បើកដំណើរការ Server ឡើងវិញ' : 'បិទ Server ដាក់ថែទាំភ្លាមៗ'
     );
   };
 
@@ -1080,7 +1084,7 @@ export default function JamTicKapeaAdminPage() {
                   }`} />
                   <span>
                     {systemState.serverOnline && !systemState.maintenanceMode
-                      ? 'បិទ Server (ដាក់ Maintenance ឥឡូវ)'
+                      ? 'បិទ Server ដាក់ Maintenance ឥឡូវ'
                       : 'បើកដំណើរការ Server ឡើងវិញ'}
                   </span>
                 </button>
@@ -1091,7 +1095,7 @@ export default function JamTicKapeaAdminPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-semibold text-slate-300">
-                      សារជូនដំណឹងពេលថែទាំ Server (បង្ហាញលើផ្ទាំង Chat របស់សិស្ស)
+                      សារជូនដំណឹងពេលថែទាំ Server សម្រាប់បង្ហាញលើផ្ទាំង Chat របស់សិស្ស
                     </label>
                     <button
                       type="button"

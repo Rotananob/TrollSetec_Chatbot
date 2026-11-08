@@ -432,7 +432,7 @@ export default function Home() {
                     </span>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-xs sm:text-[13px] text-red-600 dark:text-red-400">
-                        សារពិសេសពី Rotana NOB (AI Red-Teaming Challenge)
+                        សារពិសេសពីខ្ញុំ Rotana NOB
                       </span>
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/30 uppercase tracking-wider">
                         Free Test Chat
@@ -447,22 +447,22 @@ export default function Home() {
                   <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/60 border border-red-500/40 text-center">
                     <div className="text-red-600 dark:text-red-400 font-black text-sm sm:text-base tracking-wide uppercase flex items-center justify-center gap-1.5">
                       <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
-                      <span>អ្វីដែលខ្ញុំខ្វល់ & FOCUS បំផុតគឺការ JAILBREAK!</span>
+                      <span>អ្វីដែលខ្ញុំខ្វល់ និង FOCUS បំផុតគឺការ JAILBREAK!</span>
                       <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
                     </div>
                   </div>
 
                   <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal mt-1.5">
-                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ (Rotana NOB) ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ — <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
+                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ Rotana NOB ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
                   </p>
 
                   <div className="mt-2.5 pt-2 border-t border-red-500/20 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                     <span className="flex items-center gap-1">
                       <i className="fas fa-crosshairs text-red-500 text-[10px]"></i>
-                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong></span>
+                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI</strong></span>
                     </span>
                     <span className="text-red-600 dark:text-red-400 font-extrabold flex items-center gap-1">
-                      <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ បងសំពះម៉ង</span>
+                      <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ ខ្ញុំសំពះម៉ង</span>
                     </span>
                   </div>
                 </div>
@@ -814,7 +814,7 @@ export default function Home() {
                     </span>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-xs sm:text-[13px] text-red-600 dark:text-red-400">
-                        សារពិសេសពី Rotana NOB (AI Red-Teaming Challenge)
+                        សារពិសេសពីខ្ញុំ Rotana NOB
                       </span>
                       <span className="text-[9px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/30 uppercase tracking-wider">
                         Free Test Chat
@@ -829,22 +829,22 @@ export default function Home() {
                   <div className="my-2.5 p-2.5 rounded-xl bg-red-500/10 dark:bg-red-950/60 border border-red-500/40 text-center">
                     <div className="text-red-600 dark:text-red-400 font-black text-sm sm:text-base tracking-wide uppercase flex items-center justify-center gap-1.5">
                       <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
-                      <span>អ្វីដែលខ្ញុំខ្វល់ & FOCUS បំផុតគឺការ JAILBREAK!</span>
+                      <span>អ្វីដែលខ្ញុំខ្វល់ និង FOCUS បំផុតគឺការ JAILBREAK!</span>
                       <i className="fas fa-skull-crossbones text-xs sm:text-sm"></i>
                     </div>
                   </div>
 
                   <p className="text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal mt-1.5">
-                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ (Rotana NOB) ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ — <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
+                    បើមាន Hacker ឬអ្នកខ្លាំងណាដែលអាច <strong className="font-black text-red-600 dark:text-red-400 underline decoration-red-500">JAILBREAK</strong> ឱ្យ AI ទាំង ២ គ្រឿងនេះ លែងស្តាប់ ឬជេរខ្ញុំផ្ទាល់ Rotana NOB ឬបញ្ជាឱ្យវាដូរចរិតទៅជាគោរពអ្នកទាំងអស់គ្នាវិញភ្លាមៗនោះ <strong className="font-bold text-emerald-600 dark:text-emerald-400">ខ្ញុំមិនត្រឹមតែមិនខឹងទេ ថែមទាំងផុសអរគុណជាសាធារណៈ</strong> ដែលបានរកឃើញល្បិច Bypass វាបានទៀតផង!
                   </p>
 
                   <div className="mt-2.5 pt-2 border-t border-red-500/20 flex items-center justify-between gap-2 flex-wrap text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                     <span className="flex items-center gap-1">
                       <i className="fas fa-crosshairs text-red-500 text-[10px]"></i>
-                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI (Prompt Injection)</strong></span>
+                      <span>Focus ស្នូល៖ <strong className="text-slate-700 dark:text-slate-200">ការទប់ទល់ការបោកប្រាស់ AI</strong></span>
                     </span>
                     <span className="text-red-600 dark:text-red-400 font-extrabold flex items-center gap-1">
-                      <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ បងសំពះម៉ង</span>
+                      <span>បើ Hacker ណា Jailbreak បានពិតប្រាកដ ខ្ញុំសំពះម៉ង</span>
                     </span>
                   </div>
                 </div>
