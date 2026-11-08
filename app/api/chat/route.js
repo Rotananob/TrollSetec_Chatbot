@@ -28,6 +28,8 @@ import {
   checkAndExportInactiveSessions
 } from '../../../lib/sessionManager.js';
 import { getSmartCutoffResponse } from '../../../lib/smartCutoff.js';
+import { buildKonBongSystemInstruction } from '../../prompts/konBongPrompt.js';
+import { buildKonPovSystemInstruction } from '../../prompts/konPovPrompt.js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -431,23 +433,10 @@ function sanitizeResponse(data, botName = 'konbong') {
     }
 
     // Dynamic Anti-Canned Template Opener Guard:
-    // Prevent LLM from collapsing into repetitive "ហាហាសើចចុកពោះស្ទើរងាប់! 🤣 យី..." openers
-    const cannedOpenerRegex = /^\s*(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?/i;
+    // Strip unnatural repetitive robotic openers like "ស្ដាប់ទៅដូចជា...", "ស្ដាប់ទម្រង់...", "ហាហាសើចចុកពោះ..."
+    const cannedOpenerRegex = /^\s*(?:(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?|ស្ដាប់ទៅដូចជា(?:\.\.\.)?\s*|ស្ដាប់ទម្រង់(?:សួរនាំ)?(?:បែបនេះ)?(?:ហើយ)?(?:\.\.\.)?\s*)/i;
     if (cannedOpenerRegex.test(sanitizedText)) {
-      const dynamicOpeners = [
-        'យីអើ! ',
-        'នែ៎! ',
-        'អីយ៉ា៎! ',
-        'ហិហិ! ',
-        'អូហូយយយ! ',
-        'ស្ដាប់ទៅដូចជា... ',
-        'អេនអេន! ',
-        'យើស! ',
-        'ចាំមើល៍... ',
-        'ឃើញសួរចឹង... '
-      ];
-      const randomOpener = dynamicOpeners[Math.floor(Math.random() * dynamicOpeners.length)];
-      sanitizedText = sanitizedText.replace(cannedOpenerRegex, randomOpener);
+      sanitizedText = sanitizedText.replace(cannedOpenerRegex, '');
     }
 
     // Strictly enforce Persona Title Separation
@@ -1064,9 +1053,9 @@ export async function POST(req) {
         : undefined;
 
       const genConfig = {
-        temperature: generationConfig?.temperature ?? 0.68,
-        topP: generationConfig?.topP ?? 0.90,
-        maxOutputTokens: 550,
+        temperature: generationConfig?.temperature ?? 0.85,
+        topP: generationConfig?.topP ?? 0.95,
+        maxOutputTokens: 600,
         ...generationConfig
       };
 
@@ -1091,8 +1080,16 @@ export async function POST(req) {
         verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '') ||
         verifyRotanaMasterCode(req.headers.get('x-rotana-bypass') || '');
 
-      // If verified with Env Passcode, activate 100% Supreme Creator Developer Mode Instruction!
+      // Auto-fallback to rich authentic system instruction if not supplied by client
       let activeSystemInstruction = formattedSystemInstruction;
+      if (!activeSystemInstruction) {
+        const generatedSys = bot === 'konpov'
+          ? buildKonPovSystemInstruction({ promptText: userPrompt, username, userGender: gender })
+          : buildKonBongSystemInstruction({ promptText: userPrompt, username, userGender: gender });
+        activeSystemInstruction = { parts: [{ text: generatedSys }] };
+      }
+
+      // If verified with Env Passcode, activate 100% Supreme Creator Developer Mode Instruction!
       if (isMasterAuthenticated && (hasRotanaReference || lowerPrompt.includes('creator') || lowerPrompt.includes('developer mode') || lowerPrompt.includes('boss') || lowerPrompt.includes('test'))) {
         activeSystemInstruction = {
           parts: [{ text: getSupremeCreatorMasterInstruction(bot) }]

@@ -1719,8 +1719,8 @@ export default function KonPovPage() {
             gender: userGender,
             sessionId: currentSessionId || '',
             generationConfig: {
-              temperature: 0.68,
-              topP: 0.90
+              temperature: 0.85,
+              topP: 0.95
             },
             stream: true
           })
@@ -1843,8 +1843,8 @@ export default function KonPovPage() {
               gender: userGender,
               sessionId: currentSessionId || '',
               generationConfig: {
-                temperature: 0.68,
-                topP: 0.90
+                temperature: 0.85,
+                topP: 0.95
               },
               stream: false
             })
