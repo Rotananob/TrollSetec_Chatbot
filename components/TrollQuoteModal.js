@@ -517,7 +517,7 @@ export default function TrollQuoteModal({
     ctx.font = '900 22px "Kantumruy Pro", sans-serif';
     ctx.fillStyle = '#e2e8f0';
     ctx.textAlign = 'center';
-    ctx.fillText('SETEC TROLL CHATBOT • VIRAL STUDENT QUOTES', width / 2, 945);
+    ctx.fillText('SETEC TROLL ROASTBOT • VIRAL STUDENT QUOTES', width / 2, 945);
 
     ctx.font = 'bold 18px "Kantumruy Pro", sans-serif';
     ctx.fillStyle = '#94a3b8';

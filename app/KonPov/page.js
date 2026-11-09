@@ -441,7 +441,7 @@ export default function KonPovPage() {
               });
               addSessionLog(
                 liveSessionParam,
-                '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Chatbot ត្រូវបានផ្អាកការឆ្លើយតប។',
+                '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Roastbot ត្រូវបានផ្អាកការឆ្លើយតប។',
                 'join'
               );
 
@@ -3091,7 +3091,7 @@ export default function KonPovPage() {
                 <p className="text-[10.5px] text-slate-300 font-medium truncate">
                   {isRotanaOnline
                     ? isBotPaused
-                      ? 'Chatbot ត្រូវបានផ្អាក។ បងប្អូនកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
+                      ? 'Roastbot ត្រូវបានផ្អាក។ បងប្អូនកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
                       : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ (1-1 Protocol)។'
                     : countdownRemaining !== null && countdownRemaining > 0
                     ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ (នៅសល់ ${countdownRemaining}s)...`
@@ -4055,7 +4055,7 @@ export default function KonPovPage() {
                 : isRotanaAdmin
                 ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
                 : isBotPaused
-                ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបង Rotana...'
+                ? 'Roastbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបង Rotana...'
                 : !hasAgreed
                 ? 'សូមអាន Note និងចុចយល់ព្រមខាងលើសិន មុនពេលឆាត...'
                 : isLoading

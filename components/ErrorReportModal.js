@@ -8,7 +8,7 @@ export default function ErrorReportModal({
   isOpen,
   onClose,
   defaultUsername = '',
-  bot = 'Chatbot',
+  bot = 'Roastbot',
   initialIssue = '',
   isDark = true,
   sessionId = '',

@@ -426,7 +426,7 @@ export default function KonBongPage() {
               });
               addSessionLog(
                 liveSessionParam,
-                '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Chatbot ត្រូវបានផ្អាកការឆ្លើយតប។',
+                '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Roastbot ត្រូវបានផ្អាកការឆ្លើយតប។',
                 'join'
               );
 
@@ -2700,7 +2700,7 @@ export default function KonBongPage() {
                 ? 'bg-blue-500/10 border-blue-400/20 text-blue-300 hover:bg-blue-500/20'
                 : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 shadow-xs'
             }`}
-            title="ប្តូរទៅ ស៊ីតិច Chatbot កូនពៅ (ស្ដេចឌឺ)"
+            title="ប្តូរទៅ ស៊ីតិច Roastbot កូនពៅ (ស្ដេចឌឺ)"
           >
             <i className="fas fa-repeat text-[9px]"></i>
             <span className="hidden sm:inline">កូនពៅ</span>
@@ -2808,8 +2808,8 @@ export default function KonBongPage() {
                 </div>
                 <p className="text-[10px] text-slate-300 truncate font-semibold">
                   {isBotPaused
-                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} (Chatbot ត្រូវបានផ្អាក AI)`
-                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} (Chatbot កំពុងដំណើរការ)`}
+                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} (Roastbot ត្រូវបានផ្អាក AI)`
+                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} (Roastbot កំពុងដំណើរការ)`}
                 </p>
               </div>
             </div>
@@ -2823,8 +2823,8 @@ export default function KonBongPage() {
                   addSessionLog(
                     activeLiveSessionId,
                     nextState
-                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Chatbot (AI Paused) - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
-                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Chatbot ឡើងវិញ (AI Resumed)។',
+                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Roastbot (AI Paused) - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
+                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Roastbot ឡើងវិញ (AI Resumed)។',
                     'state_change'
                   );
                 }}
@@ -2840,7 +2840,7 @@ export default function KonBongPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? (Chatbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ)')) {
+                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? (Roastbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ)')) {
                     await updateLiveSessionState(activeLiveSessionId, {
                       alertActive: false,
                       rotanaActive: false,
@@ -2849,7 +2849,7 @@ export default function KonBongPage() {
                     });
                     await addSessionLog(
                       activeLiveSessionId,
-                      '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat - Chatbot បានបន្តដំណើរការឆ្លើយតបឡើងវិញជាស្វ័យប្រវត្តិ។',
+                      '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat - Roastbot បានបន្តដំណើរការឆ្លើយតបឡើងវិញជាស្វ័យប្រវត្តិ។',
                       'leave'
                     );
                     setIsBotPaused(false);

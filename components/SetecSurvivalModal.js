@@ -304,7 +304,7 @@ export default function SetecSurvivalModal({
               className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-black text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <i className="fas fa-paper-plane"></i>
-              <span>ផ្ញើលទ្ធផលទៅឱ្យ Chatbot {botPersona} Roast ភ្លាម!</span>
+              <span>ផ្ញើលទ្ធផលទៅឱ្យ Roastbot {botPersona} Roast ភ្លាម!</span>
             </button>
           </div>
         )}
@@ -376,7 +376,7 @@ export default function SetecSurvivalModal({
               className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-black text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
               <i className="fas fa-triangle-exclamation"></i>
-              <span>ផ្ញើទៅសុំជំនួយពី Chatbot {botPersona} ភ្លាម!</span>
+              <span>ផ្ញើទៅសុំជំនួយពី Roastbot {botPersona} ភ្លាម!</span>
             </button>
           </div>
         )}
