@@ -298,6 +298,85 @@ export default function JamTicKapeaAdminPage() {
     }
   }, []);
 
+  // Handle Login Authentication (supports event, direct passcode string, and 1-click login)
+  const handleAuthenticate = useCallback(async (e = null, directPasscode = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const targetPasscode = (directPasscode || passcodeRef.current || passcode || '').trim();
+    if (!targetPasscode) {
+      setAuthError('សូមបញ្ចូលលេខកូដសម្ងាត់ Master Passcode របស់អ្នក!');
+      return;
+    }
+
+    setIsVerifying(true);
+    setAuthError('');
+
+    try {
+      const endpoint = getApiEndpoint('/api/system-status');
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-rotana-passcode': targetPasscode
+        },
+        body: JSON.stringify({
+          action: 'verify-auth',
+          passcode: targetPasscode
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setIsAuthenticated(true);
+        setPasscode(targetPasscode);
+        passcodeRef.current = targetPasscode;
+
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('rotana_admin_passcode', targetPasscode);
+          const shouldRemember = localStorage.getItem('rotana_admin_remember') !== 'false';
+          if (shouldRemember) {
+            localStorage.setItem('rotana_admin_passcode', targetPasscode);
+            localStorage.setItem('rotana_admin_remember', 'true');
+            setSavedPasscodeExists(true);
+          }
+        }
+
+        if (data.state) {
+          setSystemState(data.state);
+          if (data.evaluation) setEvaluation(data.evaluation);
+          setEditMaintenanceReason(data.state.maintenanceReason || '');
+          setEditNightMessage(data.state.nightRestMessage || '');
+          setEditBroadcastNotice(data.state.broadcastNotice || '');
+          setEditKonBongNotice(data.state.konbongNotice || '');
+          setEditKonPovNotice(data.state.konpovNotice || '');
+          setEditNightStart(data.state.nightStartHour ?? 2);
+          setEditNightEnd(data.state.nightEndHour ?? 6);
+          initialLoadedRef.current = true;
+        }
+        setStatusMessage({ text: 'ផ្ទៀងផ្ទាត់សិទ្ធិជោគជ័យ! សូមស្វាគមន៍មកកាន់មជ្ឈមណ្ឌលគ្រប់គ្រងប្រព័ន្ធ។', type: 'success' });
+      } else {
+        setAuthError(data.message || 'លេខកូដសម្ងាត់មិនត្រឹមត្រូវ! សិទ្ធិចូលដំណើរការត្រូវបានបដិសេធ។');
+      }
+    } catch {
+      setAuthError('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនមេ! សូមព្យាយាមម្ដងទៀត។');
+    } finally {
+      setIsVerifying(false);
+    }
+  }, [passcode]);
+
+  // Handle Logout (keeps saved password for easy 1-click return, or clear completely)
+  const handleLogout = (clearSaved = false) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('rotana_admin_passcode');
+      if (clearSaved) {
+        localStorage.removeItem('rotana_admin_passcode');
+        localStorage.removeItem('rotana_admin_remember');
+        setPasscode('');
+        setSavedPasscodeExists(false);
+      }
+    }
+    setIsAuthenticated(false);
+  };
+
   // Initial Auth Check from LocalStorage or SessionStorage (Auto-fill & 1-Click login support)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -593,84 +672,7 @@ export default function JamTicKapeaAdminPage() {
     }
   };
 
-  // Handle Login Authentication (supports event, direct passcode string, and 1-click login)
-  const handleAuthenticate = useCallback(async (e = null, directPasscode = null) => {
-    if (e && e.preventDefault) e.preventDefault();
-    const targetPasscode = (directPasscode || passcodeRef.current || passcode || '').trim();
-    if (!targetPasscode) {
-      setAuthError('សូមបញ្ចូលលេខកូដសម្ងាត់ Master Passcode របស់អ្នក!');
-      return;
-    }
 
-    setIsVerifying(true);
-    setAuthError('');
-
-    try {
-      const endpoint = getApiEndpoint('/api/system-status');
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-rotana-passcode': targetPasscode
-        },
-        body: JSON.stringify({
-          action: 'verify-auth',
-          passcode: targetPasscode
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        setIsAuthenticated(true);
-        setPasscode(targetPasscode);
-        passcodeRef.current = targetPasscode;
-
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('rotana_admin_passcode', targetPasscode);
-          const shouldRemember = localStorage.getItem('rotana_admin_remember') !== 'false';
-          if (shouldRemember) {
-            localStorage.setItem('rotana_admin_passcode', targetPasscode);
-            localStorage.setItem('rotana_admin_remember', 'true');
-            setSavedPasscodeExists(true);
-          }
-        }
-
-        if (data.state) {
-          setSystemState(data.state);
-          if (data.evaluation) setEvaluation(data.evaluation);
-          setEditMaintenanceReason(data.state.maintenanceReason || '');
-          setEditNightMessage(data.state.nightRestMessage || '');
-          setEditBroadcastNotice(data.state.broadcastNotice || '');
-          setEditKonBongNotice(data.state.konbongNotice || '');
-          setEditKonPovNotice(data.state.konpovNotice || '');
-          setEditNightStart(data.state.nightStartHour ?? 2);
-          setEditNightEnd(data.state.nightEndHour ?? 6);
-          initialLoadedRef.current = true;
-        }
-        setStatusMessage({ text: 'ផ្ទៀងផ្ទាត់សិទ្ធិជោគជ័យ! សូមស្វាគមន៍មកកាន់មជ្ឈមណ្ឌលគ្រប់គ្រងប្រព័ន្ធ។', type: 'success' });
-      } else {
-        setAuthError(data.message || 'លេខកូដសម្ងាត់មិនត្រឹមត្រូវ! សិទ្ធិចូលដំណើរការត្រូវបានបដិសេធ។');
-      }
-    } catch {
-      setAuthError('មានបញ្ហាក្នុងការតភ្ជាប់ទៅកាន់ម៉ាស៊ីនមេ! សូមព្យាយាមម្ដងទៀត។');
-    } finally {
-      setIsVerifying(false);
-    }
-  }, [passcode]);
-
-  // Handle Logout (keeps saved password for easy 1-click return, or clear completely)
-  const handleLogout = (clearSaved = false) => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('rotana_admin_passcode');
-      if (clearSaved) {
-        localStorage.removeItem('rotana_admin_passcode');
-        localStorage.removeItem('rotana_admin_remember');
-        setPasscode('');
-        setSavedPasscodeExists(false);
-      }
-    }
-    setIsAuthenticated(false);
-  };
 
   // Perform Server State Update via API + Direct Parallel Real-Time Firebase Sync
   const sendUpdate = async (patch, actionDescription = 'Update System Parameters') => {
