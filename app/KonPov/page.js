@@ -2667,9 +2667,10 @@ export default function KonPovPage() {
           isErrorResponse = false;
         } else {
           consecutiveErrorsRef.current += 1;
-          botText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
-          isErrorResponse = true;
-          isSmartCutoff = true;
+          const isThreat = Boolean(/jailbreak|bypass|hack|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText) || consecutiveErrorsRef.current >= 4);
+          botText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender, isThreat);
+          isErrorResponse = isThreat;
+          isSmartCutoff = isThreat;
         }
       } else {
         botText = enforcePersonaConsistency(cleanRawOutput(botText), isMaleUser);
@@ -2728,8 +2729,9 @@ export default function KonPovPage() {
         const isSweetOrFlirt = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់ចែ|ស្រឡាញ់|សុំស្នេហ៍)/ui.test(promptText);
         const isCurseWord = !isSweetOrFlirt && /(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|\b(?:kduy|kdor|joy|lop|ah\s*chke)\b)/ui.test(promptText);
 
-        fallbackText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
-        isErr = false;
+        const isThreat = Boolean(/jailbreak|bypass|hack|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText) || consecutiveErrorsRef.current >= 4);
+        fallbackText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender, isThreat);
+        isErr = isThreat;
 
         if (isSweetOrFlirt) {
           fallbackText = isMaleUser

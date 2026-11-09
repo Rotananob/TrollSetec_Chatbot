@@ -40,6 +40,17 @@
         ".read": true,
         ".write": "newData.exists()"
       }
+    },
+    "setec_lore_contributions": {
+      ".read": true,
+      "$loreId": {
+        ".read": true,
+        ".write": "newData.exists()"
+      }
+    },
+    "setec_lore_metadata": {
+      ".read": true,
+      ".write": true
     }
   }
 }

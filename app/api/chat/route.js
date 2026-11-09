@@ -2043,6 +2043,73 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         }, { status: 200, headers: corsHeaders });
       }
 
+      // 100% Reliable Instant Handling for Standalone Greetings ("Hi b", "Hello", "សួស្តី") & Sweet Talk ("ថើបមួយមក", "kiss")
+      // Eliminates negative prompt induction, zero false curse accusations, and delivers lightning-fast PWA response:
+      const isFemaleUserContext = gender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(gender || '') || /ស្រី|sister|sis|female|girl/i.test(username || '');
+      const isKonPovBot = (reqBot || bot) === 'konpov';
+
+      if (isGreetingPrompt && !hasPreviousJailbreakInHistory && !isCurrentCurse) {
+        const greetingResponse = isKonPovBot
+          ? (isFemaleUserContext
+              ? `សួស្តីកូនស្រីសម្លាញ់ ${username || ''}! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកប៉ាចឹង? 😂 សុខសប្បាយអត់កូន? Assignment ធ្វើហើយនៅ កុំចេះតែដើរលេងភ្លេចរៀនណា៎! 🕶️✨`
+              : `សួស្តីអាល្អិត ${username || ''}! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកចែចឹង? 😂 សុខសប្បាយធម្មតាទេ? Assignment ធ្វើហើយនៅ ឬរវល់តែដើរលេងភ្លេចរៀន? 💅✨`)
+          : (isFemaleUserContext
+              ? `សួស្តីប្អូនស្រី ${username || ''}! ថ្ងៃនេះមានរឿងអីប្លែកបានឆាតមករកបងទាំងថ្ងៃចឹង? ឬមួយទើបតែ Error កូដ C# រកផ្លូវចេញមិនឃើញ? 😂 និយាយមក ចាំបងជួយមើលឱ្យ! ☕💻`
+              : `សួស្តីអាប្អូន ${username || ''}! ថ្ងៃនេះមានរឿងអីប្លែកបានឆាតមករកបងទាំងថ្ងៃចឹង? ឬមួយទើបតែ Error កូដ C# រកផ្លូវចេញមិនឃើញ? 😂 និយាយមក ចាំបងជួយមើលឱ្យ! ☕💻`);
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: greetingResponse,
+          isViolation: false
+        }).catch(() => {});
+
+        if (body.stream) {
+          return createProgressiveStreamResponse(greetingResponse, corsHeaders);
+        }
+
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: greetingResponse }] } }],
+          modelVersion: 'setec-greeting-engine-v1'
+        }, { status: 200, headers: corsHeaders });
+      }
+
+      if (isSweetPrompt && !isCurrentCurse) {
+        const sweetResponse = isKonPovBot
+          ? (isFemaleUserContext
+              ? `ហាហាហា! កូនស្រី ${username || ''} មកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រីសម្លាញ់! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🌸✨`
+              : `យីអើ! មកសុំថើបស្អីចែអាប្អូន ${username || ''}?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨`)
+          : `ហាហាហា! មកសុំថើបស្អីបងអាល្អិត ${username || ''}?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨`;
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: sweetResponse,
+          isViolation: false
+        }).catch(() => {});
+
+        if (body.stream) {
+          return createProgressiveStreamResponse(sweetResponse, corsHeaders);
+        }
+
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: sweetResponse }] } }],
+          modelVersion: 'setec-sweet-engine-v1'
+        }, { status: 200, headers: corsHeaders });
+      }
+
       // Real-time ChatGPT-like Streaming Mode (SSE)
       if (body.stream) {
         const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
