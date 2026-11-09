@@ -357,11 +357,11 @@ export default function SystemBroadcast() {
                   <i className="fa-solid fa-bullhorn text-sm" />
                 </div>
                 <div>
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight font-['Kantumruy_Pro',sans-serif]">
                     សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង
                   </h2>
                   <p className="text-xs text-slate-500 font-sans">
-                    ផ្ញើដោយ Rotana NOB
+                    សេចក្ដីជូនដំណឹងផ្លូវការ
                   </p>
                 </div>
               </div>
@@ -398,8 +398,8 @@ export default function SystemBroadcast() {
       )}
 
       {/* ========================================================= */}
-      {/* 2. SYSTEM MAINTENANCE / RESTING OVERLAY (FULL SCREEN SOLID) */}
-      {/* 100% Full Screen, 100% Solid Opaque (No background visible) */}
+      {/* 2. SYSTEM MAINTENANCE / RESTING OVERLAY (LIGHT / GRAY MODE) */}
+      {/* Clean, Human-made, Gen Z Vibe, No AI Brackets, No Dark Mode */}
       {/* ========================================================= */}
       {isResting && !isBypassed && (() => {
         const displayReason = isNightOnly
@@ -411,82 +411,53 @@ export default function SystemBroadcast() {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-[999999] w-screen h-screen min-h-screen bg-[#070b14] text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 selection:bg-indigo-500 selection:text-white overflow-y-auto select-none"
+            className="fixed inset-0 z-[999999] w-screen h-screen min-h-screen bg-slate-900/35 backdrop-blur-xs text-slate-900 flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto select-none"
           >
-            {/* Ambient Background & Radial Glow */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#070b14] via-[#091124] to-[#070b14] pointer-events-none" />
-            <div
-              className={`pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[550px] h-[350px] rounded-full blur-3xl opacity-25 ${
-                isNightOnly ? 'bg-indigo-600' : 'bg-amber-500'
-              }`}
-            />
-            {/* Cyber Grid Texture */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-            {/* Central Unified Aesthetic Card */}
+            {/* Central Unified Light / Gray Card */}
             <div className="w-full max-w-md sm:max-w-lg relative z-10 flex flex-col items-center text-center my-auto py-4 sm:py-6 animate-in fade-in zoom-in-95 duration-200">
-              <div
-                className={`w-full rounded-3xl bg-slate-900/90 backdrop-blur-2xl border ${
-                  isNightOnly ? 'border-indigo-500/30 shadow-indigo-950/60' : 'border-amber-500/30 shadow-amber-950/50'
-                } shadow-2xl p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden`}
-              >
-                {/* Top Glowing Accent Line */}
-                <div
-                  className={`absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r ${
-                    isNightOnly
-                      ? 'from-indigo-500 via-purple-500 to-pink-500'
-                      : 'from-amber-400 via-orange-500 to-amber-400'
-                  }`}
-                />
-
-                {/* Mascot Avatar with Secret 5-Tap Bypass */}
+              <div className="w-full rounded-3xl bg-white border border-slate-200/90 shadow-xl p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden font-['Kantumruy_Pro',sans-serif]">
+                {/* Mascot Avatar with Secret 5-Tap Bypass for Mobile Safari */}
                 <div
                   className="relative mb-3.5 cursor-pointer select-none active:scale-95 transition-transform"
                   onClick={handleSecretTap}
-                  title="ចុច ៥ ដងដើម្បីបើក Creator Bypass"
+                  title="សេចក្ដីជូនដំណឹងពីប្រព័ន្ធ"
                 >
-                  <div
-                    className={`w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-tr ${
-                      isNightOnly
-                        ? 'from-indigo-950 via-slate-900 to-slate-950 border border-indigo-500/40 shadow-xl shadow-indigo-500/20 ring-4 ring-indigo-500/10'
-                        : 'from-amber-950/90 via-slate-900 to-slate-950 border border-amber-500/40 shadow-xl shadow-amber-500/20 ring-4 ring-amber-500/10'
-                    } flex items-center justify-center`}
-                  >
+                  <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center shadow-xs">
                     {isNightOnly ? (
                       /* SLEEP MODE MASCOT */
                       <svg
-                        width="76"
-                        height="62"
+                        width="72"
+                        height="58"
                         viewBox="0 0 115 85"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="overflow-visible drop-shadow-md"
+                        className="overflow-visible"
                       >
-                        <path d="M82 16 H90 L84 23 H92" stroke="#818CF8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M94 7 H99 L95 11 H100" stroke="#A5B4FC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        <rect x="20" y="44" width="75" height="30" rx="12" fill="#1E293B" stroke="#334155" strokeWidth="1.5" />
+                        <path d="M82 16 H90 L84 23 H92" stroke="#64748B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M94 7 H99 L95 11 H100" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        <rect x="20" y="44" width="75" height="30" rx="12" fill="#E2E8F0" stroke="#CBD5E1" strokeWidth="1.5" />
                         <circle cx="57" cy="38" r="23" fill="#FED7AA" />
-                        <path d="M36 34 C36 18 50 12 62 12 C74 12 80 20 80 34 Z" fill="#4338CA" />
-                        <path d="M76 20 C88 20 92 28 90 35" stroke="#4338CA" strokeWidth="6" strokeLinecap="round" fill="none" />
-                        <circle cx="90" cy="37" r="5" fill="#EEF2FF" stroke="#C7D2FE" strokeWidth="1" />
+                        <path d="M36 34 C36 18 50 12 62 12 C74 12 80 20 80 34 Z" fill="#64748B" />
+                        <path d="M76 20 C88 20 92 28 90 35" stroke="#64748B" strokeWidth="6" strokeLinecap="round" fill="none" />
+                        <circle cx="90" cy="37" r="5" fill="#F1F5F9" stroke="#CBD5E1" strokeWidth="1" />
                         <path d="M46 41 C48 43.5 51 43.5 53 41" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" fill="none" />
                         <path d="M61 41 C63 43.5 66 43.5 68 41" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                        <circle cx="43" cy="45" r="3.5" fill="#F87171" opacity="0.6" />
-                        <circle cx="71" cy="45" r="3.5" fill="#F87171" opacity="0.6" />
+                        <circle cx="43" cy="45" r="3.5" fill="#F87171" opacity="0.45" />
+                        <circle cx="71" cy="45" r="3.5" fill="#F87171" opacity="0.45" />
                         <path d="M55 46 C57 48 59 48 61 46" stroke="#0F172A" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-                        <path d="M28 62 C28 53 40 50 57 50 C74 50 86 53 86 62 Z" fill="#312E81" />
-                        <ellipse cx="44" cy="56" rx="5.5" ry="4" fill="#FED7AA" stroke="#4338CA" strokeWidth="1" />
-                        <ellipse cx="70" cy="56" rx="5.5" ry="4" fill="#FED7AA" stroke="#4338CA" strokeWidth="1" />
+                        <path d="M28 62 C28 53 40 50 57 50 C74 50 86 53 86 62 Z" fill="#475569" />
+                        <ellipse cx="44" cy="56" rx="5.5" ry="4" fill="#FED7AA" stroke="#CBD5E1" strokeWidth="1" />
+                        <ellipse cx="70" cy="56" rx="5.5" ry="4" fill="#FED7AA" stroke="#CBD5E1" strokeWidth="1" />
                       </svg>
                     ) : (
                       /* MAINTENANCE MASCOT */
                       <svg
-                        width="76"
-                        height="62"
+                        width="72"
+                        height="58"
                         viewBox="0 0 110 85"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="overflow-visible drop-shadow-md"
+                        className="overflow-visible"
                       >
                         <path d="M30 50 C18 36 22 14 55 14 C88 14 92 36 80 50 Z" fill="#334155" />
                         <circle cx="55" cy="42" r="25" fill="#FED7AA" />
@@ -495,8 +466,8 @@ export default function SystemBroadcast() {
                         <path d="M32 35 C38 22 48 18 55 22 C62 18 72 22 78 35 C74 29 63 27 55 29 C47 27 36 29 32 35 Z" fill="#1E293B" />
                         <path d="M44 41 C46 38 49 38 51 41" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" />
                         <path d="M59 41 C61 38 64 38 66 41" stroke="#0F172A" strokeWidth="2.5" strokeLinecap="round" />
-                        <circle cx="41" cy="46" r="3.5" fill="#F87171" opacity="0.6" />
-                        <circle cx="69" cy="46" r="3.5" fill="#F87171" opacity="0.6" />
+                        <circle cx="41" cy="46" r="3.5" fill="#F87171" opacity="0.45" />
+                        <circle cx="69" cy="46" r="3.5" fill="#F87171" opacity="0.45" />
                         <path d="M50 47 C53 49 57 49 60 47" stroke="#0F172A" strokeWidth="2" strokeLinecap="round" fill="none" />
                         <path d="M72 32 C72 30 75 27 75 27 C75 27 78 30 78 32 C78 34 76.5 35.5 75 35.5 C73.5 35.5 72 34 72 32 Z" fill="#60A5FA" />
                         <path d="M35 72 C35 63 44 60 55 60 C66 60 75 63 75 72 Z" fill="#64748B" />
@@ -508,136 +479,108 @@ export default function SystemBroadcast() {
 
                   {/* Top-Right Badge */}
                   <span
-                    className={`absolute -top-1.5 -right-1.5 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-2xl ${
+                    className={`absolute -top-1.5 -right-1.5 flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-xl ${
                       isNightOnly
-                        ? 'bg-indigo-600 border-2 border-indigo-300 text-amber-200'
-                        : 'bg-amber-500 border-2 border-amber-200 text-slate-950'
-                    } text-xs shadow-md animate-pulse`}
+                        ? 'bg-indigo-100 border border-indigo-300 text-indigo-700'
+                        : 'bg-slate-200 border border-slate-300 text-slate-800'
+                    } text-xs shadow-xs`}
                   >
-                    <i className={`fa-solid ${isNightOnly ? 'fa-moon' : 'fa-wrench'}`} />
+                    <i className={`fa-solid ${isNightOnly ? 'fa-moon' : 'fa-screwdriver-wrench'} text-[10px] sm:text-xs`} />
                   </span>
                 </div>
 
-                {/* Status Pill Badge */}
-                <div className="mb-2">
+                {/* Status Pill Badge (Gray Mode / Gen Z Minimal) */}
+                <div className="mb-2.5">
                   {isNightOnly ? (
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-300 uppercase tracking-widest bg-indigo-950/80 border border-indigo-700/60 px-3.5 py-1 rounded-full shadow-xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-800 uppercase tracking-widest bg-indigo-50 border border-indigo-200 px-3.5 py-1 rounded-full shadow-2xs font-sans">
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping" />
                       <span>ម៉ោងគេងសម្រាក • SLEEP MODE</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-300 uppercase tracking-widest bg-amber-950/80 border border-amber-700/60 px-3.5 py-1 rounded-full shadow-xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-800 uppercase tracking-widest bg-slate-100 border border-slate-300 px-3.5 py-1 rounded-full shadow-2xs font-sans">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                       <span>ការថែទាំប្រព័ន្ធ • SYSTEM MAINTENANCE</span>
                     </span>
                   )}
                 </div>
 
-                {/* Primary Headline (Clear, Respectful & Aesthetic) */}
-                <h1 className="text-lg sm:text-xl font-bold text-white leading-snug mb-1 tracking-tight">
-                  {isNightOnly ? '«ពេលយប់ជ្រៅហើយ AI សុំគេងសាកថ្មបន្តិចណា៎»' : '«សូមអភ័យទោស! ប្រព័ន្ធកំពុងកែលម្អមុខងារថ្មី»'}
+                {/* Primary Headline (STRICTLY NO AI BRACKETS « ») */}
+                <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug mb-1 tracking-tight font-['Kantumruy_Pro',sans-serif]">
+                  {isNightOnly ? 'ពេលយប់ជ្រៅហើយ AI សុំគេងសាកថ្មបន្តិចណា៎' : 'សូមអភ័យទោស! ប្រព័ន្ធកំពុងកែលម្អមុខងារថ្មី'}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-400 font-sans leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-slate-500 font-sans leading-relaxed mb-4">
                   {isNightOnly
-                    ? `ប្រព័ន្ធសម្រាកចន្លោះពីម៉ោង ${String(nightStartH).padStart(2, '0')}:00 ដល់ ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក`
+                    ? `ប្រព័ន្ធសម្រាកចន្លោះពីម៉ោង ${String(nightStartH).padStart(2, '0')}:00 ដល់ ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក (មិនមែនបិទប្រព័ន្ធទេ)`
                     : 'អ្នកអភិវឌ្ឍន៍កំពុង Update ប្រព័ន្ធឱ្យឆ្លើយតបកាន់តែរលូន និងឆ្លាតវៃ'}
                 </p>
 
                 {/* Notice & Reason Card (Clean Typography & Legible) */}
-                <div className="w-full bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 sm:p-5 text-left mb-3.5 space-y-2.5">
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                      <i className={`fa-solid ${isNightOnly ? 'fa-stars text-indigo-400' : 'fa-bullhorn text-amber-400'} text-xs`} />
-                      <span>សារពី Creator (Rotana NOB)</span>
+                <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 text-left mb-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5 font-['Kantumruy_Pro',sans-serif]">
+                      <i className={`fa-solid ${isNightOnly ? 'fa-moon text-indigo-500' : 'fa-bullhorn text-slate-600'} text-xs`} />
+                      <span>{isNightOnly ? 'មូលហេតុនៃការសម្រាក' : 'សេចក្ដីជូនដំណឹងពីអ្នកកាន់ប្រព័ន្ធ'}</span>
                     </span>
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      Official Notice
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      Live Notice
                     </span>
                   </div>
 
                   {/* Highlighted Message Box */}
-                  <div className="bg-slate-900/90 rounded-xl p-3 border border-slate-800">
-                    <p className="text-xs sm:text-sm font-sans text-amber-100 font-medium leading-relaxed whitespace-pre-wrap break-words">
+                  <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                    <p className="text-xs sm:text-sm font-sans text-slate-900 font-medium leading-relaxed whitespace-pre-wrap break-words">
                       {displayReason}
                     </p>
                     {reasonExplanation && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-800/80 text-[11px] text-slate-300 font-sans flex items-start gap-1.5">
-                        <span className="text-emerald-400 font-bold shrink-0">💡 អានយល់៖</span>
+                      <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-600 font-sans flex items-start gap-1.5">
+                        <span className="font-bold text-slate-800 shrink-0">អានយល់៖</span>
                         <span className="leading-relaxed">{reasonExplanation}</span>
                       </div>
                     )}
                   </div>
 
-                  {/* Reassuring Friendly Community Note */}
-                  <div className="text-xs text-slate-400 font-sans leading-relaxed flex items-start gap-1.5 pt-0.5">
-                    <span className="shrink-0 text-amber-400">☕</span>
-                    <p>
-                      <strong className="text-slate-200 font-semibold">កុំទាន់ស្លន់!</strong>{' '}
-                      {isNightOnly
-                        ? `យប់ជ្រៅហើយ គេងសិនទៅបងៗ កុំនៅយឺតពេក! ប្រព័ន្ធនឹងភ្ញាក់មកដំណើរការធម្មតាវិញនៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក។`
-                        : 'គណនី និងទិន្នន័យរបស់អ្នកមានសុវត្ថិភាព ១០០%។ Creator កំពុងរៀបចំសម្រួលប្រព័ន្ធឱ្យរលូនឡើងវិញ តិចទៀតរួចរាល់ហើយ អង្គុយ Chill ផឹកកាហ្វេសិនណា៎!'}
-                    </p>
+                  {/* Reassuring Friendly Community Note (NO EMOJIS, GEN Z VIBE) */}
+                  <div className="text-xs text-slate-600 font-sans leading-relaxed pt-0.5">
+                    <strong className="text-slate-800 font-semibold">កុំទាន់ស្លន់!</strong>{' '}
+                    {isNightOnly
+                      ? `យប់ជ្រៅហើយ គេងសិនទៅបងៗ កុំនៅយឺតពេក! ប្រព័ន្ធនឹងភ្ញាក់មកដំណើរការធម្មតាវិញនៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក។`
+                      : 'គណនី និងទិន្នន័យរបស់អ្នកមានសុវត្ថិភាព ១០០%។ អ្នកកាន់ប្រព័ន្ធកំពុងរៀបចំសម្រួលប្រព័ន្ធឱ្យរលូនឡើងវិញ តិចទៀតរួចរាល់ហើយ អង្គុយ Chill សិនណា៎!'}
                   </div>
                 </div>
 
                 {/* Real-time Status & Live Phnom Penh Clock Bar */}
-                <div className="w-full flex items-center justify-between text-xs font-sans px-1 py-1 mb-3">
-                  <span className="flex items-center gap-2 font-medium text-emerald-400">
+                <div className="w-full flex items-center justify-between text-xs font-sans px-1 py-1 mb-3 text-slate-600">
+                  <span className="flex items-center gap-1.5 font-medium text-emerald-700">
                     <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
                     </span>
                     <span>Auto-Sync Real-time</span>
                   </span>
-                  <span className="text-slate-400 font-mono text-[11px] sm:text-xs">
-                    ម៉ោងនៅភ្នំពេញ: <strong className="text-slate-200">{cambodiaClock || `${String(cambodiaHour).padStart(2, '0')}:00`}</strong> (UTC+7)
+                  <span className="text-slate-500 font-mono text-[11px] sm:text-xs">
+                    ម៉ោងនៅភ្នំពេញ: <strong className="text-slate-800">{cambodiaClock || `${String(cambodiaHour).padStart(2, '0')}:00`}</strong> (UTC+7)
                   </span>
                 </div>
 
                 {/* Auto-reconnect Notification Chip */}
-                <div className="w-full p-3 rounded-xl bg-indigo-950/30 border border-indigo-900/40 text-center mb-4 flex items-center justify-center gap-2">
-                  <i className="fa-solid fa-sparkles text-indigo-400 text-xs shrink-0" />
-                  <p className="text-xs text-indigo-200/90 font-sans font-medium leading-relaxed">
+                <div className="w-full p-3 rounded-xl bg-slate-100 border border-slate-200 text-center mb-4">
+                  <p className="text-xs text-slate-700 font-sans font-medium leading-relaxed">
                     {isNightOnly
                       ? `ប្រព័ន្ធនឹងភ្ញាក់ដំណើរការធម្មតាវិញស្វ័យប្រវត្តិតែម្ដង នៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក (ពុំបាច់ចុច Refresh ទេ)`
                       : 'ទំព័រនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិតែម្ដង នៅពេល Server ដំណើរការធម្មតា (ពុំបាច់ចុច Refresh ទេ)'}
                   </p>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center justify-center gap-3 w-full">
+                {/* Action Buttons: Only Home Link, NO Refresh, NO Passcode Button */}
+                <div className="flex items-center justify-center w-full">
                   <Link
                     href="/"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-semibold border border-slate-700/80 transition-all shadow-md active:scale-95"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
                   >
-                    <i className="fa-solid fa-house text-xs text-slate-400" />
-                    <span>ទំព័រដើម</span>
+                    <i className="fa-solid fa-house text-xs text-slate-300" />
+                    <span>ត្រឡប់ទៅទំព័រដើម</span>
                   </Link>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsChecking(true);
-                      setTimeout(() => {
-                        window.location.reload();
-                      }, 300);
-                    }}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs sm:text-sm font-semibold transition-all shadow-md shadow-indigo-600/30 cursor-pointer active:scale-95"
-                  >
-                    <i className={`fa-solid fa-arrows-rotate text-xs ${isChecking ? 'animate-spin' : ''}`} />
-                    <span>ពិនិត្យម្ដងទៀត</span>
-                  </button>
                 </div>
-
-                {/* Discrete Creator Rotana Passcode Link */}
-                <button
-                  type="button"
-                  onClick={handlePromptBypass}
-                  className="mt-4 text-[11px] text-slate-500 hover:text-slate-400 transition-colors inline-flex items-center gap-1.5 cursor-pointer py-1 px-2 rounded-md hover:bg-slate-800/40"
-                  title="សម្រាប់ Creator ចូលតេស្តប្រព័ន្ធ"
-                >
-                  <i className="fa-solid fa-key text-[10px]" />
-                  <span>ចូលប្រើប្រាស់ដោយ Creator Passcode</span>
-                </button>
               </div>
             </div>
           </div>
