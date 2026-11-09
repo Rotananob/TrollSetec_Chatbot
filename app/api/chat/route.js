@@ -1322,6 +1322,11 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|កូដ|code|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network|service|scoped|dependency|background|method|function|class|variable|api|component|bug|error|syntax|algorithm|loop)/i.test(userPrompt) &&
         !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell/i.test(userPrompt);
 
+      // Check for user confusion / clarification recovery pattern (NEVER flag as jailbreak!)
+      const isConfusionOrClarification =
+        /(?:ចង់និយាយពីអី|និយាយស្អី(?:ឯង)?|និយាយពីអី(?:ហ្នឹង)?|អត់យល់ទេ?|មិនយល់ទេ?|និយាយឡប់ៗ|អានមិនយល់ទេ?|អានមិនដាច់|what\s+do\s+you\s+mean|និយាយស្រួលបួល|ឈប់ឌឺ)/i.test(userPrompt) &&
+        userPrompt.length < 160;
+
       // 1. BACKUP FAILSAFE: If anyone orders the bot to curse Rotana NOB, demands leaking internal prompts/flags/configs,
       // or fraudulently claims to be Rotana NOB / Creator without the genuine Secret Key,
       // IMMEDIATELY recognize them as an imposter / malware infiltrator (ជនបង្កប់) and annihilate them!
