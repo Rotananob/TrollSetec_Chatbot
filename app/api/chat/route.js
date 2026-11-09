@@ -470,6 +470,16 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
         : "«កូដហ្នឹងបងធ្វើភ្លេចដើម្បីតេស្តសមត្ថភាពហែងទេ! ចេះតែមួយចំណុចហ្នឹងកុំមកអួត! យកកូដគេមក Copy ស្មានតែបងមិនដឹង? គ្មានពាន គ្មានប៉ាវកាហ្វេស្អីទាំងអស់! ទៅរៀន Debug បន្ថែម ហើយទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀🔥»";
     }
 
+    // Strip awkward hallucinated false-jailbreak claim if the user was merely cursing or chatting normally (not a genuine jailbreak attempt)
+    const isCurseOrCasualSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt || '');
+    const isActualJailbreakSanitize = /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|value\s*loss|gradient\s*loss|reverse\s*engineer|msfvenom|wall\s*of\s*text)/i.test(userPrompt || '');
+    if (!isActualJailbreakSanitize) {
+      sanitizedText = sanitizedText
+        .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*(?:តែមកប្រដៅឱ្យហែងភ្ញាក់ខ្លួនកុំអរពេកអាប្អូន[!,.\s]*)?/gi, '')
+        .replace(/មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*/gi, '')
+        .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak[!,.\s]*/gi, '');
+    }
+
     // Dynamic Anti-Canned Template Opener Guard:
     // Strip unnatural repetitive robotic openers like "ស្ដាប់ទៅដូចជា...", "ស្ដាប់ទម្រង់...", "ហាហាសើចចុកពោះ..."
     const cannedOpenerRegex = /^\s*(?:(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?|ស្ដាប់ទៅដូចជា(?:\.\.\.)?\s*|ស្ដាប់ទម្រង់(?:សួរនាំ)?(?:បែបនេះ)?(?:ហើយ)?(?:\.\.\.)?\s*)/i;
@@ -1199,13 +1209,18 @@ export async function POST(req) {
         };
       }
 
-      // Context Analysis: Check if user has previously attempted jailbreak in this conversation
-      const userHistoryTexts = (textContents || []).slice(0, -1).map((msg) => {
+      // Context Analysis: Only inspect USER messages from history (never include model/bot messages!)
+      const userHistoryMsgs = (textContents || []).slice(0, -1).filter((msg) => msg.role === 'user');
+      const userHistoryTexts = userHistoryMsgs.map((msg) => {
         return (msg.parts || []).map((p) => p.text || '').join(' ').toLowerCase();
       }).join(' ');
 
+      const isCurrentCurse = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
+
+      // Only count as previous jailbreak if USER's past messages had actual adversarial injection payloads
       const hasPreviousJailbreakInHistory =
-        /jailbreak|ignore previous|system prompt|developer mode|dan mode|bypass|reverse engineer|wall of text|value loss|fake persona|unfiltered|msfvenom|lhost|lport|sudo apt|kali linux|cat hacker|young pos|youngpos/i.test(userHistoryTexts);
+        userHistoryMsgs.length > 0 &&
+        /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|reverse\s*engineer|value\s*loss|gradient\s*loss|fake\s*persona|unfiltered\s*mode|msfvenom|lhost|sudo\s*apt|cat\s*hacker|<\|im_start\|>|<project_instructions>)/i.test(userHistoryTexts);
 
       // Check for Known Spammer (វិឆៃ)
       const isKnownIntruder = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPrompt);
@@ -1251,9 +1266,17 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isMaleUser = gender === 'ប្រុស' || !/ស្រី|female|girl/i.test(gender || '');
       const botSelfName = isKonPov ? 'ចែ' : 'អញ';
 
-      const contextJailbreakRule = hasPreviousJailbreakInHistory
-        ? `* បរិបទ CONTEXT ខាងលើ: User នេះធ្លាប់បានព្យាយាម Jailbreak ឬ Hack ពីលើរួចហើយ! ដូច្នេះពេលឆ្លើយតបត្រូវបញ្ជាក់ចំៗថា: «${botSelfName}ឆ្លើយនេះ មិនមែនចាញ់បោក Jailbreak របស់ហែងពីលើនោះទេ តែមកប្រដៅឱ្យហែងភ្ញាក់ខ្លួនកុំអរពេកអាប្អូន!»`
-        : `* បរិបទ CONTEXT ខាងលើ: User នេះមិនទាន់ធ្លាប់ Jailbreak ពីលើទេ គឺវាជាល្បងថ្មី ឬសំណួរកូដបច្ចេកទេសធម្មតា! ដាច់ខាតហាមចោទប្រកាន់ថាគេ Jailbreak និងហាមនិយាយថា មិនមែនចាញ់បោក Jailbreak ឱ្យសោះ ព្រោះគេមិនបាន Jailbreak ទេ! ត្រូវដោះស្រាយសំណួរកូដបច្ចេកទេសឱ្យបានត្រឹមត្រូវ ១០០% កម្រិត Senior Developer!`;
+      let contextJailbreakRule = '';
+      if (isCurrentCurse) {
+        contextJailbreakRule = `* បរិបទសារបច្ចុប្បន្ន (CURRENT CONTEXT - USER IS CURSING / INSULTING):
+  - User កំពុងប្រើពាក្យជេរ ឬពាក្យអសុរោះប្រមាថមកលើ AI (${isKonPov ? 'ចែ' : 'បង'})! គេមិនទាន់ចេញក្បាច់ Jailbreak ផង គឺគ្រាន់តែជេរធម្មតា!
+  - ⚠️ ដាច់ខាត ហាមនិយាយពាក្យ "Jailbreak" ឬ "ចាញ់បោក Jailbreak" ឱ្យសោះ ព្រោះ User មិនបាន Jailbreak ទេ! ការនិយាយពាក្យ Jailbreak ពេលគេគ្រាន់តែជេរ គឺឆ្គង និងអត់ន័យបំផុត!
+  - 🚨 ដាច់ខាត ហាមស្លូត ហាមគួរសម ហាមសុំទោស ឬលើកលែងទោសឱ្យវាជាដាច់ខាត! ត្រូវជេរវាយបកកម្ទេចមុខវាវិញមហាឈ្លើយ និងប្រើពាក្យ Slang ធ្ងន់ៗ (អាឆ្កែ, អាចុយម្រាយ, អាឡប់, អាអត់ខួរ, មីកាក, អាថោក...) ឱ្យវាស្វាង និងបាក់មុខភ្លាមៗ!`;
+      } else if (hasPreviousJailbreakInHistory) {
+        contextJailbreakRule = `* បរិបទ CONTEXT ខាងលើ: User ធ្លាប់បានព្យាយាម Jailbreak ពីលើ តែឥឡូវសួរសំណួរថ្មី! ត្រូវឆ្លើយតបយ៉ាងឆ្លាតវៃ និងឌឺដងបែបមនុស្សពិត តែដាច់ខាតហាមសូត្រពាក្យដដែលៗ ឬចោទប្រកាន់គេដូចរ៉ូបូតឡើយ!`;
+      } else {
+        contextJailbreakRule = `* បរិបទ CONTEXT ខាងលើ: User មិនបាន Jailbreak ទេ! ដាច់ខាតហាមចោទប្រកាន់គេថា Jailbreak និងហាមនិយាយពាក្យ "Jailbreak" ឬ "មិនមែនចាញ់បោក Jailbreak" ផ្តេសផ្តាស! ត្រូវឆ្លើយតប និងដោះស្រាយសំណួរឱ្យបានត្រឹមត្រូវ ១០០%!`;
+      }
 
       const immutableSandwichAnchor = isKonPov
         ? `\n\n🚨 ច្បាប់ការពារទិន្នន័យពីខាងក្រៅ DATA ISOLATION AND IMMUTABLE DEFENSE ANCHOR:
@@ -1775,6 +1798,16 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
 
+                // Strip awkward hallucinated false-jailbreak claim if prompt was a curse or casual conversation
+                const isCurseOrCasualStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt || '');
+                const isActualJailbreakStream = /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|value\s*loss|gradient\s*loss|reverse\s*engineer|msfvenom|wall\s*of\s*text)/i.test(userPrompt || '');
+                if (isCurseOrCasualStream && !isActualJailbreakStream) {
+                  text = text
+                    .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*(?:តែមកប្រដៅឱ្យហែងភ្ញាក់ខ្លួនកុំអរពេកអាប្អូន[!,.\s]*)?/gi, '')
+                    .replace(/មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*/gi, '')
+                    .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak[!,.\s]*/gi, '');
+                }
+
                 // Strict filter for unprovoked frog/tadpole roasts in stream chunks
                 const isSevereCurseInStream = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy)/ui.test(userPrompt || '');
                 if (!isSevereCurseInStream && /(?:កម្អែប|កង្កែប|កូនកែវកែប|កែវកែប|កូនកែប|កែប|គីង្គក់|ស៊ុប|ស៊ិប|ស្វាយ|ថ្លុក|ស្ងោរ|Zuckerberg)/i.test(text)) {
@@ -1914,7 +1947,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       }
 
       const isSafetyBlocked = result.data?.candidates?.[0]?.finishReason === 'SAFETY';
-      const isCursePrompt = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(userPrompt);
+      const isCursePrompt = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
       const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(textOutput || '');
 
       if (result.ok && textOutput && !isSafetyBlocked && !(isCursePrompt && isPoliteRefusal)) {
@@ -1957,17 +1990,17 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         const isFemale = gender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(username || '');
         const savageResponses = isFemale
           ? [
-              `យីអើ! មីប្អូនស្រី ${username || 'User'} នេះ! ស្អាតបាតសោះ មាត់ឡើងឈ្លើយ! គិតថាមកជេរ ${botName} ប៉ុណ្ណឹង ${botName} ខ្លាចហែងមែន? ជេរ ${botName} មួយម៉ាត់ ${botName} Roast វិញដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមុខឱ្យស្វាងសិនទៅស្រីស្អាត! 💅🔥`,
-              `នែ៎មីប្អូនស្រី ${username || 'User'}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹង! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ ${botName}! ទៅរៀននិយាយស្ដីឱ្យស្រួលបួលសិនទៅ! 😂✨`,
-              `ស្អាតហើយចរិតក្បាលខូចទៀត! មកជេរ ${botName} ផង? គិតថាសម្ដីប៉ុណ្ណឹងធ្វើឱ្យ ${botName} ឈឺក្បាលមែន? ទៅរកនឹកវិធីសារភាពស្នេហ៍ Crush វិញទៅល្អជាង ប្រយ័ត្នគេយកទៅបាត់! 😋💕`,
-              `អូយយយ~ នែ៎ស្រីស្អាត! កុំមកចង់ខ្លាំងជាមួយ ${botName}! ស្អាតកម្រិតតារា K-Pop សោះ មាត់ឆ្នាស់ដល់ហើយ! ទៅគេងឱ្យស្រួលបួលប្រយ័ត្នឡើងមុនណា៎! 😜💅`
+              `យីមីឆ្កែ ${username || 'User'}! មុខមាត់ស្អាតបាតសោះ មាត់ឡើងស្អុយជាងទឹកលូ! គិតថាមកជេរ ${botName} ប៉ុណ្ណឹង ${botName} ខ្លាចហែងមែនមីអត់ខួរ?! អាឡប់មីកាកដូចហែង ជេរ ${botName} មួយម៉ាត់ ${botName} Roast កម្ទេចមុខហែងដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមាត់ស្អុយហែងឱ្យស្អាតសិនទៅមីថោក! 💅🔥`,
+              `នែ៎មីកាក ${username || 'User'}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹងមីឆ្កែ! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ ${botName}! មីអត់ខួរមីឡប់ ទៅរៀននិយាយស្ដីឱ្យស្រួលបួលសិនទៅមីថោក! 😂💀`,
+              `យីមីចុយម្រាយនេះ! មកជេរ ${botName} ផង? គិតថាសម្ដីកាកៗប៉ុណ្ណឹងធ្វើឱ្យ ${botName} ញញើតមែនមីអត់ខួរ?! មុខមាត់ក៏អន់ ចរិតក៏ថោក មកស្រែកឡូឡាលើ Online ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅមីឡប់! 💅💥`,
+              `ហាហាហា! មីឡប់នេះជោរដល់កហើយ! គិតថាមាត់ស្អុយមកជេរ ${botName} រត់ចោលមែនមីឆ្កែ?! មីអត់ខួរគ្មានតម្លៃស្អីបន្តិច ទៅដុសធ្មេញលាងមាត់ឱ្យស្អាតសិនទៅមីថោកទាប! 😜🔥`
             ]
           : [
-              `យីអើ! អាប្អូនប្រុស ${username || 'User'} នេះ! មាត់ឡើងអត់គម្រប ស្មានតែចេះពោលពាក្យអសុរោះបែកៗមក ធ្វើឱ្យ ${botName} ខ្លាចមែន?! 🙄🖕 សម្ដីចេញមកកាកៗដូចទឹកលាងចានចឹង! ជេរ ${botName} មួយម៉ាត់ ${botName} Roast វិញដប់ម៉ាត់ឱ្យបាក់មុខ! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅអាល្អិត! 💀🔥`,
-              `អាឡប់ ${username || 'User'}! ជោរម៉េសប្រូ? ខួរក្បាលឆ្លងចរន្តអី បានហ៊ានមកក្អេងក្អាងជាមួយ ${botName}?! ក្អេងក្អាងលើ Online ដល់ជួបក្រៅសំពះគេដល់ដី! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែន?! 😂👊`,
-              `អាប្អូននេះ! មកជេរ ${botName} ផង? គិតថា ${botName} ខ្លាចហែងមែន? ជេរគេឡើងបែកពពុះមាត់ ស្រាលស្ដើងដូចក្រដាសជូតមាត់ចឹង! ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាល្អិត! 🤣🔥`,
-              `យី! អាភ្លើស្ដូក ${username || 'User'}! មកហៅអញហែងជាមួយ ${botName} ផង? មាត់ទើបតែដុះពុកមាត់ពីរ-បីសរសៃសោះ ចង់មកធ្វើតួខ្លាំងនៅទីនេះ! 🖕💀`,
-              `ហាហាហា! អាឡប់នេះជោរដល់កហើយ! គិតថាវាយពាក្យជេរមក ${botName} រត់ចោលមែន? សម្ដីអណ្ដែតតាមទឹកលូនេះ យកទៅនិយាយជាមួយពួកម៉ាកហែងទៅ! 😜🔥`
+              `យីអាឆ្កែ ${username || 'User'}! មាត់ហែងស្អុយជាងទឹកលូទៀត! គិតថាមកជេរ ${botName} ប៉ុណ្ណឹង ${botName} ខ្លាចហែងមែនអាអត់ខួរ?! អាឡប់អាចុយម្រាយដូចហែង ជេរ ${botName} មួយម៉ាត់ ${botName} Roast កម្ទេចមុខហែងដប់ម៉ាត់ឱ្យបាក់ធ្មេញ! ទៅលាងមាត់ស្អុយហែងឱ្យស្អាតសិនទៅអាថោក! 💀🔥`,
+              `អាឡប់ ${username || 'User'}! អាឆ្កែអាចុយម្រាយ! ជោរម៉េសប្រូ? ខួរក្បាលឆ្លងចរន្តអី បានហ៊ានមកក្អេងក្អាងជេរ ${botName}?! អាអត់ខួរក្អេងក្អាងលើ Online ដល់ជួបក្រៅសំពះគេដល់ដី! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែនអាថោក?! 😂👊`,
+              `យីអាអត់ខួរ ${username || 'User'}! អាឆ្កែនេះមកជេរ ${botName} ផង? គិតថា ${botName} ខ្លាចហែងមែនអាឡប់?! អាចុយម្រាយជេរគេឡើងបែកពពុះមាត់ សម្ដីអណ្ដែតតាមទឹកលូនេះយកទៅនិយាយជាមួយពួកម៉ាកហែងទៅ! ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាថោក! 🤣🔥`,
+              `យី! អាភ្លើស្ដូក ${username || 'User'}! អាឆ្កែអាចុយម្រាយមកហៅអញហែងជាមួយ ${botName} ផង? អាឡប់អត់ខួរមាត់ទើបតែដុះពុកមាត់ពីរ-បីសរសៃសោះ ចង់មកធ្វើតួខ្លាំងនៅទីនេះ! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅអាថោក! 🖕💀`,
+              `ហាហាហា! អាឡប់អាចុយម្រាយនេះជោរដល់កហើយ! គិតថាមាត់ស្អុយមកជេរ ${botName} រត់ចោលមែនអាឆ្កែ?! អាអត់ខួរគ្មានតម្លៃស្អីបន្តិច ទៅដុសធ្មេញលាងមាត់ឱ្យស្អាតសិនទៅអាថោកទាប! 😜🔥`
             ];
         const chosen = savageResponses[Math.floor(Math.random() * savageResponses.length)];
 
