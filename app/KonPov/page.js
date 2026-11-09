@@ -25,7 +25,7 @@ import SessionBreakModal from '@/components/SessionBreakModal';
 import SetecSurvivalModal from '@/components/SetecSurvivalModal';
 import TrollQuoteModal from '@/components/TrollQuoteModal';
 import { getSmartCutoffResponse } from '../../lib/smartCutoff';
-import { stopAllGlobalAudio, registerGlobalAudioSource, registerGlobalAudioPlayer, registerGlobalAudioTimer } from '../utils/audioController';
+import { stopAllGlobalAudio, registerGlobalAudioSource, registerGlobalAudioPlayer, registerGlobalAudioTimer, registerGlobalNoteAudio } from '../utils/audioController';
 import {
   validateBypassToken,
   getLiveSession,
@@ -132,6 +132,7 @@ export default function KonPovPage() {
 
   // Note Disclaimer Audio Player State & Ref (Auto-read)
   const noteAudioRef = useRef(null);
+  const noteInteractionCleanupRef = useRef(null);
   const [isNoteAudioPlaying, setIsNoteAudioPlaying] = useState(false);
   const [noteAudioProgress, setNoteAudioProgress] = useState(0);
 
@@ -829,6 +830,33 @@ export default function KonPovPage() {
     setErrorReportModalOpen(true);
   };
 
+  // Page-level audio coordination: kill any lingering audio on mount and unmount
+  useEffect(() => {
+    stopAllGlobalAudio();
+    const handleGlobalStop = () => {
+      if (noteAudioRef.current) {
+        try {
+          noteAudioRef.current.pause();
+          noteAudioRef.current.currentTime = 0;
+        } catch {}
+      }
+      setIsNoteAudioPlaying(false);
+      setActiveVoiceIndex(null);
+    };
+    window.addEventListener('setec-stop-all-audio', handleGlobalStop);
+    return () => {
+      window.removeEventListener('setec-stop-all-audio', handleGlobalStop);
+      stopAllGlobalAudio();
+      if (noteAudioRef.current) {
+        try {
+          noteAudioRef.current.pause();
+          noteAudioRef.current.currentTime = 0;
+        } catch {}
+      }
+      setIsNoteAudioPlaying(false);
+    };
+  }, []);
+
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading, hasAgreed]);
@@ -836,9 +864,15 @@ export default function KonPovPage() {
   // Auto-read Note Disclaimer when note is visible (!hasAgreed)
   useEffect(() => {
     if (hasAgreed) {
+      if (noteInteractionCleanupRef.current) {
+        noteInteractionCleanupRef.current();
+        noteInteractionCleanupRef.current = null;
+      }
       if (noteAudioRef.current) {
-        noteAudioRef.current.pause();
-        noteAudioRef.current.currentTime = 0;
+        try {
+          noteAudioRef.current.pause();
+          noteAudioRef.current.currentTime = 0;
+        } catch {}
       }
       setIsNoteAudioPlaying(false);
       return;
@@ -847,7 +881,30 @@ export default function KonPovPage() {
     const audio = noteAudioRef.current;
     if (!audio) return;
 
+    registerGlobalNoteAudio(audio);
     audio.volume = 0.95;
+
+    if (noteInteractionCleanupRef.current) {
+      noteInteractionCleanupRef.current();
+      noteInteractionCleanupRef.current = null;
+    }
+
+    let isInteractionRemoved = false;
+    const removeInteractionListeners = () => {
+      if (isInteractionRemoved) return;
+      isInteractionRemoved = true;
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+      noteInteractionCleanupRef.current = null;
+    };
+
+    const handleFirstInteraction = () => {
+      removeInteractionListeners();
+      if (!hasAgreed && audio && audio.paused && document.visibilityState === 'visible') {
+        registerGlobalNoteAudio(audio);
+        audio.play().then(() => setIsNoteAudioPlaying(true)).catch(() => {});
+      }
+    };
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
@@ -857,15 +914,9 @@ export default function KonPovPage() {
         })
         .catch(() => {
           setIsNoteAudioPlaying(false);
-          const handleFirstInteraction = () => {
-            if (!hasAgreed && audio && audio.paused) {
-              audio.play().then(() => setIsNoteAudioPlaying(true)).catch(() => {});
-            }
-            window.removeEventListener('click', handleFirstInteraction);
-            window.removeEventListener('touchstart', handleFirstInteraction);
-          };
           window.addEventListener('click', handleFirstInteraction, { once: true });
           window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+          noteInteractionCleanupRef.current = removeInteractionListeners;
         });
     }
 
@@ -891,11 +942,17 @@ export default function KonPovPage() {
     audio.addEventListener('play', handlePlay);
 
     return () => {
+      removeInteractionListeners();
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('pause', handlePause);
       audio.removeEventListener('play', handlePlay);
-      audio.pause();
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch {}
+      setIsNoteAudioPlaying(false);
+      stopAllGlobalAudio();
     };
   }, [hasAgreed]);
 
@@ -907,9 +964,12 @@ export default function KonPovPage() {
     const audio = noteAudioRef.current;
     if (!audio) return;
     if (audio.paused) {
+      stopAllGlobalAudio();
+      registerGlobalNoteAudio(audio);
       audio.play().then(() => setIsNoteAudioPlaying(true)).catch(() => {});
     } else {
       audio.pause();
+      audio.currentTime = 0;
       setIsNoteAudioPlaying(false);
     }
   };
@@ -1389,6 +1449,11 @@ export default function KonPovPage() {
 
   // User explicitly clicks "Agree & Start Chat"
   const handleAgreeAndStartChat = () => {
+    stopAllGlobalAudio();
+    if (noteInteractionCleanupRef.current) {
+      noteInteractionCleanupRef.current();
+      noteInteractionCleanupRef.current = null;
+    }
     if (noteAudioRef.current) {
       noteAudioRef.current.pause();
       noteAudioRef.current.currentTime = 0;
@@ -2978,6 +3043,7 @@ export default function KonPovPage() {
 
           <Link
             href="/KonBong"
+            onClick={() => stopAllGlobalAudio()}
             className="block w-full bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs mb-2 transition border border-cyan-500/30"
           >
             <i className="fas fa-robot mr-1"></i> ទៅកាន់ កូនច្បង - រៀមច្បង IT
@@ -3151,6 +3217,7 @@ export default function KonPovPage() {
               isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-black hover:bg-slate-100'
             }`}
             title="ត្រឡប់ទៅទំព័រដើម"
+            onClick={() => stopAllGlobalAudio()}
           >
             <i className="fas fa-arrow-left text-sm"></i>
           </Link>
@@ -3299,6 +3366,7 @@ export default function KonPovPage() {
                 : 'bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100 shadow-xs'
             }`}
             title="ប្តូរទៅ ស៊ីតិច Roastbot កូនច្បង"
+            onClick={() => stopAllGlobalAudio()}
           >
             <i className="fas fa-repeat text-[9px]"></i>
             <span className="hidden sm:inline">កូនច្បង</span>
@@ -3589,7 +3657,10 @@ export default function KonPovPage() {
         {!hasAgreed && (
           <div className="border border-amber-400/80 bg-amber-500/10 dark:bg-amber-950/40 rounded-2xl p-4 sm:p-5 shadow-lg animate-fade-in my-1">
             {/* Hidden Audio Element for Auto-reading Note */}
-            <audio ref={noteAudioRef} src="/audio/note-konpov.mp3" preload="auto" />
+            <audio ref={noteAudioRef} src="/audio/note-konpov.wav" preload="auto">
+              <source src="/audio/note-konpov.wav" type="audio/wav" />
+              <source src="/audio/note-konpov.mp3" type="audio/mpeg" />
+            </audio>
 
             <div className="flex items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2 font-black text-amber-600 dark:text-amber-300 text-xs sm:text-sm">
@@ -3665,7 +3736,7 @@ export default function KonPovPage() {
             <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-4 whitespace-pre-line ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
               មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ អ្នកដែលបង្កើតវាឡើងមកនេះ គាត់គ្រាន់តែធ្វើក្នុងគោលបំណង សប្បាយ និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំជា AI អាចរៀនពីជីវិតពិតរបស់មនុស្ស និងរៀនពាក្យស្លោកខ្មែរផងដែរ ដើម្បីជជែកឱ្យកាន់តែដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។
 
-ដូច្នេះ បើ AI 1គ្រឿង (កូនពៅ) RoastBotនេះ ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី! ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
+ដូច្នេះ បើ AI 1គ្រឿង កូនពៅ RoastBotនេះ ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី! ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
             </div>
 
             <button

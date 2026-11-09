@@ -1,20 +1,50 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { stopAllGlobalAudio } from '../utils/audioController';
 
 export default function AnnouncementPage() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
 
   const announcementText = `មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ នេះជាទីលានតេស្តបច្ចេកវិទ្យា AI សាកល្បង ដែលបង្កើតឡើងក្នុងគោលបំណង សប្បាយ និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យ AI អាចរៀនពីជីវិតពិតរបស់មនុស្ស និងរៀនពាក្យស្លោកខ្មែរ ដើម្បីចែករំលែកទៅដូចមនុស្ស ដើម្បីបង្កើតភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។ ដូច្នេះ បើ AI RoastBot នេះ ឆ្លើយតបមានពាក្យសម្ដីខឹង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន។ បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។`;
 
   const handleToggleAudio = () => {
     if (typeof window === 'undefined') return;
+    const audio = audioRef.current;
     if (isPlaying) {
+      if (audio) {
+        audio.pause();
+      }
       if (window.speechSynthesis) window.speechSynthesis.cancel();
       setIsPlaying(false);
       return;
     }
+
+    if (audio) {
+      audio.volume = 0.95;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsPlaying(true))
+          .catch(() => {
+            // Fallback to SpeechSynthesis
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+              const utterance = new SpeechSynthesisUtterance(announcementText);
+              utterance.lang = 'km-KH';
+              utterance.rate = 0.95;
+              utterance.onend = () => setIsPlaying(false);
+              utterance.onerror = () => setIsPlaying(false);
+              setIsPlaying(true);
+              window.speechSynthesis.speak(utterance);
+            }
+          });
+        return;
+      }
+    }
+
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(announcementText);
@@ -29,6 +59,9 @@ export default function AnnouncementPage() {
 
   useEffect(() => {
     return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
@@ -79,6 +112,18 @@ export default function AnnouncementPage() {
               </p>
             </div>
           </div>
+
+          {/* Hidden Audio Element for Pre-rendered Voice */}
+          <audio
+            ref={audioRef}
+            src="/audio/note-konpov.wav"
+            preload="auto"
+            onEnded={() => setIsPlaying(false)}
+            onError={() => setIsPlaying(false)}
+          >
+            <source src="/audio/note-konpov.wav" type="audio/wav" />
+            <source src="/audio/note-konpov.mp3" type="audio/mpeg" />
+          </audio>
 
           {/* Audio Player Box */}
           <div className="mb-5 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-3">

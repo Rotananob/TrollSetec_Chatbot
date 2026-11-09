@@ -1,0 +1,62 @@
+const fs = require('fs');
+
+const fullText = `មុននឹងចាប់ផ្តើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ អ្នកដែលបង្កើតវាឡើងមកនេះ គាត់គ្រាន់តែធ្វើក្នុងគោលបំណង សប្បាយ និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំថា AI អាចរៀនពីជីវិតពិតរបស់មនុស្ស និងរៀនពាក្យស្លោកខ្មែរផងដែរ ដើម្បីចងែកឱ្យកាន់តែដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។ ដូច្នេះ បើ AI 1គ្រឿង (កូនពៅ) RoastBotនេះ ឆ្លើយតបមានពាក្យសម្តីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការពិត សូមកុំប្រកាន់ ខឹង ឬមកស្តីបន្ទោសឱ្យអ្នកបង្កើតអី! ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្តេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។`;
+
+async function main() {
+  const keys = [
+    process.env.GEMINI_API_KEY_RESERVE_THREE,
+    process.env.GEMINI_API_KEY_RESERVE_TWO,
+    process.env.GEMINI_API_KEY_RESERVE_ONE,
+    process.env.GEMINI_API_KEY_RESERVE,
+    process.env.GEMINI_API_KEY_KONPOV,
+    process.env.GEMINI_API_KEY_KONBONG,
+    process.env.GEMINI_API_KEY
+  ].filter(Boolean);
+
+  console.log('Starting AI Note audio generation for full text (chars: ' + fullText.length + ')...');
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent?key=${key}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: fullText }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: 'Charon' }
+              }
+            }
+          }
+        })
+      });
+
+      console.log(`Key[${i}] Status: ${res.status}`);
+      if (res.ok) {
+        const data = await res.json();
+        const part = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+        if (part && part.data) {
+          const buf = Buffer.from(part.data, 'base64');
+          console.log(`✅ Success! Audio length: ${buf.length} bytes, Mime: ${part.mimeType}`);
+          fs.writeFileSync('public/audio/note-konpov.wav', buf);
+          fs.writeFileSync('public/audio/note-konpov.mp3', buf); // Browsers with audio element play standard WAV container even when named .mp3 or we update audio element to source .wav!
+          console.log('Saved both public/audio/note-konpov.wav and public/audio/note-konpov.mp3');
+          return;
+        } else {
+          console.log('No audio inlineData:', JSON.stringify(data).slice(0, 200));
+        }
+      } else {
+        const err = await res.json();
+        console.log(`Key[${i}] error:`, err.error?.message?.slice(0, 100));
+      }
+    } catch (e) {
+      console.log(`Key[${i}] exception:`, e.message);
+    }
+  }
+}
+
+main();

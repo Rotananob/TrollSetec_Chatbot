@@ -824,6 +824,19 @@ export default function KonBongPage() {
     removeAvatarFromStorage();
   };
 
+  // Page-level audio coordination: kill any lingering audio on mount and unmount
+  useEffect(() => {
+    stopAllGlobalAudio();
+    const handleGlobalStop = () => {
+      setActiveAudioIndex(null);
+    };
+    window.addEventListener('setec-stop-all-audio', handleGlobalStop);
+    return () => {
+      window.removeEventListener('setec-stop-all-audio', handleGlobalStop);
+      stopAllGlobalAudio();
+    };
+  }, []);
+
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
@@ -2879,6 +2892,7 @@ export default function KonBongPage() {
               isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-black hover:bg-slate-100'
             }`}
             title="ត្រឡប់ទៅទំព័រដើម"
+            onClick={() => stopAllGlobalAudio()}
           >
             <i className="fas fa-arrow-left text-sm"></i>
           </Link>

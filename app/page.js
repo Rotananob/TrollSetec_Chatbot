@@ -8,6 +8,7 @@ import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import { resetClientRateLimit } from './utils/rateLimiter';
 import { compressAvatarImage, saveAvatarToStorage, removeAvatarFromStorage, DEFAULT_USER_AVATAR } from './utils/imageStorage';
 import { initSecurityShield } from './utils/securityShield';
+import { stopAllGlobalAudio } from './utils/audioController';
 
 export default function Home() {
   const router = useRouter();
@@ -723,6 +724,7 @@ export default function Home() {
                   {/* KonBong Card */}
                   <Link
                     href="/KonBong"
+                    onClick={() => stopAllGlobalAudio()}
                     onClick={() => {
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
@@ -760,6 +762,7 @@ export default function Home() {
                   {/* KonPov Card */}
                   <Link
                     href="/KonPov"
+                    onClick={() => stopAllGlobalAudio()}
                     onClick={() => {
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
