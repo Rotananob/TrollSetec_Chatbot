@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getApiEndpoint } from '../app/utils/apiConfig';
 
 export default function PwaInstallPrompt({ isDark = false }) {
+  const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [deviceType, setDeviceType] = useState('desktop'); // 'ios' | 'android' | 'desktop'
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -43,6 +44,12 @@ export default function PwaInstallPrompt({ isDark = false }) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    // Skip all generic chatbot PWA prompts on the dedicated Admin Control Panel route
+    if (window.location.pathname.includes('/jam-tic-kapea-1-sin')) {
+      setIsAdminRoute(true);
+      return;
+    }
 
     // 1. Check if already running in standalone mode (Launched from Home Screen)
     const standaloneMode =
@@ -133,8 +140,8 @@ export default function PwaInstallPrompt({ isDark = false }) {
     localStorage.setItem('setec_pwa_dismissed', String(Date.now()));
   };
 
-  // If already running inside standalone installed PWA, do not show any prompts
-  if (isStandalone) return null;
+  // If already running inside standalone installed PWA or on Admin route, do not show any generic chatbot prompts
+  if (isStandalone || isAdminRoute) return null;
 
   return (
     <>

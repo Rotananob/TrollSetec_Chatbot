@@ -46,6 +46,13 @@ export default function JamTicKapeaAdminPage() {
   const [rtdbConnected, setRtdbConnected] = useState(true);
   const [activeTab, setActiveTab] = useState('broadcast'); // Default to broadcast for user convenience
 
+  // PWA & Standalone State
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showPwaModal, setShowPwaModal] = useState(false);
+  const [pwaPlatformTab, setPwaPlatformTab] = useState('ios'); // 'ios' | 'android' | 'desktop'
+  const [copiedPwaUrl, setCopiedPwaUrl] = useState(false);
+
   // Editable form fields
   const [editMaintenanceReason, setEditMaintenanceReason] = useState('');
   const [editNightMessage, setEditNightMessage] = useState('');
@@ -114,6 +121,101 @@ export default function JamTicKapeaAdminPage() {
   useEffect(() => {
     passcodeRef.current = passcode;
   }, [passcode]);
+
+  // PWA Standalone Mode & Event Detection for Admin Gateway
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Check standalone mode (launched as PWA installed app)
+    const isStandaloneMode =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true ||
+      document.referrer.includes('android-app://');
+    setIsStandalone(Boolean(isStandaloneMode));
+
+    // Detect user device platform
+    const ua = window.navigator.userAgent || '';
+    if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+      setPwaPlatformTab('ios');
+    } else if (/Android/.test(ua)) {
+      setPwaPlatformTab('android');
+    } else {
+      setPwaPlatformTab('desktop');
+    }
+
+    // Explicitly guarantee DOM link to admin-manifest.webmanifest
+    try {
+      document.title = 'SETEC Master Command Center - Rotana NOB';
+      let manifestEl = document.querySelector('link[rel="manifest"]');
+      if (!manifestEl) {
+        manifestEl = document.createElement('link');
+        manifestEl.rel = 'manifest';
+        document.head.appendChild(manifestEl);
+      }
+      manifestEl.href = '/admin-manifest.webmanifest';
+
+      let appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (!appleTitleMeta) {
+        appleTitleMeta = document.createElement('meta');
+        appleTitleMeta.name = 'apple-mobile-web-app-title';
+        document.head.appendChild(appleTitleMeta);
+      }
+      appleTitleMeta.content = 'SETEC Admin';
+
+      let appleCapableMeta = document.querySelector('meta[name="apple-mobile-web-app-capable"]');
+      if (!appleCapableMeta) {
+        appleCapableMeta = document.createElement('meta');
+        appleCapableMeta.name = 'apple-mobile-web-app-capable';
+        document.head.appendChild(appleCapableMeta);
+      }
+      appleCapableMeta.content = 'yes';
+    } catch {}
+
+    // Android/Chrome beforeinstallprompt capture
+    const handleBeforeInstall = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsStandalone(true);
+      setDeferredPrompt(null);
+      setShowPwaModal(false);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleTriggerInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice && choice.outcome === 'accepted') {
+        setIsStandalone(true);
+      }
+      setDeferredPrompt(null);
+    } else {
+      setShowPwaModal(true);
+    }
+  };
+
+  const copyAdminUrl = () => {
+    if (typeof window !== 'undefined') {
+      const fullUrl = window.location.origin + '/jam-tic-kapea-1-sin';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullUrl).then(() => {
+          setCopiedPwaUrl(true);
+          setTimeout(() => setCopiedPwaUrl(false), 2000);
+        }).catch(() => {});
+      }
+    }
+  };
 
   // Fetch Current State from API
   const fetchState = useCallback(async (token = null, forceSyncFields = false) => {
@@ -648,6 +750,258 @@ export default function JamTicKapeaAdminPage() {
     : cambodiaHour >= nightStartH && cambodiaHour < nightEndH;
   const isEffectivelyResting = !systemState.serverOnline || systemState.maintenanceMode || (systemState.nightScheduleEnabled && isCurrentlyNight);
 
+  // PWA Modal Guide Component
+  const renderPwaGuideModal = () => {
+    if (!showPwaModal) return null;
+    return (
+      <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
+        <div className="w-full max-w-lg bg-slate-900 border border-slate-700/80 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden text-slate-100 animate-zoom-in">
+          {/* Top Gradient Bar */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-sky-500 to-indigo-500" />
+
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4 pb-4 mb-4 border-b border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-sky-600 p-0.5 shadow-lg shadow-indigo-500/20 shrink-0 overflow-hidden flex items-center justify-center text-white">
+                <i className="fa-solid fa-shield-halved text-xl" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                  <span>ដំឡើង SETEC Admin App</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-700 font-bold uppercase tracking-wider">
+                    PWA Standalone
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  បន្ថែមទៅ Home Screen ដើម្បីបើកចូលផ្ទាំង Admin ផ្ទាល់ ១០០%
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPwaModal(false)}
+              className="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+              title="បិទ"
+            >
+              <i className="fa-solid fa-xmark text-sm" />
+            </button>
+          </div>
+
+          {/* Direct URL Guarantee Badge */}
+          <div className="mb-4 p-3 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 flex items-center justify-between gap-2">
+            <div className="min-w-0 flex items-center gap-2">
+              <i className="fa-solid fa-link text-indigo-400 text-xs shrink-0" />
+              <span className="text-[11px] font-mono text-indigo-200 truncate select-all">
+                https://troll-setec-chatbot.web.app/jam-tic-kapea-1-sin
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={copyAdminUrl}
+              className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-semibold transition shrink-0 cursor-pointer flex items-center gap-1 shadow-sm"
+            >
+              <i className={`fa-solid ${copiedPwaUrl ? 'fa-check text-emerald-300' : 'fa-copy'}`} />
+              <span>{copiedPwaUrl ? 'បានចម្លង!' : 'ចម្លង'}</span>
+            </button>
+          </div>
+
+          {/* Platform Switcher Tabs */}
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-950 rounded-2xl border border-slate-800 mb-4">
+            <button
+              type="button"
+              onClick={() => setPwaPlatformTab('ios')}
+              className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                pwaPlatformTab === 'ios'
+                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+              }`}
+            >
+              <i className="fa-brands fa-apple text-sm" />
+              <span>iPhone / iOS</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPwaPlatformTab('android')}
+              className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                pwaPlatformTab === 'android'
+                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+              }`}
+            >
+              <i className="fa-brands fa-android text-sm" />
+              <span>Android</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPwaPlatformTab('desktop')}
+              className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                pwaPlatformTab === 'desktop'
+                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+              }`}
+            >
+              <i className="fa-solid fa-laptop text-sm" />
+              <span>PC / Mac</span>
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 sm:p-5 mb-5 space-y-3.5 text-xs">
+            {pwaPlatformTab === 'ios' && (
+              <>
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                    1
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-200">បើកតំណភ្ជាប់នេះក្នុង Safari</p>
+                    <p className="text-slate-400 text-[11px] mt-0.5">
+                      ប្រសិនបើកំពុងបើកក្នុង Telegram ឬ Messenger សូមចុចរូបត្រីកោណ/សញ្ញាចុចបីជ្រើសយក <strong className="text-slate-200">"Open in Safari"</strong>។
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                    2
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-200">
+                      ចុចប៊ូតុង Share <i className="fa-solid fa-arrow-up-from-bracket text-sky-400 mx-1" /> (រូបប្រអប់ព្រួញឡើងលើ)
+                    </p>
+                    <p className="text-slate-400 text-[11px] mt-0.5">
+                      ស្ថិតនៅចំកណ្តាលរបារឧបករណ៍ខាងក្រោមបង្អស់នៃកម្មវិធី Safari។
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                    3
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-200">
+                      អូសចុះក្រោម រួចជ្រើសរើសយក <strong className="text-indigo-300">"Add to Home Screen"</strong> (➕ បន្ថែមទៅអេក្រង់ដើម)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                    4
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-200">
+                      ផ្ទៀងផ្ទាត់ឈ្មោះឃើញ <span className="text-indigo-300 font-mono">"SETEC Admin"</span> រួចចុច <strong className="text-white">"Add"</strong> (បន្ថែម)
+                    </p>
+                    <p className="text-emerald-400 text-[11px] mt-1 font-medium flex items-center gap-1.5">
+                      <i className="fa-solid fa-circle-check" />
+                      <span>កូដថ្មីភ្ជាប់ Start URL ទៅកាន់ផ្ទាំង Admin ផ្ទាល់ ១០០% ដោយមិនរត់ទៅ Website ដើមឡើយ!</span>
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {pwaPlatformTab === 'android' && (
+              <>
+                {deferredPrompt ? (
+                  <div className="text-center py-2">
+                    <p className="text-slate-300 mb-3 text-xs">
+                      ឧបករណ៍ Android របស់អ្នកគាំទ្រការដំឡើង One-Click PWA ដោយផ្ទាល់៖
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleTriggerInstall}
+                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition cursor-pointer"
+                    >
+                      <i className="fa-solid fa-download text-sm" />
+                      <span>ដំឡើង SETEC Admin App ឥឡូវនេះ (One-Click)</span>
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                        1
+                      </span>
+                      <div>
+                        <p className="font-semibold text-slate-200">ចុចសញ្ញាចុច ៣ (⋮) នៅជ្រុងខាងស្តាំលើនៃ Google Chrome</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                        2
+                      </span>
+                      <div>
+                        <p className="font-semibold text-slate-200">
+                          ចុចលើ <strong className="text-indigo-300">"Install app"</strong> ឬ <strong className="text-indigo-300">"Add to Home screen"</strong> (បន្ថែមទៅអេក្រង់ដើម)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                        3
+                      </span>
+                      <div>
+                        <p className="font-semibold text-slate-200">ចុច "Install" (ដំឡើង) ដើម្បីបញ្ចប់</p>
+                        <p className="text-emerald-400 text-[11px] mt-1 font-medium flex items-center gap-1.5">
+                          <i className="fa-solid fa-circle-check" />
+                          <span>App នឹងបង្ហាញរូប Icon "SETEC Admin" លើ Home Screen និងបើកចូលផ្ទាំងនេះផ្ទាល់!</span>
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {pwaPlatformTab === 'desktop' && (
+              <>
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                    1
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-200">មើលនៅរបារបញ្ចូល URL (Address bar) នៃ Chrome / Edge</p>
+                    <p className="text-slate-400 text-[11px] mt-0.5">
+                      អ្នកនឹងឃើញរូប Icon កុំព្យូទ័រ <i className="fa-solid fa-laptop text-indigo-400 mx-1" /> ឬសញ្ញា <strong className="text-slate-200">Install</strong> នៅជ្រុងខាងស្តាំបង្អស់។
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-950 border border-indigo-700/60 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                    2
+                  </span>
+                  <div>
+                    <p className="font-semibold text-slate-200">ចុចលើ Icon នោះ រួចចុច "Install"</p>
+                    <p className="text-emerald-400 text-[11px] mt-1 font-medium flex items-center gap-1.5">
+                      <i className="fa-solid fa-circle-check" />
+                      <span>ផ្ទាំង Admin នឹងដំណើរការជាកម្មវិធី Desktop ដាច់ដោយឡែកយ៉ាងស្រួល!</span>
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Bottom Action */}
+          <button
+            type="button"
+            onClick={() => setShowPwaModal(false)}
+            className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium text-xs transition cursor-pointer"
+          >
+            យល់ព្រម &amp; បិទផ្ទាំងនេះ
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // Authentication Card Screen
   if (!isAuthenticated) {
     return (
@@ -732,7 +1086,26 @@ export default function JamTicKapeaAdminPage() {
               </button>
             </form>
 
-            <div className="mt-6 pt-5 border-t border-slate-800/80 text-center">
+            {/* PWA Install Trigger in Login Screen */}
+            <div className="mt-5 pt-4 border-t border-slate-800/80">
+              {isStandalone ? (
+                <div className="py-2.5 px-3 rounded-xl bg-emerald-950/40 border border-emerald-800/50 text-emerald-300 text-xs flex items-center justify-center gap-2">
+                  <i className="fa-solid fa-circle-check text-emerald-400" />
+                  <span>កំពុងដំណើរការជា PWA Standalone App</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleTriggerInstall}
+                  className="w-full py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-indigo-500/30 hover:border-indigo-500/60 text-indigo-300 hover:text-indigo-200 text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer shadow-sm"
+                >
+                  <i className="fa-solid fa-mobile-screen-button text-indigo-400" />
+                  <span>បន្ថែម SETEC Admin ទៅអេក្រង់ដើម (Add to Home Screen)</span>
+                </button>
+              )}
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-800/60 text-center">
               <Link
                 href="/"
                 className="text-xs text-slate-400 hover:text-slate-200 transition-colors inline-flex items-center gap-1.5"
@@ -743,6 +1116,7 @@ export default function JamTicKapeaAdminPage() {
             </div>
           </div>
         </div>
+        {renderPwaGuideModal()}
       </main>
     );
   }
@@ -773,6 +1147,28 @@ export default function JamTicKapeaAdminPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* PWA Standalone Mode Indicator / Install Button */}
+            {isStandalone ? (
+              <span
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-xs font-semibold"
+                title="ដំណើរការក្នុងទម្រង់ PWA Standalone Mode"
+              >
+                <i className="fa-solid fa-mobile-screen-button text-emerald-400 text-[11px]" />
+                <span>PWA Active</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleTriggerInstall}
+                className="px-2.5 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 hover:text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                title="ដំឡើង SETEC Admin App លើទូរស័ព្ទ / Desktop (PWA)"
+              >
+                <i className="fa-solid fa-arrow-down-to-bracket text-[11px]" />
+                <span className="hidden sm:inline">ដំឡើង Admin App</span>
+                <span className="sm:hidden">App</span>
+              </button>
+            )}
+
             {/* Live Clock Badge */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300">
               <i className="fa-solid fa-clock text-indigo-400" />
@@ -2323,6 +2719,8 @@ export default function JamTicKapeaAdminPage() {
       <footer className="mt-auto border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
         SETEC Neural Core &bull; Supreme Master Command &bull; Engineered by Rotana NOB &bull; {new Date().getFullYear()}
       </footer>
+
+      {renderPwaGuideModal()}
     </main>
   );
 }

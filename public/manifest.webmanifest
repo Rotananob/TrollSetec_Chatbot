@@ -30,5 +30,46 @@
       "type": "image/jpeg",
       "purpose": "any"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "SETEC Master Command Center",
+      "short_name": "Admin Gateway",
+      "description": "System Control & Security Operations Center",
+      "url": "/jam-tic-kapea-1-sin",
+      "icons": [
+        {
+          "src": "/img/icon.jpg",
+          "sizes": "192x192",
+          "type": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "name": "Chatbot កូនច្បង",
+      "short_name": "កូនច្បង",
+      "description": "ជជែកជាមួយ Chatbot កូនច្បង",
+      "url": "/KonBong",
+      "icons": [
+        {
+          "src": "/img/icon.jpg",
+          "sizes": "192x192",
+          "type": "image/jpeg"
+        }
+      ]
+    },
+    {
+      "name": "Chatbot កូនពៅ",
+      "short_name": "កូនពៅ",
+      "description": "ជជែកជាមួយ Chatbot កូនពៅ",
+      "url": "/KonPov",
+      "icons": [
+        {
+          "src": "/img/icon.jpg",
+          "sizes": "192x192",
+          "type": "image/jpeg"
+        }
+      ]
+    }
   ]
 }
