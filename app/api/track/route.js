@@ -23,6 +23,10 @@ import {
   createServerLiveBypassToken,
   verifyServerLiveBypassToken
 } from '../../../lib/masterAuth';
+import {
+  saveLoreContribution,
+  sendWeeklyLoreToTelegram
+} from '../../../lib/loreExporter';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -274,19 +278,48 @@ export async function POST(req) {
       );
     }
 
-    // Handle User Contributed SETEC Lore & AI Training Knowledge
+    // Handle User Contributed SETEC Lore & AI Training Knowledge -> Persist to Firebase RTDB & Alert Telegram
     if (type === 'ai_lore_contribution' || action === 'ai_lore_contribution') {
+      const targetUser = body.username || 'Anonymous SETECer';
+      const targetCategory = body.category || 'SETEC Lore & Training';
+      const targetContent = body.content || '';
+      const targetBot = body.bot || 'General Chatbot';
+
+      // 1. Persist directly into Firebase RTDB under /setec_lore_contributions/
+      await saveLoreContribution({
+        username: targetUser,
+        category: targetCategory,
+        content: targetContent,
+        bot: targetBot,
+        ip,
+        userAgent
+      }).catch((e) => console.error('[Track] Error saving lore contribution to RTDB:', e));
+
+      // 2. Real-time alert to Rotana NOB on Telegram (Topic 89: CONTRIBUTE)
       await alertDevContribution({
-        username: body.username || 'Anonymous SETECer',
-        category: body.category || 'SETEC Lore & Training',
-        content: body.content || '',
-        bot: body.bot || 'General Chatbot',
+        username: targetUser,
+        category: targetCategory,
+        content: targetContent,
+        bot: targetBot,
         ip,
         userAgent
       }).catch((e) => console.error('[Track] Lore contribution alert error:', e));
 
       return Response.json(
-        { success: true, message: 'Contribution submitted successfully to Rotana NOB' },
+        { success: true, message: 'Contribution saved & submitted successfully to Rotana NOB' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Handle On-Demand Weekly Lore Aggregation Export & Dispatch to Telegram
+    if (type === 'export_weekly_lore' || action === 'export_weekly_lore') {
+      const result = await sendWeeklyLoreToTelegram({ force: true });
+      return Response.json(
+        {
+          success: true,
+          message: `បានផ្ញើឯកសារ Lore ប្រចាំសប្ដាហ៍ (${result.count} រឿង) ទៅ Telegram រួចរាល់!`,
+          count: result.count
+        },
         { status: 200, headers: corsHeaders }
       );
     }

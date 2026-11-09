@@ -88,6 +88,12 @@ export default function JamTicKapeaAdminPage() {
   const [customApproveCodes, setCustomApproveCodes] = useState({});
   const [isSubmittingPromo, setIsSubmittingPromo] = useState(false);
 
+  // Tab 6: SETEC Lore & AI Training Dataset Management State
+  const [loreItems, setLoreItems] = useState([]);
+  const [isExportingLore, setIsExportingLore] = useState(false);
+  const [loreExportStatus, setLoreExportStatus] = useState(null);
+  const [isLoadingLore, setIsLoadingLore] = useState(false);
+
   const eventSourceRef = useRef(null);
 
   // Clock Update Effect (UTC+7 Phnom Penh Time)
@@ -397,6 +403,53 @@ export default function JamTicKapeaAdminPage() {
       console.warn('[Admin] Failed to fetch promo data:', err);
     }
   }, []);
+
+  // Fetch Lore Contributions for AI Training Dataset
+  const fetchLoreData = useCallback(async () => {
+    setIsLoadingLore(true);
+    try {
+      const res = await fetch('/api/export-lore?action=list');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.items)) {
+          setLoreItems(data.items);
+        }
+      }
+    } catch (err) {
+      console.warn('[Admin] Failed to fetch lore items:', err);
+    } finally {
+      setIsLoadingLore(false);
+    }
+  }, []);
+
+  const handleExportWeeklyLoreToTelegram = async () => {
+    setIsExportingLore(true);
+    setLoreExportStatus(null);
+    try {
+      const res = await fetch('/api/export-lore?action=telegram');
+      const data = await res.json();
+      if (data.success) {
+        setLoreExportStatus({
+          type: 'success',
+          message: data.message || `បានផ្ញើឯកសារ JSON និង TXT (${data.count} រឿង) ទៅ Telegram Topic 89 រួចរាល់!`
+        });
+        fetchLoreData();
+      } else {
+        setLoreExportStatus({ type: 'error', message: data.error || 'មានបញ្ហាក្នុងការផ្ញើឯកសារ' });
+      }
+    } catch (err) {
+      setLoreExportStatus({ type: 'error', message: err.message });
+    } finally {
+      setIsExportingLore(false);
+    }
+  };
+
+  // Fetch Lore Data when switching to Lore tab
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'lore') {
+      fetchLoreData();
+    }
+  }, [isAuthenticated, activeTab, fetchLoreData]);
 
   // Poll Promo Data every 4 seconds when authenticated
   useEffect(() => {
@@ -1479,6 +1532,23 @@ export default function JamTicKapeaAdminPage() {
             {bypassRequests.filter((r) => r.status === 'pending').length > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse">
                 {bypassRequests.filter((r) => r.status === 'pending').length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('lore')}
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer relative ${
+              activeTab === 'lore'
+                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 font-semibold'
+                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <i className="fa-solid fa-brain text-emerald-400" />
+            <span>📚 SETEC Lore &amp; AI Training Dataset</span>
+            {loreItems.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black">
+                {loreItems.length}
               </span>
             )}
           </button>
@@ -2604,6 +2674,153 @@ export default function JamTicKapeaAdminPage() {
                       })}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 6: SETEC LORE CONTRIBUTIONS & AI TRAINING DATASET AGGREGATION         */}
+        {/* ========================================================================= */}
+        {activeTab === 'lore' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Header / Stats & Actions */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 backdrop-blur-md">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-950/80 border border-emerald-800 text-emerald-400 text-[11px] font-bold">
+                      <i className="fa-solid fa-database mr-1" /> AI TRAINING PIPELINE
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">
+                      សរុប {loreItems.length} រឿង
+                    </span>
+                  </div>
+                  <h2 className="text-base sm:text-lg font-bold text-white mt-1.5">
+                    ប្រមូលផ្ដុំ SETEC Lore &amp; កញ្ចប់ទិន្នន័យ AI Training ប្រចាំសប្ដាហ៍
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                    រាល់ Lore ឬរឿងរ៉ាវពិតនៅសាលា ស៊ីតិច ដែល User បាន Submit នឹងត្រូវប្រមូលផ្ដុំនៅទីនេះ។
+                    បង Rotana NOB អាចចុចផ្ញើឯកសារទាំងមូល (ទាំង JSON និង TXT) ទៅកាន់ Telegram រៀងរាល់ ១ អាទិត្យម្ដង ដើម្បី Review និងយកទៅ Train បង្រៀន AI តទៀត!
+                  </p>
+                </div>
+
+                {/* Primary Telegram Dispatch & Download Buttons */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleExportWeeklyLoreToTelegram}
+                    disabled={isExportingLore}
+                    className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <i className={`fa-solid ${isExportingLore ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`} />
+                    <span>{isExportingLore ? 'កំពុងផ្ញើ...' : 'ផ្ញើឯកសារប្រចាំសប្ដាហ៍ទៅ Telegram'}</span>
+                  </button>
+
+                  <a
+                    href="/api/export-lore?action=download_json"
+                    download
+                    className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
+                    title="ទាញយកជា JSON Dataset"
+                  >
+                    <i className="fa-solid fa-file-code" />
+                    <span>Download JSON</span>
+                  </a>
+
+                  <a
+                    href="/api/export-lore?action=download_txt"
+                    download
+                    className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-700"
+                    title="ទាញយកជា TXT អានពេញលេញ"
+                  >
+                    <i className="fa-solid fa-file-lines" />
+                    <span>Download TXT</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={fetchLoreData}
+                    disabled={isLoadingLore}
+                    className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer border border-slate-700"
+                    title="Refresh Data"
+                  >
+                    <i className={`fa-solid fa-arrows-rotate text-xs ${isLoadingLore ? 'fa-spin' : ''}`} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Alert Banner */}
+              {loreExportStatus && (
+                <div
+                  className={`mt-4 p-3 rounded-xl border text-xs flex items-center justify-between ${
+                    loreExportStatus.type === 'success'
+                      ? 'bg-emerald-950/60 border-emerald-800 text-emerald-200'
+                      : 'bg-rose-950/60 border-rose-800 text-rose-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <i className={`fa-solid ${loreExportStatus.type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-triangle-exclamation text-rose-400'}`} />
+                    <span>{loreExportStatus.message}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLoreExportStatus(null)}
+                    className="text-slate-400 hover:text-white p-1 cursor-pointer"
+                  >
+                    <i className="fa-solid fa-xmark text-xs" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Lore Cards List */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 sm:p-6 backdrop-blur-md">
+              <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                <i className="fa-solid fa-list-check text-emerald-400" />
+                <span>បញ្ជីទិន្នន័យ LORE ដែលបាន Submit ពី User ({loreItems.length})</span>
+              </h3>
+
+              {isLoadingLore ? (
+                <div className="py-12 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                  <i className="fa-solid fa-spinner fa-spin text-emerald-400 text-base" />
+                  <span>កំពុងទាញយកទិន្នន័យ...</span>
+                </div>
+              ) : loreItems.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-500">
+                  <i className="fa-solid fa-folder-open text-2xl text-slate-600 mb-2 block" />
+                  <span>មិនទាន់មានទិន្នន័យ Lore ណាត្រូវបាន Submit នៅឡើយទេ</span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {loreItems.map((item, idx) => (
+                    <div
+                      key={item.id || idx}
+                      className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-800/60">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-emerald-950 text-emerald-300 font-bold text-[10px] flex items-center justify-center border border-emerald-800/80">
+                            #{idx + 1}
+                          </span>
+                          <span className="text-xs font-bold text-white">
+                            {item.username || 'Anonymous'}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[10px] text-emerald-300 font-mono">
+                            {item.category || 'Lore'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-mono flex items-center gap-3">
+                          <span>{item.submittedAtCambodia || 'Unknown'}</span>
+                          <span className="text-slate-500">{item.device || ''}</span>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-slate-300 font-sans leading-relaxed whitespace-pre-wrap select-text bg-slate-900/60 p-3 rounded-lg border border-slate-800/50">
+                        {item.content}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
