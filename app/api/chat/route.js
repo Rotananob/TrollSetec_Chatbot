@@ -47,7 +47,7 @@ export { MACHINE_ENCODED_WAKEUP_PAYLOAD };
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE, PATCH',
-  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-device-id, x-session-id, x-user-age, x-rotana-secret-key, x-rotana-bypass, x-rotana-passcode, x-bypass-code, X-Requested-With, Accept, Origin, Range, Cache-Control, *',
   'Access-Control-Max-Age': '86400',
   'X-Engine': 'setec-neural-core-v3',
   'X-Powered-By': 'SETEC Neural Network v3.8',
@@ -82,16 +82,17 @@ export async function GET(req) {
 
 // Active ultra-fast verified Gemini models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
-  'gemini-3.5-flash-lite',       // Benchmark verified: ~920ms ultra-fast!
-  'gemini-3-flash-preview',       // Benchmark verified: ~1.1s instant fallback!
-  'gemini-flash-lite-latest',     // Reliable Google alias
+  'gemini-3.5-flash-lite',       // Benchmark verified: ~750ms ultra-fast!
+  'gemini-flash-lite-latest',     // Reliable Google alias: ~1.6s
+  'gemini-3.1-flash-lite',
   'gemini-3.1-flash-lite-preview',
-  'gemini-3.1-flash-lite'
+  'gemini-3-flash-preview'
 ];
 const AUDIO_MODELS = [
-  'gemini-3.8-flash-lite-tts',
   'gemini-3.1-flash-tts-preview',
-  'gemini-3.8-flash-tts'
+  'gemini-3.8-flash-tts',
+  'gemini-3.8-flash-lite-tts',
+  'gemini-2.5-flash-preview-tts'
 ];
 
 // Global in-memory rotation counter and cooldown tracker for all 6 Gemini API keys
