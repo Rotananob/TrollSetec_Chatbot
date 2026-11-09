@@ -339,7 +339,7 @@ export default function KonBongPage() {
             }
           }
         }),
-        signal: AbortSignal.timeout(12000)
+        signal: AbortSignal.timeout(15000)
       });
 
       if (!response.ok) return null;
@@ -1222,6 +1222,7 @@ export default function KonBongPage() {
     setIsGeneratingMeme(true);
     const userMsg = { role: 'user', text: `សុំបង្កើតរូបភាព Meme៖ "${idea}"` };
     const updatedWithUser = [...messages, userMsg];
+    setMessages(updatedWithUser);
     saveCurrentSessionMessages(updatedWithUser);
 
     try {
@@ -1239,16 +1240,24 @@ export default function KonBongPage() {
       });
 
       const data = await res.json();
-      if (res.ok && data.success) {
-        // Wait until image creation and download is 100% complete before showing output
-        if (data.imageUrl) {
-          await new Promise((resolve) => {
-            const preloadImg = new Image();
-            preloadImg.onload = () => resolve(true);
-            preloadImg.onerror = () => resolve(true);
-            preloadImg.src = data.imageUrl;
-            setTimeout(() => resolve(true), 25000);
-          });
+      if (res.ok && data.success && data.imageUrl) {
+        // Wait until image creation and decoding is 100% complete and verified before showing output
+        const isLoadedSuccessfully = await new Promise((resolve) => {
+          const preloadImg = new Image();
+          preloadImg.onload = () => {
+            if (preloadImg.naturalWidth > 0 && preloadImg.naturalHeight > 0) {
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          };
+          preloadImg.onerror = () => resolve(false);
+          preloadImg.src = data.imageUrl;
+          setTimeout(() => resolve(false), 20000);
+        });
+
+        if (!isLoadedSuccessfully) {
+          throw new Error('Image failed to decode');
         }
 
         let history = [];
@@ -1267,6 +1276,7 @@ export default function KonBongPage() {
           memeImage: data.imageUrl
         };
         const updatedWithBot = [...updatedWithUser, botMemeMsg];
+        setMessages(updatedWithBot);
         saveCurrentSessionMessages(updatedWithBot);
         const memeIdx = updatedWithBot.length - 1;
         setExclusiveAudioState(memeIdx, 'loading');
@@ -1280,10 +1290,11 @@ export default function KonBongPage() {
           } catch {
             setExclusiveAudioState(memeIdx, 'ready');
           }
-        }, 7000);
+        }, 8000);
       } else {
-        const errorText = data.message || `អូអាប្អូន ${username}! ១ ឧបករណ៍បង្កើតរូប Meme បាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោងណា៎ប្អូន!`;
+        const errorText = data.message || `អូអាប្អូន ${username}! ការបង្កើតរូបភាព Meme មិនទាន់ជោគជ័យ សូមសាកល្បងម្ដងទៀតណា៎!`;
         const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
+        setMessages(updatedWithBot);
         saveCurrentSessionMessages(updatedWithBot);
         const errIdx = updatedWithBot.length - 1;
         setExclusiveAudioState(errIdx, 'loading');
@@ -1297,11 +1308,12 @@ export default function KonBongPage() {
           } catch {
             setExclusiveAudioState(errIdx, 'ready');
           }
-        }, 7000);
+        }, 8000);
       }
     } catch {
-      const errorText = `${username} អើយ! ប្រព័ន្ធបង្កើតរូប Meme កំពុងរវល់ខ្លាំងពេក សាកល្បងម្ដងទៀតនៅពេលក្រោយណា៎!`;
+      const errorText = `អូអាប្អូន ${username}! ប្រព័ន្ធបង្កើតរូប Meme កំពុងរវល់ខ្លាំងពេក រូបភាពមិនទាន់បង្កើតបាន ១០០% ទេ សូមសាកល្បងម្ដងទៀតនៅពេលក្រោយណា៎!`;
       const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
+      setMessages(updatedWithBot);
       saveCurrentSessionMessages(updatedWithBot);
     } finally {
       setIsGeneratingMeme(false);
@@ -1955,7 +1967,7 @@ export default function KonBongPage() {
         } catch {
           setExclusiveAudioState(botMsgIdx, 'ready');
         }
-      }, 7000);
+      }, 8000);
 
       // Automatically dispatch ToDo queued message if user typed while AI was thinking
       if (queuedPromptRef.current) {
@@ -2028,7 +2040,7 @@ export default function KonBongPage() {
         } catch {
           setExclusiveAudioState(botIdx, 'ready');
         }
-      }, 7000);
+      }, 8000);
 
       if (queuedPromptRef.current) {
         const nextTask = queuedPromptRef.current;
@@ -3548,13 +3560,16 @@ export default function KonBongPage() {
                   )}
 
                   {msg.memeImage && (
-                    <div className="mb-2 rounded-2xl overflow-hidden border border-amber-400/60 shadow-md max-w-sm">
-                      <img
-                        src={msg.memeImage}
-                        alt="SETEC Meme"
-                        onClick={() => setViewingImage({ url: msg.memeImage, caption: msg.text })}
-                        className="w-full h-auto object-cover cursor-pointer hover:scale-[1.02] transition-transform"
-                      />
+                    <div className="mb-2 rounded-2xl overflow-hidden border border-amber-400/60 shadow-md max-w-sm bg-slate-900">
+                      <div className="relative min-h-[220px] w-full flex items-center justify-center bg-slate-950">
+                        <img
+                          src={msg.memeImage}
+                          alt="SETEC Meme"
+                          loading="eager"
+                          onClick={() => setViewingImage({ url: msg.memeImage, caption: msg.text })}
+                          className="w-full h-auto object-cover cursor-pointer hover:scale-[1.02] transition-transform"
+                        />
+                      </div>
                       <div className="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
                         <span className="text-[10px] text-amber-300 font-extrabold flex items-center gap-1">
                           <i className="fas fa-laugh-squint"></i> Pure Meme

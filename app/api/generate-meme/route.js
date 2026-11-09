@@ -132,11 +132,66 @@ export async function POST(req) {
       }
     }
 
-    // 3. Ultra-HD Fallback Engine: Flux Caricature with randomized seed and enhanced styling
+    // 3. Ultra-HD Fallback Engine: Pollinations Flux/Turbo Image Generation with full server-side download
     if (!imageUrl) {
       const seed = Math.floor(Math.random() * 9000000) + 1000000;
-      imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=1024&height=1024&model=flux&seed=${seed}&nologo=true`;
-      engineUsed = 'Nano Banana Neural Flux Core (1024x1024 HD)';
+      const candidateEngines = [
+        {
+          name: 'Nano Banana Neural Flux Core (1024x1024 HD Base64)',
+          url: `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=1024&height=1024&model=flux&seed=${seed}&nologo=true`,
+          timeoutMs: 25000
+        },
+        {
+          name: 'Neural Turbo Fast Core (768x768 Base64)',
+          url: `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=768&height=768&model=turbo&seed=${seed}&nologo=true`,
+          timeoutMs: 18000
+        }
+      ];
+
+      for (const candidate of candidateEngines) {
+        if (imageUrl) break;
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), candidate.timeoutMs);
+          const imgRes = await fetch(candidate.url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+              'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+            },
+            signal: controller.signal
+          });
+          clearTimeout(timer);
+
+          if (imgRes.ok) {
+            const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+            if (contentType.includes('image')) {
+              const arrayBuffer = await imgRes.arrayBuffer();
+              const buffer = Buffer.from(arrayBuffer);
+              if (buffer.length > 5000) {
+                imageUrl = `data:${contentType};base64,${buffer.toString('base64')}`;
+                engineUsed = candidate.name;
+                break;
+              }
+            }
+          }
+        } catch (fetchErr) {
+          console.warn(`[MemeEngine] ${candidate.name} fetch attempt skipped:`, fetchErr.message);
+        }
+      }
+    }
+
+    if (!imageUrl) {
+      return Response.json(
+        {
+          success: false,
+          error: 'Generation Failed',
+          message:
+            bot === 'konpov'
+              ? `អាម៉ូយ ${username}! ប្រព័ន្ធគូសរូបកំពុងរវល់ខ្លាំង មិនទាន់អាចបង្កើតរូបភាពបាន ១០០% ទេ សូមចុចសាកល្បងម្ដងទៀតណា៎!`
+              : `អូអាប្អូន ${username}! ប្រព័ន្ធកំពុងមមាញឹកខ្លាំង មិនទាន់អាចបង្កើតរូបភាពបាន ១០០% ទេ សូមប្អូនចុចសាកល្បងម្ដងទៀតណា៎!`
+        },
+        { status: 502, headers: corsHeaders }
+      );
     }
 
     const funnyCaption =
