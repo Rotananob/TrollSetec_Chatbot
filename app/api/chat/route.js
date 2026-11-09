@@ -40,7 +40,7 @@ import { buildKonPovSystemInstruction } from '../../prompts/konPovPrompt.js';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-rotana-bypass, x-device-id, x-session-id, x-requested-with, X-Accel-Buffering, Cache-Control',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-rotana-bypass, x-rotana-secret-key, x-device-id, x-session-id, x-username, x-requested-with, X-Accel-Buffering, Cache-Control',
   'X-Engine': 'setec-neural-core-v3',
   'X-Powered-By': 'SETEC Neural Network v3.8',
   'Server': 'SETEC-Cloud-Gateway'
@@ -72,19 +72,18 @@ export async function GET(req) {
   return Response.json({ ok: true, serverTime: Date.now() }, { headers: corsHeaders });
 }
 
-// Active ultra-fast models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
+// Active ultra-fast verified Gemini models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
   'gemini-flash-lite-latest',
-  'gemini-3.1-flash-lite-preview',
-  'gemini-3.5-flash-lite',
-  'gemini-3-flash-preview',
-  'gemini-3.5-flash',
-  'gemini-3.6-flash'
+  'gemini-flash-latest',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.5-pro',
+  'gemini-pro-latest'
 ];
 const AUDIO_MODELS = [
-  'gemini-3.8-flash-lite-tts',
-  'gemini-3.8-flash-tts',
-  'gemini-3.1-flash-tts-preview'
+  'gemini-2.5-flash-preview-tts',
+  'gemini-2.5-pro-preview-tts'
 ];
 
 export function getApiKeyPool(bot) {
@@ -183,7 +182,7 @@ async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 250
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gemini-3.8-flash-tts',
+          model: 'gemini-2.5-flash-preview-tts',
           input: [
             {
               type: 'user_input',
@@ -947,7 +946,7 @@ export async function POST(req) {
     // 1. Anti-Spam Rate Limiting (Tracked strictly per username & IP, never locking the device permanently)
     // Internal audio synthesis requests do not consume the chat message quota
     if (!audio) {
-      const rateResult = checkChatLimit(clientIp, username || 'user');
+      const rateResult = checkChatLimit(clientIp, username || 'user', deviceIdHeader);
       if (!rateResult.allowed) {
         const retrySec = rateResult.retryAfter || 60;
         const userPromptSnippet = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';

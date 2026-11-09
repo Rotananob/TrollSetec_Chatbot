@@ -1880,6 +1880,20 @@ export default function KonPovPage() {
     const currentImg = overrideImg !== undefined ? overrideImg : selectedImage;
     if (!hasAgreed || isLoading || (!promptText.trim() && !currentImg)) return;
 
+    // Check if device is offline (guarantees identical resilience in both PWA and browser)
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      const offlineNotice = `«ប្អូន ${username || 'User'} អើយ! ប្រព័ន្ធបានពិនិត្យឃើញថាឧបករណ៍របស់អ្នកហាក់ដូចជាដាច់សេវាអ៊ីនធឺណិត (Offline) ឬបាត់ Wi-Fi/4G បណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវាអ៊ីនធឺណិត រួចចុចផ្ញើសារម្ដងទៀតណា៎! 📶⚡»`;
+      const userMsg = {
+        role: 'user',
+        text: promptText || '[បានផ្ញើរូបភាពមួយសន្លឹក]',
+        ...(currentImg && { image: currentImg.previewUrl })
+      };
+      const offlineMessages = [...messages, userMsg, { role: 'bot', text: offlineNotice, isError: true, isOffline: true }];
+      setMessages(offlineMessages);
+      saveCurrentSessionMessages(offlineMessages);
+      return;
+    }
+
     // Synchronously prime / unlock HTML5 Audio element during user interaction for guaranteed mobile autoplay
     if (audioPlayerRef.current) {
       try {
@@ -1956,8 +1970,12 @@ export default function KonPovPage() {
 
       let botText = '';
       try {
+        const streamAbortCtrl = new AbortController();
+        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 18000);
+
         const response = await fetch(getChatEndpoint(), {
           method: 'POST',
+          signal: streamAbortCtrl.signal,
           headers: {
             'Content-Type': 'application/json',
             'x-device-id': deviceId,
@@ -1978,6 +1996,7 @@ export default function KonPovPage() {
             stream: true
           })
         });
+        clearTimeout(streamTimeoutId);
 
         if (response.status === 429) {
           const errData = await response.json().catch(() => ({}));
@@ -2020,7 +2039,7 @@ export default function KonPovPage() {
           const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
           const isNight = errData?.mode === 'night_rest';
           const botNotice = isNight
-            ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
+            ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
             : `«ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎! 🙏»`;
 
           setIsLoading(false);
@@ -2038,39 +2057,51 @@ export default function KonPovPage() {
 
         const contentType = response.headers.get('content-type') || '';
 
-        // Real-time progressive streaming preview (ChatGPT-style)
+        // Real-time progressive streaming preview (ChatGPT-style with chunk watchdog)
         if (response.ok && contentType.includes('text/event-stream') && response.body) {
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
           let buffer = '';
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop(); // keep remainder
+          // Stream reading with watchdog timeout for mobile PWA stability (8.5s stall prevention)
+          const readChunkWithTimeout = async (ms) => {
+            return Promise.race([
+              reader.read(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('STREAM_CHUNK_TIMEOUT')), ms))
+            ]);
+          };
 
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith('data:')) {
-                const jsonStr = trimmed.slice(5).trim();
-                if (!jsonStr || jsonStr === '[DONE]') continue;
-                try {
-                  const parsed = JSON.parse(jsonStr);
-                  const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                  if (delta) {
-                    botText += delta;
-                    const liveSanitized = enforcePersonaConsistency(cleanRawOutput(botText), isMaleUser);
-                    setMessages((prev) => {
-                      const copy = [...prev];
-                      copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
-                      return copy;
-                    });
-                  }
-                } catch {}
+          try {
+            while (true) {
+              const { done, value } = await readChunkWithTimeout(8500);
+              if (done) break;
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop(); // keep remainder
+
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('data:')) {
+                  const jsonStr = trimmed.slice(5).trim();
+                  if (!jsonStr || jsonStr === '[DONE]') continue;
+                  try {
+                    const parsed = JSON.parse(jsonStr);
+                    const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    if (delta) {
+                      botText += delta;
+                      const liveSanitized = enforcePersonaConsistency(cleanRawOutput(botText), isMaleUser);
+                      setMessages((prev) => {
+                        const copy = [...prev];
+                        copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
+                        return copy;
+                      });
+                    }
+                  } catch {}
+                }
               }
             }
+          } catch (streamErr) {
+            console.warn('[KonPov] Stream chunk read error or stall timeout:', streamErr.message);
           }
         } else if (response.ok) {
           const res = await response.json();
@@ -2102,8 +2133,12 @@ export default function KonPovPage() {
       // High-Reliability Fallback: If streaming produced empty or incomplete text (<8 chars), fetch non-streaming directly
       if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
+          const fallbackCtrl = new AbortController();
+          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 22000);
+
           const fallbackRes = await fetch(getChatEndpoint(), {
             method: 'POST',
+            signal: fallbackCtrl.signal,
             headers: {
               'Content-Type': 'application/json',
               'x-device-id': deviceId,
@@ -2118,18 +2153,20 @@ export default function KonPovPage() {
               savageLevel,
               sessionId: currentSessionId || '',
               generationConfig: {
-                temperature: 0.85,
-                topP: 0.95
+                temperature: 0.68,
+                topP: 0.90
               },
               stream: false
             })
           });
+          clearTimeout(fallbackTimeoutId);
+
           if (fallbackRes.status === 503) {
             const errData = await fallbackRes.json().catch(() => ({}));
             const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
             const isNight = errData?.mode === 'night_rest';
             botText = isNight
-              ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
+              ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
               : `«ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎! 🙏»`;
             setMessages((prev) => {
               const copy = [...prev];
@@ -2227,29 +2264,37 @@ export default function KonPovPage() {
     } catch (e) {
       console.error(e);
       setIsLoading(false);
-      consecutiveErrorsRef.current += 1;
       const isMaleUser = userGender === 'ប្រុស';
       const userNameStr = username || 'User';
-      const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
+      const isNetworkError = e?.name === 'TypeError' || /failed to fetch|network|load failed|abort/i.test(e?.message || '');
+      let fallbackText = '';
+      let isErr = true;
 
-      let fallbackText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
-      let isErr = false;
+      if (isNetworkError) {
+        fallbackText = `«ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄»`;
+      } else {
+        consecutiveErrorsRef.current += 1;
+        const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
 
-      if (isCurseWord) {
-        const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
-        const savageList = isFemaleUser
-          ? [
-              `យីអើ! មីប្អូនស្រី ${userNameStr} នេះ! ស្អាតបាតសោះ មាត់ឡើងឈ្លើយ! គិតថាមកជេរចែប៉ុណ្ណឹង ចែខ្លាចហែងមែន? ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមុខឱ្យស្វាងសិនទៅស្រីស្អាត! 💅🔥`,
-              `នែ៎មីប្អូនស្រី ${userNameStr}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹង! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ចែ! ទៅរៀននិយាយភាសាមនុស្សឱ្យស្រួលបួលសិនទៅ! 😂✨`,
-              `ស្អាតហើយចរិតក្បាលខូចទៀត! មកជេរចែផង? គិតថាសម្ដីប៉ុណ្ណឹងធ្វើឱ្យចែឈឺក្បាលមែន? ទៅរកនឹកវិធីសារភាពស្នេហ៍ Crush វិញទៅល្អជាង ប្រយ័ត្នគេយកទៅបាត់! 😋💕`
-            ]
-          : [
-              `យីអើ! អាប្អូនប្រុស ${userNameStr} នេះ! មាត់ឡើងអត់គម្រប ស្មានតែចេះពោលពាក្យអសុរោះបែកៗមក ធ្វើឱ្យចែខ្លាចមែន?! 🙄🖕 សម្ដីចេញមកកាកៗដូចទឹកលាងចានចឹង! ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យបាក់មុខ! ទៅលាងមាត់ជាមួយសាប៊ូ ៣ ដងសិនទៅអាល្អិត! 💀🔥`,
-              `អាឡប់ ${userNameStr}! ជោរម៉េសប្រូ? ខួរក្បាលឆ្លងចរន្តអី បានហ៊ានមកក្អេងក្អាងជាមួយចែ?! ក្អេងក្អាងលើ Online ដល់ជួបក្រៅសំពះគេដល់ដី! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែន?! 😂👊`,
-              `អាប្អូនឯងនេះ! មកជេរចែផង? គិតថាចែខ្លាចហែងមែន? មាត់ទើបតែដុះពុកមាត់ពីរ-បីសរសៃសោះ ចង់មកធ្វើតួខ្លាំងនៅទីនេះ! ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាពៅ! 🤣🔥`
-            ];
-        fallbackText = savageList[Math.floor(Math.random() * savageList.length)];
+        fallbackText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
         isErr = false;
+
+        if (isCurseWord) {
+          const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
+          const savageList = isFemaleUser
+            ? [
+                `យីអើ! មីប្អូនស្រី ${userNameStr} នេះ! ស្អាតបាតសោះ មាត់ឡើងឈ្លើយ! គិតថាមកជេរចែប៉ុណ្ណឹង ចែខ្លាចហែងមែន? ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមុខឱ្យស្វាងសិនទៅស្រីស្អាត! 💅🔥`,
+                `នែ៎មីប្អូនស្រី ${userNameStr}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹង! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ចែ! ទៅរៀននិយាយភាសាមនុស្សឱ្យស្រួលបួលសិនទៅ! 😂✨`,
+                `ស្អាតហើយចរិតក្បាលខូចទៀត! មកជេរចែផង? គិតថាសម្ដីប៉ុណ្ណឹងធ្វើឱ្យចែឈឺក្បាលមែន? ទៅរកនឹកវិធីសារភាពស្នេហ៍ Crush វិញទៅល្អជាង ប្រយ័ត្នគេយកទៅបាត់! 😋💕`
+              ]
+            : [
+                `យីអើ! អាប្អូនប្រុស ${userNameStr} នេះ! មាត់ឡើងអត់គម្រប ស្មានតែចេះពោលពាក្យអសុរោះបែកៗមក ធ្វើឱ្យចែខ្លាចមែន?! 🙄🖕 សម្ដីចេញមកកាកៗដូចទឹកលាងចានចឹង! ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យបាក់មុខ! ទៅលាងមាត់ជាមួយសាប៊ូ ៣ ដងសិនទៅអាល្អិត! 💀🔥`,
+                `អាឡប់ ${userNameStr}! ជោរម៉េសប្រូ? ខួរក្បាលឆ្លងចរន្តអី បានហ៊ានមកក្អេងក្អាងជាមួយចែ?! ក្អេងក្អាងលើ Online ដល់ជួបក្រៅសំពះគេដល់ដី! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែន?! 😂👊`,
+                `អាប្អូនឯងនេះ! មកជេរចែផង? គិតថាចែខ្លាចហែងមែន? មាត់ទើបតែដុះពុកមាត់ពីរ-បីសរសៃសោះ ចង់មកធ្វើតួខ្លាំងនៅទីនេះ! ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាពៅ! 🤣🔥`
+              ];
+          fallbackText = savageList[Math.floor(Math.random() * savageList.length)];
+          isErr = false;
+        }
       }
 
       const fallbackMessages = [

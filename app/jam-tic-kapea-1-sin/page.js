@@ -22,7 +22,7 @@ export default function JamTicKapeaAdminPage() {
     nightScheduleEnabled: true,
     nightStartHour: 2,
     nightEndHour: 6,
-    nightRestMessage: 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!',
+    nightRestMessage: 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!',
     konbongActive: true,
     konpovActive: true,
     sessionLimitActive: true,
@@ -2605,7 +2605,7 @@ export default function JamTicKapeaAdminPage() {
                   ប្រព័ន្ធស្ថិតក្នុងម៉ោងសម្រាក Sleep Mode: {String(editNightStart).padStart(2, '0')}:00 ដល់ {String(editNightEnd).padStart(2, '0')}:00
                 </h3>
                 <p className="text-xs sm:text-sm font-sans text-slate-300 leading-relaxed whitespace-pre-wrap break-words">
-                  {editNightMessage.trim() || systemState.nightRestMessage || 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកូតា និងកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!'}
+                  {editNightMessage.trim() || systemState.nightRestMessage || 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!'}
                 </p>
               </div>
 
