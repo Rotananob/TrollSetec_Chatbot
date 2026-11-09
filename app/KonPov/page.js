@@ -120,6 +120,11 @@ export default function KonPovPage() {
   const queuedPromptRef = useRef(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Note Disclaimer Audio Player State & Ref (Auto-read)
+  const noteAudioRef = useRef(null);
+  const [isNoteAudioPlaying, setIsNoteAudioPlaying] = useState(false);
+  const [noteAudioProgress, setNoteAudioProgress] = useState(0);
+
   // Multimodal Image Upload State
   const [selectedImage, setSelectedImage] = useState(null); // { base64, mimeType, previewUrl, name }
   const fileInputRef = useRef(null);
@@ -774,6 +779,87 @@ export default function KonPovPage() {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading, hasAgreed]);
 
+  // Auto-read Note Disclaimer when note is visible (!hasAgreed)
+  useEffect(() => {
+    if (hasAgreed) {
+      if (noteAudioRef.current) {
+        noteAudioRef.current.pause();
+        noteAudioRef.current.currentTime = 0;
+      }
+      setIsNoteAudioPlaying(false);
+      return;
+    }
+
+    const audio = noteAudioRef.current;
+    if (!audio) return;
+
+    audio.volume = 0.95;
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsNoteAudioPlaying(true);
+        })
+        .catch(() => {
+          setIsNoteAudioPlaying(false);
+          const handleFirstInteraction = () => {
+            if (!hasAgreed && audio && audio.paused) {
+              audio.play().then(() => setIsNoteAudioPlaying(true)).catch(() => {});
+            }
+            window.removeEventListener('click', handleFirstInteraction);
+            window.removeEventListener('touchstart', handleFirstInteraction);
+          };
+          window.addEventListener('click', handleFirstInteraction, { once: true });
+          window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+        });
+    }
+
+    const handleTimeUpdate = () => {
+      if (audio.duration) {
+        setNoteAudioProgress((audio.currentTime / audio.duration) * 100);
+      }
+    };
+    const handleEnded = () => {
+      setIsNoteAudioPlaying(false);
+      setNoteAudioProgress(100);
+    };
+    const handlePause = () => {
+      setIsNoteAudioPlaying(false);
+    };
+    const handlePlay = () => {
+      setIsNoteAudioPlaying(true);
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('play', handlePlay);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('play', handlePlay);
+      audio.pause();
+    };
+  }, [hasAgreed]);
+
+  const handleToggleNoteAudio = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const audio = noteAudioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      audio.play().then(() => setIsNoteAudioPlaying(true)).catch(() => {});
+    } else {
+      audio.pause();
+      setIsNoteAudioPlaying(false);
+    }
+  };
+
   // Gender selection
   const handleSelectGender = (gender) => {
     setUserGender(gender);
@@ -1199,6 +1285,11 @@ export default function KonPovPage() {
 
   // User explicitly clicks "Agree & Start Chat"
   const handleAgreeAndStartChat = () => {
+    if (noteAudioRef.current) {
+      noteAudioRef.current.pause();
+      noteAudioRef.current.currentTime = 0;
+    }
+    setIsNoteAudioPlaying(false);
     setHasAgreed(true);
     const isMale = userGender === 'ប្រុស';
     const introMsg = isMale
@@ -3139,15 +3230,84 @@ export default function KonPovPage() {
         {/* PROMINENT WARNING DISCLAIMER & AGREEMENT SECTION */}
         {!hasAgreed && (
           <div className="border border-amber-400/80 bg-amber-500/10 dark:bg-amber-950/40 rounded-2xl p-4 sm:p-5 shadow-lg animate-fade-in my-1">
-            <div className="flex items-center gap-2 mb-2 font-black text-amber-600 dark:text-amber-300 text-xs sm:text-sm">
-              <i className="fas fa-triangle-exclamation text-amber-500 text-base animate-bounce"></i>
-              <span className="uppercase tracking-wider">NOTE សំខាន់សម្រាប់អ្នកចូលមកឆាតលេងនេះ</span>
+            {/* Hidden Audio Element for Auto-reading Note */}
+            <audio ref={noteAudioRef} src="/audio/note-konpov.mp3" preload="auto" />
+
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2 font-black text-amber-600 dark:text-amber-300 text-xs sm:text-sm">
+                <i className="fas fa-triangle-exclamation text-amber-500 text-base animate-bounce"></i>
+                <span className="uppercase tracking-wider">NOTE សំខាន់សម្រាប់អ្នកចូលមកឆាតលេងនេះ</span>
+              </div>
+
+              {/* Compact Toggle Button */}
+              <button
+                type="button"
+                onClick={handleToggleNoteAudio}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 cursor-pointer border ${
+                  isNoteAudioPlaying
+                    ? 'bg-rose-500 text-white border-rose-400 shadow-xs'
+                    : 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-400/40 hover:bg-amber-500/30'
+                }`}
+                title={isNoteAudioPlaying ? 'ផ្អាកការអាន' : 'ចាក់សំឡេង AI អាន Note'}
+              >
+                <i className={`fas ${isNoteAudioPlaying ? 'fa-pause' : 'fa-play'} text-[9px]`}></i>
+                <span>{isNoteAudioPlaying ? 'ផ្អាកអាន' : 'ស្ដាប់ AI អាន'}</span>
+              </button>
+            </div>
+
+            {/* AI Voice Auto-Reader Status Indicator Banner */}
+            <div className={`mb-3.5 p-2.5 rounded-xl border transition-all ${
+              isNoteAudioPlaying
+                ? 'bg-amber-500/15 dark:bg-amber-900/30 border-amber-400/60 shadow-xs'
+                : 'bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
+            }`}>
+              <div className="flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                    isNoteAudioPlaying
+                      ? 'bg-amber-500 text-white animate-pulse shadow-xs'
+                      : 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                  }`}>
+                    <i className={`fas ${isNoteAudioPlaying ? 'fa-volume-high' : 'fa-volume-low'} text-[11px]`}></i>
+                  </div>
+                  <div className="min-w-0 text-left">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] sm:text-xs font-black text-amber-700 dark:text-amber-300 truncate">
+                        {isNoteAudioPlaying ? 'AI កំពុងអាន Note ជូនអ្នក...' : 'សំឡេង AI កំពុងរៀបចំអានជូន'}
+                      </span>
+                      {isNoteAudioPlaying && (
+                        <span className="flex items-end gap-0.5 h-2.5 shrink-0">
+                          <span className="w-0.5 h-2.5 bg-amber-500 rounded-full animate-bounce"></span>
+                          <span className="w-0.5 h-1.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.15s]"></span>
+                          <span className="w-0.5 h-2.5 bg-amber-500 rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[9.5px] text-slate-500 dark:text-slate-400 block truncate">
+                      {isNoteAudioPlaying ? 'សំឡេងច្បាស់ល្អ ដំណើរការអានស្វ័យប្រវត្តិ' : 'ចុចប៊ូតុងដើម្បីស្ដាប់ ឬបន្តអានដោយខ្លួនឯង'}
+                    </span>
+                  </div>
+                </div>
+
+                <span className="text-[9.5px] px-2 py-0.5 rounded-full font-bold bg-amber-500/20 text-amber-800 dark:text-amber-200 shrink-0">
+                  {isNoteAudioPlaying ? 'READING' : 'AUDIO READY'}
+                </span>
+              </div>
+
+              {isNoteAudioPlaying && (
+                <div className="w-full bg-amber-200/50 dark:bg-amber-950/60 h-1 rounded-full mt-2 overflow-hidden">
+                  <div
+                    className="bg-amber-500 h-full transition-all duration-200"
+                    style={{ width: `${Math.max(3, noteAudioProgress)}%` }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-4 whitespace-pre-line ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តិផ្ទាល់ចេញពី AI សុទ្ធសាធ។ បង Rotana NOB គាត់គ្រាន់តែជាអ្នកបង្កើត Web App នេះឡើងក្នុងគោលបំណងកម្សាន្ត និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ ហើយគាត់មិនបានកំណត់ច្បាប់តឹងរ៉ឹងពេកទៅលើ AI ឡើយ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំជា AI អាចលេងសប្បាយជជែក រៀនចរិតលក្ខណៈឱ្យដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។
+              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តិផ្ទាល់ចេញពី AI សុទ្ធសាធ។ អ្នកដែលបង្កេីតវាឡេីងមកនេះ គាត់គ្រាន់តែធ្វេីក្នុងគោលបំណង សប្បាយ និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំជា AI អាចរៀនពីជិវិតពិតរបស់មនុស្សនិងរៀនពាក្យឡាតាំងខ្មែរផងដែរដេីម្បីជជែកឲកាន់តែដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។
 
-ដូច្នេះ បើ AI ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យបង Rotana NOB អីណា៎! ព្រោះ AI អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
+ដូច្នេះ បើ AI 1គ្រឿង (កូនពៅ) RoastBotនេះ ឆ្លេីយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កេីតអី! ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
             </div>
 
             <button
