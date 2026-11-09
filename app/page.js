@@ -92,6 +92,12 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+    }
+  }, [theme]);
+
   const handleToggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
@@ -154,7 +160,7 @@ export default function Home() {
     <div
       className={`min-h-screen transition-colors duration-200 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 sm:py-8 relative overflow-x-hidden ${
         isDark
-          ? 'bg-slate-950 text-slate-100'
+          ? 'dark bg-slate-950 text-slate-100'
           : 'bg-slate-100/90 text-slate-800'
       }`}
       style={{

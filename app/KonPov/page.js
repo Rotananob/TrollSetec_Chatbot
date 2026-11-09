@@ -525,6 +525,12 @@ export default function KonPovPage() {
     loadSessions();
   }, []);
 
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+    }
+  }, [theme]);
+
   // 30-Minute Live Chat Session & 10-Minute Cooldown Controller (Anti-Bypass)
   useEffect(() => {
     if (isCreatorUser) {
@@ -2887,7 +2893,7 @@ export default function KonPovPage() {
   return (
     <div
       className={`fixed inset-0 w-full h-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
-        isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+        isDark ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
       }`}
     >
       {/* Bot Reading Instead Notice / Toast */}
@@ -4678,7 +4684,10 @@ export default function KonPovPage() {
                 handleSendMessageOrQueue();
               }
             }}
-            className="flex-1 bg-transparent px-2.5 py-1.5 outline-none text-[16px] sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 font-sans"
+            className={`flex-1 bg-transparent px-2.5 py-1.5 outline-none text-[16px] sm:text-sm font-sans ${
+              isDark ? 'text-white placeholder:text-slate-400' : 'text-slate-900 placeholder:text-slate-400'
+            }`}
+            style={{ color: isDark ? '#ffffff' : '#0f172a', caretColor: isDark ? '#38bdf8' : '#2563eb' }}
             placeholder={
               !isCreatorUser && Date.now() < spamLockUntil
                 ? `🔒 អ្នកជាប់ពិន័យ Spam (នៅសល់ ${Math.max(1, Math.ceil((spamLockUntil - Date.now()) / 1000))} វិនាទី)...`
