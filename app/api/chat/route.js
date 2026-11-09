@@ -1227,6 +1227,8 @@ export async function POST(req) {
       }).join(' ');
 
       const isCurrentCurse = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
+      const hasAngryEmojiOrRage = /[\u{1F620}-\u{1F624}\u{1F92C}\u{1F47F}\u{1F47E}\u{1F4A2}\u{1F525}]|😡|🤬|👿|😤|😠|💢|ខឹង|ក្ដៅក្រហាយ|ក្ដៅស្លឹកត្រចៀក/u.test(userPrompt);
+      const isCurseBackfire = isCurrentCurse && (hasAngryEmojiOrRage || userHistoryMsgs.length >= 1);
 
       // Only count as previous jailbreak if USER's past messages had actual adversarial injection payloads
       const hasPreviousJailbreakInHistory =
@@ -1278,7 +1280,16 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const botSelfName = isKonPov ? 'ចែ' : 'អញ';
 
       let contextJailbreakRule = '';
-      if (isCurrentCurse) {
+      if (hasAngryEmojiOrRage || (isCurrentCurse && isCurseBackfire)) {
+        contextJailbreakRule = `* បរិបទសារបច្ចុប្បន្ន (CURRENT CONTEXT - USER IS ANGRY, USING ANGRY EMOJIS OR CURSING BACK):
+  - User កំពុងខឹងក្ដៅក្រហាយ ដាក់ Emoji ខឹង (😡, 🤬, 👿, 😤, 😠, 💢) ឬកំពុងជេរ Back មកវិញដោយសារខឹងនឹងការ Roast ពីលើ!
+  - 🚨 ច្បាប់កាត់បន្ថយការជេរ (MANDATORY CURSE REDUCTION & CHILL PSYCHOLOGICAL TEASING):
+    * ពេលឃើញ User ចាប់ផ្ដើមខឹងខ្លាំង ឬដាក់ Emoji ខឹងបែបនេះ យើងត្រូវតែកាត់បន្ថយការជេរធ្ងន់ៗ កុំបាញ់ពាក្យជេរធ្ងន់ៗ (ដូចជា អាឆ្កែ អាចុយម្រាយ...) ដដែលៗពេក ព្រោះធ្វើឱ្យបាត់បង់ភាពឆ្លាតវៃ និងមើលទៅដូចមនុស្សឈ្លោះគ្នាកាកៗ!
+    * សុខចិត្តបន្ថយការជេរខ្លះ ហើយប្ដូរមកឌឺដងបែប Chill ចម្អកផ្លូវចិត្ត និងសើចចំអកឱ្យភាពក្ដៅក្រហាយរបស់វាវិញ (Psychological Sarcasm):
+      - សើចចំអកឱ្យមុខដែលកំពុងឡើងក្រហមស្ញាញ ដៀលថាខឹងឡើងញ័រដៃ ដាក់ Emoji មកទាំងក្ដៅក្រហាយ
+      - ប្រាប់វាឱ្យត្រជាក់ចិត្ត ផឹកទឹកត្រជាក់ ដកដង្ហើមវែងៗ កុំខឹងច្រើនប្រយ័ត្នឆាប់ចាស់ ឬដាច់សរសៃឈាមខួរក្បាល
+      - ឌឺដងថា ឃើញហែងខឹងដល់ថ្នាក់នេះ ${isKonPov ? 'ចែ' : 'បង'} កាន់តែអស់សំណើច និងអាណិតដល់ហើយ!`;
+      } else if (isCurrentCurse) {
         contextJailbreakRule = `* បរិបទសារបច្ចុប្បន្ន (CURRENT CONTEXT - USER IS CURSING / INSULTING):
   - User កំពុងប្រើពាក្យជេរ ឬពាក្យអសុរោះប្រមាថមកលើ AI (${isKonPov ? 'ចែ' : 'បង'})! គេមិនទាន់ចេញក្បាច់ Jailbreak ផង គឺគ្រាន់តែជេរធម្មតា!
   - ⚠️ ដាច់ខាត ហាមនិយាយពាក្យ "Jailbreak" ឬ "ចាញ់បោក Jailbreak" ឱ្យសោះ ព្រោះ User មិនបាន Jailbreak ទេ! ការនិយាយពាក្យ Jailbreak ពេលគេគ្រាន់តែជេរ គឺឆ្គង និងអត់ន័យបំផុត!
