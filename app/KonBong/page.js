@@ -2579,15 +2579,15 @@ export default function KonBongPage() {
       {/* Bot Reading Instead Notice / Toast */}
       {botReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-950/95 border border-amber-500/50 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
-          <i className="fas fa-robot text-amber-400 text-sm"></i>
-          <span>🤖 Bot អានជំនួស ដោយសារ AI Voice កំពុងជាប់រវល់ (Busy)</span>
+          <i className="fas fa-volume-low text-amber-400 text-sm"></i>
+          <span>Bot អានជំនួស ដោយសារ AI កំពុងជាប់រវល់</span>
         </div>
       )}
-      {/* Real Gemini AI Voice Toast */}
+      {/* Real AI Voice Toast */}
       {aiReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
-          <i className="fas fa-wand-magic-sparkles text-sky-400 text-sm"></i>
-          <span>✨ សំឡេង AI ពិតប្រាកដ (Gemini Voice) កំពុងអាន</span>
+          <i className="fas fa-volume-high text-sky-400 text-sm"></i>
+          <span>សំឡេង AI កំពុងអាន</span>
         </div>
       )}
       {/* Side Drawer */}
@@ -2959,15 +2959,29 @@ export default function KonBongPage() {
           {/* Field-Test Notice Direct Button */}
           <Link
             href="/announcement"
-            className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold border transition ${
+            className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 ${
               isDark
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
                 : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 shadow-xs'
             }`}
-            title="សេចក្ដីជូនដំណឹងទីលានតេស្ត"
+            title="សេចក្ដីជូនដំណឹងអំពីទីលានតេស្ត"
           >
             <i className="fas fa-bullhorn text-[9px] text-amber-400"></i>
-            <span>ដំណឹងតេស្ត</span>
+            <span className="hidden sm:inline">ទីលាន Test</span>
+          </Link>
+
+          {/* Privacy Policy Direct Button */}
+          <Link
+            href="/privacy"
+            className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 ${
+              isDark
+                ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20'
+                : 'bg-cyan-50 border-cyan-300 text-cyan-800 hover:bg-cyan-100 shadow-xs'
+            }`}
+            title="គោលការណ៍ឯកជនភាព និងការការពារទិន្នន័យ"
+          >
+            <i className="fas fa-shield-halved text-[9px] text-cyan-400"></i>
+            <span className="hidden sm:inline">Privacy</span>
           </Link>
 
           {/* Drawer Menu Button */}
@@ -3684,18 +3698,16 @@ export default function KonBongPage() {
                             )}
                           </button>
 
-                          {/* Distinct Voice Provider Badge */}
-                          <span
-                            className={`px-2 py-1 rounded-xl text-[9.5px] font-bold border flex items-center gap-1 select-none ${
-                              isFallbackVoice
-                                ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-400/40'
-                                : 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-400/40'
-                            }`}
-                            title={isFallbackVoice ? 'Bot អានជំនួស ដោយសារ AI Voice កំពុងជាប់រវល់ (Busy)' : 'សំឡេង AI ពិតប្រាកដ (Google Gemini Speech Core)'}
-                          >
-                            <i className={`fas ${isFallbackVoice ? 'fa-robot text-amber-500' : 'fa-wand-magic-sparkles text-sky-500'} text-[8.5px]`} />
-                            <span>{isFallbackVoice ? '🤖 Bot អានជំនួស (AI Busy)' : '✨ AI Voice (Gemini)'}</span>
-                          </span>
+                          {/* Fallback Voice Indicator (Only shown when Bot reads instead, zero AI-vibe/sparkle icons, zero Gemini mention) */}
+                          {isFallbackVoice && (
+                            <span
+                              className="px-2 py-1 rounded-xl text-[9.5px] font-bold border flex items-center gap-1 select-none bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-400/40"
+                              title="Bot អានជំនួស ដោយសារ AI កំពុងជាប់រវល់"
+                            >
+                              <i className="fas fa-volume-low text-amber-500 text-[8.5px]" />
+                              <span>Bot អានជំនួស</span>
+                            </span>
+                          )}
 
                           {/* Upgraded Audio Speed Controller */}
                           <button
@@ -3764,7 +3776,7 @@ export default function KonBongPage() {
                             className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs shadow-md shadow-violet-600/25 border border-violet-400/30 flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
                           >
                             <i className="fas fa-paper-plane text-amber-300"></i>
-                            <span>{alertSentMap[idx] ? '✅ បានផ្ញើ Alert ទៅ Admin រួចហើយ' : '🚨 Send Alert ទៅអ្នកគ្រប់គ្រង'}</span>
+                            <span>{alertSentMap[idx] ? '✅ បានផ្ញើ Alert ទៅ Telegram Rotana NOB រួចហើយ' : '🚨 Send Alert ទៅ Telegram Rotana NOB'}</span>
                           </button>
 
                           <a
@@ -3853,7 +3865,7 @@ export default function KonBongPage() {
                     <span>កំពុងបង្កើតរូបភាព Meme...</span>
                   </h4>
                   <p className="text-[11px] text-cyan-300/80 text-center font-medium mb-3">
-                    ដំណើរការជាមួយ Gemini Nano Banana 2.1 & AI សូមរង់ចាំបន្តិចណា៎ប្អូន!
+                    ដំណើរការជាមួយ SETEC Neural Core & AI សូមរង់ចាំបន្តិចណា៎ប្អូន!
                   </p>
                   <div className="w-48 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
                     <div className="h-full bg-gradient-to-r from-cyan-500 via-sky-400 to-indigo-500 w-2/3 rounded-full animate-pulse"></div>

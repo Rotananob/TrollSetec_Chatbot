@@ -521,7 +521,7 @@ export default function TrollQuoteModal({
 
     ctx.font = 'bold 18px "Kantumruy Pro", sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('troll-setec-chatbot.web.app • Powered by Gemini Nano Banana', width / 2, 985);
+    ctx.fillText('troll-setec-chatbot.web.app • Powered by SETEC Neural Core', width / 2, 985);
   };
 
   const handleDownload = () => {
@@ -532,7 +532,7 @@ export default function TrollQuoteModal({
       const dataUrl = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = dataUrl;
-      a.download = `SETEC_Troll_Quote_NanoBanana_${Date.now()}.png`;
+      a.download = `SETEC_Troll_Quote_${Date.now()}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -598,7 +598,7 @@ export default function TrollQuoteModal({
             </span>
             <div>
               <h3 className="font-black text-sm sm:text-base text-cyan-200 flex items-center gap-1.5">
-                <span>Quote Troll (Gemini Nano Banana 2.1)</span>
+                <span>Quote Troll (SETEC Neural Core)</span>
               </h3>
               <p className="text-[10px] text-cyan-400/80 font-medium">
                 មាន Logo SETEC Troll + Avatar Bot + Full 1080x1080 HD Card

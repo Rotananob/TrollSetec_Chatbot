@@ -281,7 +281,7 @@ async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 120
             }
           }
           if (b64Data) {
-            return { ok: true, data: b64Data, mimeType: 'audio/wav', voiceProvider: 'gemini_ai' };
+            return { ok: true, data: b64Data, mimeType: 'audio/wav', voiceProvider: 'ai_voice' };
           }
         } else {
           if (res.status === 429) {
@@ -1276,7 +1276,7 @@ export async function POST(req) {
               }
             ],
             isFallbackBotVoice: false,
-            voiceProvider: 'gemini_ai',
+            voiceProvider: 'ai_voice',
             voiceName: voiceName,
             voiceType: isFemaleUser ? 'daddy_puck' : 'mommy_aoede'
           },

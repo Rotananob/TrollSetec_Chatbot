@@ -158,6 +158,16 @@ export default function ErrorReportModal({
               </p>
             </div>
 
+            <a
+              href="https://t.me/TheRotanaNob"
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-2.5 mb-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
+            >
+              <i className="fab fa-telegram text-sm"></i>
+              <span>ឆាតផ្ទាល់ទៅកាន់ Telegram បង Rotana NOB</span>
+            </a>
+
             <button
               type="button"
               onClick={onClose}
