@@ -154,11 +154,63 @@ export default function Home() {
     setIsSubmitted(false);
   };
 
+  // Mouse Drag-to-Scroll & Selection Handling for Desktop
+  const pageWrapperRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const startYRef = useRef(0);
+  const scrollTopRef = useRef(0);
+  const hasMovedRef = useRef(false);
+
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      if (!isDraggingRef.current) return;
+      // If user is selecting text, do not drag scroll
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 0) {
+        isDraggingRef.current = false;
+        return;
+      }
+      hasMovedRef.current = true;
+      const walk = (e.pageY - startYRef.current) * 1.3;
+      window.scrollTo({
+        top: scrollTopRef.current - walk,
+        behavior: 'auto'
+      });
+    };
+
+    const handleGlobalMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
+
+  const handleMouseDown = (e) => {
+    // Only left click
+    if (e.button !== 0) return;
+    const target = e.target;
+    // Don't drag scroll on interactive elements or form controls
+    if (target.closest('input, textarea, button, a, select, label, .cursor-pointer, [role="button"]')) {
+      return;
+    }
+    isDraggingRef.current = true;
+    hasMovedRef.current = false;
+    startYRef.current = e.pageY;
+    scrollTopRef.current = window.scrollY || document.documentElement.scrollTop || 0;
+  };
+
   const isDark = theme === 'dark';
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-200 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start sm:justify-center p-3 sm:p-4 sm:py-8 relative overflow-x-hidden ${
+      ref={pageWrapperRef}
+      onMouseDown={handleMouseDown}
+      className={`min-h-screen transition-colors duration-200 font-['Kantumruy_Pro',sans-serif] flex flex-col items-center justify-start p-3 sm:p-4 sm:py-8 relative overflow-y-auto overflow-x-hidden select-text ${
         isDark
           ? 'dark bg-slate-950 text-slate-100'
           : 'bg-slate-100/90 text-slate-800'
