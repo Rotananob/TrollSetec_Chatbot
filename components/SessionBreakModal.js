@@ -334,6 +334,16 @@ export default function SessionBreakModal({
 
       if (result.valid) {
         setPromoSuccess(result.message || 'ដោះសោជោគជ័យ! ប្អូនទទួលបានម៉ោងជជែកបន្ថែម 30 នាទីភ្លាមៗ! 🎉');
+        if (requestTimerRef.current) {
+          clearInterval(requestTimerRef.current);
+          requestTimerRef.current = null;
+        }
+        if (unsubscribeRequestRef.current) {
+          try {
+            unsubscribeRequestRef.current();
+          } catch {}
+          unsubscribeRequestRef.current = null;
+        }
         if (typeof window !== 'undefined') {
           try {
             localStorage.removeItem('setec_server_cooldown_lock');
