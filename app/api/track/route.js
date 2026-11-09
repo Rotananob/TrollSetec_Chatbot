@@ -191,35 +191,10 @@ export async function POST(req) {
       );
     }
 
-    if (!checkTrackLimit(ip).allowed) {
-      return Response.json(
-        { counted: false, reason: 'track_rate_limit' },
-        { status: 429, headers: corsHeaders }
-      );
-    }
-
-    await checkDayRollover();
-
     const body = await req.json().catch(() => ({}));
     const { deviceId, pathname, screen, referrer, username, type, action, platform, isReturnAfter5Min } = body;
 
-    // Handle PWA Installation Alert (Only when user explicitly added to Home Screen)
-    if (type === 'pwa_install' || action === 'pwa_install') {
-      await alertPwaInstall({
-        username,
-        ip,
-        userAgent,
-        platform,
-        screen
-      }).catch((e) => console.error('[Track] PWA install alert error:', e));
-
-      return Response.json(
-        { success: true, alerted: true, message: 'PWA install recorded and alerted to Telegram' },
-        { status: 200, headers: corsHeaders }
-      );
-    }
-
-    // Handle User Issue Report directly to Rotana NOB
+    // Handle User Issue Report directly to Rotana NOB (High Priority Alert - Never blocked by pageview rate limit!)
     if (type === 'user_report_issue' || action === 'user_report_issue') {
       const activeSessionId = body.sessionId || `session_${Date.now()}`;
       const botKey = (body.bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
@@ -227,7 +202,7 @@ export async function POST(req) {
       const secureBypassToken = createServerLiveBypassToken(activeSessionId, botKey);
 
       await alertUserReportedIssue({
-        username,
+        username: username || body.username || 'User',
         issue: body.issue || body.message || 'បញ្ហាទូទៅលើ Chatbot',
         bot: botKey,
         ip,
@@ -245,6 +220,31 @@ export async function POST(req) {
         { status: 200, headers: corsHeaders }
       );
     }
+
+    // Handle PWA Installation Alert (Only when user explicitly added to Home Screen)
+    if (type === 'pwa_install' || action === 'pwa_install') {
+      await alertPwaInstall({
+        username,
+        ip,
+        userAgent,
+        platform,
+        screen
+      }).catch((e) => console.error('[Track] PWA install alert error:', e));
+
+      return Response.json(
+        { success: true, alerted: true, message: 'PWA install recorded and alerted to Telegram' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    if (!checkTrackLimit(ip).allowed) {
+      return Response.json(
+        { counted: false, reason: 'track_rate_limit' },
+        { status: 429, headers: corsHeaders }
+      );
+    }
+
+    await checkDayRollover();
 
     // Verify Live Bypass Token securely on the server (Zero Client Secret Leakage)
     if (type === 'verify_live_token' || action === 'verify_live_token') {
