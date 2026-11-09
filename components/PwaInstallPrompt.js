@@ -288,7 +288,7 @@ export default function PwaInstallPrompt({ isDark = false }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ២</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">«បន្ថែមទៅទំព័រដើម»</strong> (Add to Home Screen)។
+                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">បន្ថែមទៅទំព័រដើម</strong> (Add to Home Screen)។
                     </p>
                   </div>
                 </div>
@@ -302,7 +302,7 @@ export default function PwaInstallPrompt({ isDark = false }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ៣</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      ចុចពាក្យ <strong className="text-emerald-400">«បន្ថែម»</strong> (Add) នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
+                      ចុចពាក្យ <strong className="text-emerald-400">បន្ថែម</strong> (Add) នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
                     </p>
                   </div>
                 </div>
@@ -361,7 +361,7 @@ export default function PwaInstallPrompt({ isDark = false }) {
                       <div>
                         <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ២</span>
                         <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                          ជ្រើសរើសយក <strong className="text-emerald-400">«ដំឡើងកម្មវិធី»</strong> ឬ <strong className="text-emerald-400">«បន្ថែមទៅអេក្រង់ដើម»</strong>។
+                          ជ្រើសរើសយក <strong className="text-emerald-400">ដំឡើងកម្មវិធី</strong> ឬ <strong className="text-emerald-400">បន្ថែមទៅអេក្រង់ដើម</strong>។
                         </p>
                       </div>
                     </div>

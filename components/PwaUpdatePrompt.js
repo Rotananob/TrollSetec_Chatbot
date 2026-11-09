@@ -115,9 +115,17 @@ export default function PwaUpdatePrompt() {
       }
     } catch {}
 
-    // 4. Hard reload page to fetch fresh HTML & JS bundles
+    // 4. Hard reload page with cache-busting to fetch fresh HTML & JS bundles
     setTimeout(() => {
-      window.location.reload();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          return Promise.all(regs.map((r) => r.unregister()));
+        }).catch(() => {}).finally(() => {
+          window.location.href = window.location.pathname + '?_upd=' + Date.now();
+        });
+      } else {
+        window.location.href = window.location.pathname + '?_upd=' + Date.now();
+      }
     }, 300);
   };
 
