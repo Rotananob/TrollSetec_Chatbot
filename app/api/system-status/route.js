@@ -28,6 +28,20 @@ export async function OPTIONS() {
 
 export async function GET(req) {
   try {
+    const ua = (req.headers.get('user-agent') || '').toLowerCase();
+    if (
+      !ua ||
+      ua.length < 5 ||
+      /(^|[^a-z0-9])(curl|wget|python|aiohttp|httpx|httpie|urllib|requests|scrapy|postman|postmanruntime|insomnia|go-http-client|axios|node-fetch|undici|got|superagent|libwww|scapy|sqlmap|nikto|masscan|nmap|zgrab|censys|shodan|headless|phantomjs|selenium|puppeteer|playwright|cypress|wrk|vegeta|locust|apachebench|ab\/|restsharp|okhttp|dart|httpclient|apache-httpclient|powershell|invoke-webrequest|invoke-restmethod)($|[^a-z0-9])/i.test(
+        ua
+      )
+    ) {
+      return Response.json(
+        { ok: false, error: 'Forbidden: Bot or cURL blocked' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const forceFresh = searchParams.get('fresh') === 'true';
     const state = await getSystemControlState(forceFresh);

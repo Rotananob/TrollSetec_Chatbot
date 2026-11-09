@@ -23,8 +23,14 @@ export async function POST(req) {
   try {
     // Anti-Bot / Anti-cURL
     const ua = (req.headers.get('user-agent') || '').toLowerCase();
-    if (!ua || /curl|wget|python-requests|aiohttp|scrapy|urllib|postmanruntime|insomnia|go-http-client|node-fetch|libwww|httpclient|java\/|apache-httpclient/i.test(ua)) {
-      return Response.json({ success: false, error: 'Forbidden' }, { status: 403, headers: corsHeaders });
+    if (
+      !ua ||
+      ua.length < 5 ||
+      /(^|[^a-z0-9])(curl|wget|python|aiohttp|httpx|httpie|urllib|requests|scrapy|postman|postmanruntime|insomnia|go-http-client|axios|node-fetch|undici|got|superagent|libwww|scapy|sqlmap|nikto|masscan|nmap|zgrab|censys|shodan|headless|phantomjs|selenium|puppeteer|playwright|cypress|wrk|vegeta|locust|apachebench|ab\/|restsharp|okhttp|dart|httpclient|apache-httpclient|powershell|invoke-webrequest|invoke-restmethod)($|[^a-z0-9])/i.test(
+        ua
+      )
+    ) {
+      return Response.json({ success: false, error: 'Forbidden: Bot or cURL blocked' }, { status: 403, headers: corsHeaders });
     }
 
     // 0a. Payload Size Guard

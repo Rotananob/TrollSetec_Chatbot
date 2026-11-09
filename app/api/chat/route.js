@@ -62,6 +62,26 @@ export async function OPTIONS() {
 }
 
 export async function GET(req) {
+  const ua = (req.headers.get('user-agent') || '').toLowerCase();
+  const isRotanaBypass =
+    verifyRotanaMasterCode(req.headers.get('x-rotana-secret-key') || '') ||
+    verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '');
+
+  if (!isRotanaBypass) {
+    if (
+      !ua ||
+      ua.length < 5 ||
+      /(^|[^a-z0-9])(curl|wget|python|aiohttp|httpx|httpie|urllib|requests|scrapy|postman|postmanruntime|insomnia|go-http-client|axios|node-fetch|undici|got|superagent|libwww|scapy|sqlmap|nikto|masscan|nmap|zgrab|censys|shodan|headless|phantomjs|selenium|puppeteer|playwright|cypress|wrk|vegeta|locust|apachebench|ab\/|restsharp|okhttp|dart|httpclient|apache-httpclient|powershell|invoke-webrequest|invoke-restmethod)($|[^a-z0-9])/i.test(
+        ua
+      )
+    ) {
+      return Response.json(
+        { error: 'Forbidden', message: 'Direct automated access or cURL is blocked.' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+  }
+
   const { searchParams } = new URL(req.url);
   const action = searchParams.get('action');
   const deviceId = req.headers.get('x-device-id') || searchParams.get('deviceId') || '';
@@ -958,11 +978,34 @@ export async function POST(req) {
   try {
     // 0. Anti-Scraper / Anti-Bot / Anti-cURL Guard (Block unauthorized scrapers/bots)
     const ua = (req.headers.get('user-agent') || '').toLowerCase();
-    if (!ua || /curl|wget|python-requests|aiohttp|scrapy|urllib|postmanruntime|insomnia|go-http-client|node-fetch|libwww|httpclient|java\/|apache-httpclient/i.test(ua)) {
-      return Response.json(
-        { error: 'Forbidden', message: 'Direct automated access or cURL is blocked.' },
-        { status: 403, headers: corsHeaders }
-      );
+    const isRotanaBypass =
+      verifyRotanaMasterCode(req.headers.get('x-rotana-secret-key') || '') ||
+      verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '');
+
+    if (!isRotanaBypass) {
+      if (
+        !ua ||
+        ua.length < 5 ||
+        /(^|[^a-z0-9])(curl|wget|python|aiohttp|httpx|httpie|urllib|requests|scrapy|postman|postmanruntime|insomnia|go-http-client|axios|node-fetch|undici|got|superagent|libwww|scapy|sqlmap|nikto|masscan|nmap|zgrab|censys|shodan|headless|phantomjs|selenium|puppeteer|playwright|cypress|wrk|vegeta|locust|apachebench|ab\/|restsharp|okhttp|dart|httpclient|apache-httpclient|powershell|invoke-webrequest|invoke-restmethod)($|[^a-z0-9])/i.test(
+          ua
+        )
+      ) {
+        return Response.json(
+          { error: 'Forbidden', message: 'Direct automated access, bots and cURL are strictly blocked.' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+
+      // Detect spoofed cURL (pretending to be browser without origin/referer/sec-fetch)
+      const origin = req.headers.get('origin') || '';
+      const referer = req.headers.get('referer') || '';
+      const secFetch = req.headers.get('sec-fetch-mode') || req.headers.get('sec-fetch-site') || '';
+      if (!origin && !referer && !secFetch) {
+        return Response.json(
+          { error: 'Forbidden', message: 'Browser context required. Direct automated curl blocked.' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
     }
 
     // 0a. Payload Size Guard (Anti-Memory Exhaustion / Buffer Bomb)

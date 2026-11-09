@@ -170,6 +170,21 @@ async function checkDayRollover() {
 
 export async function POST(req) {
   try {
+    // 0. Anti-Scraper / Anti-Bot / Anti-cURL Guard
+    const ua = (req.headers.get('user-agent') || '').toLowerCase();
+    if (
+      !ua ||
+      ua.length < 5 ||
+      /(^|[^a-z0-9])(curl|wget|python|aiohttp|httpx|httpie|urllib|requests|scrapy|postman|postmanruntime|insomnia|go-http-client|axios|node-fetch|undici|got|superagent|libwww|scapy|sqlmap|nikto|masscan|nmap|zgrab|censys|shodan|headless|phantomjs|selenium|puppeteer|playwright|cypress|wrk|vegeta|locust|apachebench|ab\/|restsharp|okhttp|dart|httpclient|apache-httpclient|powershell|invoke-webrequest|invoke-restmethod)($|[^a-z0-9])/i.test(
+        ua
+      )
+    ) {
+      return Response.json(
+        { counted: false, reason: 'bot_or_curl_blocked' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
     // 0a. Payload Size Guard
     const contentLength = parseInt(req.headers.get('content-length') || '0', 10);
     if (contentLength > 512 * 1024) {
