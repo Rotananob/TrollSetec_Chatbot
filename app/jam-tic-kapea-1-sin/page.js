@@ -67,6 +67,10 @@ export default function JamTicKapeaAdminPage() {
   const [showMaintenancePreview, setShowMaintenancePreview] = useState(false);
   const [showSleepModePreview, setShowSleepModePreview] = useState(false);
 
+  // Interactive Bot Pause Confirmation & Content Notice Modal State
+  const [pauseBotTarget, setPauseBotTarget] = useState(null); // 'konbong' | 'konpov' | null
+  const [pauseModalNotice, setPauseModalNotice] = useState('');
+
   // Flags to protect input fields from background polling overwrites
   const initialLoadedRef = useRef(false);
   const isEditingMaintenanceRef = useRef(false);
@@ -661,17 +665,53 @@ export default function JamTicKapeaAdminPage() {
     );
   };
 
-  const handleToggleKonBong = () => {
-    const nextState = !systemState.konbongActive;
-    const patch = { konbongActive: nextState };
-    if (!nextState && editKonBongNotice) {
-      patch.konbongNotice = editKonBongNotice;
+  // Bot Pause Request (Opens Modal if bot is currently active, or resumes immediately if paused)
+  const handleRequestPauseKonBong = () => {
+    if (systemState.konbongActive) {
+      setPauseBotTarget('konbong');
+      setPauseModalNotice(
+        editKonBongNotice ||
+        systemState.konbongNotice ||
+        'បងកូនច្បង KonBong កំពុងសម្រាក ឬ Update កូដប្រព័ន្ធមួយរយៈខ្លី... សូមសាកល្បងទៅលេងជាមួយចែកូនពៅ KonPov ជំនួសវិញណា៎!'
+      );
+    } else {
+      sendUpdate({ konbongActive: true }, 'បើកដំណើរការបងកូនច្បង Activate KonBong');
     }
-    sendUpdate(
-      patch,
-      nextState ? 'បើកដំណើរការបងកូនច្បង Activate KonBong' : 'ផ្អាកបងកូនច្បង Deactivate KonBong'
-    );
   };
+
+  const handleRequestPauseKonPov = () => {
+    if (systemState.konpovActive) {
+      setPauseBotTarget('konpov');
+      setPauseModalNotice(
+        editKonPovNotice ||
+        systemState.konpovNotice ||
+        'ចែកូនពៅ KonPov កំពុងសម្រាក ឬ Update កូដប្រព័ន្ធមួយរយៈខ្លី... សូមសាកល្បងទៅលេងជាមួយបងកូនច្បង KonBong ជំនួសវិញណា៎!'
+      );
+    } else {
+      sendUpdate({ konpovActive: true }, 'បើកដំណើរការចែកូនពៅ Activate KonPov');
+    }
+  };
+
+  const handleConfirmPauseBot = () => {
+    if (!pauseBotTarget) return;
+    if (pauseBotTarget === 'konbong') {
+      setEditKonBongNotice(pauseModalNotice);
+      sendUpdate(
+        { konbongActive: false, konbongNotice: pauseModalNotice },
+        'ផ្អាកបងកូនច្បង & ផ្សាយ Real-time Popup'
+      );
+    } else if (pauseBotTarget === 'konpov') {
+      setEditKonPovNotice(pauseModalNotice);
+      sendUpdate(
+        { konpovActive: false, konpovNotice: pauseModalNotice },
+        'ផ្អាកចែកូនពៅ & ផ្សាយ Real-time Popup'
+      );
+    }
+    setPauseBotTarget(null);
+  };
+
+  const handleToggleKonBong = handleRequestPauseKonBong;
+  const handleToggleKonPov = handleRequestPauseKonPov;
 
   const handleSaveKonBongNotice = () => {
     sendUpdate(
@@ -679,18 +719,6 @@ export default function JamTicKapeaAdminPage() {
       'បានរក្សាទុកសារជូនដំណឹងបងកូនច្បង'
     );
     isEditingKonBongNoticeRef.current = false;
-  };
-
-  const handleToggleKonPov = () => {
-    const nextState = !systemState.konpovActive;
-    const patch = { konpovActive: nextState };
-    if (!nextState && editKonPovNotice) {
-      patch.konpovNotice = editKonPovNotice;
-    }
-    sendUpdate(
-      patch,
-      nextState ? 'បើកដំណើរការចែកូនពៅ Activate KonPov' : 'ផ្អាកចែកូនពៅ Deactivate KonPov'
-    );
   };
 
   const handleSaveKonPovNotice = () => {
@@ -2819,6 +2847,109 @@ export default function JamTicKapeaAdminPage() {
       <footer className="mt-auto border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
         SETEC Neural Core &bull; Supreme Master Command &bull; Engineered by Rotana NOB &bull; {new Date().getFullYear()}
       </footer>
+
+      {/* ========================================================= */}
+      {/* BOT PAUSE CONFIRMATION & CONTENT NOTICE MODAL             */}
+      {/* Prompts Admin to enter Custom Notice text before pausing  */}
+      {/* ========================================================= */}
+      {pauseBotTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-xs flex items-center justify-center p-4 selection:bg-rose-500 selection:text-white animate-in fade-in duration-150"
+          onClick={() => setPauseBotTarget(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-slate-900 border border-rose-500/40 rounded-2xl p-6 shadow-2xl relative text-white font-sans"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3 pb-3 mb-4 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-950 border border-rose-800 flex items-center justify-center text-rose-400 shrink-0">
+                  <i className="fa-solid fa-pause text-lg" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                    <span>ផ្អាកដំណើរការ {pauseBotTarget === 'konbong' ? 'បងកូនច្បង (KonBong)' : 'ចែកូនពៅ (KonPov)'}</span>
+                  </h2>
+                  <p className="text-xs text-rose-300 font-sans">
+                    សរសេរសារ Content Notice ដែលនឹងលោត Real-time Popup លើអេក្រង់សិស្ស
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setPauseBotTarget(null)}
+                className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                title="បិទ"
+              >
+                <i className="fa-solid fa-xmark text-sm" />
+              </button>
+            </div>
+
+            {/* Quick Preset Buttons */}
+            <div className="mb-3">
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1.5">
+                ជ្រើសរើសសាររហ័ស (Quick Presets):
+              </label>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  `កំពុង Update កូដប្រព័ន្ធ និងពង្រឹងមុខងារឆ្លើយតប... សូមទៅលេងជាមួយ ${pauseBotTarget === 'konbong' ? 'ចែកូនពៅ' : 'បងកូនច្បង'} សិនណា៎!`,
+                  `ម៉ោងសម្រាកកូតា API បណ្ដោះអាសន្ន! សូមអញ្ជើញទៅជជែកជាមួយ ${pauseBotTarget === 'konbong' ? 'ចែកូនពៅ' : 'បងកូនច្បង'} ជំនួសវិញ!`,
+                  `កំពុងត្រួតពិនិត្យសុវត្ថិភាព Server និងប្រព័ន្ធទិន្នន័យ... តិចទៀតបើកដំណើរការវិញហើយ!`,
+                  `សូមសម្រាកមួយភ្លែតណា៎ Chill ផឹកទឹកសិន! តិចទៀតត្រឡប់មកវិញហើយ!`
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setPauseModalNotice(preset)}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition-colors text-left line-clamp-1 cursor-pointer"
+                  >
+                    Preset {idx + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Textarea */}
+            <div className="mb-5">
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                <span>ខ្លឹមសារជូនដំណឹង (Content Notice Text):</span>
+                <span className="text-slate-400 text-[10px]">{pauseModalNotice.length} តួអក្សរ</span>
+              </label>
+              <textarea
+                rows={3}
+                value={pauseModalNotice}
+                onChange={(e) => setPauseModalNotice(e.target.value)}
+                placeholder="បញ្ចូលសារប្រាប់សិស្ស... សារនេះនឹងលោតជា Real-time Popup ភ្លាមៗនៅលើទូរស័ព្ទ និងកុំព្យូទ័ររបស់សិស្ស!"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-rose-500 transition-colors leading-relaxed font-sans"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setPauseBotTarget(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
+              >
+                បោះបង់
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmPauseBot}
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-2 shadow-lg shadow-rose-600/30 transition-all cursor-pointer"
+              >
+                <i className="fa-solid fa-bullhorn text-xs" />
+                <span>ផ្អាកភ្លាម & ផ្សាយ Real-time Popup</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {renderPwaGuideModal()}
     </main>

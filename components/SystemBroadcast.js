@@ -338,6 +338,12 @@ export default function SystemBroadcast() {
     ? (systemState.konbongNotice || 'បងកូនច្បង KonBong កំពុងសម្រាកបណ្ដោះអាសន្នតាមការកំណត់របស់អ្នកគ្រប់គ្រង។ សូមអញ្ជើញទៅជជែកជាមួយចែកូនពៅជំនួសវិញ!')
     : (systemState.konpovNotice || 'ចែកូនពៅ KonPov កំពុងសម្រាកបណ្ដោះអាសន្នតាមការកំណត់របស់អ្នកគ្រប់គ្រង។ សូមអញ្ជើញទៅជជែកជាមួយបងកូនច្បងជំនួសវិញ!');
 
+  const [dismissedBotPause, setDismissedBotPause] = useState(false);
+
+  useEffect(() => {
+    setDismissedBotPause(false);
+  }, [systemState.konbongActive, systemState.konpovActive, disabledNotice]);
+
   const prevBotDisabledRef = useRef(false);
   useEffect(() => {
     if (isCurrentBotDisabled && !prevBotDisabledRef.current && !isBypassed) {
@@ -424,15 +430,27 @@ export default function SystemBroadcast() {
       {/* 1.5 REAL-TIME BOT PAUSED POPUP MODAL (KonBong or KonPov)   */}
       {/* Appears when visitor is on a bot's page while it's paused */}
       {/* ========================================================= */}
-      {!isResting && isCurrentBotDisabled && !isBypassed && (
+      {!isResting && isCurrentBotDisabled && !isBypassed && !dismissedBotPause && (
         <div
           role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-[99998] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 selection:bg-slate-300 selection:text-slate-900 animate-in fade-in duration-200"
+          onClick={() => setDismissedBotPause(true)}
         >
           <div
             className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-2xl relative text-slate-900 text-center flex flex-col items-center font-['Kantumruy_Pro',sans-serif]"
+            onClick={(e) => e.stopPropagation()}
           >
+            {/* Top Close Button to view old chat history */}
+            <button
+              type="button"
+              onClick={() => setDismissedBotPause(true)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              title="បិទផ្ទាំង"
+            >
+              <i className="fa-solid fa-xmark text-sm" />
+            </button>
+
             {/* Mascot / Icon Badge */}
             <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shadow-xs mb-3.5 relative">
               <i className={`fa-solid ${isKonBongPage ? 'fa-user-tie text-indigo-600' : 'fa-robot text-pink-600'} text-2xl`} />
@@ -467,7 +485,7 @@ export default function SystemBroadcast() {
             </div>
 
             {/* Navigation Switch Buttons */}
-            <div className="w-full flex flex-col sm:flex-row items-center gap-2.5">
+            <div className="w-full flex flex-col sm:flex-row items-center gap-2.5 mb-2.5">
               <Link
                 href={alternateBotPath}
                 className={`w-full py-2.5 px-4 rounded-xl text-white text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-sm ${
@@ -487,7 +505,31 @@ export default function SystemBroadcast() {
                 <span>ទំព័រដើម</span>
               </Link>
             </div>
+
+            {/* Read Old Chat link */}
+            <button
+              type="button"
+              onClick={() => setDismissedBotPause(true)}
+              className="text-xs text-slate-400 hover:text-slate-600 underline cursor-pointer transition-colors"
+            >
+              អានប្រវត្តិសារចាស់ (View Past Chat)
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Floating Top Banner when modal is dismissed */}
+      {!isResting && isCurrentBotDisabled && !isBypassed && dismissedBotPause && (
+        <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[99990] bg-slate-900/90 border border-amber-500/40 text-amber-300 px-4 py-2 rounded-full shadow-xl text-xs font-medium flex items-center gap-2.5 backdrop-blur-md font-['Kantumruy_Pro',sans-serif] animate-in fade-in">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>{disabledBotName} កំពុងសម្រាក</span>
+          <button
+            type="button"
+            onClick={() => setDismissedBotPause(false)}
+            className="underline text-[11px] text-white hover:text-amber-200 cursor-pointer ml-1 font-semibold"
+          >
+            មើលសារជូនដំណឹង
+          </button>
         </div>
       )}
 

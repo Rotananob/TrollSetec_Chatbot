@@ -25,6 +25,7 @@ import SessionBreakModal from '@/components/SessionBreakModal';
 import SetecSurvivalModal from '@/components/SetecSurvivalModal';
 import TrollQuoteModal from '@/components/TrollQuoteModal';
 import { getSmartCutoffResponse } from '../../lib/smartCutoff';
+import { stopAllGlobalAudio, registerGlobalAudioSource, registerGlobalAudioPlayer, registerGlobalAudioTimer } from '../utils/audioController';
 import {
   validateBypassToken,
   getLiveSession,
@@ -541,6 +542,7 @@ export default function KonBongPage() {
     } catch {}
 
     return () => {
+      stopAllGlobalAudio();
       clearInterval(interval);
       if (typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilitySync);
@@ -1020,6 +1022,7 @@ export default function KonBongPage() {
 
   // Create New Chat Session - stored directly in Firebase Realtime Database
   const createNewSession = (baseSessions = sessions) => {
+    stopAllGlobalAudio();
     const deviceId = getDeviceId();
     const newId = 'session_' + Date.now();
     const newSession = {
@@ -2226,7 +2229,9 @@ export default function KonBongPage() {
     if (!rawAudioText) return;
     const text = String(rawAudioText);
 
-    // Cancel any standing autoplay timer when user manually interacts
+    // Stop and cancel all global audio across tabs, sessions, or components
+    stopAllGlobalAudio();
+
     if (autoPlayTimerRef.current) {
       clearTimeout(autoPlayTimerRef.current);
       autoPlayTimerRef.current = null;
@@ -2673,6 +2678,25 @@ export default function KonBongPage() {
             <i className="fas fa-brain text-amber-300"></i> ចូលរួមបង្រៀន AI (SETEC Lore)
           </button>
 
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <Link
+              href="/announcement"
+              onClick={() => setDrawerOpen(false)}
+              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-amber-500/30 flex items-center justify-center gap-1.5"
+            >
+              <i className="fas fa-bullhorn text-amber-400 text-xs"></i>
+              <span>សេចក្ដីជូនដំណឹង</span>
+            </Link>
+            <Link
+              href="/privacy"
+              onClick={() => setDrawerOpen(false)}
+              className="bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-slate-700/60 flex items-center justify-center gap-1.5"
+            >
+              <i className="fas fa-shield-halved text-cyan-400 text-xs"></i>
+              <span>ឯកជនភាព</span>
+            </Link>
+          </div>
+
           <button
             onClick={() => {
               setDeleteModalConfig({
@@ -2858,6 +2882,20 @@ export default function KonBongPage() {
           >
             <i className="fas fa-repeat text-[9px]"></i>
             <span className="hidden sm:inline">កូនពៅ</span>
+          </Link>
+
+          {/* Field-Test Notice Direct Button */}
+          <Link
+            href="/announcement"
+            className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold border transition ${
+              isDark
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 shadow-xs'
+            }`}
+            title="សេចក្ដីជូនដំណឹងទីលានតេស្ត"
+          >
+            <i className="fas fa-bullhorn text-[9px] text-amber-400"></i>
+            <span>ដំណឹងតេស្ត</span>
           </Link>
 
           {/* Drawer Menu Button */}

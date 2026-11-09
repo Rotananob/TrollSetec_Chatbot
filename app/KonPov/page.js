@@ -25,6 +25,7 @@ import SessionBreakModal from '@/components/SessionBreakModal';
 import SetecSurvivalModal from '@/components/SetecSurvivalModal';
 import TrollQuoteModal from '@/components/TrollQuoteModal';
 import { getSmartCutoffResponse } from '../../lib/smartCutoff';
+import { stopAllGlobalAudio, registerGlobalAudioSource, registerGlobalAudioPlayer, registerGlobalAudioTimer } from '../utils/audioController';
 import {
   validateBypassToken,
   getLiveSession,
@@ -570,6 +571,7 @@ export default function KonPovPage() {
     } catch {}
 
     return () => {
+      stopAllGlobalAudio();
       clearInterval(interval);
       if (typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilitySync);
@@ -1138,6 +1140,7 @@ export default function KonPovPage() {
 
   // Create New Chat Session - stored directly in Firebase Realtime Database
   const createNewSession = (baseSessions = sessions) => {
+    stopAllGlobalAudio();
     const deviceId = getDeviceId();
     const newId = 'session_' + Date.now();
     const newSession = {
@@ -1563,7 +1566,9 @@ export default function KonPovPage() {
     if (!rawAudioText) return;
     const text = String(rawAudioText);
 
-    // Cancel any standing autoplay timer when user manually interacts
+    // Stop and cancel all global audio across tabs, sessions, or components
+    stopAllGlobalAudio();
+
     if (autoPlayTimerRef.current) {
       clearTimeout(autoPlayTimerRef.current);
       autoPlayTimerRef.current = null;
@@ -2883,9 +2888,28 @@ export default function KonPovPage() {
                 }`}
               >
                 <i className="fas fa-venus text-xs text-pink-300"></i>
-                <span>ស្រី (Bot: ចែ)</span>
+                <span>ស្រី (Bot: ប៉ា)</span>
               </button>
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <Link
+              href="/announcement"
+              onClick={() => setDrawerOpen(false)}
+              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-amber-500/30 flex items-center justify-center gap-1.5"
+            >
+              <i className="fas fa-bullhorn text-amber-400 text-xs"></i>
+              <span>សេចក្ដីជូនដំណឹង</span>
+            </Link>
+            <Link
+              href="/privacy"
+              onClick={() => setDrawerOpen(false)}
+              className="bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-slate-700/60 flex items-center justify-center gap-1.5"
+            >
+              <i className="fas fa-shield-halved text-cyan-400 text-xs"></i>
+              <span>ឯកជនភាព</span>
+            </Link>
           </div>
 
           <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 mb-3">
@@ -3144,6 +3168,20 @@ export default function KonPovPage() {
           >
             <i className="fas fa-repeat text-[9px]"></i>
             <span className="hidden sm:inline">កូនច្បង</span>
+          </Link>
+
+          {/* Field-Test Notice Direct Button */}
+          <Link
+            href="/announcement"
+            className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold border transition ${
+              isDark
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 shadow-xs'
+            }`}
+            title="សេចក្ដីជូនដំណឹងទីលានតេស្ត"
+          >
+            <i className="fas fa-bullhorn text-[9px] text-amber-400"></i>
+            <span>ដំណឹងតេស្ត</span>
           </Link>
 
           {/* Drawer Menu Button */}
@@ -4101,7 +4139,7 @@ export default function KonPovPage() {
             />
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-bold text-purple-400 text-xs mb-1">
-                Roastbot កូនពៅ (ចែ)
+                {botPersonaTitle}
               </span>
               <div className="rounded-2xl overflow-hidden border-2 border-purple-500/40 bg-gradient-to-br from-slate-900/90 to-purple-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
                 <div className="w-full h-52 sm:h-60 rounded-xl bg-purple-950/60 border border-purple-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
@@ -4611,7 +4649,7 @@ export default function KonPovPage() {
         isOpen={!isCreatorUser && sessionState.isLocked}
         remainingSeconds={sessionState.remainingCooldownSec}
         cooldownUntil={sessionState.cooldownUntil}
-        botName="កូនពៅ (ចែ)"
+        botName={isDaddyMode ? "កូនពៅ (ប៉ា)" : "កូនពៅ (ចែ)"}
         theme={theme}
         onUnlock={() => {
           setSessionState(getLiveSessionState());
@@ -4623,7 +4661,7 @@ export default function KonPovPage() {
         isOpen={isSurvivalModalOpen}
         onClose={() => setIsSurvivalModalOpen(false)}
         onSendToChat={(text) => handleChat(text)}
-        botPersona="កូនពៅ (ចែ)"
+        botPersona={isDaddyMode ? "កូនពៅ (ប៉ា)" : "កូនពៅ (ចែ)"}
         theme={theme}
       />
 
@@ -4632,8 +4670,8 @@ export default function KonPovPage() {
         isOpen={!!quoteModalData}
         onClose={() => setQuoteModalData(null)}
         quoteText={quoteModalData?.text || ''}
-        botPersona="កូនពៅ (ចែ)"
-        botAvatar="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+        botPersona={isDaddyMode ? "កូនពៅ (ប៉ា)" : "កូនពៅ (ចែ)"}
+        botAvatar={botAvatar}
         logoUrl="/img/icon.jpg"
         theme={theme}
       />

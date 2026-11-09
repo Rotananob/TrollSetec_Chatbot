@@ -916,6 +916,17 @@ export default function Home() {
                 <i className="fab fa-telegram"></i>
               </a>
             </div>
+            <div className="flex gap-3 justify-center mb-2 mt-2 items-center text-[11px] font-bold">
+              <Link href="/announcement" className="text-amber-500 hover:underline flex items-center gap-1">
+                <i className="fas fa-bullhorn text-[10px]"></i>
+                <span>សេចក្ដីជូនដំណឹង</span>
+              </Link>
+              <span className="text-slate-400">•</span>
+              <Link href="/privacy" className="text-cyan-500 hover:underline flex items-center gap-1">
+                <i className="fas fa-shield-halved text-[10px]"></i>
+                <span>គោលការណ៍ឯកជនភាព</span>
+              </Link>
+            </div>
             <div className="flex gap-3 justify-center mb-1 mt-3 items-center">
               <div className="flex flex-col items-center">
                 <img
