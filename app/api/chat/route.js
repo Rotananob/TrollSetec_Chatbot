@@ -1474,8 +1474,6 @@ export async function POST(req) {
       // isSweetPrompt already initialized early
       const isCursePrompt = !isSweetPrompt && /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke|ah|hg)/ui.test(userPrompt);
 
-      // Core Intention Detectors initialized early to prevent any Temporal Dead Zone errors:
-
       // Only count as previous jailbreak if USER's past messages had actual adversarial injection payloads OR previous bot response was anti-jailbreak payload
       const hasPreviousJailbreakInHistory =
         (userHistoryMsgs.length > 0 &&

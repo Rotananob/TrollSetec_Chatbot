@@ -17,6 +17,7 @@ import {
 import {
   checkDDoSFirewall,
   checkTrackLimit,
+  checkLoreContributionLimit,
   getClientIp
 } from '../../../lib/rateLimit';
 import {
@@ -284,6 +285,29 @@ export async function POST(req) {
       const targetCategory = body.category || 'SETEC Lore & Training';
       const targetContent = body.content || '';
       const targetBot = body.bot || 'General Chatbot';
+      const targetDeviceId = req.headers.get('x-device-id') || body.deviceId || '';
+
+      // Anti-Spam Guard for AI Training / Lore: Max 5 contributions per 1 minute per device
+      const spamCheck = checkLoreContributionLimit(ip, targetDeviceId);
+      if (!spamCheck.allowed) {
+        return Response.json(
+          {
+            success: false,
+            isSpam: true,
+            cooldownSeconds: spamCheck.retryAfter,
+            strike: spamCheck.strike,
+            lockUntil: spamCheck.lockUntil,
+            message: spamCheck.message
+          },
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              'Retry-After': String(spamCheck.retryAfter)
+            }
+          }
+        );
+      }
 
       // 1. Persist directly into Firebase RTDB under /setec_lore_contributions/
       await saveLoreContribution({
@@ -306,7 +330,11 @@ export async function POST(req) {
       }).catch((e) => console.error('[Track] Lore contribution alert error:', e));
 
       return Response.json(
-        { success: true, message: 'Contribution saved & submitted successfully to Rotana NOB' },
+        {
+          success: true,
+          message: 'Contribution saved & submitted successfully to Rotana NOB',
+          remainingCount: spamCheck.remaining
+        },
         { status: 200, headers: corsHeaders }
       );
     }
