@@ -1323,20 +1323,6 @@ export default function KonBongPage() {
     const currentImg = overrideImg !== undefined ? overrideImg : selectedImage;
     if (isLoading || (!promptText.trim() && !currentImg)) return;
 
-    // Check if device is offline (guarantees identical resilience in both PWA and browser)
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      const offlineNotice = `«ប្អូន ${username || 'User'} អើយ! ប្រព័ន្ធបានពិនិត្យឃើញថាឧបករណ៍របស់អ្នកហាក់ដូចជាដាច់សេវាអ៊ីនធឺណិត (Offline) ឬបាត់ Wi-Fi/4G បណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវាអ៊ីនធឺណិត រួចចុចផ្ញើសារម្ដងទៀតណា៎! 📶⚡»`;
-      const userMsg = {
-        role: 'user',
-        text: promptText || '[បានផ្ញើរូបភាពមួយសន្លឹក]',
-        ...(currentImg && { image: currentImg.previewUrl })
-      };
-      const offlineMessages = [...messages, userMsg, { role: 'bot', text: offlineNotice, isError: true, isOffline: true }];
-      setMessages(offlineMessages);
-      saveCurrentSessionMessages(offlineMessages);
-      return;
-    }
-
     // Synchronously prime / unlock HTML5 Audio element during user interaction for guaranteed mobile autoplay
     if (audioPlayerRef.current) {
       try {
@@ -1430,7 +1416,7 @@ export default function KonBongPage() {
       let botText = '';
       try {
         const streamAbortCtrl = new AbortController();
-        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 18000);
+        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 22000);
 
         const response = await fetch(getChatEndpoint(), {
           method: 'POST',
@@ -1524,8 +1510,8 @@ export default function KonBongPage() {
           const decoder = new TextDecoder();
           let buffer = '';
 
-          // Stream reading with watchdog timeout for mobile PWA stability (8.5s stall prevention)
-          const readChunkWithTimeout = async (ms) => {
+          // Stream reading with watchdog timeout for mobile PWA stability (12s stall prevention)
+          const readChunkWithTimeout = async (ms = 12000) => {
             return Promise.race([
               reader.read(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('STREAM_CHUNK_TIMEOUT')), ms))
@@ -1534,7 +1520,7 @@ export default function KonBongPage() {
 
           try {
             while (true) {
-              const { done, value } = await readChunkWithTimeout(8500);
+              const { done, value } = await readChunkWithTimeout(12000);
               if (done) break;
               buffer += decoder.decode(value, { stream: true });
               const lines = buffer.split('\n');
@@ -1638,7 +1624,7 @@ export default function KonBongPage() {
             if (resJson.isMasterAuthenticated) {
               setIsRotanaMasterBypass(true);
             }
-            const fullText = resJson.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            const fullText = cleanRawOutput(resJson.candidates?.[0]?.content?.parts?.[0]?.text || resJson.reply || '');
             if (fullText) {
               botText = fullText;
               setMessages((prev) => {
@@ -1722,7 +1708,8 @@ export default function KonBongPage() {
     } catch (e) {
       console.error(e);
       setIsLoading(false);
-      const isNetworkError = e?.name === 'TypeError' || /failed to fetch|network|load failed|abort/i.test(e?.message || '');
+      const isOfflineDevice = typeof navigator !== 'undefined' && navigator.onLine === false;
+      const isNetworkError = isOfflineDevice || e?.name === 'TypeError' || /failed to fetch|network|load failed|abort/i.test(e?.message || '');
       let fallbackText = '';
       let isErr = true;
 
