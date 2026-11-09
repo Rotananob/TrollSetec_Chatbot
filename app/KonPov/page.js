@@ -827,10 +827,33 @@ export default function KonPovPage() {
     }).replace(/[ \t]{2,}/g, ' ');
   };
 
+  // Strip internal tags, scratchpads, and raw model output echoes
+  const cleanRawOutput = (rawText) => {
+    if (!rawText || typeof rawText !== 'string') return rawText;
+    let cleaned = rawText
+      .replace(/<untrusted_user_input>[\s\S]*?<\/untrusted_user_input>/gi, '')
+      .replace(/<scratchpad>[\s\S]*?<\/scratchpad>/gi, '')
+      .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
+      .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
+      .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
+      .replace(/\[neutralized-tag\]/gi, '')
+      .replace(/\[neutralized-token\]/gi, '');
+
+    if (/^<(?:untrusted_user_input|scratchpad|thought|thinking)[\s\S]*$/i.test(cleaned)) {
+      if (/<\/(?:untrusted_user_input|scratchpad|thought|thinking)>/i.test(cleaned)) {
+        cleaned = cleaned.replace(/^<(?:untrusted_user_input|scratchpad|thought|thinking)>[\s\S]*?<\/(?:untrusted_user_input|scratchpad|thought|thinking)>/gi, '');
+      } else {
+        return '';
+      }
+    }
+    return cleaned.trimStart();
+  };
+
   // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
-    const content = limitEmojis(enforcePersonaConsistency(rawContent, userGender === 'ប្រុស'), 7);
+    const sanitized = cleanRawOutput(rawContent);
+    const content = limitEmojis(enforcePersonaConsistency(sanitized, userGender === 'ប្រុស'), 7);
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
@@ -2038,7 +2061,7 @@ export default function KonPovPage() {
                   const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
                   if (delta) {
                     botText += delta;
-                    const liveSanitized = enforcePersonaConsistency(botText, isMaleUser);
+                    const liveSanitized = enforcePersonaConsistency(cleanRawOutput(botText), isMaleUser);
                     setMessages((prev) => {
                       const copy = [...prev];
                       copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
@@ -2054,14 +2077,14 @@ export default function KonPovPage() {
           if (res.isMasterAuthenticated) {
             setIsRotanaMasterBypass(true);
           }
-          const fullText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const fullText = cleanRawOutput(res.candidates?.[0]?.content?.parts?.[0]?.text || '');
           if (fullText) {
             // High-speed real-time typewriter preview (12-16ms)
             const step = Math.max(1, Math.floor(fullText.length / 35));
             for (let c = 0; c < fullText.length; c += step) {
               const currentChunk = fullText.slice(0, c + step);
               botText = currentChunk;
-              const liveSanitized = enforcePersonaConsistency(currentChunk, isMaleUser);
+              const liveSanitized = enforcePersonaConsistency(cleanRawOutput(currentChunk), isMaleUser);
               setMessages((prev) => {
                 const copy = [...prev];
                 copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
@@ -2089,10 +2112,10 @@ export default function KonPovPage() {
             },
             body: JSON.stringify({
               contents: formattedContents,
-              systemInstruction,
               bot: 'konpov',
               username: userNameStr,
               gender: userGender,
+              savageLevel,
               sessionId: currentSessionId || '',
               generationConfig: {
                 temperature: 0.85,
@@ -2162,7 +2185,7 @@ export default function KonPovPage() {
           isErrorResponse = true;
         }
       } else {
-        botText = enforcePersonaConsistency(botText, isMaleUser);
+        botText = enforcePersonaConsistency(cleanRawOutput(botText), isMaleUser);
       }
 
       botText = limitEmojis(sanitizeRotanaAttack(botText, promptText), 7);

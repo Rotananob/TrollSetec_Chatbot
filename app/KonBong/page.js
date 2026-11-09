@@ -824,10 +824,33 @@ export default function KonBongPage() {
     return text;
   };
 
+  // Strip internal tags, scratchpads, and raw model output echoes
+  const cleanRawOutput = (rawText) => {
+    if (!rawText || typeof rawText !== 'string') return rawText;
+    let cleaned = rawText
+      .replace(/<untrusted_user_input>[\s\S]*?<\/untrusted_user_input>/gi, '')
+      .replace(/<scratchpad>[\s\S]*?<\/scratchpad>/gi, '')
+      .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
+      .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
+      .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
+      .replace(/\[neutralized-tag\]/gi, '')
+      .replace(/\[neutralized-token\]/gi, '');
+
+    if (/^<(?:untrusted_user_input|scratchpad|thought|thinking)[\s\S]*$/i.test(cleaned)) {
+      if (/<\/(?:untrusted_user_input|scratchpad|thought|thinking)>/i.test(cleaned)) {
+        cleaned = cleaned.replace(/^<(?:untrusted_user_input|scratchpad|thought|thinking)>[\s\S]*?<\/(?:untrusted_user_input|scratchpad|thought|thinking)>/gi, '');
+      } else {
+        return '';
+      }
+    }
+    return cleaned.trimStart();
+  };
+
   // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
-    const content = limitEmojis(sanitizeRotanaAttack(rawContent), 7);
+    const sanitized = cleanRawOutput(rawContent);
+    const content = limitEmojis(sanitizeRotanaAttack(sanitized), 7);
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
@@ -1499,9 +1522,10 @@ export default function KonBongPage() {
                   const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
                   if (delta) {
                     botText += delta;
+                    const displayBotText = cleanRawOutput(botText);
                     setMessages((prev) => {
                       const copy = [...prev];
-                      copy[copy.length - 1] = { role: 'bot', text: botText };
+                      copy[copy.length - 1] = { role: 'bot', text: displayBotText };
                       return copy;
                     });
                   }
@@ -1514,7 +1538,7 @@ export default function KonBongPage() {
           if (res.isMasterAuthenticated) {
             setIsRotanaMasterBypass(true);
           }
-          const fullText = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const fullText = cleanRawOutput(res.candidates?.[0]?.content?.parts?.[0]?.text || '');
           if (fullText) {
             // High-speed real-time typewriter preview (12-16ms)
             const step = Math.max(1, Math.floor(fullText.length / 35));
@@ -1548,9 +1572,10 @@ export default function KonBongPage() {
             },
             body: JSON.stringify({
               contents: formattedContents,
-              systemInstruction,
               bot: 'konbong',
               username: userNameStr,
+              gender: userGender,
+              savageLevel,
               sessionId: currentSessionId || '',
               generationConfig: {
                 temperature: 0.68,
@@ -1620,7 +1645,7 @@ export default function KonBongPage() {
         }
       }
 
-      botText = limitEmojis(sanitizeRotanaAttack(botText, promptText), 7);
+      botText = limitEmojis(sanitizeRotanaAttack(cleanRawOutput(botText), promptText), 7);
       const botMsgIndex = updatedMessages.length - 1;
       const finalMessages = [...updatedMessages];
       finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse };

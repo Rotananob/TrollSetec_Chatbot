@@ -49,7 +49,10 @@ export function buildGeminiMultiTurnContents(messages = [], currentPromptText = 
     let text = (m.text || '').trim();
     // Clean internal tags if any leaked in history
     text = text
-      .replace(/<\/?untrusted_user_input>/gi, '')
+      .replace(/<untrusted_user_input>[\s\S]*?<\/untrusted_user_input>/gi, '')
+      .replace(/<scratchpad>[\s\S]*?<\/scratchpad>/gi, '')
+      .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
+      .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
       .trim();
 
