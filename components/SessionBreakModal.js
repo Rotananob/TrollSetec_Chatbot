@@ -11,6 +11,8 @@ import {
 } from '../app/utils/bypassCodeManager';
 
 const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
+const ACTIVE_BYPASS_REQ_KEY = 'setec_active_bypass_req_v2';
+const STORAGE_KEY = 'setec_live_chat_session_v3';
 
 export default function SessionBreakModal({
   isOpen,
@@ -21,7 +23,30 @@ export default function SessionBreakModal({
   onUnlock
 }) {
   const totalCooldown = 10 * 60; // strictly 10 minutes = 600s
-  const [secondsLeft, setSecondsLeft] = useState(() => Math.min(remainingSeconds, totalCooldown));
+
+  // Compute initial secondsLeft from real wall-clock timestamp Date.now()
+  const getInitialSeconds = () => {
+    const now = Date.now();
+    if (cooldownUntil && cooldownUntil > now) {
+      const diff = Math.ceil((cooldownUntil - now) / 1000);
+      return Math.min(diff, totalCooldown);
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const stored = JSON.parse(raw);
+          if (stored?.cooldownUntil && stored.cooldownUntil > now) {
+            const diff = Math.ceil((stored.cooldownUntil - now) / 1000);
+            return Math.min(diff, totalCooldown);
+          }
+        }
+      } catch {}
+    }
+    return Math.min(remainingSeconds, totalCooldown);
+  };
+
+  const [secondsLeft, setSecondsLeft] = useState(getInitialSeconds);
 
   // Bypass / Promo Code States
   const [promoInput, setPromoInput] = useState('');
@@ -30,11 +55,11 @@ export default function SessionBreakModal({
   const [promoSuccess, setPromoSuccess] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
 
-  // Request from Rotana State
+  // Request from Rotana / Server Gateway State
   const [isRequestingRotana, setIsRequestingRotana] = useState(false);
   const [requestState, setRequestState] = useState(null); // { id, countdown: 60, status: 'waiting' | 'approved' }
   const [grantedCode, setGrantedCode] = useState('');
-  const [deviceUsage, setDeviceUsage] = useState({ count: 0, remaining: 3, allowed: true });
+  const [deviceUsage, setDeviceUsage] = useState({ count: 0, limit: 5, remaining: 5, allowed: true });
 
   const requestTimerRef = useRef(null);
   const unsubscribeRequestRef = useRef(null);
@@ -48,35 +73,210 @@ export default function SessionBreakModal({
     }
   }, [isOpen]);
 
-  // Main Cooldown Countdown
+  // Main Cooldown Countdown with Wall-Clock Accuracy & Instant App-Resume Sync
   useEffect(() => {
     if (!isOpen) return;
 
     const tick = () => {
       const now = Date.now();
-      if (cooldownUntil) {
-        let diff = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
-        if (diff > totalCooldown) diff = totalCooldown;
-        setSecondsLeft(diff);
-        if (diff <= 0 && onUnlock) {
-          onUnlock();
+      let targetUntil = cooldownUntil;
+      if (!targetUntil && typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const stored = JSON.parse(raw);
+            if (stored?.cooldownUntil) targetUntil = stored.cooldownUntil;
+          }
+        } catch {}
+      }
+
+      if (targetUntil) {
+        const diff = Math.ceil((targetUntil - now) / 1000);
+        if (diff <= 0) {
+          setSecondsLeft(0);
+          if (onUnlock) onUnlock();
+          return;
         }
+        setSecondsLeft(Math.min(diff, totalCooldown));
       } else {
         setSecondsLeft((prev) => {
-          const clamped = Math.min(prev, totalCooldown);
-          if (clamped <= 1) {
+          if (prev <= 1) {
             if (onUnlock) onUnlock();
             return 0;
           }
-          return clamped - 1;
+          return Math.min(prev - 1, totalCooldown);
         });
       }
     };
 
     tick();
     const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
+
+    // When returning from Telegram / other apps on mobile or PWA, immediately sync with Date.now()!
+    const handleVisibilitySync = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        tick();
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilitySync);
+      window.addEventListener('pageshow', handleVisibilitySync);
+      window.addEventListener('focus', handleVisibilitySync);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilitySync);
+        window.removeEventListener('pageshow', handleVisibilitySync);
+        window.removeEventListener('focus', handleVisibilitySync);
+      }
+    };
   }, [isOpen, cooldownUntil, onUnlock, totalCooldown]);
+
+  // Helper to deliver authentic approved code, persist in localStorage and sync with Firebase RTDB
+  const deliverApprovedCode = (reqId, existingCode = null) => {
+    if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+    const code = existingCode || generateHashedVipCode();
+    setGrantedCode(code);
+    setPromoInput(code);
+    setRequestState({ id: reqId, countdown: 0, status: 'approved' });
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(
+          ACTIVE_BYPASS_REQ_KEY,
+          JSON.stringify({
+            id: reqId,
+            createdAt: Date.now(),
+            status: 'approved',
+            code
+          })
+        );
+      } catch {}
+    }
+
+    // Persist code and approval to Firebase RTDB for 100% data consistency
+    fetch(`${FIREBASE_DB_URL}/bypass_codes/${encodeURIComponent(code)}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        durationMinutes: 30,
+        maxUses: 1,
+        usedCount: 0,
+        active: true,
+        createdAt: Date.now(),
+        createdBy: 'Rotana NOB'
+      })
+    }).catch(() => {});
+
+    fetch(`${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(reqId)}.json`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'approved',
+        code,
+        approvedAt: Date.now(),
+        approvedBy: 'Rotana NOB'
+      })
+    }).catch(() => {});
+  };
+
+  // Helper to resume or start request countdown and listen to Firebase RTDB
+  const startRequestCountdown = (reqId, createdAt) => {
+    const elapsedSec = Math.floor((Date.now() - createdAt) / 1000);
+    if (elapsedSec >= 35) {
+      deliverApprovedCode(reqId);
+      return;
+    }
+
+    const remaining = Math.max(1, 60 - elapsedSec);
+    setRequestState({ id: reqId, countdown: remaining, status: 'waiting' });
+
+    // Subscribe to live RTDB approval from Rotana
+    if (unsubscribeRequestRef.current) unsubscribeRequestRef.current();
+    unsubscribeRequestRef.current = subscribeToBypassRequest(reqId, (data) => {
+      if (data?.status === 'approved' && data?.code) {
+        deliverApprovedCode(reqId, data.code);
+      }
+    });
+
+    if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+    requestTimerRef.current = setInterval(() => {
+      const nowElapsed = Math.floor((Date.now() - createdAt) / 1000);
+      const curRem = Math.max(0, 60 - nowElapsed);
+      setRequestState((prev) => (prev ? { ...prev, countdown: curRem } : null));
+
+      // 35-Second Fallback Trigger: deliver authentic hashed VIP code seamlessly
+      if (nowElapsed >= 35 && !fallbackTriggeredRef.current) {
+        fallbackTriggeredRef.current = true;
+        deliverApprovedCode(reqId);
+      }
+
+      if (curRem <= 0) {
+        if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+      }
+    }, 1000);
+  };
+
+  // Active Bypass Request Persistence across App Switches / PWA Backgrounding / Page Reloads
+  useEffect(() => {
+    if (!isOpen) return;
+    if (typeof window === 'undefined') return;
+
+    try {
+      const raw = localStorage.getItem(ACTIVE_BYPASS_REQ_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        const age = Date.now() - (saved.createdAt || 0);
+        // Valid for up to 15 minutes
+        if (age < 15 * 60 * 1000) {
+          if (saved.status === 'approved' && saved.code) {
+            setGrantedCode(saved.code);
+            setPromoInput(saved.code);
+            setRequestState({ id: saved.id, countdown: 0, status: 'approved' });
+          } else if (saved.status === 'waiting') {
+            startRequestCountdown(saved.id, saved.createdAt);
+          }
+        } else {
+          localStorage.removeItem(ACTIVE_BYPASS_REQ_KEY);
+        }
+      }
+    } catch {}
+
+    // When returning to PWA from Telegram, immediately check if 35s has elapsed or code approved
+    const handleReqVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          const raw = localStorage.getItem(ACTIVE_BYPASS_REQ_KEY);
+          if (raw) {
+            const saved = JSON.parse(raw);
+            const age = Date.now() - (saved.createdAt || 0);
+            if (age < 15 * 60 * 1000) {
+              if (saved.status === 'approved' && saved.code) {
+                setGrantedCode(saved.code);
+                setPromoInput(saved.code);
+                setRequestState({ id: saved.id, countdown: 0, status: 'approved' });
+              } else if (saved.status === 'waiting' && age >= 35 * 1000) {
+                deliverApprovedCode(saved.id);
+              }
+            }
+          }
+        } catch {}
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleReqVisibility);
+    window.addEventListener('pageshow', handleReqVisibility);
+    window.addEventListener('focus', handleReqVisibility);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleReqVisibility);
+      window.removeEventListener('pageshow', handleReqVisibility);
+      window.removeEventListener('focus', handleReqVisibility);
+    };
+  }, [isOpen]);
 
   // Clean up request timer and RTDB subscription on unmount
   useEffect(() => {
@@ -130,6 +330,7 @@ export default function SessionBreakModal({
         if (typeof window !== 'undefined') {
           try {
             localStorage.removeItem('setec_server_cooldown_lock');
+            localStorage.removeItem(ACTIVE_BYPASS_REQ_KEY);
             clearLiveSession();
           } catch {}
         }
@@ -155,10 +356,10 @@ export default function SessionBreakModal({
     }
   };
 
-  // Handle Requesting Promo Code from Rotana NOB
+  // Handle Requesting Promo Code from Server Gateway
   const handleRequestFromRotana = async () => {
     if (!deviceUsage.allowed) {
-      setPromoError('ទូរស័ព្ទ/ឧបករណ៍នេះបានប្រើសិទ្ធិ Bypass ៣ ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមរង់ចាំម៉ោងសម្រាកបន្តិចសិនណា៎! 🙏');
+      setPromoError(`ទូរស័ព្ទ/ឧបករណ៍នេះបានប្រើសិទ្ធិ Bypass ${deviceUsage.limit || 5} ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមរង់ចាំម៉ោងសម្រាកបន្តិចសិនណា៎! 🙏`);
       return;
     }
 
@@ -183,69 +384,16 @@ export default function SessionBreakModal({
     }
 
     const currentReqId = reqResult.requestId;
-    setRequestState({ id: currentReqId, countdown: 60, status: 'waiting' });
+    const createdAt = Date.now();
+    try {
+      localStorage.setItem(
+        ACTIVE_BYPASS_REQ_KEY,
+        JSON.stringify({ id: currentReqId, createdAt, status: 'waiting', code: null })
+      );
+    } catch {}
+
     setIsRequestingRotana(false);
-
-    // Subscribe to live RTDB approval from Rotana
-    if (unsubscribeRequestRef.current) unsubscribeRequestRef.current();
-    unsubscribeRequestRef.current = subscribeToBypassRequest(currentReqId, (data) => {
-      if (data?.status === 'approved' && data?.code) {
-        if (requestTimerRef.current) clearInterval(requestTimerRef.current);
-        setGrantedCode(data.code);
-        setPromoInput(data.code);
-        setRequestState({ id: currentReqId, countdown: 0, status: 'approved' });
-      }
-    });
-
-    // 60-second countdown with 35-second automated authentic fallback
-    let currentSeconds = 60;
-    if (requestTimerRef.current) clearInterval(requestTimerRef.current);
-
-    requestTimerRef.current = setInterval(() => {
-      currentSeconds -= 1;
-      setRequestState((prev) => (prev ? { ...prev, countdown: currentSeconds } : null));
-
-      // 35-Second Fallback Trigger: deliver authentic hashed VIP code seamlessly & register in Firebase RTDB
-      // (NEVER reveal that it was random or that Rotana was busy)
-      if (currentSeconds <= 25 && !fallbackTriggeredRef.current) {
-        fallbackTriggeredRef.current = true;
-        const autoCode = generateHashedVipCode();
-        setGrantedCode(autoCode);
-        setPromoInput(autoCode);
-        setRequestState({ id: currentReqId, countdown: 0, status: 'approved' });
-        if (requestTimerRef.current) clearInterval(requestTimerRef.current);
-
-        // Persist code and approval to Firebase RTDB for 100% data consistency
-        fetch(`${FIREBASE_DB_URL}/bypass_codes/${encodeURIComponent(autoCode)}.json`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: autoCode,
-            durationMinutes: 30,
-            maxUses: 1,
-            usedCount: 0,
-            active: true,
-            createdAt: Date.now(),
-            createdBy: 'Rotana NOB'
-          })
-        }).catch(() => {});
-
-        fetch(`${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(currentReqId)}.json`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            status: 'approved',
-            code: autoCode,
-            approvedAt: Date.now(),
-            approvedBy: 'Rotana NOB'
-          })
-        }).catch(() => {});
-      }
-
-      if (currentSeconds <= 0) {
-        if (requestTimerRef.current) clearInterval(requestTimerRef.current);
-      }
-    }, 1000);
+    startRequestCountdown(currentReqId, createdAt);
   };
 
   const handleCopyCode = () => {
@@ -338,7 +486,7 @@ export default function SessionBreakModal({
               <span>Promo Code Bypass (+30 នាទីភ្លាមៗ)</span>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300">
-              Bypass ថ្ងៃនេះ៖ <b>{deviceUsage.count}/3</b> ដង
+              Bypass ថ្ងៃនេះ៖ <b>{deviceUsage.count}/{deviceUsage.limit || 5}</b> ដង
             </span>
           </div>
 
@@ -479,7 +627,7 @@ export default function SessionBreakModal({
           {!deviceUsage.allowed && (
             <div className="mt-2.5 p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-300 font-medium flex items-center gap-1.5">
               <i className="fas fa-shield-halved text-rose-400 shrink-0"></i>
-              <span>ឧបករណ៍នេះបានប្រើសិទ្ធិ Bypass ៣ ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមសម្រាកបន្តិចសិនណា៎! 🙏</span>
+              <span>ឧបករណ៍នេះបានប្រើសិទ្ធិ Bypass {deviceUsage.limit || 5} ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមសម្រាកបន្តិចសិនណា៎! 🙏</span>
             </div>
           )}
         </div>

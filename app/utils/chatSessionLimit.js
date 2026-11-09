@@ -134,8 +134,13 @@ export function getLiveSessionState() {
   let cooldownUntil = stored?.cooldownUntil || null;
 
   // Sync cookie with storage if cookie has active cooldown
-  if (cookieCooldown && (!cooldownUntil || cookieCooldown > cooldownUntil)) {
-    cooldownUntil = cookieCooldown;
+  if (cookieCooldown) {
+    if (!cooldownUntil) {
+      cooldownUntil = cookieCooldown;
+    } else {
+      // Pick the earlier one so cooldown is never unfairly pushed back into the future!
+      cooldownUntil = Math.min(cooldownUntil, cookieCooldown);
+    }
   }
 
   // Hard clamp cooldown to strict 10 minutes maximum (COOLDOWN_SECONDS)
@@ -152,7 +157,7 @@ export function getLiveSessionState() {
     // Ensure cookie is synced
     setCookie(COOKIE_NAME, String(cooldownUntil), remainingCooldownSec + 60);
     return {
-      sessionStart,
+      sessionStart: null,
       lastActive,
       cooldownUntil,
       isLocked: true,
@@ -171,8 +176,19 @@ export function getLiveSessionState() {
   if (sessionStart) {
     const elapsedSinceStart = now - sessionStart;
     const sessionLimitMs = SESSION_LIMIT_SECONDS * 1000;
+    const elapsedSinceActive = lastActive ? now - lastActive : 0;
+
+    // INACTIVITY / AWAY AUTO-RESET (Evaluated BEFORE 30-min limit):
+    // If user was away/inactive for >= 10 minutes (screen locked or switched to other apps),
+    // they were NOT actively chatting! DO NOT penalize them with a 10-minute cooldown!
+    // Instead, clear the idle session so they get a fresh session!
+    if (elapsedSinceActive >= 10 * 60 * 1000) {
+      clearLiveSession();
+      return freshState();
+    }
 
     // A) 30-minute session elapsed: Trigger 10-minute Cooldown Rest (ម៉ោងសម្រាក)!
+    // Only triggers if user was actively engaged without being away
     if (elapsedSinceStart >= sessionLimitMs) {
       const safeCooldownUntil = now + COOLDOWN_SECONDS * 1000;
       setCookie(COOKIE_NAME, String(safeCooldownUntil), COOLDOWN_SECONDS + 60);
@@ -194,13 +210,6 @@ export function getLiveSessionState() {
         remainingSessionSec: 0,
         remainingCooldownSec: COOLDOWN_SECONDS
       };
-    }
-
-    // B) INACTIVITY CHECK: Only reset if completely abandoned for >= 20 minutes (1200s)
-    const elapsedSinceActive = lastActive ? now - lastActive : 0;
-    if (elapsedSinceActive >= 20 * 60 * 1000) {
-      clearLiveSession();
-      return freshState();
     }
 
     // C) SESSION STILL VALID: within 30 minutes and actively engaged
@@ -286,6 +295,18 @@ export function setServerCooldownLock(cooldownUntilMs, customUsername = '') {
   if (safeUntil - now > COOLDOWN_SECONDS * 1000) {
     safeUntil = now + COOLDOWN_SECONDS * 1000;
   }
+
+  // Preserve earlier local cooldown if already active: NEVER push the timer backwards or extend it!
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const stored = JSON.parse(raw);
+      if (stored?.cooldownUntil && stored.cooldownUntil > now && stored.cooldownUntil < safeUntil) {
+        safeUntil = stored.cooldownUntil;
+      }
+    }
+  } catch {}
+
   const remainingSec = Math.min(COOLDOWN_SECONDS, Math.max(1, Math.ceil((safeUntil - now) / 1000)));
 
   setCookie(COOKIE_NAME, String(safeUntil), remainingSec + 60);

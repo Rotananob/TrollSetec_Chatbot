@@ -497,6 +497,18 @@ export default function KonBongPage() {
     updateState();
     const interval = setInterval(updateState, 1000);
 
+    // Sync session state immediately on tab switch / returning from other apps / PWA wake-up
+    const handleVisibilitySync = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        updateState();
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilitySync);
+      window.addEventListener('pageshow', handleVisibilitySync);
+      window.addEventListener('focus', handleVisibilitySync);
+    }
+
     // Background sync with server to prevent browser tampering/clearing bypass
     try {
       const devId = getDeviceId();
@@ -515,7 +527,14 @@ export default function KonBongPage() {
         .catch(() => {});
     } catch {}
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilitySync);
+        window.removeEventListener('pageshow', handleVisibilitySync);
+        window.removeEventListener('focus', handleVisibilitySync);
+      }
+    };
   }, [username, isCreatorUser]);
 
   // 180s Countdown controller for User waiting for Rotana

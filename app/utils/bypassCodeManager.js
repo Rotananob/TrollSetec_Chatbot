@@ -2,7 +2,7 @@
 // Firebase Realtime Database Bypass & Promo Code Management for SETEC Chatbot
 
 const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
-const DAILY_BYPASS_LIMIT = 3; // Maximum 3 bypasses per device per day
+const DAILY_BYPASS_LIMIT = 5; // Generous 5 bypasses per device per day (+2.5 bonus hours)
 
 // Get Cambodia current date key (YYYY-MM-DD)
 export function getCambodiaDateKey() {
@@ -26,27 +26,50 @@ export function generateHashedVipCode() {
 
 // Check device bypass usage for today (local + remote)
 export function getLocalDeviceBypassUsage(deviceId) {
-  if (typeof window === 'undefined') return { count: 0, allowed: true };
+  if (typeof window === 'undefined') return { count: 0, allowed: true, limit: DAILY_BYPASS_LIMIT };
   try {
     const today = getCambodiaDateKey();
     const stored = localStorage.getItem(`setec_bypass_device_${today}`);
     const count = stored ? parseInt(stored, 10) : 0;
     return {
       count,
+      limit: DAILY_BYPASS_LIMIT,
       remaining: Math.max(0, DAILY_BYPASS_LIMIT - count),
       allowed: count < DAILY_BYPASS_LIMIT,
       today
     };
   } catch {
-    return { count: 0, remaining: DAILY_BYPASS_LIMIT, allowed: true, today: getCambodiaDateKey() };
+    return { count: 0, limit: DAILY_BYPASS_LIMIT, remaining: DAILY_BYPASS_LIMIT, allowed: true, today: getCambodiaDateKey() };
   }
 }
 
-// Increment local device bypass usage
-export function recordLocalDeviceBypass(deviceId) {
+// Increment local device bypass usage (deduplicated by code so retries/reloads never burn multiple counts)
+export function recordLocalDeviceBypass(deviceId, code = '') {
   if (typeof window === 'undefined') return;
   try {
     const today = getCambodiaDateKey();
+    const cleanCode = (code || '').trim().toUpperCase();
+
+    // Check if this code was already counted today
+    if (cleanCode) {
+      const usedCodesKey = `setec_bypass_used_codes_${today}`;
+      let usedCodes = [];
+      try {
+        const raw = localStorage.getItem(usedCodesKey);
+        if (raw) usedCodes = JSON.parse(raw);
+      } catch {}
+
+      if (usedCodes.includes(cleanCode)) {
+        // Code was already counted for this device today, do NOT consume another count!
+        return;
+      }
+
+      usedCodes.push(cleanCode);
+      try {
+        localStorage.setItem(usedCodesKey, JSON.stringify(usedCodes));
+      } catch {}
+    }
+
     const current = getLocalDeviceBypassUsage(deviceId).count;
     const newCount = current + 1;
     localStorage.setItem(`setec_bypass_device_${today}`, String(newCount));
@@ -80,7 +103,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
     return {
       valid: false,
       limitReached: true,
-      message: 'ឧបករណ៍ ឬទូរស័ព្ទនេះបានប្រើសិទ្ធិ Bypass ៣ ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមរង់ចាំម៉ោងសម្រាកបន្តិចសិនណា៎! 🙏😊'
+      message: `ឧបករណ៍ ឬទូរស័ព្ទនេះបានប្រើសិទ្ធិ Bypass ${usage.limit} ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមរង់ចាំម៉ោងសម្រាកបន្តិចសិនណា៎! 🙏😊`
     };
   }
 
@@ -92,7 +115,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
     code === 'SETEC2026' ||
     code === 'ROTANABYPASS'
   ) {
-    recordLocalDeviceBypass(deviceId);
+    recordLocalDeviceBypass(deviceId, code);
     return {
       valid: true,
       code,
@@ -123,7 +146,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
           body: JSON.stringify((codeData.usedCount || 0) + 1)
         }).catch(() => {});
 
-        recordLocalDeviceBypass(deviceId);
+        recordLocalDeviceBypass(deviceId, code);
         return {
           valid: true,
           code,
@@ -137,7 +160,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
 
   // 4. Algorithmic Hash Fallback: Validates genuine ROTANA-VIP-XXXX or SETEC-VIP-XXXX pattern
   if (/^(?:ROTANA|SETEC)-(?:VIP|PASS)-[A-Z0-9]{4}$/i.test(code)) {
-    recordLocalDeviceBypass(deviceId);
+    recordLocalDeviceBypass(deviceId, code);
     return {
       valid: true,
       code,
