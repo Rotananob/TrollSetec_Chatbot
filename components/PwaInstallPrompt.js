@@ -165,7 +165,7 @@ export default function PwaInstallPrompt({ isDark = false }) {
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-black tracking-tight truncate flex items-center gap-1.5">
-                  <span>ដំឡើង SETEC Chat ជា App</span>
+                  <span>ដំឡើង SETEC Roastbot ជា App</span>
                   <span className="text-[9px] bg-blue-500/20 text-blue-400 font-bold px-1.5 py-0.2 rounded-full">PWA</span>
                 </div>
                 <p className={`text-[11px] truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -250,12 +250,12 @@ export default function PwaInstallPrompt({ isDark = false }) {
               <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-sky-400 p-0.5 shadow-lg shadow-blue-500/30 overflow-hidden">
                 <img
                   src="/img/icon.jpg"
-                  alt="SETEC Chat"
+                  alt="SETEC Roastbot"
                   className="w-full h-full object-cover rounded-[14px]"
                 />
               </div>
               <h3 className="text-lg sm:text-xl font-black tracking-tight mb-1">
-                ដំឡើង SETEC Chatbot លើទូរស័ព្ទ
+                ដំឡើង SETEC Roastbot លើទូរស័ព្ទ
               </h3>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 លេងស្រួលជាងមុន មិនរអាក់រអួល និងចូលបានភ្លាមៗពី Home Screen

@@ -158,6 +158,16 @@ export default function KonPovPage() {
       localStorage.getItem('troll_rotana_bypass') === '1'
     ))
   );
+  const [userAge, setUserAge] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem('chatbot_user_age') || '';
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  });
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
 
@@ -477,7 +487,11 @@ export default function KonPovPage() {
     const savedSavage = localStorage.getItem('troll_savage_level') || 'savage';
     const savedSpeed = parseFloat(localStorage.getItem('troll_audio_speed') || '1.0');
 
+    const savedAge = localStorage.getItem('chatbot_user_age') || '';
+    if (savedAge) setUserAge(savedAge);
+
     setUsername(savedName);
+    setUserGender(savedGender);
     setAvatar(savedAvatar);
     setTheme(savedTheme);
     setSavageLevel(savedSavage);
@@ -2014,6 +2028,7 @@ export default function KonPovPage() {
             'Content-Type': 'application/json',
             'x-device-id': deviceId,
             'x-session-id': currentSessionId || '',
+            'x-user-age': userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
             ...getBypassHeaders()
           },
           body: JSON.stringify({
@@ -2021,6 +2036,7 @@ export default function KonPovPage() {
             bot: 'konpov',
             username: userNameStr,
             gender: userGender,
+            userAge: userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
             savageLevel,
             sessionId: currentSessionId || '',
             generationConfig: {
@@ -2180,6 +2196,7 @@ export default function KonPovPage() {
               'Content-Type': 'application/json',
               'x-device-id': deviceId,
               'x-session-id': currentSessionId || '',
+              'x-user-age': userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
               ...getBypassHeaders()
             },
             body: JSON.stringify({
@@ -2187,6 +2204,7 @@ export default function KonPovPage() {
               bot: 'konpov',
               username: userNameStr,
               gender: userGender,
+              userAge: userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
               savageLevel,
               sessionId: currentSessionId || '',
               generationConfig: {
@@ -2433,7 +2451,7 @@ export default function KonPovPage() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-700/30">
-            <span className="font-extrabold text-sm text-blue-400">SETEC Chatbot Hub</span>
+            <span className="font-extrabold text-sm text-blue-400">SETEC Roastbot Hub</span>
             <button
               onClick={() => setDrawerOpen(false)}
               className="text-slate-400 hover:text-white p-1 cursor-pointer"
@@ -2619,7 +2637,7 @@ export default function KonPovPage() {
             href="/"
             className="block w-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl text-center text-xs mb-2 transition"
           >
-            <i className="fas fa-home mr-1"></i> ទំព័រដើម SETEC Chatbot
+            <i className="fas fa-home mr-1"></i> ទំព័រដើម SETEC Roastbot
           </Link>
 
           <div className="mt-auto">
@@ -2859,7 +2877,7 @@ export default function KonPovPage() {
                 ? 'bg-cyan-500/10 border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20'
                 : 'bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100 shadow-xs'
             }`}
-            title="ប្តូរទៅ ស៊ីតិច Chatbot កូនច្បង"
+            title="ប្តូរទៅ ស៊ីតិច Roastbot កូនច្បង"
           >
             <i className="fas fa-repeat text-[9px]"></i>
             <span className="hidden sm:inline">កូនច្បង</span>
@@ -3471,7 +3489,7 @@ export default function KonPovPage() {
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-bold text-pink-500 dark:text-pink-400 text-xs mb-1">
-                    Chatbot កូនពៅ (ចែ)
+                    Roastbot កូនពៅ (ចែ)
                   </span>
 
                   {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
@@ -3751,7 +3769,7 @@ export default function KonPovPage() {
             />
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-bold text-purple-400 text-xs mb-1">
-                Chatbot កូនពៅ (ចែ)
+                Roastbot កូនពៅ (ចែ)
               </span>
               <div className="rounded-2xl overflow-hidden border-2 border-purple-500/40 bg-gradient-to-br from-slate-900/90 to-purple-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
                 <div className="w-full h-52 sm:h-60 rounded-xl bg-purple-950/60 border border-purple-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
@@ -4134,7 +4152,7 @@ export default function KonPovPage() {
                 <span>ស្ដេចឌឺ (ចែ / Mommy)</span>
               </h3>
               <p className="text-[11px] text-pink-400 font-bold mt-0.5">
-                ស៊ីតិច Chatbot កូនពៅ • 100% Savage & Unfiltered Gen Z
+                ស៊ីតិច Roastbot កូនពៅ • 100% Savage & Unfiltered Gen Z
               </p>
             </div>
 
@@ -4237,7 +4255,7 @@ export default function KonPovPage() {
       <ContributeKnowledgeModal
         isOpen={contributeModalOpen}
         onClose={() => setContributeModalOpen(false)}
-        defaultBot="Chatbot កូនពៅ"
+        defaultBot="Roastbot កូនពៅ"
       />
 
       {/* Confirm Delete Chat History Modal */}

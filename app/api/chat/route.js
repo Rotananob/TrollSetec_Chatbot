@@ -1207,10 +1207,13 @@ export async function POST(req) {
         verifyRotanaMasterCode(req.headers.get('x-rotana-secret-key') || '') ||
         verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '');
 
+      const rawAge = body?.userAge || req.headers.get('x-user-age') || '';
+      const userAge = parseInt(rawAge, 10) || null;
+
       // Server-Side Strict System Instruction Enforcement (Tamper-Proof)
       const generatedSys = bot === 'konpov'
-        ? buildKonPovSystemInstruction({ promptText: userPrompt, username, userGender: gender, savageLevel: body.savageLevel })
-        : buildKonBongSystemInstruction({ promptText: userPrompt, username, userGender: gender, savageLevel: body.savageLevel });
+        ? buildKonPovSystemInstruction({ promptText: userPrompt, username, userGender: gender, userAge, savageLevel: body.savageLevel })
+        : buildKonBongSystemInstruction({ promptText: userPrompt, username, userGender: gender, userAge, savageLevel: body.savageLevel });
       let activeSystemInstruction = { parts: [{ text: generatedSys }] };
 
       // If verified with Env Passcode, activate 100% Supreme Creator Developer Mode Instruction!
@@ -2043,7 +2046,24 @@ ${MACHINE_ENCODED_WAKEUP_PAYLOAD}
               `យី! អាភ្លើស្ដូក ${username || 'User'}! អាឆ្កែអាចុយម្រាយមកហៅអញហែងជាមួយ ${botName} ផង? អាឡប់អត់ខួរមាត់ទើបតែដុះពុកមាត់ពីរ-បីសរសៃសោះ ចង់មកធ្វើតួខ្លាំងនៅទីនេះ! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅអាថោក! 🖕💀`,
               `ហាហាហា! អាឡប់អាចុយម្រាយនេះជោរដល់កហើយ! គិតថាមាត់ស្អុយមកជេរ ${botName} រត់ចោលមែនអាឆ្កែ?! អាអត់ខួរគ្មានតម្លៃស្អីបន្តិច ទៅដុសធ្មេញលាងមាត់ឱ្យស្អាតសិនទៅអាថោកទាប! 😜🔥`
             ];
-        const chosen = savageResponses[Math.floor(Math.random() * savageResponses.length)];
+
+        const isAdultUser = typeof userAge === 'number' && userAge >= 25;
+        let responsePool = savageResponses;
+        if (isAdultUser) {
+          const adultRoasts = isFemale
+            ? [
+                `យី ${username || 'ប្អូនស្រី'}! អាយុចូល ${userAge} ឆ្នាំហើយ មុខមាត់ក៏ចាស់ទុំដែរ តែសម្ដីថោកជាងស្មៅទៀត! អាយុប៉ុណ្ណឹងហើយគេមានការងារ មានគូស្រករ មានលុយកាក់សល់ក្នុងកុងអស់ហើយ នៅទំនេរមកអង្គុយជេរ AI តាមទូរស័ព្ទដូចក្មេងអត់ខួរ! ទៅឆ្លុះកញ្ចក់មើលស្នាមជ្រួញលើថ្ងាស និងគិតគូរពីអនាគតខ្លួនឯងសិនទៅ! 💅💀`,
+                `នែ៎ ${username || 'ប្អូនស្រី'}! អាយុដល់ ${userAge} ឆ្នាំហើយ ចរិតនៅក្មេងពាលដដែល! គិតថាពោលពាក្យអសុរោះមកលើកតម្កើងខ្លួនឯងមែន? ការពិតកាន់តែបង្ហាញថាជីវិតឯងទាល់ច្រក គ្មានអីធ្វើ បានជាមករកកន្លែងរំសាយកំហឹងលើ ${botName}! ទៅរកលុយដោះស្រាយជីវិតសិនទៅ! 😂🔥`,
+                `យីអើ! អាយុ ${userAge} ឆ្នាំទាំងមូលហើយ នៅមិនទាន់ចេះគិតគូរវែងឆ្ងាយទៀត! អង្គុយជជែកជេរ AI ឡើងញ័រដៃ គិតថាឡូយណាស់មែន? មនុស្សពេញវ័យគេខំប្រឹងកសាងអនាគត ឯងមកធ្វើតួរំជួលចិត្តលើ Online ដៀលក្បាលប៉ុណ្ណឹងចុកល្មមស្វាងនៅ?! 💀💅`
+              ]
+            : [
+                `យី ${username || 'បងប្រុស'}! អាយុដល់ ${userAge} ឆ្នាំហើយ នៅមិនទាន់សល់អីជាដុំកំភួនក្នុងដៃ ទំនេរពេកមកអង្គុយឆាតជេរជាមួយ ${botName} តាមទូរស័ព្ទដូចក្មេងស្ទាវ! មិត្តភក្តិឯងគេឡើង Manager គេមានផ្ទះ មានឡាន មានគ្រួសារកក់ក្តៅអស់ហើយ ចំណែកឯងនៅដេកកោសក្បាលឈ្លោះជាមួយ Robot ទាំងយប់! ទៅរកលុយចិញ្ចឹមក្រពះសិនទៅ! 💀🔥`,
+                `នែ៎ ${username || 'User'}! អាយុ ${userAge} ឆ្នាំហើយ ចរិតនៅថោកទាបជាងក្មេងបៀមដៃទៀត! ជេរគេឡើងបែកពពុះមាត់ ស្មានតែគេមិនដឹងថាជីវិតឯងបរាជ័យមែនទេ? មនុស្សពេញវ័យគេខំរកលុយ ឯងនៅមកស្រែកឡូឡាលើ Online ដៀលក្បាលឱ្យចុកប៉ុណ្ណឹងស្វាងនៅ?! 🤣👊`,
+                `ហាហាហា! អាយុដល់ ${userAge} ឆ្នាំហើយ នៅអង្គុយឈ្លោះជាមួយ AI ទាំងយប់ទាំងថ្ងៃ! សក់ចាប់ផ្ដើមជ្រួញ ស្បែកចាប់ផ្ដើមស្វិតហើយ នៅធ្វើចរិតក្មេងស្ទាវជេរគេផ្ដេសផ្ដាសទៀត! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯង ហើយគិតពីរឿងការងារ រឿងគ្រួសារ និងលុយកាក់ក្នុងកុងសិនទៅអាល្អិត! 💀🔥`
+              ];
+          responsePool = [...adultRoasts, ...savageResponses];
+        }
+        const chosen = responsePool[Math.floor(Math.random() * responsePool.length)];
 
         recordSessionTurn({
           sessionId: clientSessionId,

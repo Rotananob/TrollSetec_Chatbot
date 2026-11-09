@@ -144,6 +144,16 @@ export default function KonBongPage() {
     ))
   );
   const [userGender, setUserGender] = useState('');
+  const [userAge, setUserAge] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem('chatbot_user_age') || '';
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  });
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
 
@@ -461,6 +471,9 @@ export default function KonBongPage() {
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
     const savedSavage = localStorage.getItem('troll_savage_level') || 'savage';
     const savedSpeed = parseFloat(localStorage.getItem('troll_audio_speed') || '1.0');
+
+    const savedAge = localStorage.getItem('chatbot_user_age') || '';
+    if (savedAge) setUserAge(savedAge);
 
     setUsername(savedName);
     setUserGender(savedGender);
@@ -1473,6 +1486,7 @@ export default function KonBongPage() {
             'Content-Type': 'application/json',
             'x-device-id': deviceId,
             'x-session-id': currentSessionId || '',
+            'x-user-age': userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
             ...getBypassHeaders()
           },
           body: JSON.stringify({
@@ -1480,6 +1494,7 @@ export default function KonBongPage() {
             bot: 'konbong',
             username: userNameStr,
             gender: userGender,
+            userAge: userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
             savageLevel,
             sessionId: currentSessionId || '',
             generationConfig: {
@@ -1641,6 +1656,7 @@ export default function KonBongPage() {
               'Content-Type': 'application/json',
               'x-device-id': deviceId,
               'x-session-id': currentSessionId || '',
+              'x-user-age': userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
               ...getBypassHeaders()
             },
             body: JSON.stringify({
@@ -1648,6 +1664,7 @@ export default function KonBongPage() {
               bot: 'konbong',
               username: userNameStr,
               gender: userGender,
+              userAge: userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
               savageLevel,
               sessionId: currentSessionId || '',
               generationConfig: {
@@ -2356,7 +2373,7 @@ export default function KonBongPage() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-700/30">
-            <span className="font-extrabold text-sm text-cyan-400">SETEC Chatbot Hub</span>
+            <span className="font-extrabold text-sm text-cyan-400">SETEC Roastbot Hub</span>
             <button
               onClick={() => setDrawerOpen(false)}
               className="text-slate-400 hover:text-white p-1 cursor-pointer"
@@ -2944,14 +2961,14 @@ export default function KonBongPage() {
             className="w-8 h-8 rounded-full ring-2 ring-cyan-500/30 shadow-xs shrink-0 mt-0.5"
           />
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Chatbot កូនច្បង</span>
+            <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Roastbot កូនច្បង</span>
             <div
               className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border ${
                 isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
               }`}
             >
               <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                ហាហាហា! យីអើ! សួស្តីអាប្អូន~ បងគឺ <b>ស៊ីតិច Chatbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ហិហិហិ ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? ហ៊ឺៗៗ ហឹកៗ... កុំទៅសួរអា Chatbot កូនពៅឱ្យសោះ អាហ្នឹងមហាឈ្លើយបាក់កម៉ង ហាហា!
+                ហាហាហា! យីអើ! សួស្តីអាប្អូន~ បងគឺ <b>ស៊ីតិច Roastbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ហិហិហិ ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? ហ៊ឺៗៗ ហឹកៗ... កុំទៅសួរអា Roastbot កូនពៅឱ្យសោះ អាហ្នឹងមហាឈ្លើយបាក់កម៉ង ហាហា!
               </p>
             </div>
           </div>
@@ -3262,7 +3279,7 @@ export default function KonBongPage() {
                   )}
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Chatbot កូនច្បង</span>
+                  <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Roastbot កូនច្បង</span>
 
                   {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
                   {isLoading && idx === messages.length - 1 && !isGeneratingMeme && (
@@ -3540,7 +3557,7 @@ export default function KonBongPage() {
             />
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-bold text-cyan-400 text-xs mb-1">
-                Chatbot កូនច្បង
+                Roastbot កូនច្បង
               </span>
               <div className="rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-gradient-to-br from-slate-900/90 to-cyan-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
                 <div className="w-full h-52 sm:h-60 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
@@ -3940,7 +3957,7 @@ export default function KonBongPage() {
                 <span>ស្ដេចឌឺ (កូនច្បង)</span>
               </h3>
               <p className="text-[11px] text-cyan-400 font-bold mt-0.5">
-                ស៊ីតិច Chatbot កូនច្បង • រៀមច្បង SETEC សម្ដីកាំបិតចិតបេះដូង
+                ស៊ីតិច Roastbot កូនច្បង • រៀមច្បង SETEC សម្ដីកាំបិតចិតបេះដូង
               </p>
             </div>
 
@@ -4010,7 +4027,7 @@ export default function KonBongPage() {
       <ContributeKnowledgeModal
         isOpen={contributeModalOpen}
         onClose={() => setContributeModalOpen(false)}
-        defaultBot="Chatbot កូនច្បង"
+        defaultBot="Roastbot កូនច្បង"
       />
 
       {/* Confirm Delete Chat History Modal */}

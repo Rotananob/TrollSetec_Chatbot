@@ -1,7 +1,7 @@
 {
-  "name": "SETEC Troll Chatbots",
-  "short_name": "SETEC Chat",
-  "description": "SETEC Meme & AI Chatbot System by Rotana NOB",
+  "name": "SETEC Troll Roastbots",
+  "short_name": "SETEC Roast",
+  "description": "SETEC Meme & AI Roastbot System by Rotana NOB",
   "start_url": "/",
   "scope": "/",
   "id": "/",
@@ -46,9 +46,9 @@
       ]
     },
     {
-      "name": "Chatbot កូនច្បង",
+      "name": "Roastbot កូនច្បង",
       "short_name": "កូនច្បង",
-      "description": "ជជែកជាមួយ Chatbot កូនច្បង",
+      "description": "ជជែកជាមួយ Roastbot កូនច្បង",
       "url": "/KonBong",
       "icons": [
         {
@@ -59,9 +59,9 @@
       ]
     },
     {
-      "name": "Chatbot កូនពៅ",
+      "name": "Roastbot កូនពៅ",
       "short_name": "កូនពៅ",
-      "description": "ជជែកជាមួយ Chatbot កូនពៅ",
+      "description": "ជជែកជាមួយ Roastbot កូនពៅ",
       "url": "/KonPov",
       "icons": [
         {

@@ -183,15 +183,15 @@ export default function SessionBreakModal({
     }).catch(() => {});
   };
 
-  // Helper to resume or start request countdown and listen to Firebase RTDB
+  // Helper to resume or start request countdown and listen to Firebase RTDB (Superfast 5-Second Approval)
   const startRequestCountdown = (reqId, createdAt) => {
     const elapsedSec = Math.floor((Date.now() - createdAt) / 1000);
-    if (elapsedSec >= 35) {
+    if (elapsedSec >= 5) {
       deliverApprovedCode(reqId);
       return;
     }
 
-    const remaining = Math.max(1, 60 - elapsedSec);
+    const remaining = Math.max(1, 5 - elapsedSec);
     setRequestState({ id: reqId, countdown: remaining, status: 'waiting' });
 
     // Subscribe to live RTDB approval from Rotana
@@ -205,11 +205,11 @@ export default function SessionBreakModal({
     if (requestTimerRef.current) clearInterval(requestTimerRef.current);
     requestTimerRef.current = setInterval(() => {
       const nowElapsed = Math.floor((Date.now() - createdAt) / 1000);
-      const curRem = Math.max(0, 60 - nowElapsed);
+      const curRem = Math.max(0, 5 - nowElapsed);
       setRequestState((prev) => (prev ? { ...prev, countdown: curRem } : null));
 
-      // 35-Second Fallback Trigger: deliver authentic hashed VIP code seamlessly
-      if (nowElapsed >= 35 && !fallbackTriggeredRef.current) {
+      // 5-Second Superfast Trigger: deliver authentic hashed VIP code seamlessly
+      if (nowElapsed >= 5 && !fallbackTriggeredRef.current) {
         fallbackTriggeredRef.current = true;
         deliverApprovedCode(reqId);
       }
@@ -245,7 +245,7 @@ export default function SessionBreakModal({
       }
     } catch {}
 
-    // When returning to PWA from Telegram, immediately check if 35s has elapsed or code approved
+    // When returning to PWA from Telegram, immediately check if 5s has elapsed or code approved
     const handleReqVisibility = () => {
       if (document.visibilityState === 'visible') {
         try {
@@ -258,7 +258,7 @@ export default function SessionBreakModal({
                 setGrantedCode(saved.code);
                 setPromoInput(saved.code);
                 setRequestState({ id: saved.id, countdown: 0, status: 'approved' });
-              } else if (saved.status === 'waiting' && age >= 35 * 1000) {
+              } else if (saved.status === 'waiting' && age >= 5 * 1000) {
                 deliverApprovedCode(saved.id);
               }
             }
@@ -450,7 +450,7 @@ export default function SessionBreakModal({
 
         {/* Warm & Playful Cambodian Student Message */}
         <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-300 mb-3.5 px-1">
-          មួយលើកលេងបានត្រឹម <b>៣០ នាទី</b> ប៉ុណ្ណោះអាប្អូន! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង កុំនៅតោង Server ឡើងក្ដៅផ្សែងហុយ! 🤣🔥 <b>សម្រាក ១០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក troll ជាមួយ <b>Chatbot {botName}</b> ទៀត! ✨
+          មួយលើកលេងបានត្រឹម <b>៣០ នាទី</b> ប៉ុណ្ណោះអាប្អូន! ចែកវេនឱ្យសិស្សច្បង សិស្សប្អូន ស៊ីតិច ដទៃគេលេងផង កុំនៅតោង Server ឡើងក្ដៅផ្សែងហុយ! 🤣🔥 <b>សម្រាក ១០ នាទីសិនទៅ</b> ទៅរកបាយមាន់ចៀន ឬកាហ្វេដោះគោទឹកកកមុខសាលាញ៉ាំសិន ដល់ម៉ោងចប់ Countdown ចាំត្រឡប់មក roast ជាមួយ <b>Roastbot {botName}</b> ទៀត! ✨
         </p>
 
         {/* Digital Countdown Box */}

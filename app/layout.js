@@ -5,14 +5,14 @@ import SystemBroadcast from '../components/SystemBroadcast';
 import './globals.css';
 
 export const metadata = {
-  title: 'ជ្រើសរើស Chatbot - SETEC',
-  description: 'SETEC Meme & AI Chatbot by Rotana NOB',
+  title: 'ជ្រើសរើស Roastbot - SETEC',
+  description: 'SETEC Meme & AI Roastbot by Rotana NOB',
   manifest: '/manifest.webmanifest',
-  applicationName: 'SETEC Chat',
+  applicationName: 'SETEC Roastbot',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'SETEC Chat',
+    title: 'SETEC Roastbot',
   },
   formatDetection: {
     telephone: false,

@@ -12,6 +12,7 @@ import { initSecurityShield } from './utils/securityShield';
 export default function Home() {
   const router = useRouter();
   const [username, setUsername] = useState('');
+  const [userAge, setUserAge] = useState('');
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [hasCheckedStorage, setHasCheckedStorage] = useState(false);
@@ -41,6 +42,7 @@ export default function Home() {
     }
 
     const savedName = localStorage.getItem('chatbot_username');
+    const savedAge = localStorage.getItem('chatbot_user_age');
     const savedAvatar = localStorage.getItem('chatbot_avatar');
     const savedTheme = localStorage.getItem('chatbot_theme') || 'light';
     setTheme(savedTheme);
@@ -48,6 +50,9 @@ export default function Home() {
     if (savedName && savedName.trim()) {
       setUsername(savedName.trim());
       setIsSubmitted(true);
+    }
+    if (savedAge && savedAge.trim()) {
+      setUserAge(savedAge.trim());
     }
     if (savedAvatar) setAvatar(savedAvatar);
     setHasCheckedStorage(true);
@@ -127,6 +132,11 @@ export default function Home() {
       return;
     }
     localStorage.setItem('chatbot_username', trimmed);
+    if (userAge && userAge.toString().trim()) {
+      localStorage.setItem('chatbot_user_age', userAge.toString().trim());
+    } else {
+      localStorage.removeItem('chatbot_user_age');
+    }
     saveAvatarToStorage(avatar);
     resetClientRateLimit(trimmed);
     setIsSubmitted(true);
@@ -161,7 +171,7 @@ export default function Home() {
           paddingTop: 'max(env(safe-area-inset-top, 0px), 0.625rem)'
         }}
       >
-        <Link href="/" className="flex items-center gap-2 select-none" title="SETEC Chatbot">
+        <Link href="/" className="flex items-center gap-2 select-none" title="SETEC Roastbot">
           <div className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5 shadow-xs overflow-hidden flex-shrink-0">
             <img
               src="/img/logo.jpg"
@@ -172,7 +182,7 @@ export default function Home() {
             />
           </div>
           <span className="font-extrabold text-xs tracking-tight text-slate-900 dark:text-white">
-            SETEC Chatbot
+            SETEC Roastbot
           </span>
         </Link>
         <div className="flex items-center gap-2">
@@ -281,10 +291,10 @@ export default function Home() {
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-sky-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent tracking-tight mb-1.5 drop-shadow-xs">
-            ស្វាគមន៍មកកាន់ SETEC Chatbot
+            ស្វាគមន៍មកកាន់ SETEC Roastbot
           </h2>
           <p className="text-xs sm:text-[13px] mb-5 font-medium text-slate-600 dark:text-slate-400 leading-normal">
-            កន្លែង Troll និងឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់សិស្ស SETEC ទំនេរ
+            កន្លែង Roast &amp; Troll ឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់សិស្ស SETEC ទំនេរ
           </p>
 
           {!hasCheckedStorage ? (
@@ -348,26 +358,52 @@ export default function Home() {
                   </div>
 
                   <div className="w-full">
-                    <label className="block text-xs font-bold mb-1.5 text-left text-slate-700 dark:text-slate-300">
-                      ឈ្មោះពិតរបស់អ្នក៖
-                    </label>
-                    <input
-                      id="username-input"
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleContinue(e);
-                      }}
-                      className={`w-full px-4 py-3 rounded-xl border text-center font-bold text-sm outline-none transition-all ${
-                        isDark
-                          ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-500'
-                          : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400'
-                      }`}
-                      placeholder="សូមបញ្ចូលឈ្មោះពិតរបស់អ្នក"
-                      maxLength={24}
-                      required
-                    />
+                    <div className="grid grid-cols-3 gap-2.5 w-full">
+                      <div className="col-span-2 text-left">
+                        <label className="block text-xs font-bold mb-1.5 text-slate-700 dark:text-slate-300">
+                          ឈ្មោះពិតរបស់អ្នក៖
+                        </label>
+                        <input
+                          id="username-input"
+                          type="text"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleContinue(e);
+                          }}
+                          className={`w-full px-3.5 py-3 rounded-xl border text-left font-bold text-sm outline-none transition-all ${
+                            isDark
+                              ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-500'
+                              : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400'
+                          }`}
+                          placeholder="ឈ្មោះពិត"
+                          maxLength={24}
+                          required
+                        />
+                      </div>
+                      <div className="col-span-1 text-left">
+                        <label className="block text-xs font-bold mb-1.5 text-slate-700 dark:text-slate-300">
+                          អាយុ៖
+                        </label>
+                        <input
+                          id="userage-input"
+                          type="number"
+                          min="5"
+                          max="99"
+                          value={userAge}
+                          onChange={(e) => setUserAge(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleContinue(e);
+                          }}
+                          className={`w-full px-2.5 py-3 rounded-xl border text-center font-bold text-sm outline-none transition-all ${
+                            isDark
+                              ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-500'
+                              : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400'
+                          }`}
+                          placeholder="ឧ. 20"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -429,7 +465,7 @@ export default function Home() {
                   {/* Clean Promo Caption Box */}
                   <div className="w-full mb-3 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs text-center">
                     <p className="text-[12px] sm:text-[12.5px] text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
-                      Chatbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតតិច។ មិចម៉ា ជួយប្រើ ឬ ជួយជាវ ម្នាក់មួយហូវ ណ៎រ 🙏🏻😭
+                      Roastbot នេះខ្ញុំបង្កើតឡើងឱ្យបងប្អូនទាំងអស់គ្នាបានចូលមកសើចសប្បាយ និង Chill! អ៊ីចឹងសុំឆ្លៀតប្រម៉ូតតិច។ មិចម៉ា ជួយប្រើ ឬ ជួយជាវ ម្នាក់មួយហូវ ណ៎រ 🙏🏻😭
                     </p>
                   </div>
 
@@ -634,8 +670,14 @@ export default function Home() {
                     className="w-14 h-14 rounded-full border-2 border-slate-300 dark:border-slate-700 shadow-sm object-cover"
                   />
                 </div>
-                <div className="text-base sm:text-lg font-extrabold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                  <span>ស្វាគមន៍</span> <span className="text-blue-600 dark:text-blue-400">{username}</span>!{' '}
+                <div className="text-base sm:text-lg font-extrabold flex items-center justify-center gap-1.5 text-slate-900 dark:text-white flex-wrap">
+                  <span>ស្វាគមន៍</span> <span className="text-blue-600 dark:text-blue-400">{username}</span>
+                  {userAge && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-300 dark:border-slate-700">
+                      {userAge} ឆ្នាំ
+                    </span>
+                  )}
+                  !{' '}
                   <i className="fas fa-check-circle text-emerald-500 text-sm"></i>
                 </div>
                 <div className="flex items-center gap-2.5 mt-1.5">
@@ -666,7 +708,7 @@ export default function Home() {
               {/* Bot Selection Section */}
               <div id="bot-select-section">
                 <p className="text-xs mb-4 font-semibold text-slate-600 dark:text-slate-400">
-                  ជ្រើសរើស Chatbot ដែលអ្នកចង់សាកល្បង៖
+                  ជ្រើសរើស Roastbot ដែលអ្នកចង់សាកល្បង៖
                 </p>
                 <div className="grid grid-cols-1 gap-3.5">
                   {/* KonBong Card */}
@@ -696,7 +738,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
-                        <span>ស៊ីតិច Chatbot កូនច្បង</span>
+                        <span>ស៊ីតិច Roastbot កូនច្បង</span>
                         <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md font-semibold">ឆ្លាត &amp; ស្លូត</span>
                       </div>
                       <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
@@ -733,7 +775,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors flex items-center gap-1.5">
-                        <span>ស៊ីតិច Chatbot កូនពៅ</span>
+                        <span>ស៊ីតិច Roastbot កូនពៅ</span>
                         <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md inline-flex items-center gap-1 font-semibold">
                           <span>ស្ដេចឌឺ</span>
                           <i className="fas fa-fire text-amber-500 text-[10px]"></i>
@@ -776,7 +818,7 @@ export default function Home() {
                             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                           }}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-[11px] shadow-sm shadow-indigo-500/25 border border-white/20 active:scale-95 hover:scale-105 transition-all duration-200 cursor-pointer"
-                          title="ចុចដើម្បីជ្រើសរើស Chatbot ចូលលេងភ្លាមៗ"
+                          title="ចុចដើម្បីជ្រើសរើស Roastbot ចូលលេងភ្លាមៗ"
                         >
                           <i className="fas fa-fire text-amber-300 text-xs"></i>
                           <span>ទីលានលេងសេរី • Free Play</span>
@@ -787,7 +829,7 @@ export default function Home() {
 
                   <div className="space-y-3 text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
                     <p>
-                      នេះគ្រាន់តែជា Web App Chatbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គោលដៅ AIChatbot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ ខ្ញុំបង្កើតវាឡើងជា «ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង» ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+                      នេះគ្រាន់តែជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គោលដៅ AI Roastbot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ ខ្ញុំបង្កើតវាឡើងជា «ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង» ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
                     </p>
 
                     <p>
