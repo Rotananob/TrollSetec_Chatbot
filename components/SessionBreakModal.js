@@ -343,7 +343,7 @@ export default function SessionBreakModal({
           </div>
 
           <p className="text-[11px] text-slate-300 leading-snug mb-2.5">
-            បើមិនចង់រង់ចាំ ១០ នាទីទេ អាចបញ្ចូល Promo Code ឬស្នើសុំលេខកូដពីបង <b>Rotana NOB</b> បាន!
+            បើមិនចង់រង់ចាំ ១០ នាទីទេ អាចបញ្ចូល Promo Code ឬស្នើសុំលេខកូដ Bypass ពី <b>Server Gateway</b> បាន!
           </p>
 
           {/* Code Input & Apply Form */}
@@ -395,7 +395,7 @@ export default function SessionBreakModal({
             </p>
           )}
 
-          {/* Rotana Code Request Block */}
+          {/* Server Code Request Block */}
           {!requestState && (
             <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <span className="text-[11px] text-slate-400 font-medium">អត់ទាន់មានកូដមែនទេ?</span>
@@ -408,12 +408,12 @@ export default function SessionBreakModal({
                 {isRequestingRotana ? (
                   <>
                     <i className="fas fa-circle-notch fa-spin text-[10px]"></i>
-                    <span>កំពុងផ្ញើសំណើ...</span>
+                    <span>កំពុងស្នើសុំ Server...</span>
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-paper-plane text-[11px] text-amber-400"></i>
-                    <span>ស្នើសុំ Promo Code Bypass ពីបង Rotana</span>
+                    <i className="fas fa-server text-[11px] text-amber-400"></i>
+                    <span>ស្នើសុំកូដ Bypass ពី Server Gateway</span>
                   </>
                 )}
               </button>
@@ -429,10 +429,10 @@ export default function SessionBreakModal({
                     <i className="fas fa-spinner fa-spin text-amber-400 text-base shrink-0"></i>
                     <div className="min-w-0 text-left">
                       <p className="text-xs font-bold text-amber-300 truncate">
-                        សូមរង់ចាំបង Rotana ពិនិត្យសំណើ...
+                        កំពុងស្នើសុំការអនុញ្ញាតពី Server Core...
                       </p>
                       <p className="text-[10px] text-slate-400 truncate">
-                        Alert ផ្ញើទៅ Telegram រួចរាល់ (រង់ចាំប្រហែល ១ នាទី)
+                        ប្រព័ន្ធកំពុងផ្ទៀងផ្ទាត់ និងទាញយក Token អនុញ្ញាតពី Server
                       </p>
                     </div>
                   </div>
@@ -445,7 +445,7 @@ export default function SessionBreakModal({
                   <div className="text-left min-w-0 flex-1">
                     <p className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                       <i className="fas fa-circle-check text-emerald-400 text-sm"></i>
-                      <span>បង Rotana បានអនុម័ត និងផ្ដល់កូដជូនប្អូន៖</span>
+                      <span>Server បានផ្ទៀងផ្ទាត់ និងផ្ដល់កូដ Bypass ជូនប្អូន៖</span>
                     </p>
                     <div className="text-sm font-mono font-black text-amber-300 mt-1 tracking-wider select-all">
                       {grantedCode}
