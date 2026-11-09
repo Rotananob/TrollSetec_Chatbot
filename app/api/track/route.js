@@ -19,6 +19,10 @@ import {
   checkTrackLimit,
   getClientIp
 } from '../../../lib/rateLimit';
+import {
+  createServerLiveBypassToken,
+  verifyServerLiveBypassToken
+} from '../../../lib/masterAuth';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -216,22 +220,40 @@ export async function POST(req) {
 
     // Handle User Issue Report directly to Rotana NOB
     if (type === 'user_report_issue' || action === 'user_report_issue') {
+      const activeSessionId = body.sessionId || `session_${Date.now()}`;
+      const botKey = (body.bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
+      // Securely generate server-signed bypass token using Server Master Passcode
+      const secureBypassToken = createServerLiveBypassToken(activeSessionId, botKey);
+
       await alertUserReportedIssue({
         username,
         issue: body.issue || body.message || 'បញ្ហាទូទៅលើ Chatbot',
-        bot: body.bot || 'System',
+        bot: botKey,
         ip,
         userAgent,
-        sessionId: body.sessionId,
-        bypassToken: body.bypassToken
+        sessionId: activeSessionId,
+        bypassToken: secureBypassToken
       }).catch((e) => console.error('[Report] User issue alert error:', e));
 
       return Response.json(
         {
           success: true,
-          sessionId: body.sessionId,
+          sessionId: activeSessionId,
           message: 'Issue reported to Rotana NOB successfully with direct bypass alert'
         },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Verify Live Bypass Token securely on the server (Zero Client Secret Leakage)
+    if (type === 'verify_live_token' || action === 'verify_live_token') {
+      const targetSessionId = body.sessionId || '';
+      const targetBot = (body.bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
+      const targetToken = body.token || '';
+      const isValid = verifyServerLiveBypassToken(targetSessionId, targetBot, targetToken);
+
+      return Response.json(
+        { valid: isValid },
         { status: 200, headers: corsHeaders }
       );
     }

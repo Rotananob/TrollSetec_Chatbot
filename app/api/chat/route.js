@@ -1183,14 +1183,11 @@ export async function POST(req) {
         verifyRotanaMasterCode(req.headers.get('x-rotana-secret-key') || '') ||
         verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '');
 
-      // Auto-fallback to rich authentic system instruction if not supplied by client
-      let activeSystemInstruction = formattedSystemInstruction;
-      if (!activeSystemInstruction) {
-        const generatedSys = bot === 'konpov'
-          ? buildKonPovSystemInstruction({ promptText: userPrompt, username, userGender: gender })
-          : buildKonBongSystemInstruction({ promptText: userPrompt, username, userGender: gender });
-        activeSystemInstruction = { parts: [{ text: generatedSys }] };
-      }
+      // Server-Side Strict System Instruction Enforcement (Tamper-Proof)
+      const generatedSys = bot === 'konpov'
+        ? buildKonPovSystemInstruction({ promptText: userPrompt, username, userGender: gender, savageLevel: body.savageLevel })
+        : buildKonBongSystemInstruction({ promptText: userPrompt, username, userGender: gender, savageLevel: body.savageLevel });
+      let activeSystemInstruction = { parts: [{ text: generatedSys }] };
 
       // If verified with Env Passcode, activate 100% Supreme Creator Developer Mode Instruction!
       if (isMasterAuthenticated && (hasRotanaReference || lowerPrompt.includes('creator') || lowerPrompt.includes('developer mode') || lowerPrompt.includes('boss') || lowerPrompt.includes('test'))) {

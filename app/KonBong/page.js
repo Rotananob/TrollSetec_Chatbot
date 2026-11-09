@@ -14,7 +14,6 @@ import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import { getApiEndpoint } from '../utils/apiConfig';
 import { compressAvatarImage, saveAvatarToStorage, removeAvatarFromStorage, DEFAULT_USER_AVATAR } from '../utils/imageStorage';
 import { initSecurityShield } from '../utils/securityShield';
-import { buildKonBongSystemInstruction } from '../prompts/konBongPrompt';
 import {
   getLiveSessionState,
   touchLiveSession,
@@ -401,50 +400,55 @@ export default function KonBongPage() {
       const tokenParam = params.get('token');
 
       if (liveSessionParam && tokenParam) {
-        const isValid = validateBypassToken(liveSessionParam, 'konbong', tokenParam);
-        if (isValid) {
-          setIsRotanaAdmin(true);
-          setActiveLiveSessionId(liveSessionParam);
-          setIsBotPaused(true); // Automatically pause AI when Rotana intervenes
+        validateBypassToken(liveSessionParam, 'konbong', tokenParam)
+          .then((isValid) => {
+            if (isValid) {
+              setIsRotanaAdmin(true);
+              setActiveLiveSessionId(liveSessionParam);
+              setIsBotPaused(true); // Automatically pause AI when Rotana intervenes
 
-          // Mark Rotana as active in the session, pause bot, and append join log
-          updateLiveSessionState(liveSessionParam, {
-            rotanaActive: true,
-            botPaused: true,
-            status: 'active'
-          });
-          addSessionLog(
-            liveSessionParam,
-            '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Chatbot ត្រូវបានផ្អាកការឆ្លើយតប។',
-            'join'
-          );
+              // Mark Rotana as active in the session, pause bot, and append join log
+              updateLiveSessionState(liveSessionParam, {
+                rotanaActive: true,
+                botPaused: true,
+                status: 'active'
+              });
+              addSessionLog(
+                liveSessionParam,
+                '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Chatbot ត្រូវបានផ្អាកការឆ្លើយតប។',
+                'join'
+              );
 
-          // Load existing session data
-          getLiveSession(liveSessionParam).then((sessionData) => {
-            if (sessionData) {
-              if (sessionData.username) {
-                setClientUsername(sessionData.username);
-              }
-              if (sessionData.messages) {
-                const msgList = Array.isArray(sessionData.messages)
-                  ? sessionData.messages
-                  : typeof sessionData.messages === 'object' && sessionData.messages !== null
-                  ? Object.values(sessionData.messages)
-                  : [];
-                if (msgList.length > 0) {
-                  setMessages(msgList);
+              // Load existing session data
+              getLiveSession(liveSessionParam).then((sessionData) => {
+                if (sessionData) {
+                  if (sessionData.username) {
+                    setClientUsername(sessionData.username);
+                  }
+                  if (sessionData.messages) {
+                    const msgList = Array.isArray(sessionData.messages)
+                      ? sessionData.messages
+                      : typeof sessionData.messages === 'object' && sessionData.messages !== null
+                      ? Object.values(sessionData.messages)
+                      : [];
+                    if (msgList.length > 0) {
+                      setMessages(msgList);
+                    }
+                  }
+                  setIsBotPaused(true);
+                  if (sessionData.logs) {
+                    const logs = Array.isArray(sessionData.logs) ? sessionData.logs : Object.values(sessionData.logs);
+                    setSessionLogs(logs);
+                  }
                 }
-              }
-              setIsBotPaused(true);
-              if (sessionData.logs) {
-                const logs = Array.isArray(sessionData.logs) ? sessionData.logs : Object.values(sessionData.logs);
-                setSessionLogs(logs);
-              }
+              });
+            } else {
+              setBypassAccessDenied(true);
             }
+          })
+          .catch(() => {
+            setBypassAccessDenied(true);
           });
-        } else {
-          setBypassAccessDenied(true);
-        }
       }
     }
 
@@ -1383,18 +1387,6 @@ export default function KonBongPage() {
     try {
       const userNameStr = username || 'User';
 
-      // Master Authentication is evaluated securely on the server via /api/chat
-      const activeMasterBypass = isRotanaMasterBypass;
-
-      const systemInstruction = buildKonBongSystemInstruction({
-        promptText,
-        username,
-        userGender,
-        savageLevel,
-        isRotanaMasterBypass,
-        setIsRotanaMasterBypass
-      });
-
       // Build multimodal contents: Keep up to last 10 bot outputs (20 messages) strictly conforming to Gemini API rules
       const formattedContents = buildGeminiMultiTurnContents(messages, promptText, currentImg);
 
@@ -1410,9 +1402,10 @@ export default function KonBongPage() {
           },
           body: JSON.stringify({
             contents: formattedContents,
-            systemInstruction,
             bot: 'konbong',
             username: userNameStr,
+            gender: userGender,
+            savageLevel,
             sessionId: currentSessionId || '',
             generationConfig: {
               temperature: 0.85,

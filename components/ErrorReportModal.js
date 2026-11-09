@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getApiEndpoint } from '../app/utils/apiConfig';
-import { generateBypassToken, initLiveSessionOnDatabase } from '../app/utils/realtimeChat';
+import { initLiveSessionOnDatabase } from '../app/utils/realtimeChat';
 
 export default function ErrorReportModal({
   isOpen,
@@ -74,19 +74,15 @@ export default function ErrorReportModal({
       const activeSessionId = sessionId || 'session_' + Date.now();
       const botKey = (bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
 
-      // 1. Generate encrypted direct bypass token (Only created when user explicitly alerts)
-      const token = generateBypassToken(activeSessionId, botKey);
-
-      // 2. Initialize live session in Firebase Realtime Database
+      // 1. Initialize live session in Firebase Realtime Database
       await initLiveSessionOnDatabase(activeSessionId, {
         username: trimmedName,
         bot: botKey,
         issue: trimmedIssue,
-        messages: recentMessages || [],
-        token
+        messages: recentMessages || []
       }).catch((err) => console.warn('[Realtime] DB init error:', err));
 
-      // 3. Send Telegram alert with Direct Bypass Button to Rotana NOB
+      // 2. Send Telegram alert with Server-Generated Direct Bypass Button to Rotana NOB
       const endpoint = getApiEndpoint('/api/track');
       await fetch(endpoint, {
         method: 'POST',
@@ -96,13 +92,12 @@ export default function ErrorReportModal({
           username: trimmedName,
           issue: trimmedIssue,
           bot: botKey,
-          sessionId: activeSessionId,
-          bypassToken: token
+          sessionId: activeSessionId
         })
       });
 
       if (onLiveSessionStarted) {
-        onLiveSessionStarted({ sessionId: activeSessionId, token });
+        onLiveSessionStarted({ sessionId: activeSessionId });
       }
 
       setSentSuccess(true);

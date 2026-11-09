@@ -2,46 +2,24 @@
 // Firebase Realtime Database Live Support & Rotana NOB Encrypted Direct Bypass System
 
 const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
-const BYPASS_SALT = 'rotana_nob_master_secret_key_2026_setec';
-
-// Simple deterministic signature helper for browser/server parity
-function generateSignature(sessionId, bot, ts) {
-  const raw = `${sessionId}|${bot}|${ts}|${BYPASS_SALT}`;
-  let hash = 0;
-  for (let i = 0; i < raw.length; i++) {
-    hash = (hash << 5) - hash + raw.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(36);
-}
-
-// Generate Encrypted Bypass Token (ONLY allowed upon user-initiated alert)
-export function generateBypassToken(sessionId, bot) {
-  const ts = Date.now();
-  const sig = generateSignature(sessionId, bot, ts);
-  const payload = {
-    s: sessionId,
-    b: bot,
-    t: ts,
-    sig
-  };
-  return btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-// Validate Encrypted Bypass Token (Strict 1-1 Protocol)
-export function validateBypassToken(sessionId, bot, token) {
-  if (!token) return false;
+// Validate Encrypted Bypass Token via Secure Server API Endpoint (Strict 1-1 Protocol)
+// Master key and HMAC validation are executed strictly on the server to prevent bundle leakage.
+export async function validateBypassToken(sessionId, bot, token) {
+  if (!sessionId || !token) return false;
   try {
-    let base64 = token.replace(/-/g, '+').replace(/_/g, '/');
-    while (base64.length % 4) base64 += '=';
-    const parsed = JSON.parse(atob(base64));
-
-    if (parsed.s !== sessionId) return false;
-    // Allow up to 48 hours for Rotana to intervene
-    if (Date.now() - parsed.t > 48 * 60 * 60 * 1000) return false;
-
-    const expectedSig = generateSignature(sessionId, bot || parsed.b, parsed.t);
-    return parsed.sig === expectedSig;
+    const res = await fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'verify_live_token',
+        sessionId,
+        bot,
+        token
+      })
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return !!data?.valid;
   } catch {
     return false;
   }
