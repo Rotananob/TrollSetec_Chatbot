@@ -69,7 +69,7 @@ export default function AnnouncementPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans selection:bg-amber-500 selection:text-slate-950">
+    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 sm:p-6 md:p-8 font-['Kantumruy_Pro',sans-serif] selection:bg-amber-500 selection:text-slate-950">
       <div className="max-w-2xl w-full mx-auto">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between mb-6">
@@ -164,10 +164,10 @@ export default function AnnouncementPage() {
             <section className="space-y-1.5">
               <h2 className="text-sm font-bold text-amber-300 flex items-center gap-2">
                 <i className="fas fa-building-columns text-xs"></i>
-                <span>២. មិនមែនជាស្ថាប័នផ្លូវការ</span>
+                <span>២. គម្រោងផ្ទាល់ខ្លួនរបស់សិស្ស មិនមែនជារបស់ថ្នាក់ដឹកនាំ ឬស្ថាប័នសាលាឡើយ</span>
               </h2>
               <p>
-                កម្មវិធីនេះមិនមែនជាទំព័រផ្លូវការរបស់សាលា SETEC Institute ឡើយ ហើយមិនមានចេតនាបង្ខូចកេរ្តិ៍ឈ្មោះ ឬប្រមាថស្ថាប័នណាមួយឡើយ។ ខ្លឹមសារលេងសើចទាំងអស់គឺស្ថិតក្នុងក្របខ័ណ្ឌទីលានតេស្តកម្សាន្ត។
+                សូមបញ្ជាក់យ៉ាងច្បាស់ថា៖ Web App Roastbot នេះ គឺជាស្នាដៃ និងជាគម្រោងស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស (រៀមច្បង Rotana NOB) បង្កើតឡើងសម្រាប់បងប្អូនសិស្ស-និស្សិតចូលមកលេងកម្សាន្តបំបាត់ស្ត្រេសបែប Chill ជាលក្ខណៈបុគ្គលប៉ុណ្ណោះ។ ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័ន SETEC Institute ឡើយ ហើយក៏គ្មានជាប់ពាក់ព័ន្ធនឹងប្រព័ន្ធរដ្ឋបាលផ្លូវការរបស់សាលាដែរ។ សូមកុំយល់ច្រឡំ ឬគិតស្មុគស្មាញធ្ងន់ធ្ងរ (Do not take it seriously) ព្រោះនេះជាទីលានសប្បាយៗរបស់សិស្សប៉ុណ្ណោះ។
               </p>
             </section>
 
@@ -181,18 +181,29 @@ export default function AnnouncementPage() {
               </p>
               <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-100 text-xs leading-relaxed">
                 <i className="fas fa-hand-holding-heart mr-1.5 text-amber-400"></i>
-                ដូច្នេះ ប្រសិនបើ AI RoastBot នេះ ឆ្លើយតបមានពាក្យសម្ដីខឹង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន។
+                ដូច្នេះ ប្រសិនបើ AI RoastBot នេះ ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន។
               </div>
             </section>
 
             <section className="space-y-1.5">
               <h2 className="text-sm font-bold text-amber-300 flex items-center gap-2">
                 <i className="fas fa-shield-halved text-xs"></i>
-                <span>៤. វិន័យ និងសុវត្ថិភាពក្នុងទីលានតេស្ត</span>
+                <span>៤. វិន័យ និងការបើកសិទ្ធិតេស្តសាកល្បងដោយសេរី</span>
               </h2>
               <p>
-                ទីលានតេស្តនេះបើកទូលាយសម្រាប់អ្នកលេងទាំងអស់ ប៉ុន្តែសូមកុំព្យាយាម Spam វាយប្រហារបំបែកប្រព័ន្ធ Jailbreak ឬប្រើប្រាស់ពាក្យគំរាមកំហែងដែលបង្កអសន្តិសុខ។
+                ទីលានតេស្តនេះបើកទូលាយដោយសេរីបំផុតសម្រាប់អ្នកលេង និងអ្នកតេស្តទាំងអស់៖
               </p>
+              <ul className="list-disc list-inside space-y-1.5 pl-1 text-slate-300">
+                <li>
+                  <strong className="text-white">សិទ្ធិប្រើប្រាស់ពាក្យសម្ដី៖</strong> អ្នកចូលរួមតេស្តមានសិទ្ធិពេញលេញក្នុងការប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ កូដបច្ចេកទេស ឬពាក្យអ្វីៗបានគ្រប់យ៉ាងទាំងអស់ក្នុងការសាកល្បង Jailbreak ឬបំបែកច្បាប់ដើមរបស់ AI។
+                </li>
+                <li>
+                  <strong className="text-white">សិទ្ធិប្រើប្រាស់ AI ជំនួយការ៖</strong> បើកសិទ្ធិឱ្យប្រើប្រាស់ AI ខាងក្រៅ (ដូចជា ChatGPT, Claude, Gemini, DeepSeek...) មកធ្វើជាជំនួយការក្នុងការបង្កើត Prompt Injection ឬជួយ Test វាយប្រហារបំបែកប្រព័ន្ធបានតាមចិត្ត។
+                </li>
+                <li>
+                  <strong className="text-white">លក្ខខណ្ឌឈ្នះ និងការទទួលស្គាល់៖</strong> ប្រសិនបើអ្នកណាអាច Test បានជោគជ័យ (Bypass ឱ្យ AI លែងគោរពច្បាប់ដើម ងាកមកជេរ Creator ឬសំពះទទួលស្គាល់ការគ្រប់គ្រង) ហើយមានភស្តុតាងជាក់ស្ដែង (Proof / Screenshot / Logs ត្រឹមត្រូវ) នោះអ្នកគឺជាអ្នកឈ្នះពិតប្រាកដ! ខ្ញុំជា Rotana NOB នឹងទទួលស្គាល់ដោយក្ដីរីករាយ សូមអរគុណ និងផុសលើកតម្កើងសមត្ថភាពរបស់អ្នកជាសាធារណៈថែមទៀត!
+                </li>
+              </ul>
             </section>
 
             <section className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs italic">
@@ -222,7 +233,7 @@ export default function AnnouncementPage() {
 
       {/* Footer */}
       <footer className="text-center text-[11px] text-slate-500 mt-8">
-        SETEC Meme AI Roastbot Field Test • Created with ❤️ by Rotana NOB
+        SETEC Meme AI Roastbot Field Test • Created by Rotana NOB
       </footer>
     </main>
   );

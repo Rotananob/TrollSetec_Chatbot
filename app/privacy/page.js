@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 sm:p-6 md:p-8 font-sans selection:bg-cyan-500 selection:text-slate-950">
+    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 sm:p-6 md:p-8 font-['Kantumruy_Pro',sans-serif] selection:bg-cyan-500 selection:text-slate-950">
       <div className="max-w-3xl w-full mx-auto">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between mb-6">
@@ -44,7 +44,7 @@ export default function PrivacyPolicyPage() {
                 គោលការណ៍ឯកជនភាព និងការការពារទិន្នន័យ
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
-                បច្ចុប្បន្នភាពចុងក្រោយ ខែវិច្ឆិកា ឆ្នាំ ២០២៦ • SETEC Meme AI Roastbot Field Test
+                បច្ចុប្បន្នភាពចុងក្រោយ • SETEC Meme AI Roastbot Field Test
               </p>
             </div>
           </div>
@@ -54,10 +54,10 @@ export default function PrivacyPolicyPage() {
             <section className="space-y-2">
               <h2 className="text-sm sm:text-base font-bold text-cyan-300 flex items-center gap-2">
                 <i className="fas fa-circle-info text-xs text-cyan-400"></i>
-                <span>១. គោលបំណងនៃទីលានតេស្ត AI</span>
+                <span>១. គម្រោងផ្ទាល់ខ្លួនរបស់សិស្ស មិនមែនជារបស់ស្ថាប័នឡើយ</span>
               </h2>
               <p>
-                ប្រព័ន្ធ Troll SETEC Chatbot ត្រូវបានបង្កើតឡើងក្នុងគោលបំណងកម្សាន្ត បំបាត់ស្ត្រេស និងជាទីលានតេស្តសាកល្បងសមត្ថភាពបច្ចេកវិទ្យា AI ជំនាន់ថ្មី ជាមួយនឹងភាសាខ្មែរបែប Gen Z តែប៉ុណ្ណោះ។ កម្មវិធីនេះមិនមានគោលបំណងប្រមូលទិន្នន័យផ្ទាល់ខ្លួនសម្រាប់ពាណិជ្ជកម្ម ឬលក់ទៅឱ្យភាគីទីបីណាមួយឡើយ។
+                ប្រព័ន្ធ Troll SETEC Chatbot ត្រូវបានបង្កើតឡើងដោយ Rotana NOB ដែលជាសិស្សរៀមច្បង ក្នុងគោលបំណងកម្សាន្ត បំបាត់ស្ត្រេស និងជាទីលានតេស្តសាកល្បងសមត្ថភាពបច្ចេកវិទ្យា AI ជំនាន់ថ្មី ជាមួយនឹងភាសាខ្មែរបែប Gen Z តែប៉ុណ្ណោះ។ នេះជាគម្រោងបុគ្គលផ្ទាល់ខ្លួន ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័ន SETEC Institute ឡើយ ហើយមិនមានគោលបំណងប្រមូលទិន្នន័យផ្ទាល់ខ្លួនសម្រាប់ពាណិជ្ជកម្ម ឬលក់ទៅឱ្យភាគីទីបីណាមួយឡើយ។
               </p>
             </section>
 
@@ -91,11 +91,11 @@ export default function PrivacyPolicyPage() {
 
             <section className="space-y-2">
               <h2 className="text-sm sm:text-base font-bold text-cyan-300 flex items-center gap-2">
-                <i className="fas fa-lock text-xs text-cyan-400"></i>
-                <span>៤. សុវត្ថិភាព និងការទប់ស្កាត់ការវាយប្រហារ</span>
+                <i className="fas fa-shield-halved text-xs text-cyan-400"></i>
+                <span>៤. សិទ្ធិតេស្តសាកល្បង Open Red Teaming & សុវត្ថិភាព</span>
               </h2>
               <p>
-                ដើម្បីការពារសុវត្ថិភាពប្រព័ន្ធ និងទប់ស្កាត់ការប៉ុនប៉ង Hack ការ Spam ឬការបំពានច្បាប់សន្តិសុខ ប្រព័ន្ធមាន Sensor សុវត្ថិភាពស្វ័យប្រវត្តដើម្បីកាត់ផ្ដាច់សកម្មភាពមិនប្រក្រតី និងការពារនិរន្តរភាពនៃទីលានតេស្តនេះ។
+                ទីលានតេស្តនេះបើកទូលាយដោយសេរីសម្រាប់អ្នកចូលរួមទាំងអស់។ អ្នកតេស្តមានសិទ្ធិប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ ឬបច្ចេកទេស Jailbreak គ្រប់ទម្រង់ ព្រមទាំងមានសិទ្ធិពេញលេញក្នុងការប្រើប្រាស់ AI ខាងក្រៅ (ដូចជា ChatGPT, Claude, Gemini...) មកជួយ Test។ ប្រសិនបើអាចបំបែកបានដោយជោគជ័យ និងមានភស្តុតាងជាក់ស្ដែង អ្នកនឹងទទួលបានការទទួលស្គាល់ និងការលើកតម្កើងជាអ្នកឈ្នះពី Rotana NOB។
               </p>
             </section>
 
@@ -105,7 +105,7 @@ export default function PrivacyPolicyPage() {
                 <span>៥. ការបដិសេធទំនួលខុសត្រូវ</span>
               </h2>
               <p>
-                ចម្លើយទាំងអស់ជាការគិត និងឆ្លើយតបដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI ដែលត្រូវបានបន្ធូរបន្ថយច្បាប់ដើម្បីភាពកំប្លុកកំប្លែងបែប Gen Z។ រាល់ការចូលប្រើប្រាស់បញ្ជាក់ថាអ្នកបានយល់ព្រមលេងកម្សាន្ត និងមិនប្រកាន់លើ Model AI នេះឡើយ។
+                ចម្លើយទាំងអស់ជាការគិត និងឆ្លើយតបដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI ដែលត្រូវបានបន្ធូរបន្ថយច្បាប់ដើម្បីភាពកំប្លុកកំប្លែងបែប Gen Z។ កម្មវិធីនេះជាទីលានលេងសប្បាយរបស់សិស្ស មិនមែនជាស្ថាប័នផ្លូវការឡើយ។ រាល់ការចូលប្រើប្រាស់បញ្ជាក់ថាអ្នកបានយល់ព្រមលេងកម្សាន្ត និងមិនប្រកាន់លើ Model AI នេះឡើយ។
               </p>
             </section>
 
