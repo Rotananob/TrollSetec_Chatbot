@@ -3657,6 +3657,7 @@ export default function KonBongPage() {
                           alt="SETEC Meme"
                           loading="eager"
                           onClick={() => setViewingImage({ url: msg.memeImage, caption: msg.text })}
+                          onError={(e) => { try { if (e.currentTarget?.parentElement?.parentElement) e.currentTarget.parentElement.parentElement.style.display = 'none'; } catch {} }}
                           className="w-full h-auto object-cover cursor-pointer hover:scale-[1.02] transition-transform"
                         />
                       </div>

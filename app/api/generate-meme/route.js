@@ -100,41 +100,34 @@ export async function POST(req) {
       (bot === 'konpov' ? process.env.GEMINI_API_KEY_KONBONG : process.env.GEMINI_API_KEY_KONPOV)
     ].filter(Boolean)));
 
-    // 2. Primary Engine: Gemini Nano Banana 2.1 & Nano Banana Pro (Official Google GenAI Image Generation)
-    const nanoBananaModels = ['models/gemini-nano-banana-2.1', 'models/nano-banana-pro-preview', 'models/gemini-2.5-flash-image'];
-
+    // 2. Primary Engine: Gemini Nano Banana 2.1 via Google GenAI REST Interactions
     for (const key of candidateKeys) {
       if (imageUrl) break;
-      for (const model of nanoBananaModels) {
-        if (imageUrl) break;
-        try {
-          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${key}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: `Generate an image: ${memePrompt}` }] }],
-              generationConfig: {
-                responseModalities: ['IMAGE', 'TEXT']
-              }
-            })
-          });
+      try {
+        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/interactions`, {
+          method: 'POST',
+          headers: {
+            'x-goog-api-key': key,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'gemini-nano-banana-2.1',
+            input: [{ type: 'text', text: `Generate a high-definition hilarious viral meme: ${memePrompt}` }]
+          }),
+          signal: AbortSignal.timeout(16000)
+        });
 
-          if (geminiRes.ok) {
-            const geminiData = await geminiRes.json();
-            const parts = geminiData.candidates?.[0]?.content?.parts || [];
-            const imgPart = parts.find((p) => p.inlineData && p.inlineData.data);
-            if (imgPart) {
-              const mime = imgPart.inlineData.mimeType || 'image/jpeg';
-              imageUrl = `data:${mime};base64,${imgPart.inlineData.data}`;
-              engineUsed = 'Gemini Nano Banana 2.1 (Google GenAI)';
-              break;
-            }
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const b64 = geminiData.output_image?.data;
+          if (b64 && typeof b64 === 'string' && b64.length > 500) {
+            imageUrl = `data:image/jpeg;base64,${b64}`;
+            engineUsed = 'Gemini Nano Banana 2.1 (Google GenAI)';
+            break;
           }
-        } catch (err) {
-          console.warn(`[${model}] Generation attempt skipped:`, err.message);
         }
+      } catch (err) {
+        console.warn('[Gemini Nano Banana 2.1] Generation attempt skipped:', err.message);
       }
     }
 
@@ -174,9 +167,15 @@ export async function POST(req) {
               const arrayBuffer = await imgRes.arrayBuffer();
               const buffer = Buffer.from(arrayBuffer);
               if (buffer.length > 5000) {
-                imageUrl = `data:${contentType};base64,${buffer.toString('base64')}`;
-                engineUsed = candidate.name;
-                break;
+                // Strictly verify binary magic bytes (JPEG: FF D8 FF, PNG: 89 50 4E 47, WEBP: RIFF...WEBP)
+                const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+                const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+                const isWebp = buffer.toString('utf8', 0, 4) === 'RIFF' && buffer.toString('utf8', 8, 12) === 'WEBP';
+                if (isJpeg || isPng || isWebp) {
+                  imageUrl = `data:${contentType};base64,${buffer.toString('base64')}`;
+                  engineUsed = candidate.name;
+                  break;
+                }
               }
             }
           }

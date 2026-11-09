@@ -4032,6 +4032,7 @@ export default function KonPovPage() {
                           alt="SETEC Meme"
                           loading="eager"
                           onClick={() => setViewingImage({ url: item.memeImage, caption: item.text })}
+                          onError={(e) => { try { if (e.currentTarget?.parentElement?.parentElement) e.currentTarget.parentElement.parentElement.style.display = 'none'; } catch {} }}
                           className="w-full h-auto object-cover cursor-pointer hover:scale-[1.02] transition-transform"
                         />
                       </div>
