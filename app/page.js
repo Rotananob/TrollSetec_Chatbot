@@ -376,7 +376,7 @@ export default function Home() {
                               ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-500'
                               : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400'
                           }`}
-                          placeholder="ឈ្មោះពិត"
+                          placeholder="ឈ្មោះពិត (ស្រួល AI ហៅ)"
                           maxLength={24}
                           required
                         />
@@ -400,7 +400,7 @@ export default function Home() {
                               ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-500'
                               : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400'
                           }`}
-                          placeholder="ឧ. 20"
+                          placeholder="ឧ. 24"
                         />
                       </div>
                     </div>

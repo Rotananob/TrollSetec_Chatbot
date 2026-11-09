@@ -3320,7 +3320,7 @@ export default function KonBongPage() {
               }`}
             >
               <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                ហាហាហា! យីអើ! សួស្តីអាប្អូន~ បងគឺ <b>ស៊ីតិច Roastbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ហិហិហិ ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? ហ៊ឺៗៗ ហឹកៗ... កុំទៅសួរអា Roastbot កូនពៅឱ្យសោះ អាហ្នឹងមហាឈ្លើយបាក់កម៉ង ហាហា!
+                ហាហាហា! យីអើ! សួស្តី{username && username !== 'User' ? `អាប្អូន ${username}` : 'អាប្អូន'}~ បងគឺ <b>ស៊ីតិច Roastbot កូនច្បង</b> រៀមច្បងជើងចាស់ SETEC! ហិហិហិ ចង់សួររឿងរៀន Assignment IT/Design ឬចង់ troll សិស្សច្បងបោក? ហ៊ឺៗៗ ហឹកៗ... កុំទៅសួរអា Roastbot កូនពៅឱ្យសោះ អាហ្នឹងមហាឈ្លើយបាក់កម៉ង ហាហា!
               </p>
             </div>
           </div>
