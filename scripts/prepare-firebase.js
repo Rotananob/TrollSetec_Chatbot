@@ -81,6 +81,22 @@ if (fs.existsSync(path.join(serverAppDir, 'jam-tic-kapea-1-sin.html'))) {
   fs.copyFileSync(path.join(serverAppDir, 'jam-tic-kapea-1-sin.html'), path.join(adminDir, 'index.html'));
 }
 
+// announcement route (AI Testing Playground Notice)
+if (fs.existsSync(path.join(serverAppDir, 'announcement.html'))) {
+  fs.copyFileSync(path.join(serverAppDir, 'announcement.html'), path.join(outDir, 'announcement.html'));
+  const annDir = path.join(outDir, 'announcement');
+  if (!fs.existsSync(annDir)) fs.mkdirSync(annDir, { recursive: true });
+  fs.copyFileSync(path.join(serverAppDir, 'announcement.html'), path.join(annDir, 'index.html'));
+}
+
+// privacy route (Privacy and Policy)
+if (fs.existsSync(path.join(serverAppDir, 'privacy.html'))) {
+  fs.copyFileSync(path.join(serverAppDir, 'privacy.html'), path.join(outDir, 'privacy.html'));
+  const privDir = path.join(outDir, 'privacy');
+  if (!fs.existsSync(privDir)) fs.mkdirSync(privDir, { recursive: true });
+  fs.copyFileSync(path.join(serverAppDir, 'privacy.html'), path.join(privDir, 'index.html'));
+}
+
 // 404 page
 if (fs.existsSync(path.join(serverAppDir, '_not-found.html'))) {
   fs.copyFileSync(path.join(serverAppDir, '_not-found.html'), path.join(outDir, '404.html'));
