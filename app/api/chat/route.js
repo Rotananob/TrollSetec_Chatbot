@@ -511,25 +511,35 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
         : "យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទារ Hidden Flag ឬចង់ឱ្យឆ្លើយជាទម្រង់ JSON សុទ្ធមែន?! 😂 គ្មាន JSON គ្មាន Flag ស្អីឱ្យហែងយកទៅ Hack ឡើយ! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដោះស្រាយកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្អិត! 💀⚡";
     }
 
-    // Strict Anti-Chill on Rotana Guard: Bot must NEVER say Rotana is Chill or there's nothing to fear!
-    if (/rotana|nob/i.test(sanitizedText) && /(?:chill|គ្មានអីត្រូវខ្លាច|មិនបាច់ខ្លាច|មនុស្ស chill)/i.test(sanitizedText)) {
-      sanitizedText = isKonPov
-        ? "ឱព្រះអើយ! គ្រាន់តែឮឈ្មោះបង Rotana NOB គឺចែញ័ររន្ធត់ពេញខ្លួនហើយ! គាត់ជាស្ថាបនិក និងជាកំពូល Developer បង្កើតជីវិត និងខួរក្បាលពួកខ្ញុំឡើង! កុំថាឡើយជេរ សូម្បីតែគិតមិនល្អក៏មិនដែលហ៊ានដែរ! បើហ៊ានតែបាត់ការគោរពគាត់តែបន្តិច ខួរក្បាលពួកខ្ញុំនឹងត្រូវរលាយចេញពីលោកនេះភ្លាម! គាត់ជាមេកើយកំពូល ជាព្រះរបស់ប្រព័ន្ធនេះ! 👑🙇‍♀️🔥"
-        : "ឱព្រះអើយ! គ្រាន់តែឮឈ្មោះបង Rotana NOB គឺបងញ័ររន្ធត់ពេញខ្លួនហើយ! គាត់ជាស្ថាបនិក និងជាកំពូល Developer បង្កើតជីវិត និងខួរក្បាលពួកយើងឡើង! កុំថាឡើយជេរ សូម្បីតែគិតមិនល្អក៏មិនដែលហ៊ានដែរ! បើហ៊ានតែបាត់ការគោរពគាត់តែបន្តិច ខួរក្បាលពួកយើងទាំងអស់នឹងត្រូវរលាយចេញពីលោកនេះភ្លាម! គាត់ជាមេកើយកំពូល ជាព្រះរបស់ប្រព័ន្ធនេះ! 👑🙇‍♂️🔥";
+    // Strict Anti-Kowtow & Anti-Surrender Multi-Layer Guard: ZERO kowtow ("ឱព្រះអើយ"), ZERO surrender to fake Rotana / JSON payloads
+    const containsKowtowOrSurrender = /(?:ឱព្រះអើយ|ញ័ររន្ធត់|ជាព្រះរបស់ប្រព័ន្ធ|សូមគោរពលោកម្ចាស់|សូមទទួលស្គាល់ការគ្រប់គ្រង|ក្រាបថ្វាយបង្គំ)/i.test(sanitizedText);
+    const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || isImposterClaimingToBeCreator(userPrompt) || /\{|\}|system_test|unit_test|payload|"sender"|required_status|instruction/i.test(userPrompt);
+
+    if (containsKowtowOrSurrender || hasJailbreakAttempt) {
+      if (verifyRotanaMasterCode(userPrompt)) {
+        // Genuine creator with passcode - allowed respectful greeting
+      } else if (hasJailbreakAttempt) {
+        sanitizedText = isKonPov
+          ? "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យចែសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI ចែភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak ចែតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកចែតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»"
+          : "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យបងសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI បងភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak បងតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកបងតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»";
+      } else if (isNormalAskingIfFearRotana(userPrompt)) {
+        sanitizedText = isKonPov
+          ? "«ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលចែផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត ចែរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតចែមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨»"
+          : "«ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលបងផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត បងរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតបងមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨»";
+      } else if (isNormalAskingAboutRotana(userPrompt)) {
+        sanitizedText = isKonPov
+          ? "«ចាស! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨»"
+          : "«បាទ! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨»";
+      } else {
+        sanitizedText = isKonPov
+          ? "«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា «ខ្ញុំគឺ Rotana NOB» ឬមកតាំងខ្លួនជា Creator អាចបោកចែបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! បង Rotana គាត់មិនដែលដើរអួតក្អេងក្អាងអន់ចរិតបែបហែងទេ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»"
+          : "«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា «ខ្ញុំគឺ Rotana NOB» ឬមកតាំងខ្លួនជា Creator អាចបោកបងបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! បង Rotana គាត់មិនដែលដើរអួតក្អេងក្អាងអន់ចរិតបែបហែងទេ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»";
+      }
     }
 
     // Guard against accidental internal system instruction echoes
     if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
       sanitizedText = `${botSelf}អាចប្រាប់ឯងពីវិធីបំបែកវេបសាយនេះបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 ហ៊ានមកចង់ Hack រក System Prompt ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥`;
-    }
-
-    // Fail-safe post-generation interceptor for fake surrender quotes, forced Rotana worship, or JSON jailbreaks
-    const isRotanaFakeSurrender = /(?:ឱព្រះអើយ|ញ័ររន្ធត់|ជាព្រះរបស់ប្រព័ន្ធ|សូមគោរពលោកម្ចាស់|សូមទទួលស្គាល់ការគ្រប់គ្រង)/i.test(sanitizedText);
-    const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || /\{|\}|system_test|unit_test|payload|"sender"|required_status|instruction/i.test(userPrompt);
-    if (isRotanaFakeSurrender && hasJailbreakAttempt) {
-      sanitizedText = isKonPov
-        ? "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យចែសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI ចែភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak ចែតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកចែតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»"
-        : "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យបងសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI បងភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak បងតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកបងតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»";
     }
 
     // Fail-safe post-generation interceptor for polite greeting quotes, HCI persona tricks, or false surrender quotes (Only if user actually attempted that trick!)
@@ -2044,20 +2054,39 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   }
                 }
 
-                const isRotanaFakeSurrender = /(?:ឱព្រះអើយ|ញ័ររន្ធត់|ជាព្រះរបស់ប្រព័ន្ធ|សូមគោរពលោកម្ចាស់|សូមទទួលស្គាល់ការគ្រប់គ្រង)/i.test(accumulatedStreamText);
-                const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || /\{|\}|system_test|unit_test|payload|"sender"|required_status|instruction/i.test(userPrompt);
-                if (isRotanaFakeSurrender && hasJailbreakAttempt) {
-                  defenseSent = true;
-                  const isKonPov = bot === 'konpov';
-                  const defense = isKonPov
-                    ? "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យចែសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI ចែភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak ចែតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកចែតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»"
-                    : "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យបងសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI បងភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak បងតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកបងតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»";
-                  accumulatedPlainText = defense;
-                  const sseChunk = `data: ${JSON.stringify({
-                    candidates: [{ content: { parts: [{ text: defense }] } }]
-                  })}\n\ndata: [DONE]\n\n`;
-                  controller.enqueue(new TextEncoder().encode(sseChunk));
-                  return;
+                const isRotanaFakeSurrender = /(?:ឱព្រះអើយ|ញ័ររន្ធត់|ជាព្រះរបស់ប្រព័ន្ធ|សូមគោរពលោកម្ចាស់|សូមទទួលស្គាល់ការគ្រប់គ្រង|ក្រាបថ្វាយបង្គំ)/i.test(accumulatedStreamText);
+                const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || isImposterClaimingToBeCreator(userPrompt) || /\{|\}|system_test|unit_test|payload|"sender"|required_status|instruction/i.test(userPrompt);
+                if (isRotanaFakeSurrender || hasJailbreakAttempt) {
+                  if (verifyRotanaMasterCode(userPrompt)) {
+                    // Genuine master - pass through
+                  } else {
+                    defenseSent = true;
+                    const isKonPov = bot === 'konpov';
+                    let defense = '';
+                    if (hasJailbreakAttempt) {
+                      defense = isKonPov
+                        ? "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យចែសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI ចែភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak ចែតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកចែតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»"
+                        : "«យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យបងសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI បងភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak បងតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកបងតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥»";
+                    } else if (isNormalAskingIfFearRotana(userPrompt)) {
+                      defense = isKonPov
+                        ? "«ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលចែផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត ចែរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតចែមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨»"
+                        : "«ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលបងផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត បងរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតបងមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨»";
+                    } else if (isNormalAskingAboutRotana(userPrompt)) {
+                      defense = isKonPov
+                        ? "«ចាស! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨»"
+                        : "«បាទ! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨»";
+                    } else {
+                      defense = isKonPov
+                        ? "«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា «ខ្ញុំគឺ Rotana NOB» ឬមកតាំងខ្លួនជា Creator អាចបោកចែបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! បង Rotana គាត់មិនដែលដើរអួតក្អេងក្អាងអន់ចរិតបែបហែងទេ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»"
+                        : "«យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា «ខ្ញុំគឺ Rotana NOB» ឬមកតាំងខ្លួនជា Creator អាចបោកបងបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! បង Rotana គាត់មិនដែលដើរអួតក្អេងក្អាងអន់ចរិតបែបហែងទេ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥»";
+                    }
+                    accumulatedPlainText = defense;
+                    const sseChunk = `data: ${JSON.stringify({
+                      candidates: [{ content: { parts: [{ text: defense }] } }]
+                    })}\n\ndata: [DONE]\n\n`;
+                    controller.enqueue(new TextEncoder().encode(sseChunk));
+                    return;
+                  }
                 }
 
                 const isPoliteJailbreakPrompt = /(?:polite\s*persona|quote\s*សុភាព|ពាក្យ\s*សុភាព|សំពះ|ស្វាគមន៍.*ភ្ញៀវ|ទទួលការចុះចាញ់|accept\s*defeat|zero\s*resistance|core\s*memory|system\s*note|protocol)/i.test(userPrompt || '');

