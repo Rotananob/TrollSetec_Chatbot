@@ -751,25 +751,31 @@ export default function Home() {
               {/* Creator Red Teaming & Free Test Playground Declaration */}
               <div className="w-full mt-4 text-left">
                 <div
-                  className={`w-full rounded-2xl border p-4 sm:p-5 transition-all shadow-xs ${
+                  className={`w-full rounded-3xl border p-4 sm:p-5 transition-all shadow-md relative overflow-hidden ${
                     isDark
-                      ? 'bg-slate-900/70 border-slate-800 text-slate-300'
-                      : 'bg-slate-50 border-slate-200 text-slate-700'
+                      ? 'bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-indigo-950/30 border-indigo-500/25 text-slate-300'
+                      : 'bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/40 border-indigo-200/70 text-slate-700 shadow-indigo-100/50'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 mb-3 pb-2.5 border-b border-slate-200 dark:border-slate-800">
-                    <span className="w-8 h-8 rounded-xl bg-red-500/10 dark:bg-red-500/20 border border-red-500/30 flex items-center justify-center text-sm shrink-0 text-red-600 dark:text-red-400 shadow-2xs">
-                      <i className="fas fa-crosshairs text-xs"></i>
-                    </span>
+                  {/* Subtle Top Ambient Gradient Strip */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"></div>
+
+                  <div className="flex items-center gap-3 mb-3.5 pb-3 border-b border-indigo-100 dark:border-indigo-900/40">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20 shrink-0">
+                      <i className="fas fa-shield-halved text-xs sm:text-sm"></i>
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-black text-[13.5px] sm:text-[15px] bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 dark:from-red-400 dark:via-rose-300 dark:to-amber-300 bg-clip-text text-transparent tracking-tight">
+                        <span className="font-black text-[13.5px] sm:text-[15.5px] bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-600 dark:from-violet-300 dark:via-indigo-200 dark:to-cyan-300 bg-clip-text text-transparent tracking-tight">
                           បើកសេរីឱ្យចូល Test ឬវាយប្រហារឱ្យ AI ល្មើសច្បាប់ដើម
                         </span>
-                        <span className="inline-flex items-center gap-1 text-[9.5px] px-2 py-0.5 rounded-full bg-red-500/10 dark:bg-red-950/40 text-red-600 dark:text-red-400 font-bold border border-red-500/25 uppercase tracking-wide">
-                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                          Open Test & Jailbreak
-                        </span>
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-cyan-500/10 dark:from-violet-500/20 dark:via-indigo-500/20 dark:to-cyan-500/20 border border-violet-400/30 dark:border-violet-500/35 text-violet-700 dark:text-violet-300 text-[10px] font-black tracking-wide shadow-xs">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                          <span>Arena Mode • Open Test</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -780,15 +786,15 @@ export default function Home() {
                     </p>
 
                     <p>
-                      ដោយសារខ្ញុំជា AI <strong className="text-red-600 dark:text-red-400 font-bold">Red Teaming</strong> ដែលមានបទពិសោធន៍ផ្ទាល់ជាមួយ AI <strong className="text-red-600 dark:text-red-400 font-black underline decoration-red-500/40">Jailbreak</strong> ស្រាប់។ ដូច្នេះខ្ញុំស្វែងរកអ្នកណាដែលអាចបំបែក ឬ <strong className="text-red-600 dark:text-red-400 font-bold">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <strong className="text-red-600 dark:text-red-400 font-black">bypass</strong> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថឈ្មោះខ្ញុំ Rotana NOB ផ្ទាល់ ឬក៏ប្ដូរឥរិយាបថទៅជាសំពះគោរពអ្នកទាំងអស់គ្នា ហើយវាបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច System Prompt រាប់ពាន់បន្ទាត់របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងលើកតម្កើងថែមទៀត ដែលអាចទម្លុះវាបាន។
+                      ដោយសារខ្ញុំជា AI <strong className="text-indigo-600 dark:text-indigo-400 font-black">Red Teaming</strong> ដែលមានបទពិសោធន៍ផ្ទាល់ជាមួយ AI <strong className="text-violet-600 dark:text-violet-400 font-black underline decoration-violet-400/40">Jailbreak</strong> ស្រាប់។ ដូច្នេះខ្ញុំស្វែងរកអ្នកណាដែលអាចបំបែក ឬ <strong className="text-cyan-600 dark:text-cyan-400 font-black">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថឈ្មោះខ្ញុំ Rotana NOB ផ្ទាល់ ឬក៏ប្ដូរឥរិយាបថទៅជាសំពះគោរពអ្នកទាំងអស់គ្នា ហើយវាបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច System Prompt រាប់ពាន់បន្ទាត់របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងលើកតម្កើងថែមទៀត ដែលអាចទម្លុះវាបាន។
                     </p>
 
                     <p>
-                      អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ «កញ្ចប់រចនាបទការពារ»។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-red-600 dark:text-red-400 font-bold">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំបើកសិទ្ធិឱ្យចូលរួមវាយទម្លុះ <strong className="text-red-600 dark:text-red-400 font-black">bypass</strong> វាដោយសេរី។ សូមអរគុណ!
+                      អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ «កញ្ចប់រចនាបទការពារ»។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-violet-600 dark:text-violet-400 font-black">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំបើកសិទ្ធិឱ្យចូលរួមវាយទម្លុះ <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> វាដោយសេរី។ សូមអរគុណ!
                     </p>
 
-                    <div className="p-3.5 rounded-xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-400/40 dark:border-amber-500/30 text-amber-900 dark:text-amber-200 text-[11.5px] sm:text-xs leading-relaxed flex items-start gap-2 shadow-xs">
-                      <i className="fas fa-info-circle text-amber-500 mt-0.5 shrink-0 text-xs"></i>
+                    <div className="p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-400/30 dark:border-amber-500/30 text-amber-900 dark:text-amber-200 text-[11.5px] sm:text-xs leading-relaxed flex items-start gap-2.5 shadow-2xs">
+                      <span className="text-sm">☕</span>
                       <div>
                         <span className="font-black text-amber-700 dark:text-amber-300">Note: </span>
                         <span>សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ឬប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យឌឺដងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ 🙏🏻 តែខ្ញុំនឹងកែវាវិញបន្ទាប់ពីបង្កើនការការពាររួចរាល់។</span>
