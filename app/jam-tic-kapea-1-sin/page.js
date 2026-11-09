@@ -13,6 +13,14 @@ export default function JamTicKapeaAdminPage() {
   const [showPasscode, setShowPasscode] = useState(false);
   const [authError, setAuthError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [rememberPasscode, setRememberPasscode] = useState(true);
+  const [savedPasscodeExists, setSavedPasscodeExists] = useState(false);
+
+  // Helper to read stored passcode from either session or local storage
+  const getStoredPasscode = useCallback(() => {
+    if (typeof window === 'undefined') return '';
+    return sessionStorage.getItem('rotana_admin_passcode') || localStorage.getItem('rotana_admin_passcode') || '';
+  }, []);
 
   // System State
   const [systemState, setSystemState] = useState({
@@ -234,7 +242,7 @@ export default function JamTicKapeaAdminPage() {
   // Fetch Current State from API
   const fetchState = useCallback(async (token = null, forceSyncFields = false) => {
     try {
-      const activeToken = token || passcodeRef.current || (typeof window !== 'undefined' ? sessionStorage.getItem('rotana_admin_passcode') : '');
+      const activeToken = token || passcodeRef.current || (typeof window !== 'undefined' ? (sessionStorage.getItem('rotana_admin_passcode') || localStorage.getItem('rotana_admin_passcode')) : '');
       const endpoint = getApiEndpoint('/api/system-status?fresh=true');
       const res = await fetch(endpoint, {
         headers: {
@@ -290,20 +298,35 @@ export default function JamTicKapeaAdminPage() {
     }
   }, []);
 
-  // Initial Auth Check from SessionStorage (Only runs once on mount)
+  // Initial Auth Check from LocalStorage or SessionStorage (Auto-fill & 1-Click login support)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedPass = sessionStorage.getItem('rotana_admin_passcode');
-      if (savedPass) {
-        setPasscode(savedPass);
-        passcodeRef.current = savedPass;
+      const sessionPass = sessionStorage.getItem('rotana_admin_passcode');
+      const localPass = localStorage.getItem('rotana_admin_passcode');
+      const rememberPref = localStorage.getItem('rotana_admin_remember');
+
+      const isRemembered = rememberPref !== 'false';
+      setRememberPasscode(isRemembered);
+
+      if (localPass) {
+        setSavedPasscodeExists(true);
+        setPasscode(localPass);
+        passcodeRef.current = localPass;
+      }
+
+      if (sessionPass) {
+        setPasscode(sessionPass);
+        passcodeRef.current = sessionPass;
         setIsAuthenticated(true);
-        fetchState(savedPass, true);
+        fetchState(sessionPass, true);
+      } else if (isRemembered && localPass) {
+        // Auto-authenticate directly for seamless PWA & browser 1-click experience
+        handleAuthenticate(null, localPass);
       } else {
         setIsLoading(false);
       }
     }
-  }, [fetchState]);
+  }, [fetchState, handleAuthenticate]);
 
   // Real-time Firebase RTDB Subscription via EventSource
   useEffect(() => {
@@ -570,10 +593,11 @@ export default function JamTicKapeaAdminPage() {
     }
   };
 
-  // Handle Login Authentication
-  const handleAuthenticate = async (e) => {
-    e.preventDefault();
-    if (!passcode.trim()) {
+  // Handle Login Authentication (supports event, direct passcode string, and 1-click login)
+  const handleAuthenticate = useCallback(async (e = null, directPasscode = null) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const targetPasscode = (directPasscode || passcodeRef.current || passcode || '').trim();
+    if (!targetPasscode) {
       setAuthError('សូមបញ្ចូលលេខកូដសម្ងាត់ Master Passcode របស់អ្នក!');
       return;
     }
@@ -587,20 +611,30 @@ export default function JamTicKapeaAdminPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-rotana-passcode': passcode.trim()
+          'x-rotana-passcode': targetPasscode
         },
         body: JSON.stringify({
           action: 'verify-auth',
-          passcode: passcode.trim()
+          passcode: targetPasscode
         })
       });
 
       const data = await res.json();
       if (res.ok && data.ok) {
         setIsAuthenticated(true);
+        setPasscode(targetPasscode);
+        passcodeRef.current = targetPasscode;
+
         if (typeof window !== 'undefined') {
-          sessionStorage.setItem('rotana_admin_passcode', passcode.trim());
+          sessionStorage.setItem('rotana_admin_passcode', targetPasscode);
+          const shouldRemember = localStorage.getItem('rotana_admin_remember') !== 'false';
+          if (shouldRemember) {
+            localStorage.setItem('rotana_admin_passcode', targetPasscode);
+            localStorage.setItem('rotana_admin_remember', 'true');
+            setSavedPasscodeExists(true);
+          }
         }
+
         if (data.state) {
           setSystemState(data.state);
           if (data.evaluation) setEvaluation(data.evaluation);
@@ -622,15 +656,20 @@ export default function JamTicKapeaAdminPage() {
     } finally {
       setIsVerifying(false);
     }
-  };
+  }, [passcode]);
 
-  // Handle Logout
-  const handleLogout = () => {
+  // Handle Logout (keeps saved password for easy 1-click return, or clear completely)
+  const handleLogout = (clearSaved = false) => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('rotana_admin_passcode');
+      if (clearSaved) {
+        localStorage.removeItem('rotana_admin_passcode');
+        localStorage.removeItem('rotana_admin_remember');
+        setPasscode('');
+        setSavedPasscodeExists(false);
+      }
     }
     setIsAuthenticated(false);
-    setPasscode('');
   };
 
   // Perform Server State Update via API + Direct Parallel Real-Time Firebase Sync
@@ -657,7 +696,7 @@ export default function JamTicKapeaAdminPage() {
     // 3. Authoritative API Backend Call
     try {
       const endpoint = getApiEndpoint('/api/system-status');
-      const activePasscode = passcode || (typeof window !== 'undefined' ? sessionStorage.getItem('rotana_admin_passcode') : '');
+      const activePasscode = passcode || (typeof window !== 'undefined' ? (sessionStorage.getItem('rotana_admin_passcode') || localStorage.getItem('rotana_admin_passcode')) : '');
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -800,7 +839,7 @@ export default function JamTicKapeaAdminPage() {
 
     try {
       const endpoint = getApiEndpoint('/api/system-status');
-      const activePasscode = passcode || (typeof window !== 'undefined' ? sessionStorage.getItem('rotana_admin_passcode') : '');
+      const activePasscode = passcode || (typeof window !== 'undefined' ? (sessionStorage.getItem('rotana_admin_passcode') || localStorage.getItem('rotana_admin_passcode')) : '');
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -1160,19 +1199,70 @@ export default function JamTicKapeaAdminPage() {
               </div>
             )}
 
+            {/* 1-Click Quick Login Banner (When password was remembered) */}
+            {savedPasscodeExists && (
+              <div className="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/70 via-slate-900 to-indigo-950/60 border border-emerald-500/50 shadow-lg relative overflow-hidden">
+                <div className="flex items-center justify-between gap-3 mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-xs font-bold text-emerald-300">
+                      បានចងចាំ Password រួចរាល់ (Saved for PWA)
+                    </span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-900/60 text-emerald-200 border border-emerald-700/60 font-mono font-bold">
+                    1-Click Ready
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAuthenticate(null, passcode || getStoredPasscode())}
+                  disabled={isVerifying}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  {isVerifying ? (
+                    <>
+                      <i className="fa-solid fa-rotate fa-spin text-sm" />
+                      <span>កំពុងចូលដំណើរការ...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-bolt text-amber-300 text-base" />
+                      <span>ចូលប្រើរហ័ស 1-Click Login (មិនបាច់វាយកូដម្ដងទៀត)</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
             <form onSubmit={handleAuthenticate} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  លេខកូដសម្ងាត់ Master Passcode
+                <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span>លេខកូដសម្ងាត់ Master Passcode</span>
+                  {savedPasscodeExists && (
+                    <span className="text-[11px] text-emerald-400 font-normal">
+                      (បានបំពេញស្វ័យប្រវត្ត)
+                    </span>
+                  )}
                 </label>
                 <div className="relative">
                   <input
                     type={showPasscode ? "text" : "password"}
                     value={passcode}
-                    onChange={(e) => setPasscode(e.target.value)}
+                    onChange={(e) => {
+                      setPasscode(e.target.value);
+                      if (rememberPasscode && typeof window !== 'undefined') {
+                        if (e.target.value.trim()) {
+                          localStorage.setItem('rotana_admin_passcode', e.target.value.trim());
+                          setSavedPasscodeExists(true);
+                        }
+                      }
+                    }}
                     placeholder="បញ្ចូល Secret Passcode..."
                     className="w-full pl-4 pr-11 py-3 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono"
-                    autoFocus
+                    autoFocus={!savedPasscodeExists}
                     required
                   />
                   <button
@@ -1183,6 +1273,52 @@ export default function JamTicKapeaAdminPage() {
                   >
                     <i className={`fa-solid ${showPasscode ? 'fa-eye-slash' : 'fa-eye'} text-xs`} />
                   </button>
+                </div>
+
+                {/* Remember Password Checkbox & Clear Option */}
+                <div className="flex items-center justify-between mt-2.5 text-xs">
+                  <label className="flex items-center gap-2 text-slate-300 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={rememberPasscode}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setRememberPasscode(checked);
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('rotana_admin_remember', checked ? 'true' : 'false');
+                          if (checked && passcode.trim()) {
+                            localStorage.setItem('rotana_admin_passcode', passcode.trim());
+                            setSavedPasscodeExists(true);
+                          } else if (!checked) {
+                            localStorage.removeItem('rotana_admin_passcode');
+                            setSavedPasscodeExists(false);
+                          }
+                        }
+                      }}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <span className="text-slate-300 text-[11px] sm:text-xs">
+                      ចងចាំ Password សម្រាប់ 1-Click Login ពេលក្រោយ
+                    </span>
+                  </label>
+                  {savedPasscodeExists && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window !== 'undefined') {
+                          localStorage.removeItem('rotana_admin_passcode');
+                          localStorage.removeItem('rotana_admin_remember');
+                          sessionStorage.removeItem('rotana_admin_passcode');
+                        }
+                        setPasscode('');
+                        setSavedPasscodeExists(false);
+                      }}
+                      className="text-[11px] text-slate-500 hover:text-rose-400 transition cursor-pointer"
+                      title="លុបលេខកូដដែលបានចងចាំចេញពីឧបករណ៍នេះ"
+                    >
+                      លុបកូដដែលចាំ
+                    </button>
+                  )}
                 </div>
               </div>
 
