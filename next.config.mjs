@@ -7,6 +7,19 @@ const nextConfig = {
     'localhost:3000',
     '127.0.0.1:3000'
   ],
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, OPTIONS, PUT, DELETE, PATCH' },
+          { key: 'Access-Control-Allow-Headers', value: '*' },
+          { key: 'Access-Control-Max-Age', value: '86400' }
+        ],
+      },
+    ];
+  },
   async redirects() {
     return [
       {

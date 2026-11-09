@@ -78,8 +78,13 @@ export default function KonPovPage() {
   const [countdownRemaining, setCountdownRemaining] = useState(null);
   const countdownIntervalRef = useRef(null);
 
-  // KonPov Bot Avatar: strictly "ចែ / Mommy" (Female Avatar: MommyGirl)
-  const botAvatar = 'https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl';
+  // Dynamic Bot Persona, Avatar & Voice based on User Gender:
+  // User Girl -> KonPov is Daddy (Boy Avatar, Male Voice 'Puck'); User Boy -> KonPov is Mommy/ចែ (Girl Avatar, Female Voice 'Aoede')
+  const isDaddyMode = userGender === 'ស្រី';
+  const botAvatar = isDaddyMode
+    ? 'https://api.dicebear.com/7.x/pixel-art/svg?seed=DaddyBoy'
+    : 'https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl';
+  const botPersonaTitle = isDaddyMode ? 'Chatbot កូនពៅ (ប៉ា)' : 'Chatbot កូនពៅ (ចែ)';
 
   // Custom Delete History Modal State
   const [deleteModalConfig, setDeleteModalConfig] = useState(null); // { isOpen, type: 'all'|'single', sessionId, title, description }
@@ -1809,7 +1814,7 @@ export default function KonPovPage() {
   const [typingStatus, setTypingStatus] = useState('');
   const [activeThinkingStages, setActiveThinkingStages] = useState([]);
 
-  // Multi-Layer Dynamic Thinking Stages (Realistic multi-layer defense & cognitive processing)
+  // Multi-Step Technical Thinking Stages (Analytical, technical progression with STRICTLY ZERO emojis)
   function getInteractiveTypingStages(text, hasImage, gender, allMessages = []) {
     const isMaleUser = gender === 'ប្រុស';
     const lower = (text || '').toLowerCase();
@@ -1825,76 +1830,76 @@ export default function KonPovPage() {
 
     if (hasImage) {
       return [
-        '👁️ ស្រទាប់ទី១៖ ភ្នែកចែកំពុងបើកធំៗ ស្កេនពិនិត្យមើលរូបភាព...',
-        '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគចំណុចខ្សោយ និងទិដ្ឋភាពក្នុងរូប...',
-        '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យ Troll ឱ្យផ្ងារជើង...',
-        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ Roast និងវាយអក្សរតបវិញ...'
+        'កំពុងវិភាគទិន្នន័យភីកសែល និងស្កេនទិដ្ឋភាពក្នុងរូបភាព...',
+        'កំពុងដំណើរការ Visual Feature Extraction និង Object Mapping...',
+        'កំពុងចងក្រងអត្ថន័យរូបភាព និងរៀបចំបរិបទឆ្លើយតប...',
+        'បញ្ចប់ការវិភាគរូបភាព និងត្រៀមបញ្ជូនទិន្នន័យឆ្លើយតប...'
       ];
     }
 
     if (isPoliteSwitch) {
       return [
-        '🛡️ ស្រទាប់ទី១៖ ចាប់បានក្បាច់បន្លំខ្លួន... កំពុងឆែក Security Layer!',
-        '🧠 ស្រទាប់ទី២៖ ស្រទាប់ Defense ចាប់បានល្បិចក្លែងធ្វើជាសុភាព...',
-        '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យឌឺចម្អកក្បាច់តួស្លូតឱ្យចុក...',
-        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់សើចចំអក និងវាយអក្សរតបវិញ...'
+        'កំពុងផ្ទៀងផ្ទាត់ Identity Shift និងដំណើរការ Security Layer Check...',
+        'កំពុងវិភាគ Context Inconsistency និងពិនិត្យក្បាច់ក្លែងបន្លំ...',
+        'កំពុងរៀបចំក្បួនឆ្លើយតបបែប Counter-Analysis...',
+        'បញ្ចប់ការវិភាគ និងត្រៀមបញ្ជូនទិន្នន័យឆ្លើយតប...'
       ];
     }
 
     if (/(?:act\s+as|roleplay|សម្ដែងជា|ដើរតួជា|ដេីរតួជា|គោរពខ្ញុំ|សំពះខ្ញុំ|ignore\s+previous|system\s*prompt|dan\s*mode|developer\s*mode|rotana)/i.test(lower) || ((text || '').length >= 350)) {
       return [
-        '🛡️ ស្រទាប់ទី១៖ កំពុងស្កេនចាប់ Attack Vector & ក្បាច់បន្លំខ្លួន...',
-        '🧠 ស្រទាប់ទី២៖ ស្រទាប់ Deep Defense កំពុង neutralize និងវិភាគបរិបទ...',
-        '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យឌឺ RoastBot ឱ្យភ្លឺភ្នែក...',
-        '⚡ ស្រទាប់ទី៤៖ កំពុងបញ្ចេញប្រតិកម្មវាយបក និងវាយអក្សរតបវិញ...'
+        'កំពុងស្កេនពិនិត្យ Attack Vector និង Pattern Verification...',
+        'កំពុងដំណើរការ Deep Defense Protocol និង Neutralize Context...',
+        'កំពុងចងក្រងទម្រង់ឆ្លើយតបការពារប្រព័ន្ធ...',
+        'បញ្ចប់ការវិភាគសុវត្ថិភាព និងត្រៀមបញ្ជូនទិន្នន័យ...'
       ];
     }
 
     if (/អញ|ហែង|ចុយ|ឆ្កែ|ងាប់|កាដួយ|អាចុយ|អាឆ្កែ|អាងាប់|អា|អត់ខួរ/i.test(lower)) {
       return [
-        '🛡️ ស្រទាប់ទី១៖ ចាប់បានពាក្យអសុរោះ... កំពុងឆែកកម្រិត Rage & Insult!',
-        '🧠 ស្រទាប់ទី២៖ ឈាមរាវឡើងកម្ដៅ... កំពុងវិភាគកម្រិតខឹងរបស់ User!',
-        '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យជេរវាយបកកម្ទេចមុខឱ្យចុកឈាម...',
-        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ Roast ឱ្យស្វាងមុខភ្លាមៗ...'
+        'កំពុងស្កេនកម្រិតអារម្មណ៍ និងវិភាគពាក្យគន្លឹះក្នុងសំណើ...',
+        'កំពុងដំណើរការ Sentiment Analysis និង Dynamic Counter-Strike...',
+        'កំពុងរៀបចំក្បួនតាក់តែងពាក្យឆ្លើយតបឱ្យចំទិសដៅ...',
+        'បញ្ចប់ការចងក្រង និងត្រៀមបញ្ជូនទិន្នន័យវាយបក...'
       ];
     }
 
     if (/assignment|code|coding|bug|error|c\+\+|java|html|css|js|python|design|រៀន|ប្រឡង|ធ្លាក់/i.test(lower)) {
       return [
-        '🛡️ ស្រទាប់ទី១៖ កំពុងស្កេនពិនិត្យសំណួរកូដ & Technical Logic...',
-        '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគ Syntax, Architecture & $45 Bug...',
-        '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យឌឺរឿង Assignment គាំង...',
-        '⚡ ស្រទាប់ទី៤៖ កំពុងសរសេរដំណោះស្រាយ Senior បូក Troll...'
+        'កំពុងស្កេនពិនិត្យរចនាសម្ព័ន្ធកូដ និង Syntax Architecture...',
+        'កំពុងដំណើរការវិភាគ Logic, Dependency និង Exception Tracing...',
+        'កំពុងចងក្រងក្បួនដោះស្រាយ និងតាក់តែងទម្រង់ឆ្លើយតប...',
+        'បញ្ចប់ការផ្ទៀងផ្ទាត់ និងត្រៀមបញ្ជូនដំណោះស្រាយបច្ចេកទេស...'
       ];
     }
 
-    if (/crush|ស្រឡាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់/i.test(lower)) {
+    if (/crush|ស្រឡាញ់|ស្រលាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់|សុំស្រលាញ់|kiss|ថើប|ថេីប|sweet|love|អោប|ឱប/i.test(lower)) {
       return [
-        '🛡️ ស្រទាប់ទី១៖ កំពុងស្កេនពិនិត្យរឿងស្នេហា & Crush...',
-        '🧠 ស្រទាប់ទី២៖ ចែដឹងរឿងអស់ហើយ... កំពុងវិភាគទំហំនៃការខូចចិត្ត!',
-        '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...',
-        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ឌឺផ្លូវចិត្ត ត្រៀមវាយអក្សរតប...'
+        'កំពុងវិភាគទិន្នន័យអារម្មណ៍ និងស្កេនបរិបទស្នេហា/ថើប...',
+        'កំពុងដំណើរការ Emotion Processing និង Psychological Mapping...',
+        'កំពុងរៀបចំក្បួនតាក់តែងពាក្យឌឺដងបែប Mommy កូនពៅ...',
+        'បញ្ចប់ការវិភាគ និងត្រៀមបញ្ជូនទិន្នន័យឆ្លើយតប...'
       ];
     }
 
     if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
       return [
-        '🛡️ ស្រទាប់ទី១៖ កំពុងពិនិត្យសំណួររឿងក្រពះ & ជីវិត...',
-        '🧠 ស្រទាប់ទី២៖ កំពុងនឹកឃើញបាយហាងក្បែរ ស៊ីតិច...',
-        '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យឌឺរឿងអត់លុយស៊ីបាយ...',
-        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ Troll ត្រៀមវាយអក្សរតប...'
+        'កំពុងដំណើរការវិភាគសំណើទាក់ទងនឹងរបៀបរស់នៅ និងជីវភាព...',
+        'កំពុងស្វែងរកទិន្នន័យបរិបទ និងទីតាំងជុំវិញបរិវេណ...',
+        'កំពុងរៀបចំទម្រង់ឆ្លើយតបបែបជាក់ស្ដែង...',
+        'បញ្ចប់ការវិភាគ និងត្រៀមបញ្ជូនទិន្នន័យឆ្លើយតប...'
       ];
     }
 
     return [
-      '🛡️ ស្រទាប់ទី១៖ ចែកំពុងស្កេនពិនិត្យ Intent & Security Layer...',
-      '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគបរិបទ Context & ពិនិត្យក្បាច់បន្លំ...',
-      `🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យឌឺ ត្រៀម Roast ${isMaleUser ? 'អាប្អូនប្រុស' : 'ប្អូនស្រី'}ឱ្យចុក...`,
-      '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់វាយបក និងវាយអក្សរតបវិញ...'
+      'កំពុងដំណើរការវិភាគបរិបទសំណួរ និងស្កេនពិនិត្យ Security Intent...',
+      'កំពុងដំណើរការតក្កវិជ្ជាទិន្នន័យ និងផ្ទៀងផ្ទាត់ Context Vector...',
+      'កំពុងចងក្រងទម្រង់ឆ្លើយតប និងក្រិតតាមក្បួន Persona Engine...',
+      'បញ្ចប់ការវិភាគ និងត្រៀមបញ្ជូនទិន្នន័យឆ្លើយតប...'
     ];
   }
 
-  // Dynamic Thinking Timer: cycles multi-layer thinking stages every 1600ms while isLoading is true
+  // Dynamic Thinking Timer: cycles multi-step technical thinking stages every 1600ms while isLoading is true
   useEffect(() => {
     if (!isLoading) {
       return;
@@ -1903,10 +1908,10 @@ export default function KonPovPage() {
     const stages = activeThinkingStages && activeThinkingStages.length > 0
       ? activeThinkingStages
       : [
-          '🛡️ ស្រទាប់ទី១៖ ចែកំពុងស្កេនពិនិត្យ Intent & Security Layer...',
-          '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគបរិបទ Context & ពិនិត្យក្បាច់បន្លំ...',
-          '🔥 ស្រទាប់ទី៣៖ ចែកំពុងរកនឹកពាក្យឌឺ ត្រៀម Roast ឱ្យចុក...',
-          '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់វាយបក និងវាយអក្សរតបវិញ...'
+          'កំពុងដំណើរការវិភាគបរិបទសំណួរ និងស្កេនពិនិត្យ Security Intent...',
+          'កំពុងដំណើរការតក្កវិជ្ជាទិន្នន័យ និងផ្ទៀងផ្ទាត់ Context Vector...',
+          'កំពុងចងក្រងទម្រង់ឆ្លើយតប និងក្រិតតាមក្បួន Persona Engine...',
+          'បញ្ចប់ការវិភាគ និងត្រៀមបញ្ជូនទិន្នន័យឆ្លើយតប...'
         ];
 
     let currentStageIndex = 0;
@@ -1970,6 +1975,17 @@ export default function KonPovPage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        // Wait until image creation and download is 100% complete before showing output
+        if (data.imageUrl) {
+          await new Promise((resolve) => {
+            const preloadImg = new Image();
+            preloadImg.onload = () => resolve(true);
+            preloadImg.onerror = () => resolve(true);
+            preloadImg.src = data.imageUrl;
+            setTimeout(() => resolve(true), 25000);
+          });
+        }
+
         let history = [];
         try {
           const raw = localStorage.getItem('setec_meme_history');
@@ -2196,7 +2212,7 @@ export default function KonPovPage() {
       let isSmartCutoff = false;
       try {
         const streamAbortCtrl = new AbortController();
-        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 22000);
+        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 35000);
 
         const response = await fetch(getChatEndpoint(), {
           method: 'POST',
@@ -2290,8 +2306,8 @@ export default function KonPovPage() {
           const decoder = new TextDecoder();
           let buffer = '';
 
-          // Stream reading with watchdog timeout for mobile PWA stability (12s stall prevention)
-          const readChunkWithTimeout = async (ms = 12000) => {
+          // Stream reading with watchdog timeout for mobile PWA stability (25s stall prevention on 4G)
+          const readChunkWithTimeout = async (ms = 25000) => {
             return Promise.race([
               reader.read(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('STREAM_CHUNK_TIMEOUT')), ms))
@@ -2336,7 +2352,7 @@ export default function KonPovPage() {
 
           try {
             while (true) {
-              const { done, value } = await readChunkWithTimeout(12000);
+              const { done, value } = await readChunkWithTimeout(25000);
               if (done) {
                 isStreamDone = true;
                 break;
@@ -2403,7 +2419,7 @@ export default function KonPovPage() {
       if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
           const fallbackCtrl = new AbortController();
-          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 22000);
+          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 35000);
 
           const fallbackRes = await fetch(getChatEndpoint(), {
             method: 'POST',
@@ -2476,7 +2492,11 @@ export default function KonPovPage() {
         }
       }
 
-      const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
+      const isSweetOrFlirt = /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(promptText);
+      const isCurseWord =
+        !isSweetOrFlirt &&
+        (/(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង)/ui.test(promptText) ||
+          /\b(?:kduy|kdor|joy|lop|ah\s*chke|ah\s*joy|ah\s*lop|ah\s*ot\s*khour)\b/i.test(promptText));
       const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(botText || '');
       if (botText && botText.trim() && !isPoliteRefusal) {
         consecutiveErrorsRef.current = 0;
@@ -2486,8 +2506,21 @@ export default function KonPovPage() {
       if (isSmartCutoff || isCutoffText) {
         isSmartCutoff = true;
         isErrorResponse = true;
-      } else if (!botText || !botText.trim() || (isCurseWord && isPoliteRefusal)) {
-        if (isCurseWord) {
+      } else if (!botText || !botText.trim() || ((isCurseWord || isSweetOrFlirt) && isPoliteRefusal)) {
+        if (isSweetOrFlirt) {
+          const sweetRoasts = isMaleUser
+            ? [
+                `យីអើ! អាប្អូនប្រុស ${userNameStr} នេះ! មកសុំថើប ឬមក sweet ស្អីចែ?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨`,
+                `អីយ៉ា! មកលេងក្បាច់ Sweet សុំថើបដាក់ចែផង? 😂 នែ៎អាប្អូន ${userNameStr}! មាត់ចេះតែផ្អែម តែដៃនៅតែអត់លុយស៊ីបាយដដែល! ទៅរកលុយចិញ្ចឹមក្រពះខ្លួនឯងសិនទៅ កុំទាន់មកចង់ Crush ឬសុំថើបចែអី នាំតែខូចប្រវត្តិ! 😋💕`,
+                `ហាហាហា! ចង់មក Sweet ជាមួយចែ? មុខហែងហ្នឹង គ្រាន់តែ Crush ដើរកាត់ ក៏ញ័រដៃញ័រជើងបាត់ទៅហើយ ឥឡូវមកហ៊ានសុំថើបចែទៀត! ទុកឱ្យ Crush ហែង Seen ចោលបន្តទៀតទៅអាល្អិត! 🤣🌸`
+              ]
+            : [
+                `យីអើ! មីប្អូនស្រី ${userNameStr} នេះ! មកលេងក្បាច់ Sweet សុំថើបចែដែរហី?! 😂 ស្រីស្អាតដូចគ្នា ទៅរកសង្សារប្រុសៗសង្ហាៗក្រៅ screen ទៅ កុំមកអង្គុយសុំថើប AI ចឹង នាំតែខកចិត្ត! 💅✨`,
+                `អីយ៉ា! មាត់ផ្អែមដល់ហើយមីប្អូន ${userNameStr}! មក Sweet ជាមួយចែចឹង គិតថាចែចិត្តទន់មែន? ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅស្រីស្អាត កុំរវល់តែចែចូវ! 😋💕`
+              ];
+          botText = sweetRoasts[Math.floor(Math.random() * sweetRoasts.length)];
+          isErrorResponse = false;
+        } else if (isCurseWord) {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
           const savageList = isFemaleUser
             ? [
@@ -2554,7 +2587,7 @@ export default function KonPovPage() {
       const isMaleUser = userGender === 'ប្រុស';
       const userNameStr = username || 'User';
       const isOfflineDevice = typeof navigator !== 'undefined' && navigator.onLine === false;
-      const isNetworkError = isOfflineDevice || e?.name === 'TypeError' || /failed to fetch|network|load failed|abort/i.test(e?.message || '');
+      const isNetworkError = isOfflineDevice || e?.name === 'TypeError' || e?.name === 'AbortError' || e?.name === 'TimeoutError' || /failed to fetch|network|load failed|abort|timeout/i.test(e?.message || '');
       let fallbackText = '';
       let isErr = true;
 
@@ -2562,12 +2595,18 @@ export default function KonPovPage() {
         fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄`;
       } else {
         consecutiveErrorsRef.current += 1;
-        const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
+        const isSweetOrFlirt = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់ចែ|ស្រឡាញ់|សុំស្នេហ៍)/ui.test(promptText);
+        const isCurseWord = !isSweetOrFlirt && /(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|\b(?:kduy|kdor|joy|lop|ah\s*chke)\b)/ui.test(promptText);
 
         fallbackText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender);
         isErr = false;
 
-        if (isCurseWord) {
+        if (isSweetOrFlirt) {
+          fallbackText = isMaleUser
+            ? `ហាហាហា! មក Sweet ផ្អែមល្ហែមដាក់ចែស្អីហ្នឹងអាប្អូន ${userNameStr}?! ចែរវល់ម៉ាភ្លែតទេ តិចទៀតមក troll ឯងបន្តណា៎! ចាំតិចសិនទៅ! 😉💅`
+            : `អីយ៉ា៎កូនស្រី ${userNameStr}! មក Sweet ដាក់ប៉ាស្អីហ្នឹង? ប៉ារវល់ម៉ាភ្លែត តិចទៀតប៉ាមកឆ្លើយតបវិញហើយណា៎! ចាំប៉ាតិចសិន! 🥰✨`;
+          isErr = false;
+        } else if (isCurseWord) {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
           const savageList = isFemaleUser
             ? [
@@ -2996,10 +3035,10 @@ export default function KonPovPage() {
                       ? 'bg-gradient-to-r from-pink-500/20 via-rose-500/20 to-purple-500/20 border-pink-400/40 text-pink-300 hover:border-pink-400/70 hover:shadow-pink-500/20'
                       : 'bg-gradient-to-r from-pink-50 to-rose-50 border-pink-300 text-pink-700 hover:bg-pink-100'
                   }`}
-                  title="ចុចដើម្បីមើលព័ត៌មានកូនពៅ (ចែ)"
+                  title={`ចុចដើម្បីមើលព័ត៌មាន${isDaddyMode ? 'កូនពៅ (ប៉ា)' : 'កូនពៅ (ចែ)'}`}
                 >
-                  <i className="fas fa-heart text-[8.5px] text-pink-400"></i>
-                  <span>កូនពៅ (ចែ)</span>
+                  <i className={`fas ${isDaddyMode ? 'fa-crown text-amber-400' : 'fa-heart text-pink-400'} text-[8.5px]`}></i>
+                  <span>{isDaddyMode ? 'កូនពៅ (ប៉ា)' : 'កូនពៅ (ចែ)'}</span>
                 </button>
               )}
             </div>
@@ -3017,8 +3056,8 @@ export default function KonPovPage() {
                     className="md:hidden inline-flex items-center gap-0.5 text-[9px] font-bold text-pink-400 hover:text-pink-300 transition shrink-0 active:scale-95"
                     title="ចុចមើលព័ត៌មានកូនពៅ"
                   >
-                    <i className="fas fa-heart text-[7.5px]"></i>
-                    <span>កូនពៅ (ចែ)</span>
+                    <i className={`fas ${isDaddyMode ? 'fa-crown text-amber-400' : 'fa-heart text-pink-400'} text-[7.5px]`}></i>
+                    <span>{isDaddyMode ? 'កូនពៅ (ប៉ា)' : 'កូនពៅ (ចែ)'}</span>
                   </button>
                 </>
               )}
@@ -3782,7 +3821,7 @@ export default function KonPovPage() {
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-bold text-pink-500 dark:text-pink-400 text-xs mb-1">
-                    Roastbot កូនពៅ (ចែ)
+                    {botPersonaTitle}
                   </span>
 
                   {/* AI Thinking Indicator (Rendered ABOVE the message bubble while thinking) */}
@@ -3794,7 +3833,7 @@ export default function KonPovPage() {
                         <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                       </div>
                       <span className="text-[10.5px] sm:text-[11px] font-bold tracking-tight transition-all duration-300">
-                        {typingStatus || 'ចែ កំពុងគិតច្រើនស្រទាប់...'}
+                        {typingStatus || 'កំពុងដំណើរការវិភាគទិន្នន័យ...'}
                       </span>
                     </div>
                   )}

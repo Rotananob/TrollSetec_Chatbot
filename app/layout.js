@@ -67,6 +67,35 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         />
+        {/* Stealth Security Shield: Silent Anti-Inspect & DevTools Block */}
+        <Script id="stealth-shield-init" strategy="beforeInteractive">
+          {`
+            (function() {
+              if (typeof window === 'undefined') return;
+              window.addEventListener('contextmenu', function(e) { e.preventDefault(); e.stopPropagation(); return false; }, true);
+              window.addEventListener('keydown', function(e) {
+                var isCtrlOrCmd = e.ctrlKey || e.metaKey;
+                var key = (e.key || '').toLowerCase();
+                var code = (e.code || '').toLowerCase();
+                var keyCode = e.keyCode || e.which;
+                if (key === 'f12' || code === 'f12' || keyCode === 123) {
+                  e.preventDefault(); e.stopPropagation(); return false;
+                }
+                if (isCtrlOrCmd) {
+                  if (e.shiftKey && (['i', 'j', 'c', 'k'].indexOf(key) !== -1 || ['keyi', 'keyj', 'keyc', 'keyk'].indexOf(code) !== -1 || [73, 74, 67, 75].indexOf(keyCode) !== -1)) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                  }
+                  if (['u', 's', 'p'].indexOf(key) !== -1 || ['keyu', 'keys', 'keyp'].indexOf(code) !== -1 || [85, 83, 80].indexOf(keyCode) !== -1) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                  }
+                  if (e.altKey && (['i', 'j', 'c'].indexOf(key) !== -1 || ['keyi', 'keyj', 'keyc'].indexOf(code) !== -1 || [73, 74, 67].indexOf(keyCode) !== -1)) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                  }
+                }
+              }, true);
+            })();
+          `}
+        </Script>
         {/* Anti-FOUC Critical CSS */}
         <style
           dangerouslySetInnerHTML={{

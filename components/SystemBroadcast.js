@@ -323,6 +323,29 @@ export default function SystemBroadcast() {
   const isNightOnly = !isMaintenance && isNight;
   const isResting = isMaintenance || isNight;
 
+  // Individual Bot Pause Status & Real-time Alert
+  const isKonBongPage = pathname ? pathname.toLowerCase().includes('konbong') : false;
+  const isKonPovPage = pathname ? pathname.toLowerCase().includes('konpov') : false;
+
+  const isCurrentBotDisabled =
+    (isKonBongPage && systemState.konbongActive === false) ||
+    (isKonPovPage && systemState.konpovActive === false);
+
+  const disabledBotName = isKonBongPage ? 'បងកូនច្បង (KonBong)' : 'ចែកូនពៅ (KonPov)';
+  const alternateBotName = isKonBongPage ? 'ចែកូនពៅ (KonPov)' : 'បងកូនច្បង (KonBong)';
+  const alternateBotPath = isKonBongPage ? '/KonPov' : '/KonBong';
+  const disabledNotice = isKonBongPage
+    ? (systemState.konbongNotice || 'បងកូនច្បង KonBong កំពុងសម្រាកបណ្ដោះអាសន្នតាមការកំណត់របស់អ្នកគ្រប់គ្រង។ សូមអញ្ជើញទៅជជែកជាមួយចែកូនពៅជំនួសវិញ!')
+    : (systemState.konpovNotice || 'ចែកូនពៅ KonPov កំពុងសម្រាកបណ្ដោះអាសន្នតាមការកំណត់របស់អ្នកគ្រប់គ្រង។ សូមអញ្ជើញទៅជជែកជាមួយបងកូនច្បងជំនួសវិញ!');
+
+  const prevBotDisabledRef = useRef(false);
+  useEffect(() => {
+    if (isCurrentBotDisabled && !prevBotDisabledRef.current && !isBypassed) {
+      playBroadcastChime();
+    }
+    prevBotDisabledRef.current = isCurrentBotDisabled;
+  }, [isCurrentBotDisabled, isBypassed]);
+
   // Pause audio when system is resting/under maintenance
   useEffect(() => {
     if (isResting && typeof document !== 'undefined') {
@@ -392,6 +415,77 @@ export default function SystemBroadcast() {
               >
                 យល់ព្រម និងបិទសារ
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 1.5 REAL-TIME BOT PAUSED POPUP MODAL (KonBong or KonPov)   */}
+      {/* Appears when visitor is on a bot's page while it's paused */}
+      {/* ========================================================= */}
+      {!isResting && isCurrentBotDisabled && !isBypassed && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[99998] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 selection:bg-slate-300 selection:text-slate-900 animate-in fade-in duration-200"
+        >
+          <div
+            className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-2xl relative text-slate-900 text-center flex flex-col items-center font-['Kantumruy_Pro',sans-serif]"
+          >
+            {/* Mascot / Icon Badge */}
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 shadow-xs mb-3.5 relative">
+              <i className={`fa-solid ${isKonBongPage ? 'fa-user-tie text-indigo-600' : 'fa-robot text-pink-600'} text-2xl`} />
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] shadow-xs">
+                <i className="fa-solid fa-pause" />
+              </span>
+            </div>
+
+            {/* Pill status */}
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 uppercase tracking-widest bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full shadow-2xs font-sans mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              <span>ផ្អាកដំណើរការបណ្ដោះអាសន្ន • BOT PAUSED</span>
+            </span>
+
+            {/* Headline */}
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-1 leading-snug">
+              {disabledBotName} កំពុងសម្រាក
+            </h2>
+            <p className="text-xs text-slate-500 font-sans mb-4">
+              អ្នកគ្រប់គ្រងប្រព័ន្ធបានផ្អាកដំណើរការ {disabledBotName} មួយរយៈ
+            </p>
+
+            {/* Admin Custom Message Box */}
+            <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 sm:p-4 mb-4 text-left">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 pb-1.5 mb-1.5 border-b border-slate-200/80">
+                <i className="fa-solid fa-bullhorn text-indigo-500 text-xs" />
+                <span>សារជូនដំណឹងពីអ្នកកាន់ប្រព័ន្ធ៖</span>
+              </div>
+              <p className="text-xs sm:text-sm font-sans text-slate-800 font-medium leading-relaxed whitespace-pre-wrap break-words">
+                {disabledNotice}
+              </p>
+            </div>
+
+            {/* Navigation Switch Buttons */}
+            <div className="w-full flex flex-col sm:flex-row items-center gap-2.5">
+              <Link
+                href={alternateBotPath}
+                className={`w-full py-2.5 px-4 rounded-xl text-white text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-sm ${
+                  isKonBongPage
+                    ? 'bg-pink-600 hover:bg-pink-700 shadow-pink-600/20'
+                    : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20'
+                }`}
+              >
+                <i className="fa-solid fa-arrow-right-arrow-left text-xs" />
+                <span>ទៅជជែកជាមួយ {alternateBotName}</span>
+              </Link>
+              <Link
+                href="/"
+                className="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-medium flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <i className="fa-solid fa-house text-xs" />
+                <span>ទំព័រដើម</span>
+              </Link>
             </div>
           </div>
         </div>

@@ -7,8 +7,9 @@ import {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-device-id, x-session-id, x-requested-with',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE, PATCH',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Max-Age': '86400',
   'X-Engine': 'setec-neural-vision-v3',
   'X-Powered-By': 'SETEC Vision Core v3.8',
   'Server': 'SETEC-Cloud-Gateway'
@@ -20,6 +21,12 @@ export async function OPTIONS() {
 
 export async function POST(req) {
   try {
+    // Anti-Bot / Anti-cURL
+    const ua = (req.headers.get('user-agent') || '').toLowerCase();
+    if (!ua || /curl|wget|python-requests|aiohttp|scrapy|urllib|postmanruntime|insomnia|go-http-client|node-fetch|libwww|httpclient|java\/|apache-httpclient/i.test(ua)) {
+      return Response.json({ success: false, error: 'Forbidden' }, { status: 403, headers: corsHeaders });
+    }
+
     // 0a. Payload Size Guard
     const contentLength = parseInt(req.headers.get('content-length') || '0', 10);
     if (contentLength > 1 * 1024 * 1024) {

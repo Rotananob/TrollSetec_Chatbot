@@ -219,7 +219,23 @@ export function subscribeToBypassRequest(requestId, onStatusChange) {
 
   let isClosed = false;
   let pollingInterval = null;
+  let errorCount = 0;
+  let eventSource = null;
   const url = `${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(requestId)}.json`;
+
+  const cleanup = () => {
+    isClosed = true;
+    if (eventSource) {
+      try {
+        eventSource.close();
+      } catch {}
+      eventSource = null;
+    }
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
+  };
 
   const checkStatus = async () => {
     if (isClosed) return;
@@ -229,43 +245,59 @@ export function subscribeToBypassRequest(requestId, onStatusChange) {
         const data = await res.json();
         if (data && !isClosed) {
           onStatusChange(data);
+          if (data.status === 'approved' || data.status === 'rejected') {
+            cleanup();
+          }
+        }
+      } else {
+        errorCount++;
+        if (errorCount >= 4) {
+          cleanup();
         }
       }
-    } catch {}
+    } catch {
+      errorCount++;
+      if (errorCount >= 4) {
+        cleanup();
+      }
+    }
   };
 
   try {
     if (window.EventSource) {
-      const eventSource = new EventSource(url);
+      eventSource = new EventSource(url);
       eventSource.addEventListener('put', (e) => {
         try {
           if (isClosed) return;
           const payload = JSON.parse(e.data);
-          if (payload?.data) {
-            onStatusChange(payload.data);
-          } else if (payload?.path === '/' && payload?.data) {
-            onStatusChange(payload.data);
+          const data = payload?.data || (payload?.path === '/' ? payload?.data : null);
+          if (data) {
+            onStatusChange(data);
+            if (data.status === 'approved' || data.status === 'rejected') {
+              cleanup();
+            }
           }
         } catch {}
       });
 
       eventSource.onerror = () => {
-        if (!pollingInterval && !isClosed) {
-          pollingInterval = setInterval(checkStatus, 1500);
+        // Close eventSource so it doesn't repeatedly flood Network tab with failing SSE handshakes
+        if (eventSource) {
+          try {
+            eventSource.close();
+          } catch {}
+          eventSource = null;
+        }
+        if (!pollingInterval && !isClosed && errorCount < 4) {
+          pollingInterval = setInterval(checkStatus, 3500);
         }
       };
 
-      return () => {
-        isClosed = true;
-        if (eventSource) eventSource.close();
-        if (pollingInterval) clearInterval(pollingInterval);
-      };
+      return cleanup;
     }
   } catch {}
 
-  pollingInterval = setInterval(checkStatus, 1500);
-  return () => {
-    isClosed = true;
-    if (pollingInterval) clearInterval(pollingInterval);
-  };
+  // Fallback if EventSource not supported
+  pollingInterval = setInterval(checkStatus, 3500);
+  return cleanup;
 }

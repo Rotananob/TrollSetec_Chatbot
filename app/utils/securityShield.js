@@ -23,34 +23,35 @@ export function initSecurityShield() {
     'keydown',
     (e) => {
       const isCtrlOrCmd = e.ctrlKey || e.metaKey;
-      const key = e.key ? e.key.toLowerCase() : '';
+      const key = (e.key || '').toLowerCase();
+      const code = (e.code || '').toLowerCase();
       const keyCode = e.keyCode || e.which;
 
       // Standalone F12
-      if (key === 'f12' || keyCode === 123) {
+      if (key === 'f12' || code === 'f12' || keyCode === 123) {
         e.preventDefault();
         e.stopPropagation();
         return false;
       }
 
-      // Only block inspect / dump shortcuts when combined with Ctrl / Cmd (Preserving normal typing!)
+      // Block inspect / dump shortcuts when combined with Ctrl / Cmd (Preserving normal typing!)
       if (isCtrlOrCmd) {
         // Ctrl/Cmd + Shift + [I, J, C, K] (DevTools, Console, Inspector)
-        if (e.shiftKey && ['i', 'j', 'c', 'k'].includes(key)) {
+        if (e.shiftKey && (['i', 'j', 'c', 'k'].includes(key) || ['keyi', 'keyj', 'keyc', 'keyk'].includes(code) || [73, 74, 67, 75].includes(keyCode))) {
           e.preventDefault();
           e.stopPropagation();
           return false;
         }
 
         // Ctrl/Cmd + [U, S, P] (View Source, Save Page, Print Dump)
-        if (['u', 's', 'p'].includes(key)) {
+        if (['u', 's', 'p'].includes(key) || ['keyu', 'keys', 'keyp'].includes(code) || [85, 83, 80].includes(keyCode)) {
           e.preventDefault();
           e.stopPropagation();
           return false;
         }
 
         // Alt + Cmd/Ctrl + [I, J, C] (macOS Safari / Chrome inspect shortcuts)
-        if (e.altKey && ['i', 'j', 'c'].includes(key)) {
+        if (e.altKey && (['i', 'j', 'c'].includes(key) || ['keyi', 'keyj', 'keyc'].includes(code) || [73, 74, 67].includes(keyCode))) {
           e.preventDefault();
           e.stopPropagation();
           return false;
@@ -74,40 +75,7 @@ export function initSecurityShield() {
   // 4. Console Neutralizer: Hide internal logs from Developer Console in production
   try {
     const noop = () => {};
-    const bannerArgs = [
-      '%cSETEC Neural Core v3.8\n%cProprietary AI System by Rotana NOB. All rights reserved.',
-      'font-size: 16px; font-weight: 900; color: #3b82f6;',
-      'font-size: 11px; color: #94a3b8;'
-    ];
-
-    // Clear console periodically and show fake proprietary banner
-    setInterval(() => {
-      try {
-        console.clear();
-        console.log(...bannerArgs);
-      } catch {}
-    }, 2000);
-
-    // Suppress console leaks
     console.debug = noop;
     console.info = noop;
-  } catch {}
-
-  // 5. Anti-Debugging timing detector (Silently detects DevTools open without intrusive alert)
-  try {
-    let checkCount = 0;
-    setInterval(() => {
-      const start = performance.now();
-      // eslint-disable-next-line no-debugger
-      debugger;
-      const end = performance.now();
-      if (end - start > 100) {
-        // Devtools debugger paused execution: clear console instantly
-        try {
-          console.clear();
-        } catch {}
-      }
-      checkCount++;
-    }, 1500);
   } catch {}
 }

@@ -57,6 +57,8 @@ export default function JamTicKapeaAdminPage() {
   const [editMaintenanceReason, setEditMaintenanceReason] = useState('');
   const [editNightMessage, setEditNightMessage] = useState('');
   const [editBroadcastNotice, setEditBroadcastNotice] = useState('');
+  const [editKonBongNotice, setEditKonBongNotice] = useState('');
+  const [editKonPovNotice, setEditKonPovNotice] = useState('');
   const [editNightStart, setEditNightStart] = useState(2);
   const [editNightEnd, setEditNightEnd] = useState(6);
 
@@ -70,6 +72,8 @@ export default function JamTicKapeaAdminPage() {
   const isEditingMaintenanceRef = useRef(false);
   const isEditingNightMessageRef = useRef(false);
   const isEditingBroadcastRef = useRef(false);
+  const isEditingKonBongNoticeRef = useRef(false);
+  const isEditingKonPovNoticeRef = useRef(false);
 
   // Tab 5: Promo Code & Bypass Management State
   const [bypassRequests, setBypassRequests] = useState([]);
@@ -249,6 +253,12 @@ export default function JamTicKapeaAdminPage() {
             if (!isEditingBroadcastRef.current || forceSyncFields) {
               setEditBroadcastNotice(data.state.broadcastNotice || '');
             }
+            if (!isEditingKonBongNoticeRef.current || forceSyncFields) {
+              setEditKonBongNotice(data.state.konbongNotice || '');
+            }
+            if (!isEditingKonPovNoticeRef.current || forceSyncFields) {
+              setEditKonPovNotice(data.state.konpovNotice || '');
+            }
             setEditNightStart(data.state.nightStartHour ?? 2);
             setEditNightEnd(data.state.nightEndHour ?? 6);
             initialLoadedRef.current = true;
@@ -256,6 +266,8 @@ export default function JamTicKapeaAdminPage() {
               isEditingMaintenanceRef.current = false;
               isEditingNightMessageRef.current = false;
               isEditingBroadcastRef.current = false;
+              isEditingKonBongNoticeRef.current = false;
+              isEditingKonPovNoticeRef.current = false;
             }
           }
           setRtdbConnected(true);
@@ -538,6 +550,8 @@ export default function JamTicKapeaAdminPage() {
           setEditMaintenanceReason(data.state.maintenanceReason || '');
           setEditNightMessage(data.state.nightRestMessage || '');
           setEditBroadcastNotice(data.state.broadcastNotice || '');
+          setEditKonBongNotice(data.state.konbongNotice || '');
+          setEditKonPovNotice(data.state.konpovNotice || '');
           setEditNightStart(data.state.nightStartHour ?? 2);
           setEditNightEnd(data.state.nightEndHour ?? 6);
           initialLoadedRef.current = true;
@@ -649,18 +663,42 @@ export default function JamTicKapeaAdminPage() {
 
   const handleToggleKonBong = () => {
     const nextState = !systemState.konbongActive;
+    const patch = { konbongActive: nextState };
+    if (!nextState && editKonBongNotice) {
+      patch.konbongNotice = editKonBongNotice;
+    }
     sendUpdate(
-      { konbongActive: nextState },
+      patch,
       nextState ? 'បើកដំណើរការបងកូនច្បង Activate KonBong' : 'ផ្អាកបងកូនច្បង Deactivate KonBong'
     );
   };
 
+  const handleSaveKonBongNotice = () => {
+    sendUpdate(
+      { konbongNotice: editKonBongNotice },
+      'បានរក្សាទុកសារជូនដំណឹងបងកូនច្បង'
+    );
+    isEditingKonBongNoticeRef.current = false;
+  };
+
   const handleToggleKonPov = () => {
     const nextState = !systemState.konpovActive;
+    const patch = { konpovActive: nextState };
+    if (!nextState && editKonPovNotice) {
+      patch.konpovNotice = editKonPovNotice;
+    }
     sendUpdate(
-      { konpovActive: nextState },
+      patch,
       nextState ? 'បើកដំណើរការចែកូនពៅ Activate KonPov' : 'ផ្អាកចែកូនពៅ Deactivate KonPov'
     );
+  };
+
+  const handleSaveKonPovNotice = () => {
+    sendUpdate(
+      { konpovNotice: editKonPovNotice },
+      'បានរក្សាទុកសារជូនដំណឹងចែកូនពៅ'
+    );
+    isEditingKonPovNoticeRef.current = false;
   };
 
   const handleToggleSessionLimit = () => {
@@ -2083,30 +2121,61 @@ export default function JamTicKapeaAdminPage() {
         {activeTab === 'bots' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* KonBong Card */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-950 border border-indigo-700/60 text-indigo-400 flex items-center justify-center text-xl">
-                    <i className="fa-solid fa-robot" />
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-950 border border-indigo-700/60 text-indigo-400 flex items-center justify-center text-xl">
+                      <i className="fa-solid fa-robot" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">ស៊ីតិច Chatbot កូនច្បង</h3>
+                      <p className="text-xs text-slate-400">Male AI Troll Specialist &bull; Voice Puck</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white">ស៊ីតិច Chatbot កូនច្បង</h3>
-                    <p className="text-xs text-slate-400">Male AI Troll Specialist &bull; Voice Puck</p>
-                  </div>
+
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    systemState.konbongActive
+                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                      : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    {systemState.konbongActive ? 'ACTIVE' : 'DISABLED'}
+                  </span>
                 </div>
 
-                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                  systemState.konbongActive
-                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                    : 'bg-slate-800 text-slate-400'
-                }`}>
-                  {systemState.konbongActive ? 'ACTIVE' : 'DISABLED'}
-                </span>
-              </div>
+                <p className="text-xs text-slate-400 mb-4">
+                  នៅពេលបិទបងកូនច្បង សិស្សដែលចូលទៅកាន់ /KonBong នឹងឃើញផ្ទាំង Real-time Popup ប្រាប់ពីសារខាងក្រោម និងណែនាំឱ្យទៅលេងជាមួយចែកូនពៅវិញ។
+                </p>
 
-              <p className="text-xs text-slate-400 mb-6">
-                នៅពេលបិទបងកូនច្បង សិស្សដែលចូលទៅកាន់ /KonBong នឹងត្រូវបានណែនាំឱ្យទៅលេងជាមួយចែកូនពៅវិញ។
-              </p>
+                {/* Custom Content Text Input when Paused */}
+                <div className="mb-5 bg-slate-950/70 border border-slate-800 rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-semibold text-indigo-300 flex items-center gap-1.5">
+                      <i className="fa-solid fa-bullhorn text-[10px]" />
+                      <span>សារប្រាប់សិស្សពេលផ្អាក (Custom Content Text):</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleSaveKonBongNotice}
+                      disabled={isSubmitting}
+                      className="px-2.5 py-1 rounded-md bg-indigo-600/80 hover:bg-indigo-600 text-white text-[10px] font-medium transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="fa-solid fa-check text-[9px]" />
+                      <span>Save Notice</span>
+                    </button>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={editKonBongNotice}
+                    onChange={(e) => {
+                      setEditKonBongNotice(e.target.value);
+                      isEditingKonBongNoticeRef.current = true;
+                    }}
+                    placeholder="ឧ. បងកូនច្បងកំពុង Update កូដប្រព័ន្ធ... សូមទៅលេងជាមួយចែកូនពៅសិន!"
+                    className="w-full bg-slate-900/90 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-indigo-500 transition-colors font-sans"
+                  />
+                </div>
+              </div>
 
               <button
                 type="button"
@@ -2124,30 +2193,61 @@ export default function JamTicKapeaAdminPage() {
             </div>
 
             {/* KonPov Card */}
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-pink-950 border border-pink-700/60 text-pink-400 flex items-center justify-center text-xl">
-                    <i className="fa-solid fa-robot" />
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-pink-950 border border-pink-700/60 text-pink-400 flex items-center justify-center text-xl">
+                      <i className="fa-solid fa-robot" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">ស៊ីតិច Chatbot កូនពៅ</h3>
+                      <p className="text-xs text-slate-400">Female AI Troll Specialist &bull; Voice Aoede</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white">ស៊ីតិច Chatbot កូនពៅ</h3>
-                    <p className="text-xs text-slate-400">Female AI Troll Specialist &bull; Voice Aoede</p>
-                  </div>
+
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                    systemState.konpovActive
+                      ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                      : 'bg-slate-800 text-slate-400'
+                  }`}>
+                    {systemState.konpovActive ? 'ACTIVE' : 'DISABLED'}
+                  </span>
                 </div>
 
-                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                  systemState.konpovActive
-                    ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                    : 'bg-slate-800 text-slate-400'
-                }`}>
-                  {systemState.konpovActive ? 'ACTIVE' : 'DISABLED'}
-                </span>
-              </div>
+                <p className="text-xs text-slate-400 mb-4">
+                  នៅពេលបិទចែកូនពៅ សិស្សដែលចូលទៅកាន់ /KonPov នឹងឃើញផ្ទាំង Real-time Popup ប្រាប់ពីសារខាងក្រោម និងណែនាំឱ្យទៅលេងជាមួយបងកូនច្បងវិញ។
+                </p>
 
-              <p className="text-xs text-slate-400 mb-6">
-                នៅពេលបិទចែកូនពៅ សិស្សដែលចូលទៅកាន់ /KonPov នឹងត្រូវបានណែនាំឱ្យទៅលេងជាមួយបងកូនច្បងវិញ។
-              </p>
+                {/* Custom Content Text Input when Paused */}
+                <div className="mb-5 bg-slate-950/70 border border-slate-800 rounded-xl p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-semibold text-pink-300 flex items-center gap-1.5">
+                      <i className="fa-solid fa-bullhorn text-[10px]" />
+                      <span>សារប្រាប់សិស្សពេលផ្អាក (Custom Content Text):</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleSaveKonPovNotice}
+                      disabled={isSubmitting}
+                      className="px-2.5 py-1 rounded-md bg-pink-600/80 hover:bg-pink-600 text-white text-[10px] font-medium transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <i className="fa-solid fa-check text-[9px]" />
+                      <span>Save Notice</span>
+                    </button>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={editKonPovNotice}
+                    onChange={(e) => {
+                      setEditKonPovNotice(e.target.value);
+                      isEditingKonPovNoticeRef.current = true;
+                    }}
+                    placeholder="ឧ. ចែកូនពៅកំពុង Update កូដប្រព័ន្ធ... សូមទៅលេងជាមួយបងកូនច្បងសិន!"
+                    className="w-full bg-slate-900/90 border border-slate-700/80 rounded-lg p-2.5 text-xs text-white placeholder-slate-500 focus:outline-hidden focus:border-pink-500 transition-colors font-sans"
+                  />
+                </div>
+              </div>
 
               <button
                 type="button"

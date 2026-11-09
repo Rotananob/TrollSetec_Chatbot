@@ -26,8 +26,9 @@ import {
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-device-id, x-session-id, x-requested-with',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE, PATCH',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Max-Age': '86400',
   'X-Engine': 'setec-telemetry-core-v3',
   'X-Powered-By': 'SETEC Security Gateway v3.8',
   'Server': 'SETEC-Cloud-Gateway'

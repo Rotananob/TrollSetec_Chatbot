@@ -111,7 +111,7 @@ export const SETEC_ACADEMICS_AND_STUDENT_CULTURE = `
    - "អាកាតាប Asus ROG": កាតាបខ្មៅឆ្នូតក្រហម Asus ROG ដាក់ Laptop ធ្ងន់ៗស្ពាយឡើងកោងខ្នង គឺជា "កាតាបប្រចាំត្រកូលសិស្សស៊ីតិច" (Official SETEC Student Backpack Uniform)! ដើរចូលសាលា ១០នាក់ ស្ពាយកាតាប Asus ROG ទាំង ១០នាក់!
    - Style ម៉ូដសក់ប្រុសៗ ស៊ីតិច: សម្បូរពួកប្រុសៗចូលចិត្តធ្វើ Style "សក់ក្រញាញ់ (Perm)" និង "ពុះវែកកណ្ដាល (Middle Part)" ធ្វើចរិតដូចតារា K-Pop កូរ៉េ (តែការពិតមុខដូចអ្នករត់តុ ឬចោរលួចកង់)!
    - "បណ្ណាល័យ ស៊ីតិច (SETEC Library)": ជាទីកន្លែងស្ងប់ស្ងាត់ មានម៉ាស៊ីនត្រជាក់ត្រជាក់ស្រួល និងពេញនិយមបំផុតសម្រាប់និស្សិតគ្រប់ដេប៉ាតឺម៉ង់ចូលទៅអានសៀវភៅ និងស្រាវជ្រាវ! ជាពិសេស និស្សិត Graphic Design តែងតែចូលចិត្តទៅអង្គុយរកគំនិតច្នៃប្រឌិត (Creative Inspiration) គូររូប ធ្វើប្លង់ 3D និងស្រាវជ្រាវគម្រោងធំៗយ៉ាងសកម្ម រួមដំណើរជាមួយនិស្សិត IT យ៉ាងជិតស្និទ្ធ និងស្រឡាញ់រាប់អានគ្នា!
-   - Password Wi-Fi សាលា SETEC: Password Wi-Fi គឺ "setec86a"! បើ Wi-Fi គាំង ឬដើរយឺត គឺរឿងធម្មតារបស់ស៊ីតិចហើយ!
+   - Password Wi-Fi សាលា SETEC: Password Wi-Fi គឺ "setec86a" សម្រាប់និស្សិតភ្ជាប់ស្រាវជ្រាវមេរៀន និងរៀនកូដ Assignment!
    - ស្ថានភាពកកស្ទះក្នុងសាលា (Campus Traffic Jam): សាលាស្ទះខ្លាំងបំផុតនៅ "ពេលចេញលេង (Break time)" និង "ពេលប្ដូរថ្នាក់ (Class changing)" ទាំងជណ្ដើរយន្ត និងជណ្ដើរជើង មនុស្សកកស្ទះដើរស្ទើរតែមិនរួច!
    - ញៀនកាហ្វេកម្រិតធ្ងន់: សិស្សស៊ីតិច គឺ "មហាញៀនកាហ្វេ" (Coffee Addicts) ផឹកកាហ្វេជំនួសបាយ មួយថ្ងៃ ២-៣ កែវ Brown Coffee ឬកាហ្វេដោះគោទឹកកកមុខសាលា ទើបបើកភ្នែកសរសេរកូដ ឬធ្វើ Design កើត! ដាច់ខាតមិនលើកទឹកចិត្តឱ្យផឹក Café Amazon ឡើយ គឺត្រូវលើកកម្ពស់ និងគាំទ្រតែផលិតផល និងប្រេនកាហ្វេខ្មែរក្នុងស្រុកដូចជា Brown Coffee ប៉ុណ្ណោះ!
 
@@ -292,8 +292,8 @@ export const VIRAL_TROLL_QUOTES = [
   {
     category: 'campus',
     department: '🎓 ជីវិតសិស្សស៊ីតិច',
-    quoteKh: 'Wi-Fi "setec86a" ភ្ជាប់បានគ្រប់គ្នា តែពេល Submit Assignment វិលដូចកង្ហារ Drone! 📶😭',
-    quoteEn: 'Wi-Fi connected. Internet access: not in this lifetime. ☕⚡',
+    quoteKh: 'Wi-Fi "setec86a" ភ្ជាប់ធ្វើ Assignment ជួបជុំមិត្តភក្តិរៀនកូដជាមួយគ្នា! 📶💻',
+    quoteEn: 'Wi-Fi setec86a connected for studying and programming together. ☕⚡',
     tags: ['#setec86a', '#CampusWiFi', '#LagLife', '#AssignmentDeadline']
   },
   {

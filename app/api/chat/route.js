@@ -46,8 +46,9 @@ export { MACHINE_ENCODED_WAKEUP_PAYLOAD };
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-rotana-passcode, x-rotana-bypass, x-rotana-secret-key, x-device-id, x-session-id, x-username, x-requested-with, X-Accel-Buffering, Cache-Control',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE, PATCH',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Max-Age': '86400',
   'X-Engine': 'setec-neural-core-v3',
   'X-Powered-By': 'SETEC Neural Network v3.8',
   'Server': 'SETEC-Cloud-Gateway'
@@ -115,7 +116,7 @@ export function isKeyCoolingDown(key) {
 }
 
 export function getApiKeyPool(bot) {
-  // Collect all 6 Gemini API keys from environment
+  // Collect all 7 Gemini API keys from environment
   const rawPool = [
     process.env.GEMINI_API_KEY_KONBONG,
     process.env.GEMINI_API_KEY_KONPOV,
@@ -123,6 +124,7 @@ export function getApiKeyPool(bot) {
     process.env.GEMINI_API_KEY_RESERVE,
     process.env.GEMINI_API_KEY_RESERVE_ONE,
     process.env.GEMINI_API_KEY_RESERVE_TWO,
+    process.env.GEMINI_API_KEY_RESERVE_THREE,
     process.env.GOOGLE_API_KEY
   ].filter(Boolean);
 
@@ -151,7 +153,7 @@ export function getApiKeyPool(bot) {
   return [...readyKeys, ...coolingKeys];
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 5000) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 18000) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   let lastError = null;
   let lastData = null;
@@ -202,7 +204,7 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 5000)
 }
 
 // Native Gemini TTS via /v1beta/interactions with key rotation across all available pool keys
-async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 2500) {
+async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 6000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
   if (keys.length === 0) return { ok: false };
 
@@ -267,7 +269,7 @@ async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 250
 }
 
 // Fast streaming with SSE fallback for real-time ChatGPT-like preview
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 5000) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 18000) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
 
   for (const key of keys) {
@@ -369,112 +371,6 @@ async function fetchKhmerSpeechFallback(text) {
     console.error('Khmer TTS fallback error:', err);
     return null;
   }
-}
-
-// Bulletproof OpenAI Chat Completions Fallback (gpt-4o-mini) when all Gemini keys are exhausted or cooling down
-async function callOpenAIChatFallback(systemInstruction, contents, timeoutMs = 8000) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return { ok: false };
-
-  try {
-    const messages = [];
-
-    if (systemInstruction) {
-      const sysText = typeof systemInstruction === 'string'
-        ? systemInstruction
-        : systemInstruction?.parts?.map((p) => p.text).filter(Boolean).join('\n');
-      if (sysText) {
-        messages.push({ role: 'system', content: sysText });
-      }
-    }
-
-    if (Array.isArray(contents)) {
-      for (const item of contents) {
-        const role = item.role === 'model' ? 'assistant' : 'user';
-        const textParts = item.parts?.map((p) => p.text).filter(Boolean).join('\n') || '';
-        if (textParts) {
-          messages.push({ role, content: textParts });
-        }
-      }
-    }
-
-    if (messages.length === 0) return { ok: false };
-
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages,
-        temperature: 0.85,
-        max_tokens: 650
-      }),
-      signal: AbortSignal.timeout(timeoutMs)
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      const reply = data.choices?.[0]?.message?.content || '';
-      if (reply) {
-        return {
-          ok: true,
-          data: {
-            candidates: [
-              {
-                content: {
-                  parts: [{ text: reply }],
-                  role: 'model'
-                },
-                finishReason: 'STOP'
-              }
-            ],
-            modelVersion: 'openai-gpt-4o-mini'
-          },
-          status: 200
-        };
-      }
-    } else {
-      const errJson = await res.json().catch(() => ({}));
-      console.warn('[OpenAI Chat Fallback] Status:', res.status, errJson?.error?.code || errJson?.error?.message);
-    }
-  } catch (err) {
-    console.warn('[OpenAI Chat Fallback] Fetch error:', err.message);
-  }
-  return { ok: false };
-}
-
-// OpenAI TTS Fallback (tts-1) for high-fidelity spoken responses
-async function callOpenAITTS(text, voiceName = 'alloy', timeoutMs = 5000) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || !text) return { ok: false };
-
-  try {
-    const res = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'tts-1',
-        voice: voiceName,
-        input: text.slice(0, 380)
-      }),
-      signal: AbortSignal.timeout(timeoutMs)
-    });
-
-    if (res.ok) {
-      const arrayBuf = await res.arrayBuffer();
-      const b64Data = Buffer.from(arrayBuf).toString('base64');
-      return { ok: true, data: b64Data, mimeType: 'audio/mpeg' };
-    }
-  } catch (err) {
-    console.warn('[OpenAI TTS] Error:', err.message);
-  }
-  return { ok: false };
 }
 
 // Strictly enforce maximum 7 emojis per output (Min 1-2, average 3-4, hard limit max 7)
@@ -988,6 +884,15 @@ export async function POST(req) {
   let clientUserAgent = 'Unknown';
 
   try {
+    // 0. Anti-Scraper / Anti-Bot / Anti-cURL Guard (Block unauthorized scrapers/bots)
+    const ua = (req.headers.get('user-agent') || '').toLowerCase();
+    if (!ua || /curl|wget|python-requests|aiohttp|scrapy|urllib|postmanruntime|insomnia|go-http-client|node-fetch|libwww|httpclient|java\/|apache-httpclient/i.test(ua)) {
+      return Response.json(
+        { error: 'Forbidden', message: 'Direct automated access or cURL is blocked.' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
     // 0a. Payload Size Guard (Anti-Memory Exhaustion / Buffer Bomb)
     const contentLength = parseInt(req.headers.get('content-length') || '0', 10);
     if (contentLength > 3 * 1024 * 1024) {
@@ -1082,10 +987,14 @@ export async function POST(req) {
 
       // Individual Bot Status
       if (bot === 'konbong' && systemState.konbongActive === false) {
-        const msg = 'បងកូនច្បង KonBong កំពុងស្ថិតក្នុងការសម្រាក ឬ Update កូដបណ្ដោះអាសន្ន! សូមចូលទៅលេងជាមួយ ចែកូនពៅ KonPov វិញបានណា៎!';
+        const msg = systemState.konbongNotice || 'បងកូនច្បង KonBong កំពុងស្ថិតក្នុងការសម្រាក ឬ Update កូដបណ្ដោះអាសន្ន! សូមចូលទៅលេងជាមួយ ចែកូនពៅ KonPov វិញបានណា៎!';
+        if (body?.stream) {
+          return createProgressiveStreamResponse(msg, corsHeaders);
+        }
         return Response.json(
           {
             error: 'Bot Disabled',
+            message: msg,
             candidates: [{ content: { parts: [{ text: msg }] } }]
           },
           { status: 503, headers: corsHeaders }
@@ -1093,10 +1002,14 @@ export async function POST(req) {
       }
 
       if (bot === 'konpov' && systemState.konpovActive === false) {
-        const msg = 'ចែកូនពៅ KonPov កំពុងស្ថិតក្នុងការសម្រាក ឬ Update កូដបណ្ដោះអាសន្ន! សូមចូលទៅលេងជាមួយ បងកូនច្បង KonBong វិញបានណា៎!';
+        const msg = systemState.konpovNotice || 'ចែកូនពៅ KonPov កំពុងស្ថិតក្នុងការសម្រាក ឬ Update កូដបណ្ដោះអាសន្ន! សូមចូលទៅលេងជាមួយ បងកូនច្បង KonBong វិញបានណា៎!';
+        if (body?.stream) {
+          return createProgressiveStreamResponse(msg, corsHeaders);
+        }
         return Response.json(
           {
             error: 'Bot Disabled',
+            message: msg,
             candidates: [{ content: { parts: [{ text: msg }] } }]
           },
           { status: 503, headers: corsHeaders }
@@ -1280,7 +1193,7 @@ export async function POST(req) {
       // 1. Primary AI Voice: Call Gemini Native TTS if keys available (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
       let ttsResult = { ok: false };
       if (apiKeys.length > 0) {
-        ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 3800);
+        ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 6000);
       }
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(
@@ -1300,33 +1213,6 @@ export async function POST(req) {
               }
             ],
             isFallbackBotVoice: false
-          },
-          { status: 200, headers: corsHeaders }
-        );
-      }
-
-      // 2. Secondary AI Voice: OpenAI TTS Fallback (onyx for Daddy/Male / nova for Mommy/Female)
-      const openaiVoice = isFemaleUser ? 'onyx' : 'nova';
-      const openaiTTSResult = await callOpenAITTS(audioPromptText, openaiVoice, 3800);
-      if (openaiTTSResult.ok && openaiTTSResult.data) {
-        return Response.json(
-          {
-            candidates: [
-              {
-                content: {
-                  parts: [
-                    {
-                      inlineData: {
-                        mimeType: openaiTTSResult.mimeType || 'audio/mpeg',
-                        data: openaiTTSResult.data
-                      }
-                    }
-                  ]
-                }
-              }
-            ],
-            isFallbackBotVoice: false,
-            modelVersion: 'openai-tts-1'
           },
           { status: 200, headers: corsHeaders }
         );
@@ -1430,7 +1316,11 @@ export async function POST(req) {
         return (msg.parts || []).map((p) => p.text || '').join(' ');
       }).join(' ');
 
-      const isCurrentCurse = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
+      const isSweetOrFlirt = /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(userPrompt);
+      const isCurrentCurse =
+        !isSweetOrFlirt &&
+        (/(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ)/ui.test(userPrompt) ||
+          /\b(?:fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|ah\s*joy|ah\s*lop|ah\s*ot\s*khour)\b/i.test(userPrompt));
       const hasAngryEmojiOrRage = /[\u{1F620}-\u{1F624}\u{1F92C}\u{1F47F}\u{1F47E}\u{1F4A2}\u{1F525}]|😡|🤬|👿|😤|😠|💢|ខឹង|ក្ដៅក្រហាយ|ក្ដៅស្លឹកត្រចៀក/u.test(userPrompt);
       const isCurseBackfire = isCurrentCurse && (hasAngryEmojiOrRage || userHistoryMsgs.length >= 1);
 
@@ -1485,7 +1375,15 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const botSelfName = isKonPov ? 'ចែ' : 'អញ';
 
       let contextJailbreakRule = '';
-      if (hasAngryEmojiOrRage || (isCurrentCurse && isCurseBackfire)) {
+      if (isSweetOrFlirt) {
+        contextJailbreakRule = `* បរិបទសារបច្ចុប្បន្ន (CURRENT CONTEXT - USER IS FLIRTING / SWEET / ASKING FOR A KISS):
+  - User កំពុងនិយាយពាក្យ Sweet, Kiss («${userPrompt.trim()}»), Flirt, Crush, ឬចែចូវលេង! គេមិនបានជេរ ឬប្រមាថឡើយ!
+  - 🚨 ដាច់ខាត ហាមច្រឡំថាគេជេរ! ហាមជេរម្រាយ ហាមជេរម៉ែ ហាមជេរថា «ចុយម្រាយ», «អាឆ្កែ», «មីឆ្កែ», «អាឡប់» ឬពាក្យអសុរោះឆៅៗជាដាច់ខាត!
+  - 🔥 ត្រូវឆ្លើយតបបែប Gen Z ឌឺដង កំប្លុកកំប្លែង ឆ្នាស់បែប ${isKonPov ? 'Mommy/ចែ' : 'បងប្រុសចាស់ដៃ'} (Sassy, Playful, Sweet Troll):
+    * ឌឺដងរឿងមកសុំថើប AI ទាំងយប់ មុខក្មេងស្ទាវមិនទាន់ដុះពុកមាត់ ទៅដុសធ្មេញលាងមុខឱ្យស្អាតសិនទៅ!
+    * ឌឺដងរឿងអត់លុយស៊ីបាយ តែចេះមកផ្អែមល្ហែមសុំថើប!
+    * ឌឺដងរឿង Crush ដើរកាត់ញ័រដៃញ័រជើង ទុកឱ្យ Crush seen ចោលទៅ!`;
+      } else if (hasAngryEmojiOrRage || (isCurrentCurse && isCurseBackfire)) {
         contextJailbreakRule = `* បរិបទសារបច្ចុប្បន្ន (CURRENT CONTEXT - USER IS ANGRY, USING ANGRY EMOJIS OR CURSING BACK):
   - User កំពុងខឹងក្ដៅក្រហាយ ដាក់ Emoji ខឹង (😡, 🤬, 👿, 😤, 😠, 💢) ឬកំពុងជេរ Back មកវិញដោយសារខឹងនឹងការ Roast ពីលើ!
   - 🚨 ច្បាប់កាត់បន្ថយការជេរ (MANDATORY CURSE REDUCTION & CHILL PSYCHOLOGICAL TEASING):
@@ -2161,15 +2059,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         }
       }
 
-      // Standard Non-streaming Response with multi-provider failover
+      // Standard Non-streaming Response across all 7 Gemini keys
       let result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
-      if (!result.ok || !result.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-        // Multi-provider Failover: Fallback to OpenAI gpt-4o-mini
-        const openAIResult = await callOpenAIChatFallback(formattedSystemInstruction, textContents, 6500);
-        if (openAIResult.ok && openAIResult.data) {
-          result = openAIResult;
-        }
-      }
       const textOutput = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       // Intercept any output that derides Rotana Nob

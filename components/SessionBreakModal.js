@@ -137,6 +137,12 @@ export default function SessionBreakModal({
   // Helper to deliver authentic approved code, persist in localStorage and sync with Firebase RTDB
   const deliverApprovedCode = (reqId, existingCode = null) => {
     if (requestTimerRef.current) clearInterval(requestTimerRef.current);
+    if (unsubscribeRequestRef.current) {
+      try {
+        unsubscribeRequestRef.current();
+      } catch {}
+      unsubscribeRequestRef.current = null;
+    }
     const code = existingCode || generateHashedVipCode();
     setGrantedCode(code);
     setPromoInput(code);
