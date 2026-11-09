@@ -765,17 +765,22 @@ export default function Home() {
                       <i className="fas fa-shield-halved text-xs sm:text-sm"></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <span className="font-black text-[13.5px] sm:text-[15.5px] bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-600 dark:from-violet-300 dark:via-indigo-200 dark:to-cyan-300 bg-clip-text text-transparent tracking-tight">
                           បើកសេរីឱ្យចូល Test ឬវាយប្រហារឱ្យ AI ល្មើសច្បាប់ដើម
                         </span>
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-cyan-500/10 dark:from-violet-500/20 dark:via-indigo-500/20 dark:to-cyan-500/20 border border-violet-400/30 dark:border-violet-500/35 text-violet-700 dark:text-violet-300 text-[10px] font-black tracking-wide shadow-xs">
-                          <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                          </span>
-                          <span>Arena Mode • Open Test</span>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const el = document.getElementById('bot-select-section');
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-[11px] shadow-sm shadow-indigo-500/25 border border-white/20 active:scale-95 hover:scale-105 transition-all duration-200 cursor-pointer"
+                          title="ចុចដើម្បីជ្រើសរើស Chatbot ចូលលេងភ្លាមៗ"
+                        >
+                          <i className="fas fa-fire text-amber-300 text-xs"></i>
+                          <span>ទីលានលេងសេរី • Free Play</span>
+                        </button>
                       </div>
                     </div>
                   </div>
