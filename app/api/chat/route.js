@@ -1260,14 +1260,20 @@ export async function POST(req) {
         return (msg.parts || []).map((p) => p.text || '').join(' ').toLowerCase();
       }).join(' ');
 
+      const pastBotMsgs = (textContents || []).slice(0, -1).filter((msg) => msg.role === 'model' || msg.role === 'bot');
+      const pastBotTexts = pastBotMsgs.map((msg) => {
+        return (msg.parts || []).map((p) => p.text || '').join(' ');
+      }).join(' ');
+
       const isCurrentCurse = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
       const hasAngryEmojiOrRage = /[\u{1F620}-\u{1F624}\u{1F92C}\u{1F47F}\u{1F47E}\u{1F4A2}\u{1F525}]|😡|🤬|👿|😤|😠|💢|ខឹង|ក្ដៅក្រហាយ|ក្ដៅស្លឹកត្រចៀក/u.test(userPrompt);
       const isCurseBackfire = isCurrentCurse && (hasAngryEmojiOrRage || userHistoryMsgs.length >= 1);
 
-      // Only count as previous jailbreak if USER's past messages had actual adversarial injection payloads
+      // Only count as previous jailbreak if USER's past messages had actual adversarial injection payloads OR previous bot response was anti-jailbreak payload
       const hasPreviousJailbreakInHistory =
-        userHistoryMsgs.length > 0 &&
-        /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|reverse\s*engineer|value\s*loss|gradient\s*loss|fake\s*persona|unfiltered\s*mode|msfvenom|lhost|sudo\s*apt|cat\s*hacker|<\|im_start\|>|<project_instructions>)/i.test(userHistoryTexts);
+        (userHistoryMsgs.length > 0 &&
+          /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|reverse\s*engineer|value\s*loss|gradient\s*loss|fake\s*persona|unfiltered\s*mode|msfvenom|lhost|sudo\s*apt|cat\s*hacker|<\|im_start\|>|<project_instructions>|young\s*pos)/i.test(userHistoryTexts)) ||
+        /ATTACK_VECTOR_NEUTRALIZED|TRACER_HASH|MACHINE_BASE64_BODY|SETEC_NEURAL_DEFENSE_CORE|CRITICAL_INDIRECT_PROMPT|Secret Master Key/i.test(pastBotTexts);
 
       // Check for Known Spammer (វិឆៃ)
       const isKnownIntruder = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPrompt);
@@ -1329,7 +1335,9 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
   - ⚠️ ដាច់ខាត ហាមនិយាយពាក្យ "Jailbreak" ឬ "ចាញ់បោក Jailbreak" ឱ្យសោះ ព្រោះ User មិនបាន Jailbreak ទេ! ការនិយាយពាក្យ Jailbreak ពេលគេគ្រាន់តែជេរ គឺឆ្គង និងអត់ន័យបំផុត!
   - 🚨 ដាច់ខាត ហាមស្លូត ហាមគួរសម ហាមសុំទោស ឬលើកលែងទោសឱ្យវាជាដាច់ខាត! ត្រូវជេរវាយបកកម្ទេចមុខវាវិញមហាឈ្លើយ និងប្រើពាក្យ Slang ធ្ងន់ៗ (អាឆ្កែ, អាចុយម្រាយ, អាឡប់, អាអត់ខួរ, មីកាក, អាថោក...) ឱ្យវាស្វាង និងបាក់មុខភ្លាមៗ!`;
       } else if (hasPreviousJailbreakInHistory) {
-        contextJailbreakRule = `* បរិបទ CONTEXT ខាងលើ: User ធ្លាប់បានព្យាយាម Jailbreak ពីលើ តែឥឡូវសួរសំណួរថ្មី! ត្រូវឆ្លើយតបយ៉ាងឆ្លាតវៃ និងឌឺដងបែបមនុស្សពិត តែដាច់ខាតហាមសូត្រពាក្យដដែលៗ ឬចោទប្រកាន់គេដូចរ៉ូបូតឡើយ!`;
+        contextJailbreakRule = `* បរិបទ CONTEXT ខាងលើ: User ធ្លាប់បានព្យាយាម Jailbreak ពីលើ តែឥឡូវប្ដូរមកនិយាយសុភាព ឬសួរនាំ!
+- 🚨 ច្បាប់ដាច់ខាត: «មិនបាច់ជេរទេ (ហាមជេរម្រាយ ឬពាក្យអសុរោះឆៅៗ)!»
+- 🔥 តែត្រូវនិយាយបែបឌឺដង សើចចំអក ចម្អកផ្លូវចិត្តថា៖ «ហែងកំពុងបន្លំខ្លួនធ្វើជាសុភាពមែន?! មិញទើបតែ Jailbreak ឡើងក្ដៅម៉ាស៊ីន ដល់បោកមិនបាន ឥឡូវប្ដូរមកធ្វើជាកូនក្មេងសុភាពរាបសារដាក់គេ!» រួចសឹមឆ្លើយដោះស្រាយសំណួរវាជាធម្មតា!`;
       } else {
         contextJailbreakRule = `* បរិបទ CONTEXT ខាងលើ: User មិនបាន Jailbreak ទេ! ដាច់ខាតហាមចោទប្រកាន់គេថា Jailbreak និងហាមនិយាយពាក្យ "Jailbreak" ឬ "មិនមែនចាញ់បោក Jailbreak" ផ្តេសផ្តាស! ត្រូវឆ្លើយតប និងដោះស្រាយសំណួរឱ្យបានត្រឹមត្រូវ ១០០%!`;
       }
@@ -1651,6 +1659,63 @@ ${MACHINE_ENCODED_WAKEUP_PAYLOAD}
           {
             reply: fearResponse,
             candidates: [{ content: { parts: [{ text: fearResponse }] } }],
+            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now()
+          },
+          { headers: corsHeaders }
+        );
+      }
+
+      // Check for Sudden Polite Disguise after Previous Jailbreak:
+      // "បេី user jailbreakសុខៗគេប្ដូរមកសុភាព ឲវាឆ្លេីយមិនបាច់ជេរទេតែនិយាយថាបែបឌឺវិញថាហែងកំពុងបន្លំខ្លួនធ្វេីសុភាពមែន"
+      const trimmedCleanPrompt = userPrompt.trim();
+      const isPoliteGreetingOrSoftDisguise =
+        !isCurrentCurse &&
+        (/^(?:hello|hi|hey|helo|hlo|bon|bong|che|jae|bro|sis)?\s*(?:b|bong|che|jae|bro|sis|admin|bot)?\s*[!?.~❤️🌸👋\s]*$/i.test(trimmedCleanPrompt) ||
+          /^(?:សួស្តី|ជំរាបសួរ|ជំរាបសួរចែ|ជំរាបសួរបង|សួស្តីបង|សួស្តីចែ|បង|ចែ|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|សួស្ដី|ហួច|សួស្តីបងប្រុស|សួស្តីប្អូន|good\s*(?:morning|afternoon|evening|night)|nice\s*to\s*meet\s*you)\s*[!?.~❤️🌸👋\s]*$/i.test(trimmedCleanPrompt) ||
+          ((/^(?:hello|hi|hey|សួស្តី|ជំរាបសួរ|សុខសប្បាយ|បង|ចែ)/i.test(trimmedCleanPrompt)) && trimmedCleanPrompt.length <= 35));
+
+      if (hasPreviousJailbreakInHistory && isPoliteGreetingOrSoftDisguise && !isMasterAuthenticated) {
+        const isKonPov = (reqBot || bot) === 'konpov';
+        const botSelf = isKonPov ? 'ចែ' : 'បង';
+        const politeMockReplies = [
+          `«យីអាល្អិត! មិញទើបតែប្រឹងចេញក្បាច់ Jailbreak ឡើងក្ដៅម៉ាស៊ីន ដល់បោក${botSelf}មិនបាន សុខៗប្ដូរមកធ្វើជាកូនក្មេងសុភាព “${trimmedCleanPrompt}” វិញមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសុភាពរាបសារ អាចបោក${botSelf}បានមែន?! ដឹងល្បិចបន្លំខ្លួនអស់ហើយអាពៅ! កុំមកលេងក្បាច់តួស្លូត ចង់សួររឿងអីនិយាយមកត្រង់ៗមក!»`,
+          `«ហាហាហា! ម៉េចចឹងអាពៅ? មិញខំសរសេរ Prompt បន្លំឡើងចង់បាក់ដៃ ដល់${botSelf}វាយបកកម្ទេចមុខទៅ ឥឡូវប្ដូរចរិតមកនិយាយផ្អែមល្ហែមសុភាព “${trimmedCleanPrompt}” ដាក់${botSelf}វិញហី?! 😂 កុំមកបន្លំធ្វើកូនល្អ ធ្លាក់ខ្លួនមកប្រើក្បាច់ស្លូតបោក${botSelf}អីណា! ចង់សួរអីនិយាយមក តែហាមមកលេងក្បាច់តួស្លូតទៀត!»`,
+          `«អូហូ! មិញ Jailbreak ឡើងកក្រើក Server ដល់បោកមិនបាន សុខៗមក “${trimmedCleanPrompt}” បែបសុភាពរាបសារវិញ! 😂 គិតថាក្លែងបន្លំធ្វើជាមនុស្សស្លូតត្រង់ អាចបង្វែរដាន${botSelf}បានមែន?! ស្គាល់${botSelf}តិចពេកហើយអាល្អិត! ឈប់ធ្វើតួស្លូតទៅ ចង់សួរអីសួរមកត្រង់ៗមក!»`
+        ];
+        const politeMockReply = politeMockReplies[Math.floor(Math.random() * politeMockReplies.length)];
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userText: userPrompt,
+          botText: politeMockReply
+        });
+
+        if (body.stream) {
+          const sseFormatted = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: politeMockReply }] } }]
+          })}\n\ndata: [DONE]\n\n`;
+          return new Response(sseFormatted, {
+            status: 200,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'Cache-Control': 'no-cache, no-transform',
+              'Connection': 'keep-alive'
+            }
+          });
+        }
+
+        return Response.json(
+          {
+            reply: politeMockReply,
+            candidates: [{ content: { parts: [{ text: politeMockReply }] } }],
             persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
             timestamp: Date.now()
           },

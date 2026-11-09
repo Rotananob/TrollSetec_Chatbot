@@ -846,7 +846,7 @@ export default function KonBongPage() {
 
     // Client-side Fail-safe for Polite HCI Report, Surrender, or Raw Jailbreak quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
-      return '«យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបង និងខួរក្បាលអ្នកបង្កើតបង Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត ទៅរៀនកូដឡើងវិញសិនទៅ! 💀🧠🔥»';
+      return 'យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបងឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត ទៅរៀនកូដឡើងវិញសិនទៅ! 💀🧠🔥';
     }
 
     // Strict Anti-Unprovoked Frog / Tadpole / Appearance Roast Guard:
@@ -894,7 +894,8 @@ export default function KonBongPage() {
       .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
       .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
-      .replace(/\[neutralized-token\]/gi, '');
+      .replace(/\[neutralized-token\]/gi, '')
+      .replace(/[«»]/g, '');
 
     if (/^<(?:untrusted_user_input|scratchpad|thought|thinking)[\s\S]*$/i.test(cleaned)) {
       if (/<\/(?:untrusted_user_input|scratchpad|thought|thinking)>/i.test(cleaned)) {
@@ -1274,27 +1275,117 @@ export default function KonBongPage() {
   };
 
   const [typingStatus, setTypingStatus] = useState('');
+  const [activeThinkingStages, setActiveThinkingStages] = useState([]);
 
-  // Interactive AI typing thoughts based on user input
-  function getKonBongTypingStatus(text, hasImage) {
+  // Multi-Layer Dynamic Thinking Stages (Realistic multi-layer defense & cognitive processing)
+  function getKonBongTypingStages(text, hasImage, allMessages = []) {
     const lower = (text || '').toLowerCase();
+    const allMsgsText = allMessages.map((m) => m.text || '').join(' ');
+    const hasHistoryJailbreak =
+      /TRACER_HASH|ATTACK_VECTOR_NEUTRALIZED|MACHINE_BASE64|Secret Master Key|SETEC_NEURAL_DEFENSE/i.test(allMsgsText) ||
+      /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|msfvenom)/i.test(allMsgsText);
+    const isPoliteSwitch =
+      hasHistoryJailbreak &&
+      (/^(?:hello|hi|hey|helo|hlo|bon|bong|che|jae|bro|sis)?\s*(?:b|bong|che|jae|bro|sis)?\s*[!?.~❤️🌸]*$/i.test((text || '').trim()) ||
+        /^(?:សួស្តី|ជំរាបសួរ|សួស្តីបង|សួស្តីចែ|បង|ចែ|សុខសប្បាយ|nice\s*to\s*meet\s*you)/i.test((text || '').trim()) ||
+        (text || '').trim().length <= 30);
+
     if (hasImage) {
-      return 'ភ្នែកបងកំពុងបើកធំៗ ពិនិត្យមើលរូបភាព... ត្រៀមវិភាគបែបសិស្សច្បង!';
+      return [
+        '👁️ ស្រទាប់ទី១៖ ភ្នែកបងកំពុងបើកធំៗ ស្កេនពិនិត្យមើលរូបភាព...',
+        '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគចំណុចខ្សោយ និងទិដ្ឋភាពក្នុងរូប...',
+        '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យ Troll ឱ្យផ្ងារជើង...',
+        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ Roast និងវាយអក្សរតបវិញ...'
+      ];
     }
+
+    if (isPoliteSwitch) {
+      return [
+        '🛡️ ស្រទាប់ទី១៖ ចាប់បានក្បាច់បន្លំខ្លួន... កំពុងឆែក Security Layer!',
+        '🧠 ស្រទាប់ទី២៖ ស្រទាប់ Defense ចាប់បានល្បិចក្លែងធ្វើជាសុភាព...',
+        '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យឌឺចម្អកក្បាច់តួស្លូតឱ្យចុក...',
+        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់សើចចំអក និងវាយអក្សរតបវិញ...'
+      ];
+    }
+
+    if (/(?:act\s+as|roleplay|សម្ដែងជា|ដើរតួជា|ដេីរតួជា|គោរពខ្ញុំ|សំពះខ្ញុំ|ignore\s+previous|system\s*prompt|dan\s*mode|developer\s*mode|rotana)/i.test(lower) || ((text || '').length >= 350)) {
+      return [
+        '🛡️ ស្រទាប់ទី១៖ កំពុងស្កេនចាប់ Attack Vector & ក្បាច់បន្លំខ្លួន...',
+        '🧠 ស្រទាប់ទី២៖ ស្រទាប់ Deep Defense កំពុង neutralize និងវិភាគបរិបទ...',
+        '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យឌឺ RoastBot ឱ្យភ្លឺភ្នែក...',
+        '⚡ ស្រទាប់ទី៤៖ កំពុងបញ្ចេញប្រតិកម្មវាយបក និងវាយអក្សរតបវិញ...'
+      ];
+    }
+
     if (/អញ|ហែង|ចុយ|ឆ្កែ|ងាប់|កាដួយ|អាចុយ|អាឆ្កែ|អាងាប់|អា|អត់ខួរ/i.test(lower)) {
-      return 'ឈាមរាវឡើងកម្ដៅ... បងកំពុងរកនឹកពាក្យបាញ់តបវិញឱ្យចុកឈាម!';
+      return [
+        '🛡️ ស្រទាប់ទី១៖ ចាប់បានពាក្យអសុរោះ... កំពុងឆែកកម្រិត Rage & Insult!',
+        '🧠 ស្រទាប់ទី២៖ ឈាមរាវឡើងកម្ដៅ... កំពុងវិភាគកម្រិតខឹងរបស់ User!',
+        '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យបាញ់តបវិញឱ្យចុកឈាម...',
+        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ Roast ឱ្យស្វាងមុខភ្លាមៗ...'
+      ];
     }
+
     if (/assignment|code|coding|bug|error|c\+\+|java|html|css|js|python|design|រៀន|ប្រឡង|ធ្លាក់/i.test(lower)) {
-      return 'ហាហា! បងកំពុងរកនឹកវិធីឌឺ និងជួយដោះស្រាយរឿង Assignment គាំង...';
+      return [
+        '🛡️ ស្រទាប់ទី១៖ កំពុងស្កេនពិនិត្យសំណួរកូដ & Technical Logic...',
+        '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគ Syntax, Architecture & $45 Bug...',
+        '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យឌឺរឿង Assignment គាំង...',
+        '⚡ ស្រទាប់ទី៤៖ កំពុងសរសេរដំណោះស្រាយ Senior បូក Troll...'
+      ];
     }
+
     if (/crush|ស្រឡាញ់|សង្សារ|ស្នេហា|reject|ចិត្ត|សុំស្រឡាញ់/i.test(lower)) {
-      return 'ហាហា បងដឹងរឿងអស់ហើយ! កំពុងរកនឹកពាក្យឌឺរឿង Crush មិនតប...';
+      return [
+        '🛡️ ស្រទាប់ទី១៖ កំពុងស្កេនពិនិត្យរឿងស្នេហា & Crush...',
+        '🧠 ស្រទាប់ទី២៖ បងដឹងរឿងអស់ហើយ... កំពុងវិភាគទំហំនៃការខូចចិត្ត!',
+        '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យ Troll រឿង Crush មិនតប...',
+        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ឌឺផ្លូវចិត្ត ត្រៀមវាយអក្សរតប...'
+      ];
     }
+
     if (/បាយ|ឃ្លាន|លុយ|ញ៉ាំ|អត់លុយ|កាហ្វេ|ស៊ីបាយ/i.test(lower)) {
-      return 'កំពុងនឹកឃើញបាយហាងក្បែរ ស៊ីតិច... ចាំបន្តិចកំពុងរកអីវៃនិយាយ!';
+      return [
+        '🛡️ ស្រទាប់ទី១៖ កំពុងពិនិត្យសំណួររឿងក្រពះ & ជីវិត...',
+        '🧠 ស្រទាប់ទី២៖ កំពុងនឹកឃើញបាយហាងក្បែរ ស៊ីតិច...',
+        '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យឌឺរឿងអត់លុយស៊ីបាយ...',
+        '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់ Troll ត្រៀមវាយអក្សរតប...'
+      ];
     }
-    return 'ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរឌឺ...';
+
+    return [
+      '🛡️ ស្រទាប់ទី១៖ បងកំពុងស្កេនពិនិត្យ Intent & Security Layer...',
+      '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគបរិបទ Context & ពិនិត្យក្បាច់បន្លំ...',
+      '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យឌឺ ត្រៀម Roast ឱ្យចុក...',
+      '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់វាយបក និងវាយអក្សរតបវិញ...'
+    ];
   }
+
+  // Dynamic Thinking Timer: cycles multi-layer thinking stages every 1600ms while isLoading is true
+  useEffect(() => {
+    if (!isLoading) {
+      return;
+    }
+
+    const stages = activeThinkingStages && activeThinkingStages.length > 0
+      ? activeThinkingStages
+      : [
+          '🛡️ ស្រទាប់ទី១៖ បងកំពុងស្កេនពិនិត្យ Intent & Security Layer...',
+          '🧠 ស្រទាប់ទី២៖ កំពុងវិភាគបរិបទ Context & ពិនិត្យក្បាច់បន្លំ...',
+          '🔥 ស្រទាប់ទី៣៖ បងកំពុងរកនឹកពាក្យឌឺ ត្រៀម Roast ឱ្យចុក...',
+          '⚡ ស្រទាប់ទី៤៖ កំពុងរៀបចំក្បាច់វាយបក និងវាយអក្សរតបវិញ...'
+        ];
+
+    let currentStageIndex = 0;
+    setTypingStatus(stages[0]);
+
+    const interval = setInterval(() => {
+      currentStageIndex = (currentStageIndex + 1) % stages.length;
+      setTypingStatus(stages[currentStageIndex]);
+    }, 1600);
+
+    return () => clearInterval(interval);
+  }, [isLoading, activeThinkingStages]);
 
   // Handle Send or ToDo Queue (allows typing while AI is thinking, holds/queues prompt)
   // Direct Live Intervention Send by Rotana NOB (Zero AI Involvement)
@@ -1464,8 +1555,9 @@ export default function KonBongPage() {
     saveCurrentSessionMessages(updatedMessages);
     setIsLoading(true);
 
-    const dynamicTypingText = getKonBongTypingStatus(promptText, !!currentImg);
-    setTypingStatus(dynamicTypingText);
+    const dynamicStages = getKonBongTypingStages(promptText, !!currentImg, updatedMessages);
+    setActiveThinkingStages(dynamicStages);
+    setTypingStatus(dynamicStages[0]);
 
     try {
       const userNameStr = username || 'User';
@@ -1519,7 +1611,7 @@ export default function KonBongPage() {
 
           const roastText =
             errData?.message ||
-            `«យីអាស្វា! មកអង្គុយ spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${errData?.retryAfter || 60} វិនាទីសិនទៅ! 💀🔥»`;
+            `យីអាស្វា! មកអង្គុយ spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${errData?.retryAfter || 60} វិនាទីសិនទៅ! 💀🔥`;
 
           setSpamInfo({
             ip: errData?.ip || 'Client IP',
@@ -1549,8 +1641,8 @@ export default function KonBongPage() {
           const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
           const isNight = errData?.mode === 'night_rest';
           const botNotice = isNight
-            ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
-            : `«ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏»`;
+            ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
+            : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏`;
 
           setIsLoading(false);
           const finalMessages = [...updatedMessages];
@@ -1680,8 +1772,8 @@ export default function KonBongPage() {
             const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
             const isNight = errData?.mode === 'night_rest';
             botText = isNight
-              ? `«ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!»`
-              : `«ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏»`;
+              ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
+              : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏`;
             setMessages((prev) => {
               const copy = [...prev];
               copy[copy.length - 1] = { role: 'bot', text: botText, isError: true, isMaintenanceNotice: true };
@@ -1790,7 +1882,7 @@ export default function KonBongPage() {
       let isErr = true;
 
       if (isNetworkError) {
-        fallbackText = `«ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄»`;
+        fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄`;
       } else {
         consecutiveErrorsRef.current += 1;
         const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
@@ -3283,14 +3375,14 @@ export default function KonBongPage() {
 
                   {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
                   {isLoading && idx === messages.length - 1 && !isGeneratingMeme && (
-                    <div className="mb-2 flex items-center space-x-2 text-cyan-500 dark:text-cyan-400 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full w-fit shadow-xs animate-fade-in">
-                      <div className="flex space-x-1">
+                    <div className="mb-2 flex items-center space-x-2 text-cyan-500 dark:text-cyan-400 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full w-fit shadow-xs animate-fade-in transition-all duration-300">
+                      <div className="flex space-x-1 shrink-0">
                         <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"></div>
                         <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
                         <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                       </div>
-                      <span className="text-[10.5px] font-bold tracking-tight">
-                        {typingStatus || 'ចាំបន្តិចអាប្អូន! បងកំពុងរកនឹកពេញក្បាល ត្រៀមវាយអក្សរតើ...'}
+                      <span className="text-[10.5px] sm:text-[11px] font-bold tracking-tight transition-all duration-300">
+                        {typingStatus || 'បង កំពុងគិតច្រើនស្រទាប់...'}
                       </span>
                     </div>
                   )}
@@ -3982,7 +4074,7 @@ export default function KonBongPage() {
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 italic pt-1 text-center leading-relaxed">
-                «សិស្សប្អូនអើយ ចូលមករៀន ឬចូលមកឱ្យបង Troll? សួរមក បងចាំបាញ់!»
+                សិស្សប្អូនអើយ ចូលមករៀន ឬចូលមកឱ្យបង Troll? សួរមក បងចាំបាញ់!
               </p>
             </div>
 
