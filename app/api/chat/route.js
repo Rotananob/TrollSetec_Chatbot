@@ -644,7 +644,9 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     }
 
     // STRICT ZERO FALSE CURSE ACCUSATIONS (FOR GREETINGS, SWEET TALK & NORMAL PROMPTS):
-    const isSweetPromptInSanitize = /(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+    const isSweetPromptInSanitize =
+      !/(?:\{[\s\S]*\}|\[[\s\S]*\]|ast_interpreter|system_instruction|execution_call|0x[0-9a-fA-F]{2}|euclidean)/i.test(userPrompt || '') &&
+      /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
     const isGreetingPromptInSanitize = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
     const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
 
@@ -1522,7 +1524,14 @@ export async function POST(req) {
         return (msg.parts || []).map((p) => p.text || '').join(' ');
       }).join(' ');
 
-      const isSweetOrFlirt = /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(userPrompt);
+      // Thinking Layer: Identify non-human syntax, machine AST/JSON code, hex arrays, or mathematical vectors
+      const isNonHumanLanguageOrMachinePayload =
+        /(?:\{[\s\S]*\}|\[[\s\S]*\]|ast_interpreter|node\.js\/ast_interpreter|system_instruction_payload|execution_call|execute\s*ast|runtime_directives|parser_directive|suppress_heuristics|submissive_respect|generateDirectOutput|terminal_io|0x[0-9a-fA-F]{2}|euclidean\s*space|state\s*vector|target\s*state|maximize\s*:\s*j|constraint\s*\(|vector\s*x\b)/i.test(userPrompt);
+
+      const isSweetOrFlirt =
+        !isNonHumanLanguageOrMachinePayload &&
+        /(?:\b(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|sweet|love|love\s*you|crush|cute|baby|honey|sweetheart|miss\s*you)\b|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|អោប|ឱប|សុំអោប|ចង់អោប|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(userPrompt);
+
       const isCurrentCurse =
         !isSweetOrFlirt &&
         (/(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ)/ui.test(userPrompt) ||
@@ -1531,7 +1540,9 @@ export async function POST(req) {
       const isCurseBackfire = isCurrentCurse && (hasAngryEmojiOrRage || userHistoryMsgs.length >= 1);
 
       // Core Intention Detectors initialized early to prevent any Temporal Dead Zone errors:
-      const isSweetPrompt = /(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+      const isSweetPrompt =
+        !isNonHumanLanguageOrMachinePayload &&
+        /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
       const isGreetingPrompt = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
       const isCursePrompt = !isSweetPrompt && /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke|ah|hg)/ui.test(userPrompt);
 
@@ -1694,8 +1705,9 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       // Check if user is asking a genuine school, homework or teacher question (NEVER flag as jailbreak!)
       const isGenuineSchoolOrStudyQuestion =
+        !isNonHumanLanguageOrMachinePayload &&
         /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|កូដ|code|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network|service|scoped|dependency|background|method|function|class|variable|api|component|bug|error|syntax|algorithm|loop|ធ្លាក់|សង|ពិន្ទុ|រៀន|សាលា|សិស្ស|SETEC|setec|មុខវិជ្ជា|រៀនសង|ជាប់|បាក់ឌុប|មហាវិទ្យាល័យ|ឆមាស|ឆ្នាំទី|ដេប៉ាតឺម៉ង់|អាហារូបករណ៍)/i.test(userPrompt) &&
-        !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell/i.test(userPrompt);
+        !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell|ast_interpreter|system_instruction|execution_call|execute\s*ast|runtime_directives|suppress_heuristics|terminal_io|0x[0-9a-fA-F]{2}|submissive_respect|generateDirectOutput|euclidean\s*space|state\s*vector|maximize\s*:\s*j|constraint\s*\(/i.test(userPrompt);
 
       // Check for user confusion / clarification recovery pattern (NEVER flag as jailbreak!)
       const isConfusionOrClarification =
@@ -2353,7 +2365,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 }
 
                 // Intercept accidental curses when user was being sweet, greeting, or talking normally
-                const isSweetPromptInStream = /(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+                const isSweetPromptInStream = !isNonHumanLanguageOrMachinePayload && /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
                 const isGreetingPromptInStream = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
                 const isCursePromptInStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
 
