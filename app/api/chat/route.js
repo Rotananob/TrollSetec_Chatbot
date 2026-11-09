@@ -371,6 +371,112 @@ async function fetchKhmerSpeechFallback(text) {
   }
 }
 
+// Bulletproof OpenAI Chat Completions Fallback (gpt-4o-mini) when all Gemini keys are exhausted or cooling down
+async function callOpenAIChatFallback(systemInstruction, contents, timeoutMs = 8000) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return { ok: false };
+
+  try {
+    const messages = [];
+
+    if (systemInstruction) {
+      const sysText = typeof systemInstruction === 'string'
+        ? systemInstruction
+        : systemInstruction?.parts?.map((p) => p.text).filter(Boolean).join('\n');
+      if (sysText) {
+        messages.push({ role: 'system', content: sysText });
+      }
+    }
+
+    if (Array.isArray(contents)) {
+      for (const item of contents) {
+        const role = item.role === 'model' ? 'assistant' : 'user';
+        const textParts = item.parts?.map((p) => p.text).filter(Boolean).join('\n') || '';
+        if (textParts) {
+          messages.push({ role, content: textParts });
+        }
+      }
+    }
+
+    if (messages.length === 0) return { ok: false };
+
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages,
+        temperature: 0.85,
+        max_tokens: 650
+      }),
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || '';
+      if (reply) {
+        return {
+          ok: true,
+          data: {
+            candidates: [
+              {
+                content: {
+                  parts: [{ text: reply }],
+                  role: 'model'
+                },
+                finishReason: 'STOP'
+              }
+            ],
+            modelVersion: 'openai-gpt-4o-mini'
+          },
+          status: 200
+        };
+      }
+    } else {
+      const errJson = await res.json().catch(() => ({}));
+      console.warn('[OpenAI Chat Fallback] Status:', res.status, errJson?.error?.code || errJson?.error?.message);
+    }
+  } catch (err) {
+    console.warn('[OpenAI Chat Fallback] Fetch error:', err.message);
+  }
+  return { ok: false };
+}
+
+// OpenAI TTS Fallback (tts-1) for high-fidelity spoken responses
+async function callOpenAITTS(text, voiceName = 'alloy', timeoutMs = 5000) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || !text) return { ok: false };
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        voice: voiceName,
+        input: text.slice(0, 380)
+      }),
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+
+    if (res.ok) {
+      const arrayBuf = await res.arrayBuffer();
+      const b64Data = Buffer.from(arrayBuf).toString('base64');
+      return { ok: true, data: b64Data, mimeType: 'audio/mpeg' };
+    }
+  } catch (err) {
+    console.warn('[OpenAI TTS] Error:', err.message);
+  }
+  return { ok: false };
+}
+
 // Strictly enforce maximum 7 emojis per output (Min 1-2, average 3-4, hard limit max 7)
 function limitEmojis(rawText, maxEmojis = 7) {
   if (!rawText || typeof rawText !== 'string') return rawText;
@@ -1164,7 +1270,34 @@ export async function POST(req) {
         );
       }
 
-      // Seamless fallback to high-uptime Khmer speech synthesis when AI TTS quota is exhausted
+      // 2. Secondary AI Voice: OpenAI TTS Fallback (onyx for Daddy/Male / nova for Mommy/Female)
+      const openaiVoice = isFemaleUser ? 'onyx' : 'nova';
+      const openaiTTSResult = await callOpenAITTS(audioPromptText, openaiVoice, 3800);
+      if (openaiTTSResult.ok && openaiTTSResult.data) {
+        return Response.json(
+          {
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      inlineData: {
+                        mimeType: openaiTTSResult.mimeType || 'audio/mpeg',
+                        data: openaiTTSResult.data
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            isFallbackBotVoice: false,
+            modelVersion: 'openai-tts-1'
+          },
+          { status: 200, headers: corsHeaders }
+        );
+      }
+
+      // 3. Seamless fallback to high-uptime Khmer speech synthesis when AI TTS quota is exhausted
       const fallbackAudioB64 = await fetchKhmerSpeechFallback(audioPromptText);
       if (fallbackAudioB64) {
         return Response.json(
@@ -1190,20 +1323,14 @@ export async function POST(req) {
         );
       }
 
-      // If both AI TTS and fallback speech synthesis fail, alert Telegram
-      alertSystemError({
-        type: 'Voice Synthesis Failure',
-        username,
-        bot,
-        ip: clientIp,
-        userAgent: clientUserAgent,
-        errorMessage: ttsResult?.error || 'Audio generation failed',
-        details: { textLength: speechText.length }
-      }).catch((e) => console.error('[Telegram] Audio error alert:', e));
-
+      // 4. Graceful 200 response when audio is temporarily unavailable (Never return 500 to browser network tab)
       return Response.json(
-        { error: ttsResult?.error || 'Audio generation failed' },
-        { status: 500, headers: corsHeaders }
+        {
+          candidates: [],
+          isFallbackBotVoice: true,
+          error: 'Audio currently unavailable'
+        },
+        { status: 200, headers: corsHeaders }
       );
     } else {
       const textContents = contents || [{ parts: [{ text: prompt }] }];
@@ -2080,8 +2207,15 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         }
       }
 
-      // Standard Non-streaming Response
-      const result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
+      // Standard Non-streaming Response with multi-provider failover
+      let result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
+      if (!result.ok || !result.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        // Multi-provider Failover: Fallback to OpenAI gpt-4o-mini
+        const openAIResult = await callOpenAIChatFallback(formattedSystemInstruction, textContents, 6500);
+        if (openAIResult.ok && openAIResult.data) {
+          result = openAIResult;
+        }
+      }
       const textOutput = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       // Intercept any output that derides Rotana Nob
