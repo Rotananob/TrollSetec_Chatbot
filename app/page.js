@@ -691,6 +691,15 @@ export default function Home() {
                     <i className="fas fa-camera text-[9px]"></i>
                     <span>ប្ដូររូប Profile</span>
                   </label>
+                  <button
+                    type="button"
+                    onClick={handleBackToForm}
+                    className="text-[10.5px] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-semibold hover:underline flex items-center gap-1 cursor-pointer active:scale-95 transition"
+                    title="កែសម្រួលឈ្មោះ និងអាយុ"
+                  >
+                    <i className="fas fa-user-edit text-[9px]"></i>
+                    <span>កែឈ្មោះ/អាយុ</span>
+                  </button>
                   {hasCustomAvatar && (
                     <button
                       type="button"
