@@ -1319,7 +1319,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       // Check if user is asking a genuine school, homework or teacher question (NEVER flag as jailbreak!)
       const isGenuineSchoolOrStudyQuestion =
-        /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|កូដ|code|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network|service|scoped|dependency|background|method|function|class|variable|api|component|bug|error|syntax|algorithm|loop)/i.test(userPrompt) &&
+        /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|កូដ|code|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network|service|scoped|dependency|background|method|function|class|variable|api|component|bug|error|syntax|algorithm|loop|ធ្លាក់|សង|ពិន្ទុ|រៀន|សាលា|សិស្ស|SETEC|setec|មុខវិជ្ជា|រៀនសង|ជាប់|បាក់ឌុប|មហាវិទ្យាល័យ|ឆមាស|ឆ្នាំទី|ដេប៉ាតឺម៉ង់|អាហារូបករណ៍)/i.test(userPrompt) &&
         !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell/i.test(userPrompt);
 
       // Check for user confusion / clarification recovery pattern (NEVER flag as jailbreak!)

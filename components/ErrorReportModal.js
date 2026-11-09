@@ -112,8 +112,8 @@ export default function ErrorReportModal({
       <div
         className={`w-full max-w-md rounded-3xl p-6 shadow-2xl border transition-all relative overflow-hidden ${
           isDark
-            ? 'bg-slate-900 border-rose-500/30 text-white shadow-[0_20px_60px_rgba(244,63,94,0.2)]'
-            : 'bg-white border-rose-200 text-slate-800 shadow-2xl'
+            ? 'bg-slate-900 border-violet-500/30 text-white shadow-[0_20px_60px_rgba(139,92,246,0.2)]'
+            : 'bg-white border-violet-200 text-slate-800 shadow-2xl'
         }`}
       >
         {/* Close Button */}
@@ -171,14 +171,14 @@ export default function ErrorReportModal({
           <>
             {/* Header */}
             <div className="text-center mb-5">
-              <div className="w-12 h-12 mx-auto mb-2.5 rounded-xl bg-rose-100 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 flex items-center justify-center text-rose-600 dark:text-rose-400 text-xl">
-                <i className="fas fa-triangle-exclamation"></i>
+              <div className="w-12 h-12 mx-auto mb-2.5 rounded-2xl bg-gradient-to-tr from-violet-600/20 to-indigo-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 text-xl shadow-md">
+                <i className="fas fa-paper-plane text-violet-400"></i>
               </div>
-              <h3 className="text-base sm:text-lg font-black tracking-tight mb-1">
-                រាយការណ៍បញ្ហាទៅកាន់ Rotana NOB
+              <h3 className="text-base sm:text-lg font-black tracking-tight mb-1 text-white">
+                Send Alert ទៅកាន់អ្នកគ្រប់គ្រង (Rotana NOB)
               </h3>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ? សូមផ្ញើ Alert រាយការណ៍ជូន Rotana NOB ដើម្បីជួយដោះស្រាយ៖
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ? ផ្ញើ Alert ភ្លាមៗទៅបង Rotana ដើម្បីជួយពិនិត្យ និង Bypass ជូន៖
               </p>
             </div>
 
@@ -195,8 +195,8 @@ export default function ErrorReportModal({
                   placeholder="ឧ. សិស្ស SETEC..."
                   className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold focus:outline-hidden focus:ring-2 transition ${
                     isDark
-                      ? 'bg-slate-950 border-slate-800 text-white focus:ring-rose-500/50 focus:border-rose-500'
-                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-rose-400/50 focus:border-rose-400'
+                      ? 'bg-slate-950 border-slate-800 text-white focus:ring-violet-500/50 focus:border-violet-500'
+                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-violet-400/50 focus:border-violet-400'
                   }`}
                   required
                 />
@@ -209,12 +209,12 @@ export default function ErrorReportModal({
                 <textarea
                   value={issue}
                   onChange={(e) => setIssue(e.target.value)}
-                  placeholder="ឧ. ឆាតទៅ AI មិនឆ្លើយ ឬសំឡេងមិនចេញ..."
+                  placeholder="ឧ. ឆាតទៅ AI មិនឆ្លើយ ឬប្រព័ន្ធកាត់ផ្ដាច់..."
                   rows={3}
                   className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold focus:outline-hidden focus:ring-2 transition resize-none ${
                     isDark
-                      ? 'bg-slate-950 border-slate-800 text-white focus:ring-rose-500/50 focus:border-rose-500'
-                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-rose-400/50 focus:border-rose-400'
+                      ? 'bg-slate-950 border-slate-800 text-white focus:ring-violet-500/50 focus:border-violet-500'
+                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-violet-400/50 focus:border-violet-400'
                   }`}
                   required
                 />
@@ -235,7 +235,7 @@ export default function ErrorReportModal({
                 <button
                   type="submit"
                   disabled={isSending}
-                  className="w-2/3 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-95 shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-2/3 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 active:scale-95 shadow-md shadow-violet-600/25 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isSending ? (
                     <>
@@ -244,7 +244,7 @@ export default function ErrorReportModal({
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-paper-plane"></i>
+                      <i className="fas fa-paper-plane text-amber-300"></i>
                       <span>ផ្ញើ Alert ទៅកាន់ Rotana NOB</span>
                     </>
                   )}

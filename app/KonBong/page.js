@@ -105,6 +105,7 @@ export default function KonBongPage() {
   // Error Report to Rotana NOB Modal State
   const [errorReportModalOpen, setErrorReportModalOpen] = useState(false);
   const [errorReportInitialText, setErrorReportInitialText] = useState('');
+  const [alertSentMap, setAlertSentMap] = useState({});
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [isSurvivalModalOpen, setIsSurvivalModalOpen] = useState(false);
   const [quoteModalData, setQuoteModalData] = useState(null);
@@ -689,6 +690,33 @@ export default function KonBongPage() {
     } catch (e) {
       console.warn('Copy failed:', e);
     }
+  };
+
+  const handleSendAlertToAdmin = async (msgItem, idx) => {
+    setAlertSentMap((prev) => ({ ...prev, [idx]: true }));
+    const prevUserMsg = idx > 0 ? messages.slice(0, idx).reverse().find((m) => m.role === 'user') : null;
+    const userQuestion = prevUserMsg ? prevUserMsg.text : '';
+    const alertIssue = userQuestion
+      ? `[សំណួរ User]: "${userQuestion}"\n[ចម្លើយ Cutoff/Error]: "${msgItem?.text?.slice(0, 300) || ''}"`
+      : (msgItem?.text?.slice(0, 300) || 'AI Smart Cutoff triggered');
+
+    try {
+      const endpoint = getApiEndpoint('/api/track');
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'user_report_issue',
+          username: username || 'User',
+          issue: `[Fast 1-Click Alert]:\n${alertIssue}`,
+          bot: 'konbong',
+          sessionId: currentSessionId || ('session_' + Date.now())
+        })
+      }).catch(() => {});
+    } catch {}
+
+    setErrorReportInitialText(alertIssue);
+    setErrorReportModalOpen(true);
   };
 
   // Change user avatar on the fly and save safely to localStorage
@@ -1414,6 +1442,7 @@ export default function KonBongPage() {
       const formattedContents = buildGeminiMultiTurnContents(messages, promptText, currentImg);
 
       let botText = '';
+      let isSmartCutoff = false;
       try {
         const streamAbortCtrl = new AbortController();
         const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 22000);
@@ -1556,6 +1585,9 @@ export default function KonBongPage() {
           if (res.isMasterAuthenticated) {
             setIsRotanaMasterBypass(true);
           }
+          if (res.modelVersion === 'setec-smart-cutoff-v1') {
+            isSmartCutoff = true;
+          }
           const fullText = cleanRawOutput(res.candidates?.[0]?.content?.parts?.[0]?.text || '');
           if (fullText) {
             // High-speed real-time typewriter preview (12-16ms)
@@ -1624,6 +1656,9 @@ export default function KonBongPage() {
             if (resJson.isMasterAuthenticated) {
               setIsRotanaMasterBypass(true);
             }
+            if (resJson.modelVersion === 'setec-smart-cutoff-v1') {
+              isSmartCutoff = true;
+            }
             const fullText = cleanRawOutput(resJson.candidates?.[0]?.content?.parts?.[0]?.text || resJson.reply || '');
             if (fullText) {
               botText = fullText;
@@ -1645,7 +1680,11 @@ export default function KonBongPage() {
         consecutiveErrorsRef.current = 0;
       }
       let isErrorResponse = false;
-      if (!botText || !botText.trim() || (isCurseWord && isPoliteRefusal)) {
+      const isCutoffText = /(?:Send Alert|កាត់ផ្ដាច់ការ|Sensor សុវត្ថិភាព|កេះ Signal ទៅ Server|កេះទៅ Server|សតិបញ្ញា|ស្វាងសិន|ស្វាងចែសសិន|ទះក្បាលពួកអា|ការពារប្រព័ន្ធ)/i.test(botText || '');
+      if (isSmartCutoff || isCutoffText) {
+        isSmartCutoff = true;
+        isErrorResponse = true;
+      } else if (!botText || !botText.trim() || (isCurseWord && isPoliteRefusal)) {
         if (isCurseWord) {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
           const savageList = isFemaleUser
@@ -1665,13 +1704,14 @@ export default function KonBongPage() {
           consecutiveErrorsRef.current += 1;
           botText = getSmartCutoffResponse('konbong', userNameStr, consecutiveErrorsRef.current, userGender);
           isErrorResponse = true;
+          isSmartCutoff = true;
         }
       }
 
       botText = limitEmojis(sanitizeRotanaAttack(cleanRawOutput(botText), promptText), 7);
       const botMsgIndex = updatedMessages.length - 1;
       const finalMessages = [...updatedMessages];
-      finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse };
+      finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse, isSmartCutoff };
       setMessages(finalMessages);
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
@@ -3387,44 +3427,50 @@ export default function KonBongPage() {
                       );
                     })()}
 
-                    {/* Error Action Buttons (Shown when error or smart cutoff occurs so students can alert admin) */}
-                    {(msg.isError && !msg.isSpamRoast) && (
-                      <div className="mt-3 pt-2.5 border-t border-rose-500/25 flex flex-wrap items-center gap-1.5 animate-fade-in">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setErrorReportInitialText(msg.text);
-                            setErrorReportModalOpen(true);
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-[11px] shadow-xs flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
-                        >
-                          <i className="fas fa-triangle-exclamation text-amber-300"></i>
-                          <span>Send Alert ទៅកាន់ Creator (Rotana NOB)</span>
-                        </button>
+                    {/* Error / Smart Cutoff Action Buttons (Shown when error or smart cutoff occurs so students can alert admin) */}
+                    {(() => {
+                      const isCutoffOrError = Boolean(
+                        msg.isError ||
+                        msg.isSmartCutoff ||
+                        /(?:Send Alert|កាត់ផ្ដាច់|Sensor សុវត្ថិភាព|កេះ Signal ទៅ Server|កេះទៅ Server|ទះក្បាលពួកអា|ស្វាងសិន|ស្វាងចែសសិន)/i.test(msg.text || '')
+                      );
+                      if (!isCutoffOrError || msg.isSpamRoast) return null;
 
-                        <a
-                          href="https://web.facebook.com/TheRotanaNob"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-2.5 py-1.5 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                          title="ឆាតទៅកាន់ Facebook ផ្ទាល់របស់ Rotana NOB"
-                        >
-                          <i className="fab fa-facebook-square text-blue-400"></i>
-                          <span>FB Rotana NOB</span>
-                        </a>
+                      return (
+                        <div className="mt-3 pt-2.5 border-t border-violet-500/25 flex flex-wrap items-center gap-2 animate-fade-in">
+                          <button
+                            type="button"
+                            onClick={() => handleSendAlertToAdmin(msg, idx)}
+                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs shadow-md shadow-violet-600/25 border border-violet-400/30 flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
+                          >
+                            <i className="fas fa-paper-plane text-amber-300"></i>
+                            <span>{alertSentMap[idx] ? '✅ បានផ្ញើ Alert ទៅ Admin រួចហើយ' : '🚨 Send Alert ទៅអ្នកគ្រប់គ្រង'}</span>
+                          </button>
 
-                        <a
-                          href="https://t.me/NobRotana"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-2.5 py-1.5 rounded-xl bg-cyan-600/15 hover:bg-cyan-600/25 border border-cyan-500/30 text-cyan-400 font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
-                          title="ឆាតទៅកាន់ Telegram ផ្ទាល់របស់ Rotana NOB"
-                        >
-                          <i className="fab fa-telegram text-cyan-400"></i>
-                          <span>Telegram Rotana NOB</span>
-                        </a>
-                      </div>
-                    )}
+                          <a
+                            href="https://t.me/TheRotanaNob"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
+                            title="ឆាតផ្ទាល់ទៅកាន់ Telegram បង Rotana"
+                          >
+                            <i className="fab fa-telegram text-sky-400"></i>
+                            <span>Telegram បង Rotana</span>
+                          </a>
+
+                          <a
+                            href="https://web.facebook.com/TheRotanaNob"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-3 py-2 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
+                            title="ឆាតទៅកាន់ Facebook ផ្ទាល់របស់ Rotana NOB"
+                          >
+                            <i className="fab fa-facebook text-blue-400"></i>
+                            <span>Facebook</span>
+                          </a>
+                        </div>
+                      );
+                    })()}
 
                     {/* Frustrated User / Confusion Recovery Action Buttons */}
                     {(!msg.isError && (msg.showSupportActions || msg.userFrustrated || (() => {
@@ -3443,7 +3489,7 @@ export default function KonBongPage() {
                             setErrorReportInitialText(`[AI Frustration/Inappropriate Response Report]:\nសំណួរ User: "${prevUserText}"\nចម្លើយ AI (កូនច្បង): "${msg.text?.slice(0, 300)}..."`);
                             setErrorReportModalOpen(true);
                           }}
-                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-rose-900/30 cursor-pointer"
+                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-violet-900/30 cursor-pointer"
                         >
                           <i className="fas fa-triangle-exclamation text-amber-300 text-xs"></i>
                           <span>🚨 Report ទៅកាន់ Creator (Rotana NOB)</span>
