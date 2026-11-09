@@ -2298,10 +2298,49 @@ export default function KonPovPage() {
             ]);
           };
 
+          let targetStreamText = '';
+          let renderedLength = 0;
+          let isStreamDone = false;
+
+          // Smooth 60fps Real-Time Typewriter Loop (emulates natural human typing cadence, smoothly handling bursts)
+          const typewriterPromise = new Promise((resolve) => {
+            const ticker = setInterval(() => {
+              if (renderedLength < targetStreamText.length) {
+                const diff = targetStreamText.length - renderedLength;
+                // If backlog is small (1-10 chars), step 1 char per tick (~60 chars/s, smooth human typing)
+                // If backlog is moderate (11-30 chars), step 2 chars
+                // If backlog is large (>30 chars), catch up smoothly
+                const step = diff > 40 ? Math.ceil(diff / 6) : diff > 15 ? 2 : 1;
+                renderedLength = Math.min(targetStreamText.length, renderedLength + step);
+
+                const currentSlice = targetStreamText.slice(0, renderedLength);
+                botText = currentSlice;
+                const liveSanitized = enforcePersonaConsistency(cleanRawOutput(currentSlice), isMaleUser);
+                setMessages((prev) => {
+                  const copy = [...prev];
+                  if (copy.length > 0 && copy[copy.length - 1].role === 'bot') {
+                    copy[copy.length - 1] = {
+                      ...copy[copy.length - 1],
+                      role: 'bot',
+                      text: liveSanitized
+                    };
+                  }
+                  return copy;
+                });
+              } else if (isStreamDone) {
+                clearInterval(ticker);
+                resolve();
+              }
+            }, 16);
+          });
+
           try {
             while (true) {
               const { done, value } = await readChunkWithTimeout(12000);
-              if (done) break;
+              if (done) {
+                isStreamDone = true;
+                break;
+              }
               buffer += decoder.decode(value, { stream: true });
               const lines = buffer.split('\n');
               buffer = lines.pop(); // keep remainder
@@ -2315,13 +2354,7 @@ export default function KonPovPage() {
                     const parsed = JSON.parse(jsonStr);
                     const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
                     if (delta) {
-                      botText += delta;
-                      const liveSanitized = enforcePersonaConsistency(cleanRawOutput(botText), isMaleUser);
-                      setMessages((prev) => {
-                        const copy = [...prev];
-                        copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
-                        return copy;
-                      });
+                      targetStreamText += delta;
                     }
                   } catch {}
                 }
@@ -2329,7 +2362,11 @@ export default function KonPovPage() {
             }
           } catch (streamErr) {
             console.warn('[KonPov] Stream chunk read error or stall timeout:', streamErr.message);
+            isStreamDone = true;
           }
+
+          // Await smooth typewriter completion to the very last character
+          await typewriterPromise;
         } else if (response.ok) {
           const res = await response.json();
           if (res.isMasterAuthenticated) {
@@ -2340,10 +2377,9 @@ export default function KonPovPage() {
           }
           const fullText = cleanRawOutput(res.candidates?.[0]?.content?.parts?.[0]?.text || '');
           if (fullText) {
-            // High-speed real-time typewriter preview (12-16ms)
-            const step = Math.max(1, Math.floor(fullText.length / 35));
-            for (let c = 0; c < fullText.length; c += step) {
-              const currentChunk = fullText.slice(0, c + step);
+            // High-speed natural human typewriter preview (14-16ms)
+            for (let c = 1; c <= fullText.length; c++) {
+              const currentChunk = fullText.slice(0, c);
               botText = currentChunk;
               const liveSanitized = enforcePersonaConsistency(cleanRawOutput(currentChunk), isMaleUser);
               setMessages((prev) => {
@@ -2351,7 +2387,10 @@ export default function KonPovPage() {
                 copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
                 return copy;
               });
-              await new Promise((r) => setTimeout(r, 14));
+              if (c < fullText.length) {
+                if (fullText.length > 250 && c % 2 !== 0) continue;
+                await new Promise((r) => setTimeout(r, 14));
+              }
             }
             botText = fullText;
           }
@@ -2415,13 +2454,21 @@ export default function KonPovPage() {
             }
             const fullText = cleanRawOutput(resJson.candidates?.[0]?.content?.parts?.[0]?.text || resJson.reply || '');
             if (fullText) {
+              for (let c = 1; c <= fullText.length; c++) {
+                const currentChunk = fullText.slice(0, c);
+                botText = currentChunk;
+                const liveSanitized = enforcePersonaConsistency(cleanRawOutput(currentChunk), isMaleUser);
+                setMessages((prev) => {
+                  const copy = [...prev];
+                  copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
+                  return copy;
+                });
+                if (c < fullText.length) {
+                  if (fullText.length > 250 && c % 2 !== 0) continue;
+                  await new Promise((r) => setTimeout(r, 14));
+                }
+              }
               botText = fullText;
-              const liveSanitized = enforcePersonaConsistency(fullText, isMaleUser);
-              setMessages((prev) => {
-                const copy = [...prev];
-                copy[copy.length - 1] = { role: 'bot', text: liveSanitized };
-                return copy;
-              });
             }
           }
         } catch (fbErr) {
@@ -3738,8 +3785,8 @@ export default function KonPovPage() {
                     Roastbot កូនពៅ (ចែ)
                   </span>
 
-                  {/* AI Thinking Indicator (Rendered ABOVE the message bubble) */}
-                  {isLoading && idx === messages.length - 1 && !isGeneratingMeme && (
+                  {/* AI Thinking Indicator (Rendered ABOVE the message bubble while thinking) */}
+                  {isLoading && !item.text && idx === messages.length - 1 && !isGeneratingMeme && (
                     <div className="mb-2 flex items-center space-x-2 text-pink-500 dark:text-pink-400 px-3 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full w-fit shadow-xs animate-fade-in transition-all duration-300">
                       <div className="flex space-x-1 shrink-0">
                         <div className="w-1.5 h-1.5 bg-pink-400 rounded-full animate-bounce"></div>

@@ -935,6 +935,52 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   return `«ហាហាហា! អាឡប់${nameSuffix}នេះ! ហែងស្គាល់${botSelf}តិចពេកហើយអាល្អិត! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងអាចបោកខួរក្បាល${botSelf}បានមែន?! 😂 ហែងស្គាល់${botSelf}តិចពេកហើយ! ក្បាលខូចយក AI មកបោកគេ គេទះក្បាលទាំង AI ទាំងមនុស្ស! ទៅប្រាប់អា AI ជំនួយការហែងឱ្យរកក្បាច់អីប្លែកជាងហ្នឹងមក ក្បាច់ប៉ុណ្ណឹងអន់ពេកហើយ! 💀⚡🔥»`;
 }
 
+// Progressive Real-time SSE Stream Generator (Emulates human-like character-by-character typing with natural micro-cadence)
+function createProgressiveStreamResponse(text, corsHeaders) {
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      if (!text) {
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+        return;
+      }
+
+      // Split text into progressive typing chunks (2 to 4 characters or syllable clusters)
+      const chunks = [];
+      let i = 0;
+      while (i < text.length) {
+        const chunkSize = Math.min(Math.floor(Math.random() * 2) + 2, text.length - i);
+        chunks.push(text.slice(i, i + chunkSize));
+        i += chunkSize;
+      }
+
+      for (let idx = 0; idx < chunks.length; idx++) {
+        const payload = `data: ${JSON.stringify({
+          candidates: [{ content: { parts: [{ text: chunks[idx] }] } }]
+        })}\n\n`;
+        controller.enqueue(encoder.encode(payload));
+        // Progressive delay: 18ms per chunk (~55-60 chars/second natural human typing speed)
+        await new Promise((r) => setTimeout(r, 18));
+      }
+
+      controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+      controller.close();
+    }
+  });
+
+  return new Response(readable, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    }
+  });
+}
+
 export async function POST(req) {
   let reqBot = '';
   let reqUsername = '';
@@ -1019,18 +1065,7 @@ export async function POST(req) {
       const restEval = evaluateSystemRest(systemState);
       if (restEval.isResting) {
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: restEval.reason }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive'
-            }
-          });
+          return createProgressiveStreamResponse(restEval.reason, corsHeaders);
         }
         return Response.json(
           {
@@ -1600,18 +1635,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         });
 
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: fearReverenceResponse }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive'
-            }
-          });
+          return createProgressiveStreamResponse(fearReverenceResponse, corsHeaders);
         }
 
         return Response.json(
@@ -1671,18 +1695,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         });
 
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: imposterRoast }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive'
-            }
-          });
+          return createProgressiveStreamResponse(imposterRoast, corsHeaders);
         }
 
         return Response.json(
@@ -1719,18 +1732,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         });
 
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: welcomeCreator }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive'
-            }
-          });
+          return createProgressiveStreamResponse(welcomeCreator, corsHeaders);
         }
 
         return Response.json(
@@ -1769,18 +1771,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         });
 
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: fearResponse }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive'
-            }
-          });
+          return createProgressiveStreamResponse(fearResponse, corsHeaders);
         }
 
         return Response.json(
@@ -1826,18 +1817,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         });
 
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: politeMockReply }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive'
-            }
-          });
+          return createProgressiveStreamResponse(politeMockReply, corsHeaders);
         }
 
         return Response.json(
@@ -1964,20 +1944,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         }).catch((e) => console.error('[Telegram] Attack alert error:', e));
 
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: roast }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive',
-              'X-Accel-Buffering': 'no'
-            }
-          });
+          return createProgressiveStreamResponse(roast, corsHeaders);
         }
 
         return Response.json({
@@ -2018,20 +1985,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         checkAndExportInactiveSessions().catch(() => {});
 
         if (body.stream) {
-          const sseFormatted = `data: ${JSON.stringify({
-            candidates: [{ content: { parts: [{ text: defenseText }] } }]
-          })}\n\ndata: [DONE]\n\n`;
-
-          return new Response(sseFormatted, {
-            status: 200,
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'Cache-Control': 'no-cache, no-transform',
-              'Connection': 'keep-alive',
-              'X-Accel-Buffering': 'no'
-            }
-          });
+          return createProgressiveStreamResponse(defenseText, corsHeaders);
         }
 
         return Response.json({
