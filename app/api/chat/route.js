@@ -204,12 +204,30 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 18000
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
 }
 
+// In-memory cooldown tracker for TTS (Audio) model quota
+const ttsKeyCooldownMap = new Map();
+const TTS_COOLDOWN_MS = 60000; // 60s cooldown when a key hits 429 on TTS
+
 // Native Gemini TTS via /v1beta/interactions with key rotation across all available pool keys
-async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 6000) {
+async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 10000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
   if (keys.length === 0) return { ok: false };
 
-  for (const key of keys) {
+  const now = Date.now();
+  // Prioritize keys that are not cooling down from 429 quota exhaustion
+  const readyKeys = keys.filter((k) => {
+    const exp = ttsKeyCooldownMap.get(k);
+    if (!exp) return true;
+    if (now > exp) {
+      ttsKeyCooldownMap.delete(k);
+      return true;
+    }
+    return false;
+  });
+
+  const trialKeys = readyKeys.length > 0 ? readyKeys : keys;
+
+  for (const key of trialKeys) {
     try {
       const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
       const res = await fetch(url, {
@@ -254,16 +272,16 @@ async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 600
           }
         }
         if (b64Data) {
-          return { ok: true, data: b64Data, mimeType: 'audio/wav' };
+          return { ok: true, data: b64Data, mimeType: 'audio/wav', voiceProvider: 'gemini_ai' };
         }
       } else {
         if (res.status === 429) {
-          // Free tier rate limit exhausted on this key. Try next available key in pool
+          ttsKeyCooldownMap.set(key, Date.now() + TTS_COOLDOWN_MS);
           continue;
         }
       }
     } catch {
-      // Fast fallback to Khmer TTS engine
+      // Continue to next available key in pool
     }
   }
   return { ok: false };
@@ -1168,12 +1186,12 @@ export async function POST(req) {
         .replace(/^["']|["']$/g, '')
         .trim();
 
-      // Spoken voice length: Read a complete punchy response (up to 380 chars, ~15s voice) for instant generation & zero freeze
+      // Spoken voice length: Read a complete punchy response (up to 240 chars, ~6-8s voice) for instant Gemini AI generation (<2s latency)
       let audioPromptText = speechText;
-      if (audioPromptText.length > 380) {
-        const sentenceBoundary = audioPromptText.slice(0, 380).lastIndexOf('។');
-        const altBoundary = audioPromptText.slice(0, 380).lastIndexOf('\n');
-        const cutoff = sentenceBoundary > 150 ? sentenceBoundary + 1 : (altBoundary > 150 ? altBoundary : 380);
+      if (audioPromptText.length > 240) {
+        const sentenceBoundary = audioPromptText.slice(0, 240).lastIndexOf('។');
+        const altBoundary = audioPromptText.slice(0, 240).lastIndexOf('\n');
+        const cutoff = sentenceBoundary > 120 ? sentenceBoundary + 1 : (altBoundary > 120 ? altBoundary : 240);
         audioPromptText = audioPromptText.slice(0, cutoff).trim();
       }
 
@@ -1205,7 +1223,7 @@ export async function POST(req) {
       // 1. Primary AI Voice: Call Gemini Native TTS if keys available (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
       let ttsResult = { ok: false };
       if (apiKeys.length > 0) {
-        ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 6000);
+        ttsResult = await callGeminiTTS(apiKeys, audioPromptText, voiceName, 10000);
       }
       if (ttsResult.ok && ttsResult.data) {
         return Response.json(
@@ -1224,7 +1242,10 @@ export async function POST(req) {
                 }
               }
             ],
-            isFallbackBotVoice: false
+            isFallbackBotVoice: false,
+            voiceProvider: 'gemini_ai',
+            voiceName: voiceName,
+            voiceType: isFemaleUser ? 'daddy_puck' : 'mommy_aoede'
           },
           { status: 200, headers: corsHeaders }
         );
@@ -1236,6 +1257,8 @@ export async function POST(req) {
         return Response.json(
           {
             isFallbackBotVoice: true,
+            voiceProvider: 'google_translate_fallback',
+            voiceName: 'google_km_bot',
             candidates: [
               {
                 content: {

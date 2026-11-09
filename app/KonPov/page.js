@@ -112,6 +112,7 @@ export default function KonPovPage() {
   const [spamLockUntil, setSpamLockUntil] = useState(0);
   const [fallbackAudioMap, setFallbackAudioMap] = useState({});
   const [botReadingNotice, setBotReadingNotice] = useState(false);
+  const [aiReadingNotice, setAiReadingNotice] = useState(false);
 
   // Error Report to Rotana NOB Modal State
   const [errorReportModalOpen, setErrorReportModalOpen] = useState(false);
@@ -374,7 +375,12 @@ export default function KonPovPage() {
       }
       if (isFallback) {
         setBotReadingNotice(true);
+        setAiReadingNotice(false);
         setTimeout(() => setBotReadingNotice(false), 4500);
+      } else {
+        setAiReadingNotice(true);
+        setBotReadingNotice(false);
+        setTimeout(() => setAiReadingNotice(false), 4500);
       }
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return { blob: null, isFallback: true, b64Data: null };
@@ -1716,7 +1722,12 @@ export default function KonPovPage() {
     if (isFallback) {
       setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
       setBotReadingNotice(true);
+      setAiReadingNotice(false);
       setTimeout(() => setBotReadingNotice(false), 4500);
+    } else {
+      setAiReadingNotice(true);
+      setBotReadingNotice(false);
+      setTimeout(() => setAiReadingNotice(false), 4500);
     }
 
     // Primary Playback Engine: Web Audio API (Decodes ArrayBuffer asynchronously & plays on unlocked AudioContext)
@@ -2700,9 +2711,16 @@ export default function KonPovPage() {
     >
       {/* Bot Reading Instead Notice / Toast */}
       {botReadingNotice && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-purple-950/95 border border-purple-500/50 text-purple-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
-          <i className="fas fa-robot text-purple-400 text-sm"></i>
-          <span>Bot កំពុងអានជំនួស AI Voice</span>
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-950/95 border border-amber-500/50 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
+          <i className="fas fa-robot text-amber-400 text-sm"></i>
+          <span>🤖 សំឡេង Bot ជំនួយ (Google TTS) កំពុងអានជំនួស</span>
+        </div>
+      )}
+      {/* Real Gemini AI Voice Toast */}
+      {aiReadingNotice && (
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-emerald-950/95 border border-emerald-500/50 text-emerald-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
+          <i className="fas fa-wand-magic-sparkles text-emerald-400 text-sm"></i>
+          <span>✨ សំឡេង AI ពិតប្រាកដ (Gemini AI Voice) កំពុងអាន</span>
         </div>
       )}
       {/* Side Drawer */}
@@ -3994,6 +4012,19 @@ export default function KonPovPage() {
                               </>
                             )}
                           </button>
+
+                          {/* Distinct Voice Provider Badge */}
+                          <span
+                            className={`px-2 py-1 rounded-xl text-[9.5px] font-bold border flex items-center gap-1 select-none ${
+                              isFallbackVoice
+                                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-400/40'
+                                : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-400/40'
+                            }`}
+                            title={isFallbackVoice ? 'សំឡេងជំនួយ Google TTS (បម្រុងទុកពេល AI កំពុងរវល់)' : 'សំឡេង AI ពិតប្រាកដ (Google Gemini Speech Core)'}
+                          >
+                            <i className={`fas ${isFallbackVoice ? 'fa-robot text-amber-500' : 'fa-wand-magic-sparkles text-emerald-500'} text-[8.5px]`} />
+                            <span>{isFallbackVoice ? 'Bot Google TTS' : 'Gemini AI Voice'}</span>
+                          </span>
 
                           {/* Upgraded Audio Speed Controller */}
                           <button
