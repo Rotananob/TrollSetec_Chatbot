@@ -112,6 +112,9 @@ export default function KonBongPage() {
   const [isSurvivalModalOpen, setIsSurvivalModalOpen] = useState(false);
   const [quoteModalData, setQuoteModalData] = useState(null);
 
+  // Real-time Bot Pause State synced directly from Firebase RTDB (Rotana Admin Control)
+  const [botPauseState, setBotPauseState] = useState({ isPaused: false, notice: '' });
+
   // ToDo / Queued Prompt State (allows typing and queuing while AI is thinking)
   const [queuedPrompt, setQueuedPrompt] = useState(null); // { text, image }
   const queuedPromptRef = useRef(null);
@@ -683,6 +686,44 @@ export default function KonBongPage() {
 
     return () => unsubscribe();
   }, [activeLiveSessionId, currentSessionId]);
+
+  // Real-time Bot Pause Listener (Instant sync from Rotana Admin Control via Firebase RTDB SSE)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let es = null;
+
+    const connectSSE = () => {
+      try {
+        es = new EventSource('https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app/system_control.json');
+
+        const handlePayload = (e) => {
+          try {
+            const parsed = JSON.parse(e.data);
+            const data = parsed?.data !== undefined ? parsed.data : parsed;
+            if (data && typeof data === 'object') {
+              if (data.konbongActive === false) {
+                setBotPauseState({
+                  isPaused: true,
+                  notice: data.konbongNotice || 'បងកូនច្បង KonBong កំពុងសម្រាក ឬ Update កូដប្រព័ន្ធមួយរយៈខ្លី... សូមសាកល្បងទៅលេងជាមួយចែកូនពៅ KonPov ជំនួសវិញណា៎!'
+                });
+              } else if (data.konbongActive === true) {
+                setBotPauseState({ isPaused: false, notice: '' });
+              }
+            }
+          } catch {}
+        };
+
+        es.addEventListener('put', handlePayload);
+        es.addEventListener('patch', handlePayload);
+      } catch {}
+    };
+
+    connectSSE();
+
+    return () => {
+      if (es) es.close();
+    };
+  }, []);
 
   const handleToggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -2757,7 +2798,7 @@ export default function KonBongPage() {
               className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-amber-500/30 flex items-center justify-center gap-1.5"
             >
               <i className="fas fa-bullhorn text-amber-400 text-xs"></i>
-              <span>សេចក្ដីជូនដំណឹង</span>
+              <span>ដំណឹងទីលានតេស្ត</span>
             </Link>
             <Link
               href="/privacy"
@@ -2765,7 +2806,7 @@ export default function KonBongPage() {
               className="bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-slate-700/60 flex items-center justify-center gap-1.5"
             >
               <i className="fas fa-shield-halved text-cyan-400 text-xs"></i>
-              <span>ឯកជនភាព</span>
+              <span>គោលការណ៍ឯកជនភាព</span>
             </Link>
           </div>
 
@@ -4025,6 +4066,30 @@ export default function KonBongPage() {
                 </span>
                 <span className="font-medium text-slate-700 dark:text-slate-300">ជជែកថ្មី</span>
               </button>
+
+              {/* Field-Test Announcement Direct Tool Button */}
+              <Link
+                href="/announcement"
+                className="group inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 dark:bg-amber-500/15 hover:bg-amber-500/20 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs"
+                title="សេចក្ដីជូនដំណឹងទីលានតេស្ត AI"
+              >
+                <span className="w-5 h-5 rounded-md bg-amber-500/20 text-amber-500 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-bullhorn"></i>
+                </span>
+                <span className="font-semibold">ទីលាន Test</span>
+              </Link>
+
+              {/* Privacy Policy Direct Tool Button */}
+              <Link
+                href="/privacy"
+                className="group inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/15 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs"
+                title="គោលការណ៍ឯកជនភាព និងការការពារទិន្នន័យ"
+              >
+                <span className="w-5 h-5 rounded-md bg-cyan-500/20 text-cyan-500 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-shield-halved"></i>
+                </span>
+                <span className="font-semibold">Privacy</span>
+              </Link>
             </div>
 
             {/* ROW 2: សំណើ Troll (Prompt Suggestion Chips) */}
@@ -4392,6 +4457,39 @@ export default function KonBongPage() {
               {item.emoji}
             </span>
           ))}
+        </div>
+      )}
+      {/* Real-time Bot Pause Popup Modal (Triggered instantly when Rotana NOB pauses bot in Admin) */}
+      {botPauseState.isPaused && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
+          <div className="w-full max-w-md rounded-3xl p-6 shadow-2xl border border-amber-500/40 bg-slate-900 text-white relative overflow-hidden text-center animate-scale-up">
+            <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-3xl border border-amber-500/30 animate-pulse">
+              <i className="fas fa-pause"></i>
+            </div>
+            <h3 className="text-lg font-black mb-1.5 text-amber-300">
+              ការជូនដំណឹងពីអ្នកគ្រប់គ្រង (Rotana NOB)
+            </h3>
+            <p className="text-[11px] text-amber-200/80 mb-3 font-bold uppercase tracking-wider">
+              បងកូនច្បងត្រូវបានផ្អាកបណ្ដោះអាសន្ន
+            </p>
+            <div className="text-xs sm:text-sm text-slate-200 leading-relaxed mb-6 font-semibold whitespace-pre-line p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-left">
+              {botPauseState.notice}
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <Link
+                href="/KonPov"
+                className="w-full py-2.5 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95 flex items-center justify-center gap-1.5"
+              >
+                <span>👉 ទៅលេងជាមួយចែកូនពៅ (KonPov) វិញ</span>
+              </Link>
+              <Link
+                href="/"
+                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition border border-slate-700 flex items-center justify-center gap-1.5"
+              >
+                <span>ត្រឡប់ទៅទំព័រដើម</span>
+              </Link>
+            </div>
+          </div>
         </div>
       )}
     </div>

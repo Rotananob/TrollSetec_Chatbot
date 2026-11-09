@@ -916,14 +916,21 @@ export default function Home() {
                 <i className="fab fa-telegram"></i>
               </a>
             </div>
-            <div className="flex gap-3 justify-center mb-2 mt-2 items-center text-[11px] font-bold">
-              <Link href="/announcement" className="text-amber-500 hover:underline flex items-center gap-1">
-                <i className="fas fa-bullhorn text-[10px]"></i>
-                <span>សេចក្ដីជូនដំណឹង</span>
+            <div className="flex flex-wrap gap-2 justify-center mb-2 mt-3 items-center">
+              <Link
+                href="/announcement"
+                className="px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 shadow-2xs"
+                title="សេចក្ដីជូនដំណឹង និងការប្រកាសអំពីទីលានតេស្ត AI"
+              >
+                <i className="fas fa-bullhorn text-amber-500 text-[10px]"></i>
+                <span>ដំណឹងទីលានតេស្ត</span>
               </Link>
-              <span className="text-slate-400">•</span>
-              <Link href="/privacy" className="text-cyan-500 hover:underline flex items-center gap-1">
-                <i className="fas fa-shield-halved text-[10px]"></i>
+              <Link
+                href="/privacy"
+                className="px-3 py-1.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 shadow-2xs"
+                title="គោលការណ៍ឯកជនភាព និងការការពារទិន្នន័យ"
+              >
+                <i className="fas fa-shield-halved text-cyan-500 text-[10px]"></i>
                 <span>គោលការណ៍ឯកជនភាព</span>
               </Link>
             </div>
