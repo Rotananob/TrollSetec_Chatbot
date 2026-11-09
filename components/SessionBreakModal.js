@@ -9,6 +9,7 @@ import {
   getLocalDeviceBypassUsage,
   generateHashedVipCode
 } from '../app/utils/bypassCodeManager';
+import { getApiEndpoint } from '../app/utils/apiConfig';
 
 const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
 const ACTIVE_BYPASS_REQ_KEY = 'setec_active_bypass_req_v2';
@@ -342,7 +343,7 @@ export default function SessionBreakModal({
         }
 
         // Notify server session reset asynchronously
-        fetch('/api/chat', {
+        fetch(getApiEndpoint('/api/chat'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'reset-session', deviceId: devId })

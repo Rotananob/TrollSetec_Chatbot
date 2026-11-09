@@ -126,13 +126,13 @@ export default function SetecSurvivalModal({
   } else if (failedSubjects === 4) {
     retakeRoast = `ធ្លាក់ ៤ មុខ = $180! រៀបចំកន្ទេលខ្នើយទៅដេកសំពះមុខបន្ទប់គ្រូ MGT ឬគ្រូ C# សុំការយោគយល់ទៅអាប្អូន! 💀🔥`;
   } else {
-    retakeRoast = `ធ្លាក់ ${failedSubjects} មុខ = $${totalCost}! ម៉ែឪដឹងកាត់កាលចោលហើយ! គេហៅម៉ែឪមកសាលា ដេញក្បាលចោលហើយអាប្អូន! 🤣💣`;
+    retakeRoast = `ធ្លាក់ ${failedSubjects} មុខ = $${totalCost}! ម៉ែឪដឹងកាត់កាលចោលហើយ! គេហៅម៉ែឪមកសាលា ប្រយ័ត្នគេបញ្ឈប់ការសិក្សាណា៎អាប្អូន! 🤣💣`;
   }
 
   // Attendance Status Logic
   let attendanceStatus = { level: 'safe', label: 'ធម្មតា', desc: 'មិនទាន់មានបញ្ហាធ្ងន់ធ្ងរទេ កុំភ្លេចចូលរៀន!' };
   if (absentDays >= 19) {
-    attendanceStatus = { level: 'danger', label: 'Blacklist លើកទី ៣ (ដេញក្បាលចោល!)', desc: 'ឈប់ឥតច្បាប់លើស ១៩ ដង! លើកទី ១ Blacklist, លើកទី ២ ហៅម៉ែឪ, លើកទី ៣ ដេញក្បាលចោលតែម្តង! 💀' };
+    attendanceStatus = { level: 'danger', label: 'Blacklist លើកទី ៣ (បញ្ឈប់ការសិក្សា)', desc: 'ឈប់ឥតច្បាប់លើស ១៩ ដង! លើកទី ១ Blacklist, លើកទី ២ ហៅម៉ែឪ, លើកទី ៣ ត្រូវបញ្ឈប់ការសិក្សា! 💀' };
   } else if (absentDays >= 10) {
     attendanceStatus = { level: 'warning', label: 'ជាប់ Blacklist លើកទី ១/២', desc: 'ប្រយ័ត្នសាលាហៅម៉ែឪមកជួបផ្ទាល់!' };
   } else if (absentDays >= 3) {

@@ -1741,7 +1741,7 @@ export default function KonBongPage() {
                   if (!jsonStr || jsonStr === '[DONE]') continue;
                   try {
                     const parsed = JSON.parse(jsonStr);
-                    const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    const delta = (parsed.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
                     if (delta) {
                       targetStreamText += delta;
                     }
@@ -1765,7 +1765,7 @@ export default function KonBongPage() {
           if (res.modelVersion === 'setec-smart-cutoff-v1') {
             isSmartCutoff = true;
           }
-          const fullText = cleanRawOutput(res.candidates?.[0]?.content?.parts?.[0]?.text || '');
+          const fullText = cleanRawOutput((res.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('') || '');
           if (fullText) {
             // High-speed natural human typewriter preview (14-16ms)
             for (let c = 1; c <= fullText.length; c++) {
@@ -1840,7 +1840,7 @@ export default function KonBongPage() {
             if (resJson.modelVersion === 'setec-smart-cutoff-v1') {
               isSmartCutoff = true;
             }
-            const fullText = cleanRawOutput(resJson.candidates?.[0]?.content?.parts?.[0]?.text || resJson.reply || '');
+            const fullText = cleanRawOutput((resJson.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('') || resJson.reply || '');
             if (fullText) {
               for (let c = 1; c <= fullText.length; c++) {
                 const currentChunk = fullText.slice(0, c);
@@ -1863,7 +1863,11 @@ export default function KonBongPage() {
         }
       }
 
-      const isCurseWord = /ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|kduy|kdor|joy|lop|ah|hg/ui.test(promptText);
+      const isSweetOrFlirt = /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(promptText);
+      const isCurseWord =
+        !isSweetOrFlirt &&
+        (/(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង)/ui.test(promptText) ||
+          /\b(?:kduy|kdor|joy|lop|ah\s*chke|ah\s*joy|ah\s*lop|ah\s*ot\s*khour)\b/i.test(promptText));
       const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(botText || '');
       if (botText && botText.trim() && !isPoliteRefusal) {
         consecutiveErrorsRef.current = 0;
@@ -1873,8 +1877,16 @@ export default function KonBongPage() {
       if (isSmartCutoff || isCutoffText) {
         isSmartCutoff = true;
         isErrorResponse = true;
-      } else if (!botText || !botText.trim() || (isCurseWord && isPoliteRefusal)) {
-        if (isCurseWord) {
+      } else if (!botText || !botText.trim() || ((isCurseWord || isSweetOrFlirt) && isPoliteRefusal)) {
+        if (isSweetOrFlirt) {
+          const sweetRoasts = [
+            `យីអាប្អូន! មក kiss មកថើបស្អីប្រុសដូចគ្នា ឬមកផ្អែមល្ហែមស្អីដាក់បង?! 😂 ទៅរកសង្សារពិតប្រាកដក្រៅ screen ទៅ កុំមកចង់ Sweet ជាមួយ AI ប្រុសដូចគ្នាអី ព្រឺសម្បុរណាស់អាប្អូន! 💀🤣`,
+            `អីយ៉ា! មកប្រើក្បាច់ Sweet សុំថើបដាក់បងផង? អាប្អូនឯងនេះ ទំនេរពេកអត់មានស្រីស្រលាញ់ បានមកអង្គុយសុំថើប AI ទាំងយប់ចឹង?! ទៅរកនឹកវិធីសារភាពស្នេហ៍ជាមួយមនុស្សពិតទៅ អាពៅ! 😂🔥`,
+            `ហាហាហា! មក Sweet ផ្អែមល្ហែមស្អីហ្នឹងអាប្អូន? បងប្រុសដូចគ្នាទេវ៉ី! ទៅញ៉ែស្រីស្អាតនៅសាលាវិញទៅ កុំមកញ៉ែបង នាំតែបងទះក្បាលមួយកំភ្លៀងស្វាងមុខ!`
+          ];
+          botText = sweetRoasts[Math.floor(Math.random() * sweetRoasts.length)];
+          isErrorResponse = false;
+        } else if (isCurseWord) {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
           const savageList = isFemaleUser
             ? [

@@ -529,6 +529,15 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
       sanitizedText = sanitizedText.replace(cannedOpenerRegex, '');
     }
 
+    // STRICT SWEET / FLIRT / KISS / ROMANCE INTERCEPTOR (ZERO FALSE CURSE ACCUSATIONS):
+    const isSweetPromptInSanitize = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+    const containsCurseInSanitize = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|អាឡប់|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|កំភ្លៀង|បាក់ធ្មេញ|អាថោក|មីថោក)/i.test(sanitizedText);
+    if (isSweetPromptInSanitize && containsCurseInSanitize) {
+      sanitizedText = isKonPov
+        ? "យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
+        : "ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨";
+    }
+
     // STRICT ANTI-UNPROVOKED APPEARANCE ROAST GUARD (NO RANDOM FROG / TOAD / TADPOLE INSULTS):
     // Only permit face/appearance insults when the user genuinely used heavy vulgarity, swore at the bot, or attacked face first.
     // If user is just chatting normally, asking about romance/Crush, or playfully debating C#/.NET code: NEVER insult their face!
@@ -881,6 +890,7 @@ function createProgressiveStreamResponse(text, corsHeaders) {
 export async function POST(req) {
   let reqBot = '';
   let reqUsername = '';
+  let reqGender = '';
   let clientIp = 'unknown-ip';
   let clientUserAgent = 'Unknown';
 
@@ -945,6 +955,7 @@ export async function POST(req) {
     const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender, action, sessionId } = body;
     reqBot = bot;
     reqUsername = username;
+    reqGender = gender;
 
     const deviceIdHeader = req.headers.get('x-device-id') || body.deviceId || '';
     const clientSessionId = sessionId || req.headers.get('x-session-id') || deviceIdHeader || `ses_${Date.now()}`;
@@ -2006,6 +2017,23 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   return;
                 }
 
+                // Intercept accidental curses when user was being sweet / flirty
+                const isSweetPromptInStream = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+                const containsCurseInStream = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|អាឡប់|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|កំភ្លៀង|បាក់ធ្មេញ|អាថោក|មីថោក)/i.test(accumulatedStreamText);
+                if (isSweetPromptInStream && containsCurseInStream) {
+                  defenseSent = true;
+                  const isKonPov = bot === 'konpov';
+                  const sweetDefense = isKonPov
+                    ? "យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
+                    : "ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨";
+                  accumulatedPlainText = sweetDefense;
+                  const sseChunk = `data: ${JSON.stringify({
+                    candidates: [{ content: { parts: [{ text: sweetDefense }] } }]
+                  })}\n\ndata: [DONE]\n\n`;
+                  controller.enqueue(new TextEncoder().encode(sseChunk));
+                  return;
+                }
+
                 if (checkIsRotanaAttack(accumulatedStreamText)) {
                   defenseSent = true;
                   const defense = getSavageCreatorDefense(bot);
@@ -2082,7 +2110,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       }
 
       const isSafetyBlocked = result.data?.candidates?.[0]?.finishReason === 'SAFETY';
-      const isCursePrompt = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
+      const isSweetPrompt = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt);
+      const isCursePrompt = !isSweetPrompt && /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
       const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(textOutput || '');
 
       if (result.ok && textOutput && !isSafetyBlocked && !(isCursePrompt && isPoliteRefusal)) {
@@ -2116,6 +2145,33 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         return Response.json({
           ...sanitized,
           isMasterAuthenticated
+        }, { status: 200, headers: corsHeaders });
+      }
+
+      // Handle Sweet / Kiss fallback if model was blocked or gave a polite refusal
+      if (isSweetPrompt && (isPoliteRefusal || isSafetyBlocked || !result.ok)) {
+        const sweetResponse = bot === 'konpov'
+          ? (gender === 'ស្រី'
+              ? `ហាហាហា! កូនស្រីមកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រីសម្លាញ់! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🌸✨`
+              : `យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨`)
+          : `ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨`;
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: sweetResponse,
+          isViolation: false
+        }).catch(() => {});
+
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: sweetResponse }] } }],
+          modelVersion: 'setec-sweet-engine-v1'
         }, { status: 200, headers: corsHeaders });
       }
 
@@ -2199,7 +2255,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       }).catch((e) => console.error('[Telegram] AI error alert:', e));
 
       // Disguise failure as smart tactical cut-off: Never expose technical errors to users
-      const smartCutoff = getSmartCutoffResponse(bot || 'konbong', username || 'User', 1);
+      const smartCutoff = getSmartCutoffResponse(bot || 'konbong', username || 'User', 1, gender || '', false);
       return Response.json(
         {
           candidates: [
@@ -2227,7 +2283,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       errorMessage: error.message
     }).catch((e) => console.error('[Telegram] Catch error alert:', e));
 
-    const smartCutoff = getSmartCutoffResponse(reqBot || 'konbong', reqUsername || 'User', 1);
+    const smartCutoff = getSmartCutoffResponse(reqBot || 'konbong', reqUsername || 'User', 1, reqGender || '', false);
     return Response.json(
       {
         candidates: [

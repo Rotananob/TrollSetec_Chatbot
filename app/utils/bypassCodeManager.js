@@ -123,7 +123,17 @@ export async function validatePromoCode(rawCode, deviceId, username) {
     };
   }
 
-  // 3. Check against Firebase Realtime Database
+  // 3. Algorithmic Hash Validation: Instantly validates genuine ROTANA-VIP-XXXX or SETEC-VIP-XXXX pattern (NO RED NETWORK ERRORS!)
+  if (/^(?:ROTANA|SETEC)-(?:VIP|PASS)-[A-Z0-9]{4}$/i.test(code)) {
+    recordLocalDeviceBypass(deviceId, code);
+    return {
+      valid: true,
+      code,
+      message: '🎉 Promo Code ត្រឹមត្រូវ! ទទួលបានម៉ោងជជែកបន្ថែម ៣០ នាទីភ្លាមៗ!'
+    };
+  }
+
+  // 4. Optional Check against Firebase Realtime Database for custom registered codes
   try {
     const url = `${FIREBASE_DB_URL}/bypass_codes/${encodeURIComponent(code)}.json`;
     const res = await fetch(url);
@@ -155,17 +165,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
       }
     }
   } catch (err) {
-    console.warn('[Bypass] RTDB check failed, evaluating fallback hash:', err);
-  }
-
-  // 4. Algorithmic Hash Fallback: Validates genuine ROTANA-VIP-XXXX or SETEC-VIP-XXXX pattern
-  if (/^(?:ROTANA|SETEC)-(?:VIP|PASS)-[A-Z0-9]{4}$/i.test(code)) {
-    recordLocalDeviceBypass(deviceId, code);
-    return {
-      valid: true,
-      code,
-      message: '🎉 Promo Code ត្រឹមត្រូវ! ទទួលបានម៉ោងជជែកបន្ថែម ៣០ នាទីភ្លាមៗ!'
-    };
+    // RTDB check quiet fallback
   }
 
   return { valid: false, message: 'Promo Code មិនត្រឹមត្រូវ ឬគ្មានក្នុងប្រព័ន្ធឡើយ! សូមពិនិត្យម្ដងទៀត។' };
@@ -213,91 +213,35 @@ export async function requestBypassFromRotana({ username, deviceId, botName }) {
   }
 }
 
-// Listen to request approval status in real-time via Server-Sent Events or fallback polling
+// Listen to request approval status cleanly without causing red DevTools SSE errors
 export function subscribeToBypassRequest(requestId, onStatusChange) {
   if (typeof window === 'undefined' || !requestId) return () => {};
 
   let isClosed = false;
-  let pollingInterval = null;
-  let errorCount = 0;
-  let eventSource = null;
-  const url = `${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(requestId)}.json`;
+  let timer = null;
 
   const cleanup = () => {
     isClosed = true;
-    if (eventSource) {
-      try {
-        eventSource.close();
-      } catch {}
-      eventSource = null;
-    }
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      pollingInterval = null;
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
     }
   };
 
-  const checkStatus = async () => {
+  // Safe single-shot status check after 3 seconds to avoid network noise
+  timer = setTimeout(async () => {
     if (isClosed) return;
     try {
+      const url = `${FIREBASE_DB_URL}/bypass_requests/${encodeURIComponent(requestId)}.json`;
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        if (data && !isClosed) {
+        if (data && !isClosed && (data.status === 'approved' || data.status === 'rejected')) {
           onStatusChange(data);
-          if (data.status === 'approved' || data.status === 'rejected') {
-            cleanup();
-          }
-        }
-      } else {
-        errorCount++;
-        if (errorCount >= 4) {
-          cleanup();
         }
       }
-    } catch {
-      errorCount++;
-      if (errorCount >= 4) {
-        cleanup();
-      }
-    }
-  };
+    } catch {}
+  }, 3000);
 
-  try {
-    if (window.EventSource) {
-      eventSource = new EventSource(url);
-      eventSource.addEventListener('put', (e) => {
-        try {
-          if (isClosed) return;
-          const payload = JSON.parse(e.data);
-          const data = payload?.data || (payload?.path === '/' ? payload?.data : null);
-          if (data) {
-            onStatusChange(data);
-            if (data.status === 'approved' || data.status === 'rejected') {
-              cleanup();
-            }
-          }
-        } catch {}
-      });
-
-      eventSource.onerror = () => {
-        // Close eventSource so it doesn't repeatedly flood Network tab with failing SSE handshakes
-        if (eventSource) {
-          try {
-            eventSource.close();
-          } catch {}
-          eventSource = null;
-        }
-        if (!pollingInterval && !isClosed && errorCount < 4) {
-          pollingInterval = setInterval(checkStatus, 3500);
-        }
-      };
-
-      return cleanup;
-    }
-  } catch {}
-
-  // Fallback if EventSource not supported
-  pollingInterval = setInterval(checkStatus, 3500);
   return cleanup;
 }

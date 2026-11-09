@@ -2373,7 +2373,7 @@ export default function KonPovPage() {
                   if (!jsonStr || jsonStr === '[DONE]') continue;
                   try {
                     const parsed = JSON.parse(jsonStr);
-                    const delta = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    const delta = (parsed.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
                     if (delta) {
                       targetStreamText += delta;
                     }
@@ -2396,7 +2396,7 @@ export default function KonPovPage() {
           if (res.modelVersion === 'setec-smart-cutoff-v1') {
             isSmartCutoff = true;
           }
-          const fullText = cleanRawOutput(res.candidates?.[0]?.content?.parts?.[0]?.text || '');
+          const fullText = cleanRawOutput((res.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('') || '');
           if (fullText) {
             // High-speed natural human typewriter preview (14-16ms)
             for (let c = 1; c <= fullText.length; c++) {
@@ -2473,7 +2473,7 @@ export default function KonPovPage() {
             if (resJson.modelVersion === 'setec-smart-cutoff-v1') {
               isSmartCutoff = true;
             }
-            const fullText = cleanRawOutput(resJson.candidates?.[0]?.content?.parts?.[0]?.text || resJson.reply || '');
+            const fullText = cleanRawOutput((resJson.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('') || resJson.reply || '');
             if (fullText) {
               for (let c = 1; c <= fullText.length; c++) {
                 const currentChunk = fullText.slice(0, c);
@@ -3514,10 +3514,10 @@ export default function KonPovPage() {
               )}
             </div>
 
-            <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-4 whitespace-pre-line ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
-              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តិផ្ទាល់ចេញពី AI សុទ្ធសាធ។ អ្នកដែលបង្កេីតវាឡេីងមកនេះ គាត់គ្រាន់តែធ្វេីក្នុងគោលបំណង សប្បាយ និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំជា AI អាចរៀនពីជិវិតពិតរបស់មនុស្សនិងរៀនពាក្យឡាតាំងខ្មែរផងដែរដេីម្បីជជែកឲកាន់តែដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។
+            <div className={`text-xs sm:text-sm font-semibold leading-relaxed space-y-3 mb-4 whitespace-pre-line font-['Kantumruy_Pro',sans-serif] ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>
+              មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ អ្នកដែលបង្កើតវាឡើងមកនេះ គាត់គ្រាន់តែធ្វើក្នុងគោលបំណង សប្បាយ និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យខ្ញុំជា AI អាចរៀនពីជីវិតពិតរបស់មនុស្ស និងរៀនពាក្យស្លោកខ្មែរផងដែរ ដើម្បីជជែកឱ្យកាន់តែដូចមនុស្ស ដើម្បីបង្កើនភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។
 
-ដូច្នេះ បើ AI 1គ្រឿង (កូនពៅ) RoastBotនេះ ឆ្លេីយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កេីតអី! ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
+ដូច្នេះ បើ AI 1គ្រឿង (កូនពៅ) RoastBotនេះ ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី! ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន! បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
             </div>
 
             <button
