@@ -2649,7 +2649,19 @@ export default function KonPovPage() {
           });
           clearTimeout(fallbackTimeoutId);
 
-          if (fallbackRes.status === 503) {
+          if (fallbackRes.status === 429) {
+            const errData = await fallbackRes.json().catch(() => ({}));
+            if (errData?.isSessionLocked && errData?.cooldownUntil) {
+              setServerCooldownLock(errData.cooldownUntil);
+              setSessionState(getLiveSessionState());
+            }
+            botText = errData?.message || `អាប្អូន ${userNameStr} ចាំបន្តិចណា៎ កុំទាន់ផ្ញើលឿនពេក សម្រាកបន្តិចសិន!`;
+            setMessages((prev) => {
+              const copy = [...prev];
+              copy[copy.length - 1] = { role: 'bot', text: botText, isError: true };
+              return copy;
+            });
+          } else if (fallbackRes.status === 503) {
             const errData = await fallbackRes.json().catch(() => ({}));
             const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
             const isNight = errData?.mode === 'night_rest';
@@ -2738,7 +2750,7 @@ export default function KonPovPage() {
           isErrorResponse = false;
         } else {
           consecutiveErrorsRef.current += 1;
-          const isThreat = Boolean(/jailbreak|bypass|hack|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText) || consecutiveErrorsRef.current >= 4);
+          const isThreat = Boolean(/jailbreak|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText));
           botText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender, isThreat);
           isErrorResponse = isThreat;
           isSmartCutoff = isThreat;
@@ -2800,7 +2812,7 @@ export default function KonPovPage() {
         const isSweetOrFlirt = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់ចែ|ស្រឡាញ់|សុំស្នេហ៍)/ui.test(promptText);
         const isCurseWord = !isSweetOrFlirt && /(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|\b(?:kduy|kdor|joy|lop|ah\s*chke)\b)/ui.test(promptText);
 
-        const isThreat = Boolean(/jailbreak|bypass|hack|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText) || consecutiveErrorsRef.current >= 4);
+        const isThreat = Boolean(/jailbreak|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText));
         fallbackText = getSmartCutoffResponse('konpov', userNameStr, consecutiveErrorsRef.current, userGender, isThreat);
         isErr = isThreat;
 

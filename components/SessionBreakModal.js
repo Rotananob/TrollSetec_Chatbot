@@ -295,12 +295,12 @@ export default function SessionBreakModal({
 
   if (!isOpen) return null;
 
-  // Rotana Creator is 100% exempt from the break modal at all times
+  // Rotana Creator is 100% exempt from the break modal when authenticated with master key or active bypass
   if (typeof window !== 'undefined') {
     try {
-      const u = (localStorage.getItem('chatbot_username') || '').toLowerCase();
+      const isMasterAuth = localStorage.getItem('troll_rotana_master_authenticated') === 'true';
       const bp = localStorage.getItem('troll_rotana_bypass');
-      if (u.includes('rotana') || bp === '1' || bp === 'true') {
+      if (isMasterAuth || bp === '1' || bp === 'true') {
         return null;
       }
     } catch {}
@@ -458,7 +458,7 @@ export default function SessionBreakModal({
         {/* Elegant Human Badge & Title */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-400 text-[11px] font-bold tracking-wide mb-2">
           <i className="fas fa-clock text-amber-400"></i>
-          <span>Live Chat Session Limit (30 នាទីចប់ហើយ)</span>
+          <span>Live Chat Session Limit 30 នាទីចប់ហើយ</span>
         </div>
 
         <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-1.5 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-300 to-amber-200">
@@ -500,7 +500,7 @@ export default function SessionBreakModal({
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5 text-xs font-black text-amber-300">
               <i className="fas fa-ticket-simple text-amber-400"></i>
-              <span>Promo Code Bypass (+30 នាទីភ្លាមៗ)</span>
+              <span>Promo Code Bypass បន្ថែម 30 នាទីភ្លាមៗ</span>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-amber-300">
               Bypass ថ្ងៃនេះ៖ <b>{deviceUsage.count}/{deviceUsage.limit || 5}</b> ដង

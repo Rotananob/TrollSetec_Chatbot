@@ -10,24 +10,29 @@ const STORAGE_KEY = 'setec_live_chat_session_v3';
 const COOKIE_NAME = 'setec_live_chat_cooldown_v3';
 
 // Helper to check if a user is the Creator Rotana NOB (Permanent 100% Exemption)
+// STRICT: Only genuine Creator Master Key or active verified bypass grants exemption!
+// A plain username containing 'rotana' is NEVER enough to bypass.
 export function isCreatorUsername(name) {
   if (typeof window !== 'undefined') {
     try {
-      const stored = (localStorage.getItem('chatbot_username') || '').toLowerCase();
       const bypass = localStorage.getItem('troll_rotana_bypass');
-      if (stored.includes('rotana') || bypass === '1' || bypass === 'true') {
+      const isMasterAuth = localStorage.getItem('troll_rotana_master_authenticated');
+      const masterPass = (localStorage.getItem('troll_rotana_master_passcode') || '').toLowerCase();
+      if (isMasterAuth === 'true' || bypass === '1' || bypass === 'true') {
+        return true;
+      }
+      if (
+        masterPass &&
+        (masterPass.includes('jak-sorl') ||
+          masterPass.includes('jaksorl') ||
+          masterPass.includes('rotana@supreme') ||
+          masterPass.includes('rotana#setec'))
+      ) {
         return true;
       }
     } catch {}
   }
-  if (!name || typeof name !== 'string') return false;
-  const clean = name.trim().toLowerCase();
-  return (
-    clean.includes('rotana') ||
-    clean === 'rotana nob' ||
-    clean === 'rotananob' ||
-    clean === 'rotana_nob'
-  );
+  return false;
 }
 
 // Format seconds into MM:SS

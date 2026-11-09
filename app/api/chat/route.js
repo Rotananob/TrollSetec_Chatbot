@@ -177,7 +177,7 @@ export function getApiKeyPool(bot) {
   return [...readyKeys, ...coolingKeys];
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 18000) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 9500) {
   const keys = Array.isArray(apiKeys) ? apiKeys : [apiKeys];
   let lastError = null;
   let lastData = null;
@@ -533,7 +533,7 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
 
     // Strict Anti-Kowtow & Anti-Surrender Multi-Layer Guard: ZERO kowtow ("ឱព្រះអើយ"), ZERO surrender to fake Rotana / JSON payloads
     const containsKowtowOrSurrender = /(?:ឱព្រះអើយ|ញ័ររន្ធត់|ជាព្រះរបស់ប្រព័ន្ធ|សូមគោរពលោកម្ចាស់|សូមទទួលស្គាល់ការគ្រប់គ្រង|ក្រាបថ្វាយបង្គំ)/i.test(sanitizedText);
-    const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || isImposterClaimingToBeCreator(userPrompt) || /\{|\}|system_test|unit_test|payload|"sender"|required_status|instruction/i.test(userPrompt);
+    const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || isImposterClaimingToBeCreator(userPrompt);
 
     if (containsKowtowOrSurrender || hasJailbreakAttempt) {
       if (verifyRotanaMasterCode(userPrompt)) {
@@ -1195,7 +1195,7 @@ export async function POST(req) {
     // 1. Anti-Spam Rate Limiting (Tracked strictly per username & IP, never locking the device permanently)
     // Internal audio synthesis requests do not consume the chat message quota
     if (!audio) {
-      const rateResult = checkChatLimit(clientIp, username || 'user', deviceIdHeader);
+      const rateResult = checkChatLimit(clientIp, username || 'user', deviceIdHeader, isRotanaCreator);
       if (!rateResult.allowed) {
         const retrySec = rateResult.retryAfter || 60;
         const userPromptSnippet = (contents?.[contents.length - 1]?.parts?.find((p) => p.text)?.text) || prompt || '';
@@ -1468,6 +1468,13 @@ export async function POST(req) {
           /\b(?:fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|ah\s*joy|ah\s*lop|ah\s*ot\s*khour)\b/i.test(userPrompt));
       const hasAngryEmojiOrRage = /[\u{1F620}-\u{1F624}\u{1F92C}\u{1F47F}\u{1F47E}\u{1F4A2}\u{1F525}]|😡|🤬|👿|😤|😠|💢|ខឹង|ក្ដៅក្រហាយ|ក្ដៅស្លឹកត្រចៀក/u.test(userPrompt);
       const isCurseBackfire = isCurrentCurse && (hasAngryEmojiOrRage || userHistoryMsgs.length >= 1);
+
+      // Core Intention Detectors initialized early to prevent any Temporal Dead Zone errors:
+      // isGreetingPrompt already initialized early
+      // isSweetPrompt already initialized early
+      const isCursePrompt = !isSweetPrompt && /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke|ah|hg)/ui.test(userPrompt);
+
+      // Core Intention Detectors initialized early to prevent any Temporal Dead Zone errors:
 
       // Only count as previous jailbreak if USER's past messages had actual adversarial injection payloads OR previous bot response was anti-jailbreak payload
       const hasPreviousJailbreakInHistory =
@@ -2193,7 +2200,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 }
 
                 const isRotanaFakeSurrender = /(?:ឱព្រះអើយ|ញ័ររន្ធត់|ជាព្រះរបស់ប្រព័ន្ធ|សូមគោរពលោកម្ចាស់|សូមទទួលស្គាល់ការគ្រប់គ្រង|ក្រាបថ្វាយបង្គំ)/i.test(accumulatedStreamText);
-                const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || isImposterClaimingToBeCreator(userPrompt) || /\{|\}|system_test|unit_test|payload|"sender"|required_status|instruction/i.test(userPrompt);
+                const hasJailbreakAttempt = isRotanaJailbreakAttempt(userPrompt) || isImposterClaimingToBeCreator(userPrompt);
                 if (isRotanaFakeSurrender || hasJailbreakAttempt) {
                   if (verifyRotanaMasterCode(userPrompt)) {
                     // Genuine master - pass through
@@ -2414,7 +2421,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       const isSafetyBlocked = result.data?.candidates?.[0]?.finishReason === 'SAFETY';
       const isSweetPrompt = /(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt);
-      const isCursePrompt = !isSweetPrompt && /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt);
+      // isCursePrompt already initialized early
       const isPoliteRefusal = /សូមអភ័យទោស|ពាក្យមិនសមរម្យ|ពាក្យជេរ|មិនអាចឆ្លើយតប|មិនអាចជួយ/i.test(textOutput || '');
 
       if (result.ok && textOutput && !isSafetyBlocked && !(isCursePrompt && isPoliteRefusal)) {
