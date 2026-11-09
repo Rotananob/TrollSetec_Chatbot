@@ -65,6 +65,8 @@ export default function SystemBroadcast() {
   const [isChecking, setIsChecking] = useState(false);
   const [cambodiaClock, setCambodiaClock] = useState('');
   const eventSourceRef = useRef(null);
+  const lastStatusFetchRef = useRef(0);
+  const isFetchingStatusRef = useRef(false);
 
   // Exclude Admin Control Panel from ever seeing maintenance locks or student popups
   const isAdminRoute = pathname?.includes('jam-tic-kapea-1-sin');
@@ -220,22 +222,34 @@ export default function SystemBroadcast() {
     } catch {}
   }, []);
 
-  // Subscribe to Firebase RTDB and fetch initial status
+  // Subscribe to Firebase RTDB and fetch initial status with clean 3.5s - 4s interval (Zero Spam)
   useEffect(() => {
     if (isAdminRoute || typeof window === 'undefined') return;
 
-    // 1. Fetch initial status via API
+    // 1. Fetch status via API with strict anti-spam throttle (min 3.5 seconds)
     const fetchStatus = async () => {
+      const now = Date.now();
+      if (isFetchingStatusRef.current || now - lastStatusFetchRef.current < 3500) {
+        return;
+      }
+      isFetchingStatusRef.current = true;
+      lastStatusFetchRef.current = now;
+
       try {
         const endpoint = getApiEndpoint('/api/system-status');
-        const res = await fetch(endpoint, { cache: 'no-store' });
+        const res = await fetch(endpoint, {
+          headers: { Accept: 'application/json' },
+          cache: 'no-store'
+        });
         if (res.ok) {
           const data = await res.json();
           if (data?.state) {
             setSystemState(data.state);
           }
         }
-      } catch {}
+      } catch {} finally {
+        isFetchingStatusRef.current = false;
+      }
     };
 
     fetchStatus();
@@ -250,7 +264,8 @@ export default function SystemBroadcast() {
       es.addEventListener('patch', (e) => handleSsePayload(e.data));
     } catch {}
 
-    const pollTimer = setInterval(fetchStatus, 5000);
+    // Clean controlled polling every 3.5 to 4 seconds (Zero spam)
+    const pollTimer = setInterval(fetchStatus, 3500);
 
     const handleSystemRestEvent = () => {
       fetchStatus();
@@ -261,7 +276,10 @@ export default function SystemBroadcast() {
       clearInterval(pollTimer);
       window.removeEventListener('rotana_system_rest', handleSystemRestEvent);
       if (eventSourceRef.current) {
-        try { eventSourceRef.current.close(); } catch {}
+        try {
+          eventSourceRef.current.close();
+        } catch {}
+        eventSourceRef.current = null;
       }
     };
   }, [isAdminRoute, handleSsePayload]);

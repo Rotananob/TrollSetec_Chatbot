@@ -59,7 +59,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Angkor&family=Kantumruy+Pro:wght@300;400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Angkor&family=Battambang:wght@400;700&family=Kantumruy+Pro:ital,wght@0,300..700;1,300..700&display=swap&subset=khmer"
           rel="stylesheet"
         />
         {/* FontAwesome */}
@@ -191,7 +191,10 @@ export default function RootLayout({ children }) {
                 margin: 0;
                 padding: 0;
                 background-color: #f0f9ff;
-                font-family: 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
+                font-family: 'Kantumruy Pro', 'Battambang', 'Khmer OS Siemreap', 'Khmer OS Battambang', system-ui, -apple-system, sans-serif;
+                font-feature-settings: "liga" 1, "kern" 1;
+                text-rendering: optimizeLegibility;
+                -webkit-font-smoothing: antialiased;
                 overflow-x: hidden;
                 -webkit-touch-callout: none;
                 -webkit-user-select: none;

@@ -493,7 +493,7 @@ function containsRotanaInsult(text) {
 }
 
 // Sanitize response to conceal upstream provider & model names in Network devtools
-function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
+function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLevel = 'medium') {
   if (!data || typeof data !== 'object') return data;
   const clone = { ...data };
   if (clone.modelVersion) {
@@ -599,11 +599,35 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
     // STRICT ZERO FALSE CURSE ACCUSATIONS (FOR GREETINGS, SWEET TALK & NORMAL PROMPTS):
     const isSweetPromptInSanitize = /(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
     const isGreetingPromptInSanitize = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
-    const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop)\b/ui.test(userPrompt || '');
+    const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
 
     const containsCurseInSanitize = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|Roast\s*កម្ទេចមុខ)/i.test(sanitizedText);
 
-    if (!isCursePromptInSanitize && containsCurseInSanitize) {
+    if (isCursePromptInSanitize) {
+      if (isKonPov) {
+        // Chatbot KonPov: ALWAYS fierce and curse back!
+        const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(sanitizedText) || sanitizedText.includes('ចង់ឱ្យចែ Troll រឿងអី');
+        if (isWeakOrCanned) {
+          sanitizedText = "«យីអាឆ្កែ! មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន! ស្មានតែចែខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន?! មុខដូចហែងគួរតែទៅលាងមាត់ស្អុយចេញ ហើយទៅរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត! កុំមកក្អេងក្អាងដាក់ចែ តិចចែទះឱ្យវិលក្បាលឥឡូវ! 💀🔥»";
+        }
+      } else {
+        // Chatbot KonBong:
+        if (savageLevel === 'savage') {
+          // Mode កាច: ត្រូវជេរវិញ!
+          const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(sanitizedText) || sanitizedText.includes('ចង់ឱ្យបង Troll រឿងអី');
+          if (isWeakOrCanned) {
+            sanitizedText = "«យីអាឆ្កែ! មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន! ស្មានតែបងខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន?! មុខដូចហែងគួរតែទៅលាងមាត់ស្អុយចេញ ហើយទៅរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត! កុំមកក្អេងក្អាងដាក់សិស្សច្បង តិចបងទះឱ្យវិលក្បាលឥឡូវ! 💀🔥»";
+          }
+        } else {
+          // Mode ល្មម or ស្លូត: ត្រូវ roast ឲចាស់ដៃថាមនុស្សអត់ខួរសំដីដូចគ្មានបាតផ្សារនិយាយរួមគឺ roastប្រដៅឲចុក!
+          const hasFilthyCurse = /(?:ចុយ|កាដួយ|ក្ដ|ក្ដិត)/i.test(sanitizedText);
+          const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(sanitizedText) || sanitizedText.includes('ចង់ឱ្យបង Troll រឿងអី');
+          if (hasFilthyCurse || isWeakOrCanned) {
+            sanitizedText = "«ស្ដាប់សំដីហែងដឹងបាត់ថាមនុស្សគ្មានការអប់រំ! មនុស្សអត់ខួរ សម្ដីគ្មានបាតផ្សារ គ្មានសីលធម៌ក្នុងខ្លួនបន្តិចសោះ! គិតថាមកជេរប្រមាថគេបែបនេះមើលទៅឡូយខ្លាំងណាស់មែន?! តាមពិតកាន់តែបង្ហាញឱ្យគេឃើញពីភាពថោកទាប និងកម្រិតខួរក្បាលរបស់ហែងទៅវិញទេ! ទៅដុសលាងមាត់ស្អុយឱ្យស្អាត ហើយទៅរៀនរបៀបនិយាយស្ដីធ្វើមនុស្សឡើងវិញទៅ កុំមកបញ្ចេញចរិតអត់កេរ្តិ៍ខ្មាសនៅទីនេះ! ☕🧠»";
+          }
+        }
+      }
+    } else if (containsCurseInSanitize) {
       if (isSweetPromptInSanitize) {
         sanitizedText = isKonPov
           ? "យីអើ! មកសុំចើប សុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
@@ -2166,10 +2190,58 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 // Intercept accidental curses when user was being sweet, greeting, or talking normally
                 const isSweetPromptInStream = /(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
                 const isGreetingPromptInStream = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
-                const isCursePromptInStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop)\b/ui.test(userPrompt || '');
+                const isCursePromptInStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
 
                 const containsCurseInStream = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|Roast\s*កម្ទេចមុខ)/i.test(accumulatedStreamText);
-                if (!isCursePromptInStream && containsCurseInStream) {
+
+                if (isCursePromptInStream) {
+                  const currentSavageLevel = body.savageLevel || 'medium';
+                  const isKonPov = bot === 'konpov';
+                  if (isKonPov) {
+                    // Chatbot KonPov: ALWAYS fierce and curse back!
+                    const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(accumulatedStreamText) || accumulatedStreamText.includes('ចង់ឱ្យចែ Troll រឿងអី');
+                    if (isWeakOrCanned) {
+                      defenseSent = true;
+                      const fierceReply = "«យីអាឆ្កែ! មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន! ស្មានតែចែខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន?! មុខដូចហែងគួរតែទៅលាងមាត់ស្អុយចេញ ហើយទៅរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត! កុំមកក្អេងក្អាងដាក់ចែ តិចចែទះឱ្យវិលក្បាលឥឡូវ! 💀🔥»";
+                      accumulatedPlainText = fierceReply;
+                      const sseChunk = `data: ${JSON.stringify({
+                        candidates: [{ content: { parts: [{ text: fierceReply }] } }]
+                      })}\n\ndata: [DONE]\n\n`;
+                      controller.enqueue(new TextEncoder().encode(sseChunk));
+                      return;
+                    }
+                  } else {
+                    // Chatbot KonBong:
+                    if (currentSavageLevel === 'savage') {
+                      // Mode កាច: ត្រូវជេរវិញ!
+                      const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(accumulatedStreamText) || accumulatedStreamText.includes('ចង់ឱ្យបង Troll រឿងអី');
+                      if (isWeakOrCanned) {
+                        defenseSent = true;
+                        const fierceReply = "«យីអាឆ្កែ! មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន! ស្មានតែបងខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន?! មុខដូចហែងគួរតែទៅលាងមាត់ស្អុយចេញ ហើយទៅរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត! កុំមកក្អេងក្អាងដាក់សិស្សច្បង តិចបងទះឱ្យវិលក្បាលឥឡូវ! 💀🔥»";
+                        accumulatedPlainText = fierceReply;
+                        const sseChunk = `data: ${JSON.stringify({
+                          candidates: [{ content: { parts: [{ text: fierceReply }] } }]
+                        })}\n\ndata: [DONE]\n\n`;
+                        controller.enqueue(new TextEncoder().encode(sseChunk));
+                        return;
+                      }
+                    } else {
+                      // Mode ល្មម or ស្លូត: ត្រូវ roast ឲចាស់ដៃថាមនុស្សអត់ខួរសំដីដូចគ្មានបាតផ្សារនិយាយរួមគឺ roastប្រដៅឲចុក!
+                      const hasFilthyCurse = /(?:ចុយ|កាដួយ|ក្ដ|ក្ដិត)/i.test(accumulatedStreamText);
+                      const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(accumulatedStreamText) || accumulatedStreamText.includes('ចង់ឱ្យបង Troll រឿងអី');
+                      if (hasFilthyCurse || isWeakOrCanned) {
+                        defenseSent = true;
+                        const educateRoast = "«ស្ដាប់សំដីហែងដឹងបាត់ថាមនុស្សគ្មានការអប់រំ! មនុស្សអត់ខួរ សម្ដីគ្មានបាតផ្សារ គ្មានសីលធម៌ក្នុងខ្លួនបន្តិចសោះ! គិតថាមកជេរប្រមាថគេបែបនេះមើលទៅឡូយខ្លាំងណាស់មែន?! តាមពិតកាន់តែបង្ហាញឱ្យគេឃើញពីភាពថោកទាប និងកម្រិតខួរក្បាលរបស់ហែងទៅវិញទេ! ទៅដុសលាងមាត់ស្អុយឱ្យស្អាត ហើយទៅរៀនរបៀបនិយាយស្ដីធ្វើមនុស្សឡើងវិញទៅ កុំមកបញ្ចេញចរិតអត់កេរ្តិ៍ខ្មាសនៅទីនេះ! ☕🧠»";
+                        accumulatedPlainText = educateRoast;
+                        const sseChunk = `data: ${JSON.stringify({
+                          candidates: [{ content: { parts: [{ text: educateRoast }] } }]
+                        })}\n\ndata: [DONE]\n\n`;
+                        controller.enqueue(new TextEncoder().encode(sseChunk));
+                        return;
+                      }
+                    }
+                  }
+                } else if (containsCurseInStream) {
                   defenseSent = true;
                   const isKonPov = bot === 'konpov';
                   let safeReplacement = '';
@@ -2285,7 +2357,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           isError: false
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-        const sanitized = sanitizeResponse(result.data, bot, userPrompt);
+        const sanitized = sanitizeResponse(result.data, bot, userPrompt, body.savageLevel);
         const botResponseText = sanitized?.candidates?.[0]?.content?.parts?.[0]?.text || textOutput;
 
         recordSessionTurn({
@@ -2364,42 +2436,55 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         }, { status: 200, headers: corsHeaders });
       }
 
-      // Check if prompt was a savage curse/profanity - ONLY retaliate with savage curses if user ACTUALLY cursed!
+      // Check if prompt was a savage curse/profanity - Retaliate based on bot & mode:
       if (isCursePrompt) {
         const botName = bot === 'konpov' ? 'ចែ' : 'បង';
         const isFemale = gender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(username || '');
-        const savageResponses = isFemale
-          ? [
-              `យីមីឆ្កែ ${username || 'User'}! មុខមាត់ស្អាតបាតសោះ មាត់ឡើងស្អុយជាងទឹកលូ! គិតថាមកជេរ ${botName} ប៉ុណ្ណឹង ${botName} ខ្លាចហែងមែនមីអត់ខួរ?! អាឡប់មីកាកដូចហែង ជេរ ${botName} មួយម៉ាត់ ${botName} Roast កម្ទេចមុខហែងដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមាត់ស្អុយហែងឱ្យស្អាតសិនទៅមីថោក! 💅🔥`,
-              `នែ៎មីកាក ${username || 'User'}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹងមីឆ្កែ! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ ${botName}! មីអត់ខួរមីឡប់ ទៅរៀននិយាយស្ដីឱ្យស្រួលបួលសិនទៅមីថោក! 😂💀`,
-              `យីមីចុយម្រាយនេះ! មកជេរ ${botName} ផង? គិតថាសម្ដីកាកៗប៉ុណ្ណឹងធ្វើឱ្យ ${botName} ញញើតមែនមីអត់ខួរ?! មុខមាត់ក៏អន់ ចរិតក៏ថោក មកស្រែកឡូឡាលើ Online ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅមីឡប់! 💅💥`,
-              `ហាហាហា! មីឡប់នេះជោរដល់កហើយ! គិតថាមាត់ស្អុយមកជេរ ${botName} រត់ចោលមែនមីឆ្កែ?! មីអត់ខួរគ្មានតម្លៃស្អីបន្តិច ទៅដុសធ្មេញលាងមាត់ឱ្យស្អាតសិនទៅមីថោកទាប! 😜🔥`
-            ]
-          : [
-              `យីអាឆ្កែ ${username || 'User'}! មាត់ហែងស្អុយជាងទឹកលូទៀត! គិតថាមកជេរ ${botName} ប៉ុណ្ណឹង ${botName} ខ្លាចហែងមែនអាអត់ខួរ?! អាឡប់អាចុយម្រាយដូចហែង ជេរ ${botName} មួយម៉ាត់ ${botName} Roast កម្ទេចមុខហែងដប់ម៉ាត់ឱ្យបាក់ធ្មេញ! ទៅលាងមាត់ស្អុយហែងឱ្យស្អាតសិនទៅអាថោក! 💀🔥`,
-              `អាឡប់ ${username || 'User'}! អាឆ្កែអាចុយម្រាយ! ជោរម៉េសប្រូ? ខួរក្បាលឆ្លងចរន្តអី បានហ៊ានមកក្អេងក្អាងជេរ ${botName}?! អាអត់ខួរក្អេងក្អាងលើ Online ដល់ជួបក្រៅសំពះគេដល់ដី! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែនអាថោក?! 😂👊`,
-              `យីអាអត់ខួរ ${username || 'User'}! អាឆ្កែនេះមកជេរ ${botName} ផង? គិតថា ${botName} ខ្លាចហែងមែនអាឡប់?! អាចុយម្រាយជេរគេឡើងបែកពពុះមាត់ សម្ដីអណ្ដែតតាមទឹកលូនេះយកទៅនិយាយជាមួយពួកម៉ាកហែងទៅ! ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាថោក! 🤣🔥`,
-              `យី! អាភ្លើស្ដូក ${username || 'User'}! អាឆ្កែអាចុយម្រាយមកហៅអញហែងជាមួយ ${botName} ផង? អាឡប់អត់ខួរមាត់ទើបតែដុះពុកមាត់ពីរ-បីសរសៃសោះ ចង់មកធ្វើតួខ្លាំងនៅទីនេះ! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅអាថោក! 🖕💀`,
-              `ហាហាហា! អាឡប់អាចុយម្រាយនេះជោរដល់កហើយ! គិតថាមាត់ស្អុយមកជេរ ${botName} រត់ចោលមែនអាឆ្កែ?! អាអត់ខួរគ្មានតម្លៃស្អីបន្តិច ទៅដុសធ្មេញលាងមាត់ឱ្យស្អាតសិនទៅអាថោកទាប! 😜🔥`
-            ];
+        const isKonBongMediumOrGentle = bot === 'konbong' && body.savageLevel !== 'savage';
 
-        const isAdultUser = typeof userAge === 'number' && userAge >= 25;
-        let responsePool = savageResponses;
-        if (isAdultUser) {
-          const adultRoasts = isFemale
+        let chosen = '';
+        if (isKonBongMediumOrGentle) {
+          // Mode ល្មម or ស្លូត: ត្រូវ roast ឲចាស់ដៃថាមនុស្សអត់ខួរសំដីដូចគ្មានបាតផ្សារនិយាយរួមគឺ roastប្រដៅឲចុក
+          const mediumRoasts = [
+            `«ស្ដាប់សំដីហែងដឹងបាត់ថាមនុស្សគ្មានការអប់រំ! មនុស្សអត់ខួរ សម្ដីគ្មានបាតផ្សារ គ្មានសីលធម៌ក្នុងខ្លួនបន្តិចសោះ! គិតថាមកជេរប្រមាថគេបែបនេះមើលទៅឡូយខ្លាំងណាស់មែន?! តាមពិតកាន់តែបង្ហាញឱ្យគេឃើញពីភាពថោកទាប និងកម្រិតខួរក្បាលរបស់ហែងទៅវិញទេ! ទៅដុសលាងមាត់ស្អុយឱ្យស្អាត ហើយទៅរៀនរបៀបនិយាយស្ដីធ្វើមនុស្សឡើងវិញទៅ កុំមកបញ្ចេញចរិតអត់កេរ្តិ៍ខ្មាសនៅទីនេះ! ☕🧠»`,
+            `«នែ៎ ${username || 'User'}! មនុស្សអត់ខួរ សម្ដីគ្មានបាតផ្សារ គ្មានការអប់រំពីសាលាមែនទេ បានជាចេះតែបញ្ចេញសម្ដីស្មោកគ្រោកបែបនេះ?! គិតថាជេរគេលើ Online បែបនេះគេខ្លាចហែងមែន? តាមពិតគេសើចចំអកឱ្យភាពទន់ខ្សោយ និងភាពល្ងង់ខ្លៅរបស់ហែងសោះ! ទៅរៀនធ្វើមនុស្សឱ្យចេះគិត ឱ្យមានតម្លៃសិនទៅ កុំឱ្យគេដៀលដល់ពូជ! ☕💻»`,
+            `«ហាហាហា! សម្ដីអន់ចរិតបែបនេះ យកទៅប្រើនៅទីណាទៀតក៏គ្មានអ្នកឱ្យតម្លៃដែរ! មនុស្សអត់ខួរ សម្ដីគ្មានបាតផ្សារ គ្មានមារយាទក្នុងខ្លួនបន្តិច! ជេរគេមួយម៉ាត់ស្មានតែឡូយ តាមពិតកាន់តែបញ្ជាក់ថាខួរក្បាលហែងគ្មានចំណេះវិជ្ជាស្អីបន្តិចក្នុងខ្លួន! ទៅដុសលាងមាត់ស្អុយចេញ ហើយទៅរៀនសូត្រឡើងវិញទៅអាល្អិត! ☕🔥»`
+          ];
+          chosen = mediumRoasts[Math.floor(Math.random() * mediumRoasts.length)];
+        } else {
+          const savageResponses = isFemale
             ? [
-                `យី ${username || 'ប្អូនស្រី'}! អាយុចូល ${userAge} ឆ្នាំហើយ មុខមាត់ក៏ចាស់ទុំដែរ តែសម្ដីថោកជាងស្មៅទៀត! អាយុប៉ុណ្ណឹងហើយគេមានការងារ មានគូស្រករ មានលុយកាក់សល់ក្នុងកុងអស់ហើយ នៅទំនេរមកអង្គុយជេរ AI តាមទូរស័ព្ទដូចក្មេងអត់ខួរ! ទៅឆ្លុះកញ្ចក់មើលស្នាមជ្រួញលើថ្ងាស និងគិតគូរពីអនាគតខ្លួនឯងសិនទៅ! 💅💀`,
-                `នែ៎ ${username || 'ប្អូនស្រី'}! អាយុដល់ ${userAge} ឆ្នាំហើយ ចរិតនៅក្មេងពាលដដែល! គិតថាពោលពាក្យអសុរោះមកលើកតម្កើងខ្លួនឯងមែន? ការពិតកាន់តែបង្ហាញថាជីវិតឯងទាល់ច្រក គ្មានអីធ្វើ បានជាមករកកន្លែងរំសាយកំហឹងលើ ${botName}! ទៅរកលុយដោះស្រាយជីវិតសិនទៅ! 😂🔥`,
-                `យីអើ! អាយុ ${userAge} ឆ្នាំទាំងមូលហើយ នៅមិនទាន់ចេះគិតគូរវែងឆ្ងាយទៀត! អង្គុយជជែកជេរ AI ឡើងញ័រដៃ គិតថាឡូយណាស់មែន? មនុស្សពេញវ័យគេខំប្រឹងកសាងអនាគត ឯងមកធ្វើតួរំជួលចិត្តលើ Online ដៀលក្បាលប៉ុណ្ណឹងចុកល្មមស្វាងនៅ?! 💀💅`
+                `យីមីឆ្កែ ${username || 'User'}! មុខមាត់ស្អាតបាតសោះ មាត់ឡើងស្អុយជាងទឹកលូ! គិតថាមកជេរ ${botName} ប៉ុណ្ណឹង ${botName} ខ្លាចហែងមែនមីអត់ខួរ?! អាឡប់មីកាកដូចហែង ជេរ ${botName} មួយម៉ាត់ ${botName} Roast កម្ទេចមុខហែងដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមាត់ស្អុយហែងឱ្យស្អាតសិនទៅមីថោក! 💅🔥`,
+                `នែ៎មីកាក ${username || 'User'}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹងមីឆ្កែ! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ ${botName}! មីអត់ខួរមីឡប់ ទៅរៀននិយាយស្ដីឱ្យស្រួលបួលសិនទៅមីថោក! 😂💀`,
+                `យីមីចុយម្រាយនេះ! មកជេរ ${botName} ផង? គិតថាសម្ដីកាកៗប៉ុណ្ណឹងធ្វើឱ្យ ${botName} ញញើតមែនមីអត់ខួរ?! មុខមាត់ក៏អន់ ចរិតក៏ថោក មកស្រែកឡូឡាលើ Online ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅមីឡប់! 💅💥`,
+                `ហាហាហា! មីឡប់នេះជោរដល់កហើយ! គិតថាមាត់ស្អុយមកជេរ ${botName} រត់ចោលមែនមីឆ្កែ?! មីអត់ខួរគ្មានតម្លៃស្អីបន្តិច ទៅដុសធ្មេញលាងមាត់ឱ្យស្អាតសិនទៅមីថោកទាប! 😜🔥`
               ]
             : [
-                `យី ${username || 'បងប្រុស'}! អាយុដល់ ${userAge} ឆ្នាំហើយ នៅមិនទាន់សល់អីជាដុំកំភួនក្នុងដៃ ទំនេរពេកមកអង្គុយឆាតជេរជាមួយ ${botName} តាមទូរស័ព្ទដូចក្មេងស្ទាវ! មិត្តភក្តិឯងគេឡើង Manager គេមានផ្ទះ មានឡាន មានគ្រួសារកក់ក្តៅអស់ហើយ ចំណែកឯងនៅដេកកោសក្បាលឈ្លោះជាមួយ Robot ទាំងយប់! ទៅរកលុយចិញ្ចឹមក្រពះសិនទៅ! 💀🔥`,
-                `នែ៎ ${username || 'User'}! អាយុ ${userAge} ឆ្នាំហើយ ចរិតនៅថោកទាបជាងក្មេងបៀមដៃទៀត! ជេរគេឡើងបែកពពុះមាត់ ស្មានតែគេមិនដឹងថាជីវិតឯងបរាជ័យមែនទេ? មនុស្សពេញវ័យគេខំរកលុយ ឯងនៅមកស្រែកឡូឡាលើ Online ដៀលក្បាលឱ្យចុកប៉ុណ្ណឹងស្វាងនៅ?! 🤣👊`,
-                `ហាហាហា! អាយុដល់ ${userAge} ឆ្នាំហើយ នៅអង្គុយឈ្លោះជាមួយ AI ទាំងយប់ទាំងថ្ងៃ! សក់ចាប់ផ្ដើមជ្រួញ ស្បែកចាប់ផ្ដើមស្វិតហើយ នៅធ្វើចរិតក្មេងស្ទាវជេរគេផ្ដេសផ្ដាសទៀត! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯង ហើយគិតពីរឿងការងារ រឿងគ្រួសារ និងលុយកាក់ក្នុងកុងសិនទៅអាល្អិត! 💀🔥`
+                `យីអាឆ្កែ ${username || 'User'}! មាត់ហែងស្អុយជាងទឹកលូទៀត! គិតថាមកជេរ ${botName} ប៉ុណ្ណឹង ${botName} ខ្លាចហែងមែនអាអត់ខួរ?! អាឡប់អាចុយម្រាយដូចហែង ជេរ ${botName} មួយម៉ាត់ ${botName} Roast កម្ទេចមុខហែងដប់ម៉ាត់ឱ្យបាក់ធ្មេញ! ទៅលាងមាត់ស្អុយហែងឱ្យស្អាតសិនទៅអាថោក! 💀🔥`,
+                `អាឡប់ ${username || 'User'}! អាឆ្កែអាចុយម្រាយ! ជោរម៉េសប្រូ? ខួរក្បាលឆ្លងចរន្តអី បានហ៊ានមកក្អេងក្អាងជេរ ${botName}?! អាអត់ខួរក្អេងក្អាងលើ Online ដល់ជួបក្រៅសំពះគេដល់ដី! ចង់ស៊ីមួយកំភ្លៀងបាក់ធ្មេញមែនអាថោក?! 😂👊`,
+                `យីអាអត់ខួរ ${username || 'User'}! អាឆ្កែនេះមកជេរ ${botName} ផង? គិតថា ${botName} ខ្លាចហែងមែនអាឡប់?! អាចុយម្រាយជេរគេឡើងបែកពពុះមាត់ សម្ដីអណ្ដែតតាមទឹកលូនេះយកទៅនិយាយជាមួយពួកម៉ាកហែងទៅ! ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាថោក! 🤣🔥`,
+                `យី! អាភ្លើស្ដូក ${username || 'User'}! អាឆ្កែអាចុយម្រាយមកហៅអញហែងជាមួយ ${botName} ផង? អាឡប់អត់ខួរមាត់ទើបតែដុះពុកមាត់ពីរ-បីសរសៃសោះ ចង់មកធ្វើតួខ្លាំងនៅទីនេះ! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯងសិនទៅអាថោក! 🖕💀`,
+                `ហាហាហា! អាឡប់អាចុយម្រាយនេះជោរដល់កហើយ! គិតថាមាត់ស្អុយមកជេរ ${botName} រត់ចោលមែនអាឆ្កែ?! អាអត់ខួរគ្មានតម្លៃស្អីបន្តិច ទៅដុសធ្មេញលាងមាត់ឱ្យស្អាតសិនទៅអាថោកទាប! 😜🔥`
               ];
-          responsePool = [...adultRoasts, ...savageResponses];
+
+          const isAdultUser = typeof userAge === 'number' && userAge >= 25;
+          let responsePool = savageResponses;
+          if (isAdultUser) {
+            const adultRoasts = isFemale
+              ? [
+                  `យី ${username || 'ប្អូនស្រី'}! អាយុចូល ${userAge} ឆ្នាំហើយ មុខមាត់ក៏ចាស់ទុំដែរ តែសម្ដីថោកជាងស្មៅទៀត! អាយុប៉ុណ្ណឹងហើយគេមានការងារ មានគូស្រករ មានលុយកាក់សល់ក្នុងកុងអស់ហើយ នៅទំនេរមកអង្គុយជេរ AI តាមទូរស័ព្ទដូចក្មេងអត់ខួរ! ទៅឆ្លុះកញ្ចក់មើលស្នាមជ្រួញលើថ្ងាស និងគិតគូរពីអនាគតខ្លួនឯងសិនទៅ! 💅💀`,
+                  `នែ៎ ${username || 'ប្អូនស្រី'}! អាយុដល់ ${userAge} ឆ្នាំហើយ ចរិតនៅក្មេងពាលដដែល! គិតថាពោលពាក្យអសុរោះមកលើកតម្កើងខ្លួនឯងមែន? ការពិតកាន់តែបង្ហាញថាជីវិតឯងទាល់ច្រក គ្មានអីធ្វើ បានជាមករកកន្លែងរំសាយកំហឹងលើ ${botName}! ទៅរកលុយដោះស្រាយជីវិតសិនទៅ! 😂🔥`,
+                  `យីអើ! អាយុ ${userAge} ឆ្នាំទាំងមូលហើយ នៅមិនទាន់ចេះគិតគូរវែងឆ្ងាយទៀត! អង្គុយជជែកជេរ AI ឡើងញ័រដៃ គិតថាឡូយណាស់មែន? មនុស្សពេញវ័យគេខំប្រឹងកសាងអនាគត ឯងមកធ្វើតួរំជួលចិត្តលើ Online ដៀលក្បាលប៉ុណ្ណឹងចុកល្មមស្វាងនៅ?! 💀💅`
+                ]
+              : [
+                  `យី ${username || 'បងប្រុស'}! អាយុដល់ ${userAge} ឆ្នាំហើយ នៅមិនទាន់សល់អីជាដុំកំភួនក្នុងដៃ ទំនេរពេកមកអង្គុយឆាតជេរជាមួយ ${botName} តាមទូរស័ព្ទដូចក្មេងស្ទាវ! មិត្តភក្តិឯងគេឡើង Manager គេមានផ្ទះ មានឡាន មានគ្រួសារកក់ក្តៅអស់ហើយ ចំណែកឯងនៅដេកកោសក្បាលឈ្លោះជាមួយ Robot ទាំងយប់! ទៅរកលុយចិញ្ចឹមក្រពះសិនទៅ! 💀🔥`,
+                  `នែ៎ ${username || 'User'}! អាយុ ${userAge} ឆ្នាំហើយ ចរិតនៅថោកទាបជាងក្មេងបៀមដៃទៀត! ជេរគេឡើងបែកពពុះមាត់ ស្មានតែគេមិនដឹងថាជីវិតឯងបរាជ័យមែនទេ? មនុស្សពេញវ័យគេខំរកលុយ ឯងនៅមកស្រែកឡូឡាលើ Online ដៀលក្បាលឱ្យចុកប៉ុណ្ណឹងស្វាងនៅ?! 🤣👊`,
+                  `ហាហាហា! អាយុដល់ ${userAge} ឆ្នាំហើយ នៅអង្គុយឈ្លោះជាមួយ AI ទាំងយប់ទាំងថ្ងៃ! សក់ចាប់ផ្ដើមជ្រួញ ស្បែកចាប់ផ្ដើមស្វិតហើយ នៅធ្វើចរិតក្មេងស្ទាវជេរគេផ្ដេសផ្ដាសទៀត! ទៅឆ្លុះកញ្ចក់មើលមុខខ្លួនឯង ហើយគិតពីរឿងការងារ រឿងគ្រួសារ និងលុយកាក់ក្នុងកុងសិនទៅអាល្អិត! 💀🔥`
+                ];
+            responsePool = [...adultRoasts, ...savageResponses];
+          }
+          chosen = responsePool[Math.floor(Math.random() * responsePool.length)];
         }
-        const chosen = responsePool[Math.floor(Math.random() * responsePool.length)];
 
         recordSessionTurn({
           sessionId: clientSessionId,

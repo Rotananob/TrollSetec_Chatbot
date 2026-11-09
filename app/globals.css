@@ -25,7 +25,10 @@ html, body {
   height: 100%;
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
-  font-family: 'Kantumruy Pro', sans-serif;
+  font-family: 'Kantumruy Pro', 'Battambang', 'Khmer OS Siemreap', 'Khmer OS Battambang', system-ui, -apple-system, sans-serif;
+  font-feature-settings: "liga" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
   touch-action: pan-x pan-y;
 }
 

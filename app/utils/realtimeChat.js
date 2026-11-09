@@ -209,7 +209,7 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
             sessionState = session;
             onUpdate(session);
           }
-        }, 2000);
+        }, 3500);
       }
     };
   } catch {
@@ -220,7 +220,7 @@ export function subscribeToLiveSession(sessionId, onUpdate) {
         sessionState = session;
         onUpdate(session);
       }
-    }, 2000);
+    }, 3500);
   }
 
   // Initial fetch for instant display
