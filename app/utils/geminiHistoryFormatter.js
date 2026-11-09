@@ -10,6 +10,7 @@
 
 export function buildGeminiMultiTurnContents(messages = [], currentPromptText = '', currentImg = null) {
   const cleanCurrentPrompt = (currentPromptText || '').trim();
+  const isGreetingPrompt = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(cleanCurrentPrompt);
   
   // 1. Filter out error messages, rate limit warnings, and empty messages from history
   const validHistory = (Array.isArray(messages) ? messages : []).filter((m) => {
@@ -20,6 +21,10 @@ export function buildGeminiMultiTurnContents(messages = [], currentPromptText = 
     if (!text && !hasImage) return false;
     // Exclude automatic server rate-limit or warning messages from history
     if (text.includes('កុំ spam') || text.includes('ខំចាត់ច្រើនម៉េះ') || text.includes('ត្រូវបាន Block')) {
+      return false;
+    }
+    // When the user starts with a friendly greeting, sanitize out past severe curses so history doesn't contaminate the fresh greeting!
+    if (isGreetingPrompt && (text.includes('គិតថាមកជេរ') || text.includes('អាចុយម្រាយ') || text.includes('មាត់ហែងឡើងរលួយ') || text.includes('Roast កម្ទេចមុខ') || text.includes('ទៅលាងមាត់ស្អុយ'))) {
       return false;
     }
     return true;

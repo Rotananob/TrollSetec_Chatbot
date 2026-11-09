@@ -1124,9 +1124,20 @@ export default function KonPovPage() {
               updatedAt: Date.now()
             }));
           } catch {}
-        } else if (localBackup && localBackup.messages?.length > 0) {
+        } else if (localBackup && localBackup.sessionId === mostRecent.id && localBackup.messages?.length > 0) {
           setMessages(localBackup.messages);
           setHasAgreed(true);
+        } else {
+          // Fresh new chat session: keep messages completely empty so old session messages never leak!
+          setMessages([]);
+          setHasAgreed(false);
+          try {
+            localStorage.setItem('setec_chat_backup_konpov', JSON.stringify({
+              sessionId: mostRecent.id,
+              messages: [],
+              updatedAt: Date.now()
+            }));
+          } catch {}
         }
         return;
       }
@@ -1183,7 +1194,11 @@ export default function KonPovPage() {
 
     setMessages([]);
     try {
-      localStorage.removeItem('setec_chat_backup_konpov');
+      localStorage.setItem('setec_chat_backup_konpov', JSON.stringify({
+        sessionId: newId,
+        messages: [],
+        updatedAt: Date.now()
+      }));
     } catch {}
     setHasAgreed(false);
     setInputText('');
@@ -1690,6 +1705,23 @@ export default function KonPovPage() {
         activeSourceNodeRef.current = source;
         setActiveVoiceIndex(index);
         setExclusiveVoiceState(index, 'playing');
+
+        const voiceGenderKey = userGender === 'ប្រុស' ? 'female' : 'male';
+        const fallbackStorageKey = 'konpov_audio_is_fallback_' + hashText(text) + '_' + voiceGenderKey;
+        const isStoredFallback = typeof window !== 'undefined' && localStorage.getItem(fallbackStorageKey) === '1';
+        const audioData = audioDataMapRef.current.get(hash);
+        const isFallback = !!(audioData?.isFallback || fallbackAudioMap[index] || isStoredFallback);
+        if (isFallback) {
+          setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+          setBotReadingNotice(true);
+          setAiReadingNotice(false);
+          setTimeout(() => setBotReadingNotice(false), 4500);
+        } else {
+          setAiReadingNotice(true);
+          setBotReadingNotice(false);
+          setTimeout(() => setAiReadingNotice(false), 4500);
+        }
+
         source.onended = () => {
           if (activeSourceNodeRef.current === source) {
             activeSourceNodeRef.current = null;
@@ -2713,14 +2745,14 @@ export default function KonPovPage() {
       {botReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-950/95 border border-amber-500/50 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-robot text-amber-400 text-sm"></i>
-          <span>🤖 សំឡេង Bot ជំនួយ (Google TTS) កំពុងអានជំនួស</span>
+          <span>🤖 Bot អានជំនួស ដោយសារ AI Voice កំពុងជាប់រវល់ (Busy)</span>
         </div>
       )}
       {/* Real Gemini AI Voice Toast */}
       {aiReadingNotice && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-emerald-950/95 border border-emerald-500/50 text-emerald-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
-          <i className="fas fa-wand-magic-sparkles text-emerald-400 text-sm"></i>
-          <span>✨ សំឡេង AI ពិតប្រាកដ (Gemini AI Voice) កំពុងអាន</span>
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
+          <i className="fas fa-wand-magic-sparkles text-sky-400 text-sm"></i>
+          <span>✨ សំឡេង AI ពិតប្រាកដ (Gemini Voice) កំពុងអាន</span>
         </div>
       )}
       {/* Side Drawer */}

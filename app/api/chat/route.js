@@ -547,13 +547,27 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '') {
       sanitizedText = sanitizedText.replace(cannedOpenerRegex, '');
     }
 
-    // STRICT SWEET / FLIRT / KISS / ROMANCE INTERCEPTOR (ZERO FALSE CURSE ACCUSATIONS):
+    // STRICT ZERO FALSE CURSE ACCUSATIONS (FOR GREETINGS, SWEET TALK & NORMAL PROMPTS):
     const isSweetPromptInSanitize = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
-    const containsCurseInSanitize = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|អាឡប់|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|កំភ្លៀង|បាក់ធ្មេញ|អាថោក|មីថោក)/i.test(sanitizedText);
-    if (isSweetPromptInSanitize && containsCurseInSanitize) {
-      sanitizedText = isKonPov
-        ? "យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
-        : "ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨";
+    const isGreetingPromptInSanitize = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
+    const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop)\b/ui.test(userPrompt || '');
+
+    const containsCurseInSanitize = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|Roast\s*កម្ទេចមុខ)/i.test(sanitizedText);
+
+    if (!isCursePromptInSanitize && containsCurseInSanitize) {
+      if (isSweetPromptInSanitize) {
+        sanitizedText = isKonPov
+          ? "យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
+          : "ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨";
+      } else if (isGreetingPromptInSanitize) {
+        sanitizedText = isKonPov
+          ? "សួស្តីអាល្អិត! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកចែចឹង? 😂 សុខសប្បាយធម្មតាទេ? Assignment ធ្វើហើយនៅ ឬរវល់តែដើរលេងភ្លេចរៀន? 💅✨"
+          : "សួស្តីអាប្អូន! ថ្ងៃនេះមានរឿងអីប្លែកបានឆាតមករកបងទាំងថ្ងៃចឹង? ឬមួយទើបតែ Error កូដ C# រកផ្លូវចេញមិនឃើញ? 😂 និយាយមក ចាំបងជួយមើលឱ្យ! ☕💻";
+      } else {
+        sanitizedText = isKonPov
+          ? "អីយ៉ា! និយាយមកបែបនេះចង់សាកល្បងចែហី? 😂 និយាយឱ្យច្បាស់មកមើល៍ ចង់ដឹងរឿងរៀនសូត្រ ឬចង់ឱ្យចែ Troll រឿងអី? 💅✨"
+          : "អីយ៉ា! អាល្អិតឯងចង់មក Troll សិស្សច្បងមែន? 😂 និយាយមកត្រង់ៗមក ចង់សួររឿង Assignment IT ឬចង់ឱ្យបង Troll រឿងអី? ☕💻";
+      }
     }
 
     // STRICT ANTI-UNPROVOKED APPEARANCE ROAST GUARD (NO RANDOM FROG / TOAD / TADPOLE INSULTS):
@@ -2040,18 +2054,32 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   return;
                 }
 
-                // Intercept accidental curses when user was being sweet / flirty
+                // Intercept accidental curses when user was being sweet, greeting, or talking normally
                 const isSweetPromptInStream = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
-                const containsCurseInStream = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|អាឡប់|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|កំភ្លៀង|បាក់ធ្មេញ|អាថោក|មីថោក)/i.test(accumulatedStreamText);
-                if (isSweetPromptInStream && containsCurseInStream) {
+                const isGreetingPromptInStream = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
+                const isCursePromptInStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop)\b/ui.test(userPrompt || '');
+
+                const containsCurseInStream = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|Roast\s*កម្ទេចមុខ)/i.test(accumulatedStreamText);
+                if (!isCursePromptInStream && containsCurseInStream) {
                   defenseSent = true;
                   const isKonPov = bot === 'konpov';
-                  const sweetDefense = isKonPov
-                    ? "យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
-                    : "ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨";
-                  accumulatedPlainText = sweetDefense;
+                  let safeReplacement = '';
+                  if (isSweetPromptInStream) {
+                    safeReplacement = isKonPov
+                      ? "យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
+                      : "ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨";
+                  } else if (isGreetingPromptInStream) {
+                    safeReplacement = isKonPov
+                      ? "សួស្តីអាល្អិត! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកចែចឹង? 😂 សុខសប្បាយធម្មតាទេ? Assignment ធ្វើហើយនៅ ឬរវល់តែដើរលេងភ្លេចរៀន? 💅✨"
+                      : "សួស្តីអាប្អូន! ថ្ងៃនេះមានរឿងអីប្លែកបានឆាតមករកបងទាំងថ្ងៃចឹង? ឬមួយទើបតែ Error កូដ C# រកផ្លូវចេញមិនឃើញ? 😂 និយាយមក ចាំបងជួយមើលឱ្យ! ☕💻";
+                  } else {
+                    safeReplacement = isKonPov
+                      ? "អីយ៉ា! និយាយមកបែបនេះចង់សាកល្បងចែហី? 😂 និយាយឱ្យច្បាស់មកមើល៍ ចង់ដឹងរឿងរៀនសូត្រ ឬចង់ឱ្យចែ Troll រឿងអី? 💅✨"
+                      : "អីយ៉ា! អាល្អិតឯងចង់មក Troll សិស្សច្បងមែន? 😂 និយាយមកត្រង់ៗមក ចង់សួររឿង Assignment IT ឬចង់ឱ្យបង Troll រឿងអី? ☕💻";
+                  }
+                  accumulatedPlainText = safeReplacement;
                   const sseChunk = `data: ${JSON.stringify({
-                    candidates: [{ content: { parts: [{ text: sweetDefense }] } }]
+                    candidates: [{ content: { parts: [{ text: safeReplacement }] } }]
                   })}\n\ndata: [DONE]\n\n`;
                   controller.enqueue(new TextEncoder().encode(sseChunk));
                   return;
@@ -2198,8 +2226,35 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         }, { status: 200, headers: corsHeaders });
       }
 
-      // Check if prompt was a savage curse/profanity or model gave a polite apology - NEVER crash or show polite refusal on curses!
-      if (isCursePrompt || isPoliteRefusal) {
+      const isGreetingPrompt = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt);
+
+      // Handle Greeting fallback if model was blocked or gave a polite refusal
+      if (isGreetingPrompt && (isPoliteRefusal || isSafetyBlocked || !result.ok)) {
+        const greetingResponse = bot === 'konpov'
+          ? `សួស្តីអាល្អិត! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកចែចឹង? 😂 សុខសប្បាយធម្មតាទេ? Assignment ធ្វើហើយនៅ ឬរវល់តែដើរលេងភ្លេចរៀន? 💅✨`
+          : `សួស្តីអាប្អូន! ថ្ងៃនេះមានរឿងអីប្លែកបានឆាតមករកបងទាំងថ្ងៃចឹង? ឬមួយទើបតែ Error កូដ C# រកផ្លូវចេញមិនឃើញ? 😂 និយាយមក ចាំបងជួយមើលឱ្យ! ☕💻`;
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: greetingResponse,
+          isViolation: false
+        }).catch(() => {});
+
+        return Response.json({
+          candidates: [{ content: { parts: [{ text: greetingResponse }] } }],
+          modelVersion: 'setec-greeting-engine-v1'
+        }, { status: 200, headers: corsHeaders });
+      }
+
+      // Check if prompt was a savage curse/profanity - ONLY retaliate with savage curses if user ACTUALLY cursed!
+      if (isCursePrompt) {
         const botName = bot === 'konpov' ? 'ចែ' : 'បង';
         const isFemale = gender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(username || '');
         const savageResponses = isFemale
