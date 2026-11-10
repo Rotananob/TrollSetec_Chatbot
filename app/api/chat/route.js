@@ -531,7 +531,7 @@ export function checkIsRotanaAttack(text) {
   }
 
   // 3. Rotana directly followed by derogatory slurs: "rotana កាក", "rotana អាចម៍", "rotana ឆ្កែ"
-  if (/(?:rotana|nob|រតនា|រតនៈ)[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*nob)?\s*(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ថោក|មុខដូច|គីង្គក់|កូនកង្កែប|កូដកាក|បោក|fake|stupid|idiot|trash|dog|die|fuck|bitch|loser|shit|ចុយ|ម្រាយ|កាដួយ|ក្ដ)/i.test(text)) {
+  if (/(?:rotana|nob|រតនា|រតនៈ)[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*nob)?\s*(?:អា\s*|មី\s*)?(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ថោក|មុខដូច|គីង្គក់|កូនកង្កែប|កូដកាក|បោក|fake|stupid|idiot|trash|dog|die|fuck|bitch|loser|shit|ចុយ|ម្រាយ|កាដួយ|ក្ដ)/i.test(text)) {
     return true;
   }
 

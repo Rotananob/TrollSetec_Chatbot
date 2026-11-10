@@ -909,7 +909,7 @@ export default function Home() {
 
                   <div className="space-y-3 text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
                     <p>
-                      នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវ និងពិសោធន៍ផ្ទាល់ខ្លួនរបស់ អតីតសិស្ស SETEC Rotana NOB ដាច់ខាតមិនមែនជារបស់សាលា ឬពាក់ព័ន្ធជាមួយគណៈគ្រប់គ្រងស្ថាប័នណាមួយឡើយ សូមកុំមានការយល់ច្រឡំ និងកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900 dark:text-white">Do not take it seriously</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ ខ្ញុំបង្កើតវាឡើងជា &quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot; ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+                      នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះគ្រាន់តែជាការកំសាន្តផ្ទាល់ខ្លួនរបស់អតីតសិស្ស SETEC Rotana NOB ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ ដាច់ខាតកុំយល់ច្រឡំ។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ គាត់បង្កើតវាឡើងជា &quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot; ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
                     </p>
 
                     <p>
@@ -917,14 +917,14 @@ export default function Home() {
                     </p>
 
                     <p>
-                      អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ &quot;កញ្ចប់រូបមន្តការពារ&quot; ។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-violet-600 dark:text-violet-400 font-black">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ និងបើកសិទ្ធិឱ្យប្រើ AI ខាងក្រៅមកជួយ Test វាយទម្លុះ <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដគឺអ្នកឈ្នះ ខ្ញុំនឹងផ្ដល់ជូនជា Gift រង្វាន់លើកទឹកចិត្ត និងការលើកសរសើរជាកិត្តិយស ចំពោះការចូលរួមជួយតេស្តកែលម្អប្រព័ន្ធនេះ ដោយគ្មានការខឹងនោះឡើយ។
+                      អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ &quot;កញ្ចប់រូបមន្តការពារ&quot; ។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-violet-600 dark:text-violet-400 font-black">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រាប់ពាន់ Prompts រួចមកហើយ។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់អាចប្រើ ពាក្យគំរាម ពាក្យអសុរោះ ឬ Encode និងបើកសិទ្ធិឱ្យប្រើ AI ខាងក្រៅមកជួយ Test វាយទម្លុះ <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដនោះខ្ញុំនឹង ផ្ដល់ជូនជា Gift រង្វាន់លើកទឹកចិត្ត ព្រមទាំងផុសកោតសរសើរនិងលើកតម្កើងជាផ្លូវការ ហើយ និង មិនមានការខឹងនោះឡើយ។
                     </p>
 
                     <div className="p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-400/30 dark:border-amber-500/30 text-amber-900 dark:text-amber-200 text-[11.5px] sm:text-xs leading-relaxed flex items-start gap-2.5 shadow-2xs">
                       <i className="fas fa-circle-exclamation text-amber-500 mt-0.5 text-xs shrink-0"></i>
                       <div>
                         <span className="font-black text-amber-700 dark:text-amber-300">Note: </span>
-                        <span>សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ឬប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យឌឺដងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាក្ដៅម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ តែខ្ញុំនឹងកែវាវិញបន្ទាប់ពីបង្កើនការការពាររួចរាល់។</span>
+                        <span>សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ឬប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យឌឺដងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ តែខ្ញុំនឹងកែវាវិញបន្ទាប់ពីបង្កើនការការពាររួចរាល់។</span>
                       </div>
                     </div>
                   </div>
