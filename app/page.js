@@ -1346,7 +1346,7 @@ export default function Home() {
                 កំពុងស្ថិតក្នុងបន្ទប់ Lab ហ្វឹកហាត់ចរិកមហាស្លូតបូត និង Respect User ១០០% មិនចេះជេរមិនចេះដៀលទេ តែ Funny និងកំប្លែងសើចចុកពោះ!
               </p>
               <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-900 dark:text-amber-200 font-medium">
-                បង Rotana NOB កំពុងតែសម្រិតសម្រាំង និង Develop មុខងារនេះបន្ថែម ដើម្បីឱ្យបងប្អូនបានសាកល្បងក្នុងពេលឆាប់ៗនេះ!
+                កំពុងតែសម្រិតសម្រាំង និង Develop មុខងារនេះបន្ថែម ដើម្បីឱ្យបងប្អូនបានសាកល្បងក្នុងពេលឆាប់ៗនេះ!
               </div>
             </div>
 
