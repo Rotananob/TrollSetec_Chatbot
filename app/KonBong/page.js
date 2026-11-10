@@ -3246,13 +3246,13 @@ export default function KonBongPage() {
                   ? 'bg-blue-500/15 border-blue-500/40 text-blue-300 hover:bg-blue-500/25 ring-1 ring-blue-500/20'
                   : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 shadow-xs'
               }`}
-              title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត (កូនពៅ ឬ កូនកណ្ដាល)"
+              title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត ដូចជា កូនពៅ ឬកូនកណ្ដាល"
             >
-              <span className="flex items-center gap-0.5">
-                <i className="fa-solid fa-robot text-[10px] text-pink-500 dark:text-pink-400"></i>
-                <i className="fa-solid fa-arrow-right-arrow-left text-[8px] text-blue-400"></i>
+              <span className="flex items-center gap-1">
+                <i className="fa-solid fa-robot text-[11px] text-pink-500 dark:text-pink-400"></i>
+                <i className="fa-solid fa-arrows-rotate text-[9px] text-blue-400"></i>
               </span>
-              <span className="font-extrabold">ដូរ Bot</span>
+              <span className="font-extrabold">ដូរតួ Bot</span>
               <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-blue-500/20 dark:bg-blue-400/20 flex items-center justify-center">
                 <i
                   className={`fas fa-chevron-down text-[7px] sm:text-[8px] transition-transform duration-200 ${

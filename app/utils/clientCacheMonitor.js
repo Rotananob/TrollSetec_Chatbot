@@ -1,9 +1,9 @@
 'use client';
 
-// Helper to calculate string size in bytes
+// Helper to calculate string size in bytes safely without memory allocation
 function getStringBytes(str) {
   if (!str) return 0;
-  return new Blob([str]).size;
+  return typeof str === 'string' ? str.length * 2 : 0;
 }
 
 // Keys that must NEVER be deleted during cache cleanup

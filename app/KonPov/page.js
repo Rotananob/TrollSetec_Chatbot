@@ -3612,13 +3612,13 @@ export default function KonPovPage() {
                   ? 'bg-pink-500/15 border-pink-500/40 text-pink-300 hover:bg-pink-500/25 ring-1 ring-pink-500/20'
                   : 'bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100 shadow-xs'
               }`}
-              title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត (កូនច្បង ឬ កូនកណ្ដាល)"
+              title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត ដូចជា កូនច្បង ឬកូនកណ្ដាល"
             >
-              <span className="flex items-center gap-0.5">
-                <i className="fa-solid fa-robot text-[10px] text-indigo-500 dark:text-indigo-400"></i>
-                <i className="fa-solid fa-arrow-right-arrow-left text-[8px] text-pink-400"></i>
+              <span className="flex items-center gap-1">
+                <i className="fa-solid fa-robot text-[11px] text-indigo-500 dark:text-indigo-400"></i>
+                <i className="fa-solid fa-arrows-rotate text-[9px] text-pink-400"></i>
               </span>
-              <span className="font-extrabold">ដូរ Bot</span>
+              <span className="font-extrabold">ដូរតួ Bot</span>
               <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-pink-500/20 dark:bg-pink-400/20 flex items-center justify-center">
                 <i
                   className={`fas fa-chevron-down text-[7px] sm:text-[8px] transition-transform duration-200 ${

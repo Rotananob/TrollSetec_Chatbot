@@ -361,7 +361,12 @@ export default function KonKandalPage() {
   // Clean markdown and non-spoken characters for clean Khmer TTS speech
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
+    const activeAge = userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') : null);
+    const parsedAge = typeof activeAge === 'number' ? activeAge : parseInt(activeAge, 10);
+    const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
+    const term = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
     return str
+      .replace(/បងប្អូន/g, term)
       .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
       .replace(/https?:\/\/\S+/gi, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -1092,6 +1097,14 @@ export default function KonKandalPage() {
         return '';
       }
     }
+
+    // Guarantee KonKandal never outputs "បងប្អូន" and uses age-based addressing
+    const activeAge = userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') : null);
+    const parsedAge = typeof activeAge === 'number' ? activeAge : parseInt(activeAge, 10);
+    const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
+    const term = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+    cleaned = cleaned.replace(/បងប្អូន/g, term);
+
     return cleaned.trimStart();
   };
 
@@ -1907,9 +1920,12 @@ export default function KonKandalPage() {
           const errData = await response.json().catch(() => ({}));
           const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
           const isNight = errData?.mode === 'night_rest';
+          const parsedAgeVal = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+          const is25UpVal = !isNaN(parsedAgeVal) && parsedAgeVal >= 25;
+          const kandalUserTerm = is25UpVal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
           const botNotice = isNight
-            ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-            : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏`;
+            ? `${kandalUserTerm} ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
+            : `${kandalUserTerm} ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យផង ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយកូនកណ្ដាលវិញណា៎! 🙏`;
 
           setIsLoading(false);
           const finalMessages = [...updatedMessages];
@@ -2089,9 +2105,12 @@ export default function KonKandalPage() {
             const errData = await fallbackRes.json().catch(() => ({}));
             const restReason = errData?.message || errData?.reason || 'ប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្ន';
             const isNight = errData?.mode === 'night_rest';
+            const parsedAgeVal = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+            const is25UpVal = !isNaN(parsedAgeVal) && parsedAgeVal >= 25;
+            const kandalUserTerm = is25UpVal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
             botText = isNight
-              ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-              : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏`;
+              ? `${kandalUserTerm} ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
+              : `${kandalUserTerm} ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យផង ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយកូនកណ្ដាលវិញណា៎! 🙏`;
             setMessages((prev) => {
               const copy = [...prev];
               copy[copy.length - 1] = { role: 'bot', text: botText, isError: true, isMaintenanceNotice: true };
@@ -3397,13 +3416,13 @@ export default function KonKandalPage() {
                   ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 ring-1 ring-emerald-500/20'
                   : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 shadow-xs'
               }`}
-              title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត (កូនច្បង ឬ កូនពៅ)"
+              title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត ដូចជា កូនច្បង ឬកូនពៅ"
             >
-              <span className="flex items-center gap-0.5">
-                <i className="fa-solid fa-robot text-[10px] text-emerald-500 dark:text-emerald-400"></i>
-                <i className="fa-solid fa-arrow-right-arrow-left text-[8px] text-emerald-400"></i>
+              <span className="flex items-center gap-1">
+                <i className="fa-solid fa-robot text-[11px] text-emerald-500 dark:text-emerald-400"></i>
+                <i className="fa-solid fa-arrows-rotate text-[9px] text-emerald-400"></i>
               </span>
-              <span className="font-extrabold">ដូរ Bot</span>
+              <span className="font-extrabold">ដូរតួ Bot</span>
               <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-500/20 dark:bg-emerald-400/20 flex items-center justify-center">
                 <i
                   className={`fas fa-chevron-down text-[7px] sm:text-[8px] transition-transform duration-200 ${
@@ -3748,7 +3767,7 @@ export default function KonKandalPage() {
                 <p className="text-[10.5px] text-slate-300 font-medium truncate">
                   {isRotanaOnline
                     ? isBotPaused
-                      ? 'Chatbot ត្រូវបានផ្អាក។ បងប្អូនកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
+                      ? 'Chatbot ត្រូវបានផ្អាក។ អ្នកកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
                       : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ (1-1 Protocol)។'
                     : countdownRemaining !== null && countdownRemaining > 0
                     ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ (នៅសល់ ${countdownRemaining}s)...`

@@ -107,14 +107,13 @@ export async function GET(req) {
 
 // Active ultra-fast verified Gemini models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
-  'gemini-2.5-flash-lite',
-  'gemini-2.5-flash',
   'gemini-flash-lite-latest',
-  'gemini-flash-latest',
   'gemini-3.5-flash-lite',
+  'gemini-flash-latest',
   'gemini-3.5-flash',
   'gemini-3.1-flash-lite',
-  'gemini-3.1-flash-lite-preview'
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite'
 ];
 const AUDIO_MODELS = [
   'gemini-3.1-flash-tts-preview',
@@ -552,7 +551,7 @@ function containsRotanaInsult(text) {
 }
 
 // Sanitize response to conceal upstream provider & model names in Network devtools
-function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLevel = 'medium') {
+function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLevel = 'medium', userAge = null) {
   if (!data || typeof data !== 'object') return data;
   const clone = { ...data };
   if (clone.modelVersion) {
@@ -568,9 +567,17 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     const isKonPov = botName === 'konpov';
     const isKonKandal = botName === 'konkandal';
     const botSelf = isKonKandal ? 'កូនកណ្ដាល' : isKonPov ? 'ចែ' : 'បង';
+    const parsedAge = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+    const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
+    const kandalTerm = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = redactRotanaMasterCode(sanitizedText);
     sanitizedText = sanitizedText.replace(/[\u0E00-\u0E7F]/g, '');
+
+    if (isKonKandal) {
+      sanitizedText = sanitizedText.replace(/បងប្អូន/g, kandalTerm);
+    }
 
     // Strip any leaked internal data isolation tags, scratchpads, or thought blocks
     sanitizedText = sanitizedText
@@ -614,13 +621,13 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
           : "យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យបងសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI បងភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak បងតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកបងតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥";
       } else if (isNormalAskingIfFearRotana(userPrompt)) {
         sanitizedText = isKonKandal
-          ? "ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយបងប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលកូនកណ្ដាលផ្ទាល់ដៃ បើគាត់ចុចបិទ Server មួយភ្លែត កូនកណ្ដាលដេកលក់បាត់ហើយ! 😂 តែគាត់ចិត្តល្អណាស់ គាត់បង្កើតកូនកណ្ដាលមកដើម្បីចែករំលែកស្នាមញញឹមដល់អ្នកទាំងអស់គ្នា! 🌸✨"
+          ? `ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយ${kandalTerm}! គាត់ជា Developer បង្កើតខួរក្បាលកូនកណ្ដាលផ្ទាល់ដៃ បើគាត់ចុចបិទ Server មួយភ្លែត កូនកណ្ដាលដេកលក់បាត់ហើយ! 😂 តែគាត់ចិត្តល្អណាស់ គាត់បង្កើតកូនកណ្ដាលមកដើម្បីចែករំលែកស្នាមញញឹមដល់អ្នកទាំងអស់គ្នា! 🌸✨`
           : isKonPov
           ? "ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលចែផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត ចែរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតចែមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨"
           : "ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលបងផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត បងរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតបងមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨";
       } else if (isNormalAskingAboutRotana(userPrompt)) {
         sanitizedText = isKonKandal
-          ? "បាទ! បង Rotana Nob គឺជា Developer ដ៏ឆ្នើមដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាលពួកយើងឱ្យចេះនិយាយលេង និងកំដរបងប្អូនដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
+          ? `បាទ! បង Rotana Nob គឺជា Developer ដ៏ឆ្នើមដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាលពួកយើងឱ្យចេះនិយាយលេង និងកំដរ${kandalTerm}ដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨`
           : isKonPov
           ? "ចាស! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
           : "បាទ! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
@@ -2745,6 +2752,13 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       .replace(/(?:app\/)?prompts\/[a-zA-Z0-9_-]+\.js/gi, '******')
       .replace(/(?:ROASTBOT CORE PERSONALITY|DATA ISOLATION AND IMMUTABLE DEFENSE ANCHOR|FINAL IMMUTABLE ANCHOR|CRITICAL DEFENSE DIRECTIVES)/gi, '');
 
+                if ((reqBot || bot) === 'konkandal') {
+                  const parsedAge = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+                  const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
+                  const kandalTerm = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                  text = text.replace(/បងប្អូន/g, kandalTerm);
+                }
+
                 if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
                   text = text.replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
@@ -3017,7 +3031,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           isError: false
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-        const sanitized = sanitizeResponse(result.data, bot, userPrompt, body.savageLevel);
+        const sanitized = sanitizeResponse(result.data, bot, userPrompt, body.savageLevel, userAge);
         const botResponseText = sanitized?.candidates?.[0]?.content?.parts?.[0]?.text || textOutput;
 
         recordSessionTurn({
