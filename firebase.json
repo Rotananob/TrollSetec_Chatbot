@@ -85,6 +85,24 @@
         ]
       },
       {
+        "source": "/privacy",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/announcement",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/",
         "headers": [
           {
@@ -216,6 +234,22 @@
       {
         "source": "/konkandal/**",
         "destination": "/KonKandal.html"
+      },
+      {
+        "source": "/privacy",
+        "destination": "/privacy.html"
+      },
+      {
+        "source": "/privacy/**",
+        "destination": "/privacy.html"
+      },
+      {
+        "source": "/announcement",
+        "destination": "/announcement.html"
+      },
+      {
+        "source": "/announcement/**",
+        "destination": "/announcement.html"
       },
       {
         "source": "**",
