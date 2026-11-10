@@ -49,14 +49,14 @@ export default function ErrorBoundary({ error, reset }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#07130c] text-slate-100 font-['Kantumruy_Pro',sans-serif]">
-      <div className="max-w-md w-full bg-[#0a1611] border border-emerald-900/60 rounded-2xl sm:rounded-3xl p-6 text-center shadow-2xl shadow-black/80 space-y-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-[#082215] text-[#fbf8f2] font-['Kantumruy_Pro',sans-serif]">
+      <div className="max-w-md w-full bg-[#0d3822] border border-[#25613e] rounded-2xl sm:rounded-3xl p-6 text-center shadow-2xl shadow-black/80 space-y-4">
         {/* App Logo */}
         <div className="relative w-14 h-14 mx-auto">
           <img
             src="/img/icon.jpg"
             alt="SETEC"
-            className="w-14 h-14 rounded-2xl object-cover border border-emerald-700/60 shadow-md mx-auto"
+            className="w-14 h-14 rounded-2xl object-cover border-2 border-[#fbf8f2] shadow-md mx-auto"
             onError={(e) => {
               e.currentTarget.onerror = null;
               e.currentTarget.src = '/img/logo.jpg';
@@ -65,35 +65,35 @@ export default function ErrorBoundary({ error, reset }) {
         </div>
 
         <div>
-          <div className="inline-block px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/60 text-[10px] font-semibold text-emerald-300 mb-2">
-            SETEC System Recovery
+          <div className="inline-block px-3 py-0.5 rounded-full bg-[#fbf8f2] border border-[#e4d9c4] text-[10px] font-bold text-[#0d3822] mb-2 shadow-xs">
+            វិទ្យាស្ថាន ស៊ីតិច
           </div>
-          <h2 className="text-base sm:text-lg font-bold text-white">
+          <h2 className="text-base sm:text-lg font-bold text-[#fbf8f2]">
             ប្រព័ន្ធកំពុងសម្រួលទិន្នន័យ
           </h2>
-          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+          <p className="text-xs text-[#d7ccb7] mt-1 leading-relaxed">
             កម្មវិធីត្រូវការផ្ទុកកំណែទម្រង់ថ្មីចុងក្រោយ សូមចុចប៊ូតុងខាងក្រោមដើម្បីផ្ទុកទំព័រឡើងវិញ
           </p>
         </div>
 
         {details && (
-          <div className="text-left p-3 rounded-xl bg-[#05110a] border border-emerald-950 text-[10px] font-mono text-slate-400 overflow-x-auto max-h-28 whitespace-pre-wrap break-all leading-normal">
+          <div className="text-left p-3.5 rounded-xl bg-[#092818] border border-[#1c4d32] text-[10px] font-mono text-[#d7ccb7] overflow-x-auto max-h-28 whitespace-pre-wrap break-all leading-normal">
             {details}
           </div>
         )}
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-2.5 pt-2">
           <button
             type="button"
             onClick={handleGoHome}
-            className="flex-1 py-2.5 px-3 rounded-xl bg-transparent hover:bg-emerald-950/50 text-slate-300 hover:text-white border border-emerald-900/60 text-xs font-semibold transition cursor-pointer active:scale-95"
+            className="flex-1 py-3 px-3 rounded-xl bg-transparent hover:bg-[#15462c] text-[#fbf8f2] border border-[#2d6c46] text-xs font-bold transition cursor-pointer active:scale-95"
           >
             ទៅទំព័រដើម
           </button>
           <button
             type="button"
             onClick={handleHardRefresh}
-            className="flex-2 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs font-bold transition shadow-sm cursor-pointer active:scale-98"
+            className="flex-2 py-3 px-4 rounded-xl bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] text-xs font-bold transition shadow-md cursor-pointer active:scale-98 border border-[#e4d9c4]"
           >
             ផ្ទុកទំព័រឡើងវិញ
           </button>

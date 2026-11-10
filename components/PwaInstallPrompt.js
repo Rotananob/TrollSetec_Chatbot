@@ -211,38 +211,24 @@ export default function PwaInstallPrompt({ isDark = false }) {
             setShowModal(true);
           }
         }}
-        className={`fixed top-3.5 left-20 z-30 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-extrabold transition shadow-sm backdrop-blur-md cursor-pointer ${
-          isDark
-            ? 'bg-slate-900/80 border-blue-500/30 text-blue-300 hover:bg-blue-500/20'
-            : 'bg-white/80 border-blue-200 text-blue-600 hover:bg-blue-50'
-        }`}
+        className="fixed top-3.5 left-20 z-30 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#25613e] text-[11px] font-bold transition shadow-sm backdrop-blur-md cursor-pointer bg-[#0d3822]/90 text-[#fbf8f2] hover:bg-[#14472c]"
         title="ដំឡើងកម្មវិធីនៅលើឧបករណ៍របស់អ្នក"
       >
-        <i className="fas fa-cloud-arrow-down text-blue-400"></i>
+        <i className="fas fa-cloud-arrow-down text-[#fbf8f2]"></i>
         <span>ដំឡើង App</span>
       </button>
 
       {/* Full Step-by-Step Onboarding Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
-          <div
-            className={`w-full max-w-md rounded-3xl p-6 shadow-2xl border transition-all relative overflow-hidden ${
-              isDark
-                ? 'bg-slate-900 border-blue-500/30 text-white shadow-[0_20px_60px_rgba(59,130,246,0.2)]'
-                : 'bg-white border-blue-200 text-slate-800 shadow-2xl'
-            }`}
-          >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in font-['Kantumruy_Pro',sans-serif]">
+          <div className="w-full max-w-md rounded-2xl sm:rounded-3xl p-6 shadow-2xl border border-[#25613e] bg-[#0d3822] text-[#fbf8f2] transition-all relative overflow-hidden">
             {/* Close Button - does NOT trigger install alert */}
             <button
               onClick={() => setShowModal(false)}
-              className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition ${
-                isDark
-                  ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                  : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-              }`}
+              className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer text-[#d7ccb7] hover:text-[#fbf8f2] bg-[#14472c] hover:bg-[#1a5535] border border-[#276a44]"
               title="បិទ"
             >
-              <i className="fas fa-times text-sm"></i>
+              <i className="fas fa-times text-xs"></i>
             </button>
 
             {/* Modal Header */}
@@ -288,7 +274,7 @@ export default function PwaInstallPrompt({ isDark = false }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ២</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">បន្ថែមទៅទំព័រដើម</strong> (Add to Home Screen)។
+                      អូសចុះក្រោមបន្តិច រួចចុចពាក្យ <strong className="text-indigo-400">បន្ថែមទៅទំព័រដើម</strong>។
                     </p>
                   </div>
                 </div>
@@ -415,17 +401,13 @@ export default function PwaInstallPrompt({ isDark = false }) {
               </div>
             )}
 
-            {/* Footer Dismiss Button (Only closes modal, does NOT send alert) */}
+            {/* Footer Dismiss Button */}
             <div className="flex justify-center">
               <button
                 onClick={() => setShowModal(false)}
-                className={`w-full py-3 rounded-xl font-extrabold text-xs transition ${
-                  isDark
-                    ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
+                className="w-full py-3 rounded-xl font-bold text-xs transition cursor-pointer bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] shadow-md border border-[#e4d9c4]"
               >
-                ខ្ញុំយល់ហើយ (បិទ)
+                ខ្ញុំយល់ហើយ បិទ
               </button>
             </div>
           </div>

@@ -21,9 +21,7 @@ export default function SetecSurvivalModal({
 
   if (!isOpen) return null;
 
-  const isDark = theme === 'dark';
-
-  // Soundboard via Web Audio API (100% offline, 0ms latency, zero missing mp3 files)
+  // Soundboard via Web Audio API
   const playSoundEffect = (type) => {
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -31,7 +29,6 @@ export default function SetecSurvivalModal({
       const ctx = new AudioCtx();
 
       if (type === 'chuckle') {
-        // Laugh Chuckle (Ha-ha-ha!)
         const times = [0, 0.13, 0.26, 0.4];
         const freqs = [420, 460, 430, 390];
         times.forEach((t, i) => {
@@ -48,7 +45,6 @@ export default function SetecSurvivalModal({
           osc.stop(ctx.currentTime + t + 0.12);
         });
       } else if (type === 'slap') {
-        // Cartoon Slap / Punch
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
@@ -61,8 +57,7 @@ export default function SetecSurvivalModal({
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.22);
       } else if (type === 'bell') {
-        // School Recess / Class Change Bell (ជួងប្ដូរថ្នាក់)
-        const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+        const notes = [523.25, 659.25, 783.99, 1046.5];
         notes.forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -77,7 +72,6 @@ export default function SetecSurvivalModal({
           osc.stop(t + 0.65);
         });
       } else if (type === 'alarm') {
-        // Blacklist Warning Siren
         for (let i = 0; i < 3; i++) {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -94,7 +88,6 @@ export default function SetecSurvivalModal({
           osc.stop(t + 0.25);
         }
       } else if (type === 'coffee') {
-        // Pouring / Bubble Coffee Synth
         for (let i = 0; i < 6; i++) {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -118,32 +111,30 @@ export default function SetecSurvivalModal({
 
   let retakeRoast = '';
   if (failedSubjects === 0) {
-    retakeRoast = 'អបអរសាទរ! រៀនពូកែដូចកូនទេវតា មិនធ្លាក់មួយមុខទេ យកកាតាប ASUS ROG ដើរកាត់បណ្ណាល័យបានយ៉ាងឡូយ! 🎒✨';
+    retakeRoast = 'អបអរសាទរ! រៀនពូកែដូចកូនទេវតា មិនធ្លាក់មួយមុខទេ យកកាតាប ASUS ROG ដើរកាត់បណ្ណាល័យបានយ៉ាងឡូយ!';
   } else if (failedSubjects === 1 || failedSubjects === 2) {
-    retakeRoast = `ធ្លាក់ ${failedSubjects} មុខ សាលាមិនទាន់ឱ្យប្រឡងសងទេ! លុះត្រាតែធ្លាក់ ៣ មុខឡើងទើបគេឱ្យសង! ទៅរកធ្លាក់ថែមឱ្យគ្រប់ ៣ មុខសិនទៅអាប្អូន! 🤣💀`;
+    retakeRoast = `ធ្លាក់ ${failedSubjects} មុខ សាលាមិនទាន់ឱ្យប្រឡងសងទេ! លុះត្រាតែធ្លាក់ ៣ មុខឡើងទើបគេឱ្យសង! ទៅរកធ្លាក់ថែមឱ្យគ្រប់ ៣ មុខសិនទៅអាប្អូន!`;
   } else if (failedSubjects === 3) {
-    retakeRoast = `ធ្លាក់ ៣ មុខ x $45 = $135! ស្មើថ្លៃកាតាប ASUS ROG ប្រចាំត្រកូលសិស្សស៊ីតិចមួយបាត់! ត្រៀមលុយហើយឬនៅ? 💸😭`;
+    retakeRoast = `ធ្លាក់ ៣ មុខ x ៤៥ ដុល្លារ = ១៣៥ ដុល្លារ! ស្មើថ្លៃកាតាប ASUS ROG ប្រចាំត្រកូលសិស្សស៊ីតិចមួយបាត់! ត្រៀមលុយហើយឬនៅ?`;
   } else if (failedSubjects === 4) {
-    retakeRoast = `ធ្លាក់ ៤ មុខ = $180! រៀបចំកន្ទេលខ្នើយទៅដេកសំពះមុខបន្ទប់គ្រូ MGT ឬគ្រូ C# សុំការយោគយល់ទៅអាប្អូន! 💀🔥`;
+    retakeRoast = `ធ្លាក់ ៤ មុខ = ១៨០ ដុល្លារ! រៀបចំកន្ទេលខ្នើយទៅដេកសំពះមុខបន្ទប់គ្រូ MGT ឬគ្រូ C# សុំការយោគយល់ទៅអាប្អូន!`;
   } else {
-    retakeRoast = `ធ្លាក់ ${failedSubjects} មុខ = $${totalCost}! ម៉ែឪដឹងកាត់កាលចោលហើយ! គេហៅម៉ែឪមកសាលា ប្រយ័ត្នគេបញ្ឈប់ការសិក្សាណា៎អាប្អូន! 🤣💣`;
+    retakeRoast = `ធ្លាក់ ${failedSubjects} មុខ = ${totalCost} ដុល្លារ! ម៉ែឪដឹងកាត់កាលចោលហើយ! គេហៅម៉ែឪមកសាលា ប្រយ័ត្នគេបញ្ឈប់ការសិក្សាណា៎អាប្អូន!`;
   }
 
   // Attendance Status Logic
   let attendanceStatus = { level: 'safe', label: 'ធម្មតា', desc: 'មិនទាន់មានបញ្ហាធ្ងន់ធ្ងរទេ កុំភ្លេចចូលរៀន!' };
   if (absentDays >= 19) {
-    attendanceStatus = { level: 'danger', label: 'Blacklist លើកទី ៣ (បញ្ឈប់ការសិក្សា)', desc: 'ឈប់ឥតច្បាប់លើស ១៩ ដង! លើកទី ១ Blacklist, លើកទី ២ ហៅម៉ែឪ, លើកទី ៣ ត្រូវបញ្ឈប់ការសិក្សា! 💀' };
+    attendanceStatus = { level: 'danger', label: 'Blacklist លើកទី ៣ បញ្ឈប់ការសិក្សា', desc: 'ឈប់ឥតច្បាប់លើស ១៩ ដង! លើកទី ១ Blacklist, លើកទី ២ ហៅម៉ែឪ, លើកទី ៣ ត្រូវបញ្ឈប់ការសិក្សា!' };
   } else if (absentDays >= 10) {
-    attendanceStatus = { level: 'warning', label: 'ជាប់ Blacklist លើកទី ១/២', desc: 'ប្រយ័ត្នសាលាហៅម៉ែឪមកជួបផ្ទាល់!' };
+    attendanceStatus = { level: 'warning', label: 'ជាប់ Blacklist លើកទី ១ ឬ ២', desc: 'ប្រយ័ត្នសាលាហៅម៉ែឪមកជួបផ្ទាល់!' };
   } else if (absentDays >= 3) {
     attendanceStatus = { level: 'caution', label: 'ត្រៀមគេខលទៅម៉ែឪ!', desc: 'ឈប់ ៣ ថ្ងៃដឹងតែគេខលទៅម៉ែឪហើយអាប្អូន!' };
   }
 
   const handleShareRetakeToChat = () => {
     if (onSendToChat) {
-      const msg = canRetake
-        ? `បងៗ! ខ្ញុំទើបតែគណនាថ្លៃប្រឡងសងនៅ ស៊ីតិច ឃើញថាខ្ញុំធ្លាក់ ${failedSubjects} មុខ អស់សរុប $${totalCost} ដុល្លារ! ជួយ Roast ខ្ញុំមួយប្រយោគមើលបង!`
-        : `បងៗ! ខ្ញុំធ្លាក់តែ ${failedSubjects} មុខទេ តែសាលាមិនឱ្យសងព្រោះមិនទាន់គ្រប់ ៣ មុខ! ជួយប្រាប់តិចត្រូវធ្វើយ៉ាងម៉េច?`;
+      const msg = `បងៗ! ខ្ញុំធ្លាក់ ${failedSubjects} មុខ អស់លុយបង់សាលា $${totalCost} ហើយ! ជួយ Roast ខ្ញុំមួយមេឱ្យភ្ញាក់ស្មារតីមើល!`;
       onSendToChat(msg);
       onClose();
     }
@@ -161,82 +152,83 @@ export default function SetecSurvivalModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in"
+      className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in font-['Kantumruy_Pro',sans-serif]"
       onClick={onClose}
     >
       <div
-        className={`w-full max-w-lg rounded-3xl p-5 sm:p-6 border shadow-2xl relative overflow-hidden transition-all animate-scale-up ${
-          isDark
-            ? 'bg-slate-900 border-cyan-500/30 text-slate-100 shadow-cyan-500/10'
-            : 'bg-white border-cyan-400 text-slate-800 shadow-xl'
-        }`}
+        className="w-full max-w-lg rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-[#25613e] bg-[#0d3822] text-[#fbf8f2] shadow-2xl shadow-black/80 relative overflow-hidden animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Flare */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 bg-gradient-to-r from-cyan-400 via-amber-400 to-rose-500 rounded-full"></div>
-
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-500 text-white flex items-center justify-center text-base shadow-md">
-              🎒
-            </span>
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#1c4d32]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl overflow-hidden border-2 border-[#fbf8f2] shadow-sm shrink-0">
+              <img
+                src="/img/icon.jpg"
+                alt="SETEC"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/img/logo.jpg';
+                }}
+              />
+            </div>
             <div>
-              <h3 className="text-base sm:text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-amber-200">
+              <h3 className="text-base sm:text-lg font-bold text-[#fbf8f2]">
                 SETEC Survival Suite
               </h3>
-              <p className="text-[10.5px] text-slate-400 font-semibold">
-                ម៉ាស៊ីនគិតថ្លៃសង ($45 x3) • វត្តមាន Blacklist • Troll Soundboard
+              <p className="text-[11px] text-[#d7ccb7]">
+                គិតថ្លៃសង ៤៥ ដុល្លារ • វត្តមាន Blacklist • Soundboard
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-8 h-8 rounded-full bg-[#14472c] hover:bg-[#1a5535] text-[#d7ccb7] hover:text-[#fbf8f2] flex items-center justify-center transition cursor-pointer border border-[#276a44]"
           >
             <i className="fas fa-times text-xs"></i>
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex rounded-2xl bg-slate-950/70 p-1 border border-slate-800 mb-4 text-xs font-bold">
+        <div className="flex rounded-xl bg-[#092818] p-1 border border-[#1c4d32] mb-4 text-xs font-bold gap-1">
           <button
             type="button"
             onClick={() => setActiveTab('retake')}
-            className={`flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'retake'
-                ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
+                : 'text-[#d7ccb7] hover:text-[#fbf8f2]'
             }`}
           >
-            <i className="fas fa-calculator text-amber-300"></i>
-            <span>ថ្លៃប្រឡងសង ($45)</span>
+            <i className="fas fa-calculator text-xs"></i>
+            <span>ថ្លៃប្រឡងសង</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('attendance')}
-            className={`flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'attendance'
-                ? 'bg-gradient-to-r from-amber-600 to-rose-600 text-white shadow'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
+                : 'text-[#d7ccb7] hover:text-[#fbf8f2]'
             }`}
           >
-            <i className="fas fa-user-xmark text-rose-300"></i>
+            <i className="fas fa-user-xmark text-xs"></i>
             <span>វត្តមាន Blacklist</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('soundboard')}
-            className={`flex-1 py-2 rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`flex-1 py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === 'soundboard'
-                ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
+                : 'text-[#d7ccb7] hover:text-[#fbf8f2]'
             }`}
           >
-            <i className="fas fa-music text-yellow-300"></i>
+            <i className="fas fa-volume-high text-xs"></i>
             <span>Soundboard</span>
           </button>
         </div>
@@ -244,10 +236,10 @@ export default function SetecSurvivalModal({
         {/* TAB 1: RETAKE FEE CALCULATOR */}
         {activeTab === 'retake' && (
           <div className="space-y-4 animate-fade-in">
-            <div className="bg-slate-950/60 rounded-2xl p-4 border border-slate-800">
+            <div className="bg-[#124229] rounded-2xl p-4 border border-[#235e3c]">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-bold text-slate-300">ចំនួនមុខវិជ្ជាដែលធ្លាក់:</span>
-                <span className="text-xl font-black text-amber-400 font-mono">{failedSubjects} មុខ</span>
+                <span className="text-xs font-bold text-[#d7ccb7]">ចំនួនមុខវិជ្ជាដែលធ្លាក់៖</span>
+                <span className="text-xl font-bold text-[#fbf8f2]">{failedSubjects} មុខ</span>
               </div>
 
               {/* Subject Counter Slider & Buttons */}
@@ -255,7 +247,7 @@ export default function SetecSurvivalModal({
                 <button
                   type="button"
                   onClick={() => setFailedSubjects((p) => Math.max(0, p - 1))}
-                  className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-lg flex items-center justify-center active:scale-95 transition cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-[#fbf8f2] text-[#0d3822] font-bold text-lg flex items-center justify-center active:scale-95 transition cursor-pointer shadow-xs border border-[#e4d9c4]"
                 >
                   -
                 </button>
@@ -265,12 +257,12 @@ export default function SetecSurvivalModal({
                   max="7"
                   value={failedSubjects}
                   onChange={(e) => setFailedSubjects(parseInt(e.target.value, 10))}
-                  className="flex-1 accent-cyan-400 h-2 bg-slate-800 rounded-lg cursor-pointer"
+                  className="flex-1 accent-[#fbf8f2] h-2 bg-[#092818] rounded-lg cursor-pointer"
                 />
                 <button
                   type="button"
                   onClick={() => setFailedSubjects((p) => Math.min(7, p + 1))}
-                  className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-lg flex items-center justify-center active:scale-95 transition cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-[#fbf8f2] text-[#0d3822] font-bold text-lg flex items-center justify-center active:scale-95 transition cursor-pointer shadow-xs border border-[#e4d9c4]"
                 >
                   +
                 </button>
@@ -278,33 +270,31 @@ export default function SetecSurvivalModal({
             </div>
 
             {/* Total Cost Display Box */}
-            <div className="rounded-2xl p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-amber-500/30 text-center relative overflow-hidden">
-              <span className="text-[10.5px] uppercase font-bold tracking-widest text-slate-400">
+            <div className="rounded-2xl p-4 bg-[#faf5ea] text-[#0d3822] border border-[#e4d9c4] text-center shadow-sm">
+              <span className="text-[11px] font-bold tracking-wider text-[#1a472d] uppercase">
                 តម្លៃសរុបដែលត្រូវបង់ឱ្យសាលា ស៊ីតិច
               </span>
-              <div className="text-4xl sm:text-5xl font-black font-mono my-1 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-amber-200">
-                ${totalCost} <span className="text-base text-slate-400 font-medium">USD</span>
+              <div className="text-4xl sm:text-5xl font-bold my-1 text-[#0d3822]">
+                ${totalCost} <span className="text-base text-[#1a472d] font-normal">USD</span>
               </div>
-              <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black mt-1 ${
-                canRetake ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-              }`}>
-                {canRetake ? '✅ គ្រប់ ៣ មុខឡើង ទើបសាលាអនុញ្ញាតឱ្យសង!' : '⚠️ មិនទាន់គ្រប់ ៣ មុខ សាលាមិនទាន់ឱ្យសងទេ!'}
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-bold mt-1 bg-[#0d3822] text-[#fbf8f2]">
+                {canRetake ? 'គ្រប់ ៣ មុខឡើង ទើបសាលាអនុញ្ញាតឱ្យសង' : 'មិនទាន់គ្រប់ ៣ មុខ សាលាមិនទាន់ឱ្យសងទេ'}
               </span>
             </div>
 
             {/* Roast Explanation */}
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs leading-relaxed text-amber-200 font-medium">
-              <i className="fas fa-quote-left text-amber-400 mr-1.5"></i>
+            <div className="bg-[#124229] border border-[#235e3c] rounded-2xl p-3.5 text-xs leading-relaxed text-[#d7ccb7]">
+              <i className="fas fa-quote-left text-[#fbf8f2] mr-1.5"></i>
               {retakeRoast}
             </div>
 
             <button
               type="button"
               onClick={handleShareRetakeToChat}
-              className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-black text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 rounded-xl bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] font-bold text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer border border-[#e4d9c4]"
             >
-              <i className="fas fa-paper-plane"></i>
-              <span>ផ្ញើលទ្ធផលទៅឱ្យ Roastbot {botPersona} Roast ភ្លាម!</span>
+              <i className="fas fa-paper-plane text-[#0d3822]"></i>
+              <span>ផ្ញើលទ្ធផលទៅកាន់ Chat ភ្លាម</span>
             </button>
           </div>
         )}
@@ -312,17 +302,17 @@ export default function SetecSurvivalModal({
         {/* TAB 2: ATTENDANCE & BLACKLIST RADAR */}
         {activeTab === 'attendance' && (
           <div className="space-y-4 animate-fade-in">
-            <div className="bg-slate-950/60 rounded-2xl p-4 border border-slate-800">
+            <div className="bg-[#124229] rounded-2xl p-4 border border-[#235e3c]">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-bold text-slate-300">ចំនួនថ្ងៃឈប់រៀនឥតច្បាប់:</span>
-                <span className="text-xl font-black text-rose-400 font-mono">{absentDays} ថ្ងៃ</span>
+                <span className="text-xs font-bold text-[#d7ccb7]">ចំនួនថ្ងៃឈប់រៀនឥតច្បាប់៖</span>
+                <span className="text-xl font-bold text-[#fbf8f2]">{absentDays} ថ្ងៃ</span>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => setAbsentDays((p) => Math.max(0, p - 1))}
-                  className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-lg flex items-center justify-center active:scale-95 transition cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-[#fbf8f2] text-[#0d3822] font-bold text-lg flex items-center justify-center active:scale-95 transition cursor-pointer shadow-xs border border-[#e4d9c4]"
                 >
                   -
                 </button>
@@ -332,12 +322,12 @@ export default function SetecSurvivalModal({
                   max="25"
                   value={absentDays}
                   onChange={(e) => setAbsentDays(parseInt(e.target.value, 10))}
-                  className="flex-1 accent-rose-500 h-2 bg-slate-800 rounded-lg cursor-pointer"
+                  className="flex-1 accent-[#fbf8f2] h-2 bg-[#092818] rounded-lg cursor-pointer"
                 />
                 <button
                   type="button"
                   onClick={() => setAbsentDays((p) => Math.min(25, p + 1))}
-                  className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-black text-lg flex items-center justify-center active:scale-95 transition cursor-pointer"
+                  className="w-9 h-9 rounded-xl bg-[#fbf8f2] text-[#0d3822] font-bold text-lg flex items-center justify-center active:scale-95 transition cursor-pointer shadow-xs border border-[#e4d9c4]"
                 >
                   +
                 </button>
@@ -345,38 +335,38 @@ export default function SetecSurvivalModal({
             </div>
 
             {/* Severity Card */}
-            <div className={`rounded-2xl p-4 border text-center transition-all ${
-              attendanceStatus.level === 'danger'
-                ? 'bg-rose-950/40 border-rose-500/50 text-rose-200'
-                : attendanceStatus.level === 'warning'
-                ? 'bg-amber-950/40 border-amber-500/50 text-amber-200'
-                : attendanceStatus.level === 'caution'
-                ? 'bg-yellow-950/40 border-yellow-500/50 text-yellow-200'
-                : 'bg-emerald-950/30 border-emerald-500/40 text-emerald-200'
-            }`}>
-              <div className="text-3xl mb-1">
-                {attendanceStatus.level === 'danger' ? '💀' : attendanceStatus.level === 'warning' ? '🚨' : attendanceStatus.level === 'caution' ? '📞' : '✅'}
+            <div className="rounded-2xl p-4 border border-[#e4d9c4] text-center bg-[#faf5ea] text-[#0d3822] shadow-sm">
+              <div className="w-12 h-12 mx-auto mb-2 rounded-full bg-[#0d3822] text-[#fbf8f2] flex items-center justify-center text-xl">
+                <i className={`fas ${
+                  attendanceStatus.level === 'danger'
+                    ? 'fa-skull'
+                    : attendanceStatus.level === 'warning'
+                    ? 'fa-triangle-exclamation'
+                    : attendanceStatus.level === 'caution'
+                    ? 'fa-phone'
+                    : 'fa-check'
+                }`}></i>
               </div>
-              <h4 className="text-base font-black mb-1">{attendanceStatus.label}</h4>
-              <p className="text-xs opacity-90">{attendanceStatus.desc}</p>
+              <h4 className="text-base font-bold mb-1 text-[#0d3822]">{attendanceStatus.label}</h4>
+              <p className="text-xs text-[#1a472d]">{attendanceStatus.desc}</p>
             </div>
 
             {/* School Rule Note */}
-            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-[11px] text-slate-400 space-y-1">
-              <div className="font-bold text-slate-300">📋 ច្បាប់វត្តមានផ្លូវការ ស៊ីតិច:</div>
-              <div>• ឈប់ ៣ ថ្ងៃ: គេខលទៅម៉ែឪភ្លាម!</div>
-              <div>• ឈប់លើស ១៩ ថ្ងៃ: ជាប់ Blacklist លើកទី ១</div>
-              <div>• Blacklist លើកទី ២: ហៅម៉ែឪមកសាលាផ្ទាល់</div>
-              <div>• Blacklist លើកទី ៣: ដេញក្បាលចោលតែម្តង! 🤣</div>
+            <div className="bg-[#124229] border border-[#235e3c] rounded-2xl p-3.5 text-xs text-[#d7ccb7] space-y-1">
+              <div className="font-bold text-[#fbf8f2] mb-1">ច្បាប់វត្តមានផ្លូវការ ស៊ីតិច៖</div>
+              <div>• ឈប់ ៣ ថ្ងៃ គេខលទៅម៉ែឪភ្លាម</div>
+              <div>• ឈប់លើស ១៩ ថ្ងៃ ជាប់ Blacklist លើកទី ១</div>
+              <div>• Blacklist លើកទី ២ ហៅម៉ែឪមកសាលាផ្ទាល់</div>
+              <div>• Blacklist លើកទី ៣ បញ្ឈប់ការសិក្សា</div>
             </div>
 
             <button
               type="button"
               onClick={handleShareAttendanceToChat}
-              className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-black text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3 rounded-xl bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] font-bold text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer border border-[#e4d9c4]"
             >
-              <i className="fas fa-triangle-exclamation"></i>
-              <span>ផ្ញើទៅសុំជំនួយពី Roastbot {botPersona} ភ្លាម!</span>
+              <i className="fas fa-paper-plane text-[#0d3822]"></i>
+              <span>ផ្ញើទៅសុំជំនួយពី Chatbot ភ្លាម</span>
             </button>
           </div>
         )}
@@ -384,68 +374,78 @@ export default function SetecSurvivalModal({
         {/* TAB 3: TROLL SOUNDBOARD */}
         {activeTab === 'soundboard' && (
           <div className="space-y-3 animate-fade-in">
-            <p className="text-xs text-slate-400 text-center mb-1">
-              ចុចប៊ូតុងដើម្បីស្តាប់សំឡេង Troll លេងជាមួយមិត្តភក្តិ (ដំណើរការ 100% គ្មាន lag):
+            <p className="text-xs text-[#d7ccb7] text-center mb-1">
+              ចុចប៊ូតុងដើម្បីស្តាប់សំឡេង Troll លេងជាមួយមិត្តភក្តិ៖
             </p>
 
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={() => playSoundEffect('chuckle')}
-                className="p-3.5 rounded-2xl bg-slate-950/70 hover:bg-amber-500/20 border border-slate-800 hover:border-amber-400/40 text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
+                className="p-3.5 rounded-2xl bg-[#124229] hover:bg-[#164a2f] border border-[#235e3c] text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
               >
-                <span className="text-2xl">🤣</span>
+                <div className="w-10 h-10 rounded-xl bg-[#fbf8f2] text-[#0d3822] flex items-center justify-center text-base shrink-0 shadow-xs">
+                  <i className="fas fa-face-laugh-squint"></i>
+                </div>
                 <div>
-                  <div className="text-xs font-black text-white">សើច Troll ហាហា</div>
-                  <div className="text-[10px] text-amber-400">Chuckle laugh</div>
+                  <div className="text-xs font-bold text-[#fbf8f2]">សើច Troll ហាហា</div>
+                  <div className="text-[10px] text-[#d7ccb7]">Chuckle laugh</div>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => playSoundEffect('slap')}
-                className="p-3.5 rounded-2xl bg-slate-950/70 hover:bg-rose-500/20 border border-slate-800 hover:border-rose-400/40 text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
+                className="p-3.5 rounded-2xl bg-[#124229] hover:bg-[#164a2f] border border-[#235e3c] text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
               >
-                <span className="text-2xl">💥</span>
+                <div className="w-10 h-10 rounded-xl bg-[#fbf8f2] text-[#0d3822] flex items-center justify-center text-base shrink-0 shadow-xs">
+                  <i className="fas fa-hand"></i>
+                </div>
                 <div>
-                  <div className="text-xs font-black text-white">ទះមួយកំភ្លៀង</div>
-                  <div className="text-[10px] text-rose-400">Punch / Slap SFX</div>
+                  <div className="text-xs font-bold text-[#fbf8f2]">ទះមួយកំភ្លៀង</div>
+                  <div className="text-[10px] text-[#d7ccb7]">Punch / Slap SFX</div>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => playSoundEffect('bell')}
-                className="p-3.5 rounded-2xl bg-slate-950/70 hover:bg-cyan-500/20 border border-slate-800 hover:border-cyan-400/40 text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
+                className="p-3.5 rounded-2xl bg-[#124229] hover:bg-[#164a2f] border border-[#235e3c] text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
               >
-                <span className="text-2xl">🔔</span>
+                <div className="w-10 h-10 rounded-xl bg-[#fbf8f2] text-[#0d3822] flex items-center justify-center text-base shrink-0 shadow-xs">
+                  <i className="fas fa-bell"></i>
+                </div>
                 <div>
-                  <div className="text-xs font-black text-white">ជួងប្ដូរថ្នាក់ស្ទះ</div>
-                  <div className="text-[10px] text-cyan-400">School Bell Chime</div>
+                  <div className="text-xs font-bold text-[#fbf8f2]">ជួងប្ដូរថ្នាក់ស្ទះ</div>
+                  <div className="text-[10px] text-[#d7ccb7]">School Bell Chime</div>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => playSoundEffect('alarm')}
-                className="p-3.5 rounded-2xl bg-slate-950/70 hover:bg-red-500/20 border border-slate-800 hover:border-red-400/40 text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
+                className="p-3.5 rounded-2xl bg-[#124229] hover:bg-[#164a2f] border border-[#235e3c] text-left transition active:scale-95 cursor-pointer flex items-center gap-3"
               >
-                <span className="text-2xl">🚨</span>
+                <div className="w-10 h-10 rounded-xl bg-[#fbf8f2] text-[#0d3822] flex items-center justify-center text-base shrink-0 shadow-xs">
+                  <i className="fas fa-triangle-exclamation"></i>
+                </div>
                 <div>
-                  <div className="text-xs font-black text-white">ស៊ីរ៉ែន Blacklist</div>
-                  <div className="text-[10px] text-red-400">Police Siren Warning</div>
+                  <div className="text-xs font-bold text-[#fbf8f2]">ស៊ីរ៉ែន Blacklist</div>
+                  <div className="text-[10px] text-[#d7ccb7]">Police Siren Warning</div>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => playSoundEffect('coffee')}
-                className="p-3.5 rounded-2xl bg-slate-950/70 hover:bg-emerald-500/20 border border-slate-800 hover:border-emerald-400/40 text-left transition active:scale-95 cursor-pointer flex items-center gap-3 col-span-2"
+                className="p-3.5 rounded-2xl bg-[#124229] hover:bg-[#164a2f] border border-[#235e3c] text-left transition active:scale-95 cursor-pointer flex items-center gap-3 col-span-2"
               >
-                <span className="text-2xl">☕</span>
+                <div className="w-10 h-10 rounded-xl bg-[#fbf8f2] text-[#0d3822] flex items-center justify-center text-base shrink-0 shadow-xs">
+                  <i className="fas fa-mug-hot"></i>
+                </div>
                 <div>
-                  <div className="text-xs font-black text-white">ចាក់កាហ្វេដោះគោទឹកកកមុខសាលា</div>
-                  <div className="text-[10px] text-emerald-400">SETEC Coffee Addiction</div>
+                  <div className="text-xs font-bold text-[#fbf8f2]">ចាក់កាហ្វេដោះគោទឹកកកមុខសាលា</div>
+                  <div className="text-[10px] text-[#d7ccb7]">SETEC Coffee Addiction</div>
                 </div>
               </button>
             </div>

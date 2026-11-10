@@ -588,12 +588,12 @@ export default function TrollQuoteModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md sm:max-w-lg rounded-2xl sm:rounded-3xl p-5 border border-emerald-900/60 bg-[#0a1611] text-slate-100 shadow-2xl shadow-black/80 relative overflow-hidden animate-scale-up"
+        className="w-full max-w-md sm:max-w-lg rounded-2xl sm:rounded-3xl p-5 border border-[#25613e] bg-[#0d3822] text-[#fbf8f2] shadow-2xl shadow-black/80 relative overflow-hidden animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-emerald-900/60">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#1c4d32]">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl overflow-hidden border border-emerald-600/50 shadow-sm shrink-0">
+            <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-[#fbf8f2] shadow-sm shrink-0">
               <img
                 src={resolvedLogoUrl}
                 alt="SETEC"
@@ -605,10 +605,10 @@ export default function TrollQuoteModal({
               />
             </div>
             <div>
-              <h3 className="font-bold text-sm sm:text-base text-slate-100 flex items-center gap-1.5">
+              <h3 className="font-bold text-sm sm:text-base text-[#fbf8f2] flex items-center gap-1.5">
                 <span>Quote Troll SETEC</span>
               </h3>
-              <p className="text-[10px] text-emerald-400 font-medium">
+              <p className="text-[10px] text-[#d7ccb7] font-medium">
                 Logo SETEC Troll និង Avatar Bot កម្រិតច្បាស់
               </p>
             </div>
@@ -616,7 +616,7 @@ export default function TrollQuoteModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-900 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer border border-emerald-800/50"
+            className="w-8 h-8 rounded-full bg-[#14472c] hover:bg-[#1a5535] text-[#d7ccb7] hover:text-[#fbf8f2] flex items-center justify-center transition cursor-pointer border border-[#276a44]"
           >
             <i className="fas fa-times text-xs"></i>
           </button>
@@ -628,10 +628,10 @@ export default function TrollQuoteModal({
             <button
               type="button"
               onClick={() => selectCategoryQuote('current')}
-              className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition cursor-pointer flex items-center gap-1 ${
                 activeCategory === 'current'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
+                  ? 'bg-[#fbf8f2] text-[#0d3822] shadow-sm border border-[#e4d9c4]'
+                  : 'bg-[#124229] border border-[#235e3c] text-[#d7ccb7] hover:text-[#fbf8f2]'
               }`}
             >
               <i className="fas fa-message text-[10px]"></i>
@@ -642,10 +642,10 @@ export default function TrollQuoteModal({
           <button
             type="button"
             onClick={() => selectCategoryQuote('it_cs')}
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'it_cs'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
+                ? 'bg-[#fbf8f2] text-[#0d3822] shadow-sm border border-[#e4d9c4]'
+                : 'bg-[#124229] border border-[#235e3c] text-[#d7ccb7] hover:text-[#fbf8f2]'
             }`}
           >
             <i className="fas fa-laptop-code text-[10px]"></i>
@@ -655,10 +655,10 @@ export default function TrollQuoteModal({
           <button
             type="button"
             onClick={() => selectCategoryQuote('interior')}
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'interior'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
+                ? 'bg-[#fbf8f2] text-[#0d3822] shadow-sm border border-[#e4d9c4]'
+                : 'bg-[#124229] border border-[#235e3c] text-[#d7ccb7] hover:text-[#fbf8f2]'
             }`}
           >
             <i className="fas fa-couch text-[10px]"></i>
@@ -668,10 +668,10 @@ export default function TrollQuoteModal({
           <button
             type="button"
             onClick={() => selectCategoryQuote('graphic')}
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'graphic'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
+                ? 'bg-[#fbf8f2] text-[#0d3822] shadow-sm border border-[#e4d9c4]'
+                : 'bg-[#124229] border border-[#235e3c] text-[#d7ccb7] hover:text-[#fbf8f2]'
             }`}
           >
             <i className="fas fa-palette text-[10px]"></i>
@@ -681,10 +681,10 @@ export default function TrollQuoteModal({
           <button
             type="button"
             onClick={() => selectCategoryQuote('campus')}
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'campus'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
+                ? 'bg-[#fbf8f2] text-[#0d3822] shadow-sm border border-[#e4d9c4]'
+                : 'bg-[#124229] border border-[#235e3c] text-[#d7ccb7] hover:text-[#fbf8f2]'
             }`}
           >
             <i className="fas fa-graduation-cap text-[10px]"></i>
@@ -694,7 +694,7 @@ export default function TrollQuoteModal({
           <button
             type="button"
             onClick={handleRandomQuote}
-            className="px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-emerald-950/80 text-emerald-300 hover:bg-emerald-900 border border-emerald-800/60 transition cursor-pointer flex items-center gap-1"
+            className="px-3 py-1.5 rounded-full text-xs font-bold shrink-0 bg-[#124229] text-[#fbf8f2] hover:bg-[#164a2f] border border-[#235e3c] transition cursor-pointer flex items-center gap-1"
             title="ប្តូរ Quote ចៃដន្យថ្មី"
           >
             <i className="fas fa-dice text-[11px]"></i>
@@ -705,25 +705,25 @@ export default function TrollQuoteModal({
         {/* Visual Style Selector & Live Edit Toggle */}
         <div className="flex items-center justify-between pb-2 mb-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-slate-400 font-semibold">ម៉ូត៖</span>
+            <span className="text-[10px] text-[#d7ccb7] font-bold">ម៉ូត៖</span>
             <button
               type="button"
               onClick={() => setCardStyle('cyber')}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
                 cardStyle === 'cyber'
-                  ? 'bg-emerald-600 text-white shadow'
-                  : 'bg-[#06140d] text-slate-400 hover:text-slate-200 border border-emerald-950'
+                  ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
+                  : 'bg-[#124229] text-[#d7ccb7] hover:text-[#fbf8f2] border border-[#235e3c]'
               }`}
             >
-              Cyber
+              Classic
             </button>
             <button
               type="button"
               onClick={() => setCardStyle('neon')}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
                 cardStyle === 'neon'
-                  ? 'bg-teal-600 text-white shadow'
-                  : 'bg-[#06140d] text-slate-400 hover:text-slate-200 border border-emerald-950'
+                  ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
+                  : 'bg-[#124229] text-[#d7ccb7] hover:text-[#fbf8f2] border border-[#235e3c]'
               }`}
             >
               Forest
@@ -731,20 +731,20 @@ export default function TrollQuoteModal({
             <button
               type="button"
               onClick={() => setCardStyle('oled')}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
                 cardStyle === 'oled'
-                  ? 'bg-[#030906] text-emerald-400 border border-emerald-700 shadow'
-                  : 'bg-[#06140d] text-slate-400 hover:text-slate-200 border border-emerald-950'
+                  ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
+                  : 'bg-[#124229] text-[#d7ccb7] hover:text-[#fbf8f2] border border-[#235e3c]'
               }`}
             >
-              Dark Classic
+              Deep Green
             </button>
           </div>
 
           <button
             type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className="text-[10.5px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition px-2 py-0.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-950 border border-emerald-800/60 active:scale-95 cursor-pointer shrink-0"
+            className="text-[10.5px] font-bold text-[#0d3822] bg-[#fbf8f2] hover:bg-[#eee6d5] flex items-center gap-1 transition px-2.5 py-1 rounded-lg border border-[#e4d9c4] active:scale-95 cursor-pointer shrink-0 shadow-xs"
             title="ចុចដើម្បីកែប្រែពាក្យក្នុង Quote ដោយផ្ទាល់"
           >
             <i className="fas fa-pen-to-square text-[9.5px]"></i>
@@ -759,38 +759,38 @@ export default function TrollQuoteModal({
               value={currentText}
               onChange={(e) => setCurrentText(e.target.value)}
               rows={3}
-              className="w-full bg-[#05110a] border border-emerald-800/60 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-sans leading-relaxed shadow-inner"
+              className="w-full bg-[#124229] border border-[#235e3c] rounded-xl p-2.5 text-xs text-[#fbf8f2] placeholder-[#8da698] focus:outline-none focus:ring-1 focus:ring-[#fbf8f2] font-sans leading-relaxed"
               placeholder="វាយអត្ថបទ Quote ឬ Caption ផ្ទាល់ខ្លួនរបស់អ្នកនៅទីនេះ..."
             />
           </div>
         )}
 
         {/* Live Canvas Preview */}
-        <div className="w-full aspect-square rounded-2xl overflow-hidden border border-emerald-900/60 bg-black flex items-center justify-center mb-3 shadow-inner relative group">
+        <div className="w-full aspect-square rounded-2xl overflow-hidden border border-[#235e3c] bg-[#071f13] flex items-center justify-center mb-3 shadow-inner relative group">
           <canvas ref={canvasRef} className="w-full h-full object-contain" />
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-black/70 text-[10px] text-emerald-300 font-semibold backdrop-blur-sm pointer-events-none border border-emerald-900/40">
+          <div className="absolute top-2 right-2 px-2.5 py-1 rounded-md bg-[#092818]/90 text-[10px] text-[#fbf8f2] font-bold backdrop-blur-sm pointer-events-none border border-[#1c4d32]">
             1080 x 1080 HD
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={handleDownload}
             disabled={isGenerating}
-            className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-3 rounded-xl bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] font-bold text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer border border-[#e4d9c4]"
           >
-            <i className="fas fa-download"></i>
+            <i className="fas fa-download text-[#0d3822]"></i>
             <span>{isGenerating ? 'កំពុងទាញយក...' : 'ទាញយក PNG កម្រិតច្បាស់'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleCopy}
-            className="px-4 py-2.5 rounded-xl bg-[#06140d] hover:bg-emerald-950 text-slate-200 font-semibold text-xs transition active:scale-95 border border-emerald-900/70 flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-3 rounded-xl bg-transparent hover:bg-[#15462c] text-[#fbf8f2] font-bold text-xs transition active:scale-95 border border-[#2d6c46] flex items-center gap-1.5 cursor-pointer"
           >
-            <i className={`fas ${copied ? 'fa-check text-emerald-400' : 'fa-copy'}`}></i>
+            <i className={`fas ${copied ? 'fa-check text-[#fbf8f2]' : 'fa-copy'}`}></i>
             <span>{copied ? 'បានចម្លង' : 'Copy Caption'}</span>
           </button>
         </div>

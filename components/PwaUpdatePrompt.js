@@ -10,121 +10,84 @@ export default function PwaUpdatePrompt() {
   const registrationRef = useRef(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    // 1. Fetch initial version stamp to establish baseline for this session
-    const fetchInitialVersion = async () => {
-      try {
-        const res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.buildTime) {
-            clientBuildTimeRef.current = data.buildTime;
+    if (typeof window !== 'undefined') {
+      const fetchInitialVersion = async () => {
+        try {
+          const res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.buildTime) {
+              clientBuildTimeRef.current = data.buildTime;
+            }
           }
+        } catch {}
+      };
+
+      fetchInitialVersion();
+
+      const checkForUpdate = async () => {
+        try {
+          const res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json();
+            if (
+              data &&
+              data.buildTime &&
+              clientBuildTimeRef.current &&
+              data.buildTime > clientBuildTimeRef.current
+            ) {
+              setHasUpdate(true);
+            }
+          }
+        } catch {}
+
+        if (registrationRef.current) {
+          registrationRef.current.update().catch(() => {});
         }
-      } catch {}
-    };
+      };
 
-    fetchInitialVersion();
-
-    // 2. Check for new version by comparing build timestamp
-    const checkForUpdate = async () => {
-      try {
-        const res = await fetch(`/version.json?_t=${Date.now()}`, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          if (
-            data &&
-            data.buildTime &&
-            clientBuildTimeRef.current &&
-            data.buildTime > clientBuildTimeRef.current
-          ) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          registrationRef.current = reg;
+          if (reg.waiting) {
             setHasUpdate(true);
           }
-        }
-      } catch {}
-
-      // Also trigger service worker background update check
-      if (registrationRef.current) {
-        registrationRef.current.update().catch(() => {});
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  setHasUpdate(true);
+                }
+              });
+            }
+          });
+        }).catch(() => {});
       }
-    };
 
-    // 3. Register Service Worker with active update listeners
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then((reg) => {
-        registrationRef.current = reg;
-
-        // Check if there is already a waiting worker
-        if (reg.waiting) {
-          setHasUpdate(true);
-        }
-
-        // Listen for new worker installation
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setHasUpdate(true);
-              }
-            });
-          }
-        });
-      }).catch(() => {});
+      const intervalTimer = setInterval(checkForUpdate, 45000);
+      return () => clearInterval(intervalTimer);
     }
-
-    // 4. Polling for updates every 45 seconds
-    const intervalTimer = setInterval(checkForUpdate, 45000);
-
-    // 5. Check when user switches back to the tab / resumes PWA
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkForUpdate();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', checkForUpdate);
-
-    return () => {
-      clearInterval(intervalTimer);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', checkForUpdate);
-    };
   }, []);
 
-  // Handle User Clicking "Auto Update"
-  const handleAutoUpdate = async () => {
+  const handleAutoUpdate = () => {
     setIsUpdating(true);
-
-    try {
-      // 1. Purge all CacheStorage caches
-      if ('caches' in window) {
-        const cacheKeys = await caches.keys();
-        await Promise.all(cacheKeys.map((k) => caches.delete(k)));
-      }
-
-      // 2. Notify Service Worker to skip waiting
-      if (registrationRef.current && registrationRef.current.waiting) {
-        registrationRef.current.waiting.postMessage({ type: 'SKIP_WAITING' });
-      }
-
-      // 3. Force registration update
-      if (registrationRef.current) {
-        await registrationRef.current.update().catch(() => {});
-      }
-    } catch {}
-
-    // 4. Hard reload page with cache-busting to fetch fresh HTML & JS bundles
     setTimeout(() => {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then((regs) => {
-          return Promise.all(regs.map((r) => r.unregister()));
-        }).catch(() => {}).finally(() => {
+      if (typeof window !== 'undefined') {
+        if ('caches' in window) {
+          caches.keys().then((names) => {
+            names.forEach((name) => caches.delete(name));
+          });
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then((regs) => {
+            return Promise.all(regs.map((r) => r.unregister()));
+          }).catch(() => {}).finally(() => {
+            window.location.href = window.location.pathname + '?_upd=' + Date.now();
+          });
+        } else {
           window.location.href = window.location.pathname + '?_upd=' + Date.now();
-        });
-      } else {
-        window.location.href = window.location.pathname + '?_upd=' + Date.now();
+        }
       }
     }, 300);
   };
@@ -137,21 +100,21 @@ export default function PwaUpdatePrompt() {
     <div
       role="alert"
       aria-live="polite"
-      className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[99999] max-w-sm w-[calc(100%-2rem)] sm:w-96 bg-white text-slate-900 rounded-xl p-4 shadow-xl border border-slate-300"
+      className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-[99999] max-w-sm w-[calc(100%-2rem)] sm:w-96 bg-[#0d3822] text-[#fbf8f2] rounded-2xl p-4 shadow-2xl border border-[#25613e] font-['Kantumruy_Pro',sans-serif]"
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0" />
-          <h3 className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
-            មានកំណែ Update ថ្មី (New Version)
+          <span className="w-2.5 h-2.5 rounded-full bg-[#fbf8f2] shrink-0" />
+          <h3 className="text-xs sm:text-sm font-bold text-[#fbf8f2] tracking-tight">
+            មានការអាប់ដេតកំណែថ្មី
           </h3>
         </div>
 
         <button
           type="button"
           onClick={() => setIsDismissed(true)}
-          className="text-slate-400 hover:text-slate-700 transition-colors p-1 -mr-1 -mt-1 cursor-pointer"
+          className="text-[#d7ccb7] hover:text-[#fbf8f2] transition-colors p-1 -mr-1 -mt-1 cursor-pointer"
           title="បិទ"
         >
           <i className="fa-solid fa-xmark text-xs" />
@@ -159,8 +122,8 @@ export default function PwaUpdatePrompt() {
       </div>
 
       {/* Description */}
-      <p className="text-xs text-slate-600 leading-relaxed mb-3">
-        ប្រព័ន្ធទើបតែមានការ Update កំណែថ្មី! សូមចុចប៊ូតុងខាងក្រោមដើម្បី Update ចូលទៅកាន់ទម្រង់ថ្មីបំផុត។
+      <p className="text-xs text-[#d7ccb7] leading-relaxed mb-3">
+        ប្រព័ន្ធទើបតែមានការអាប់ដេតកំណែថ្មី សូមចុចប៊ូតុងខាងក្រោមដើម្បីផ្ទុកទម្រង់ថ្មីបំផុត
       </p>
 
       {/* Action Buttons */}
@@ -169,17 +132,17 @@ export default function PwaUpdatePrompt() {
           type="button"
           onClick={handleAutoUpdate}
           disabled={isUpdating}
-          className="flex-1 py-2 px-3 rounded-lg bg-slate-900 hover:bg-black text-white text-xs font-medium shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+          className="flex-1 py-2.5 px-3 rounded-xl bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] text-xs font-bold shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 border border-[#e4d9c4]"
         >
           {isUpdating ? (
             <>
               <i className="fa-solid fa-rotate fa-spin text-[11px]" />
-              <span>កំពុង Update...</span>
+              <span>កំពុងផ្ទុក...</span>
             </>
           ) : (
             <>
               <i className="fa-solid fa-rotate-right text-[11px]" />
-              <span>Update ភ្លាមៗ (Reload)</span>
+              <span>អាប់ដេតឥឡូវនេះ</span>
             </>
           )}
         </button>
@@ -187,12 +150,7 @@ export default function PwaUpdatePrompt() {
         <button
           type="button"
           onClick={() => setIsDismissed(true)}
-          className="py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-300 transition-colors cursor-pointer"
-        >
-          ពេលក្រោយ
-        </button>
-      </div>
-    </div>
+          className="py-2.5 px-3 rounded-xl bg-transparent hover:bg-[#15462c] text-[#fbf8f2] text-xs font-bold border border-[#2d6c46] transition-colors cursor-pointer"
         >
           ពេលក្រោយ
         </button>

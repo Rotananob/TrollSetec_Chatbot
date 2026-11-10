@@ -7,49 +7,33 @@ export default function ConfirmDeleteModal({
   onClose,
   onConfirm,
   title = 'តើអ្នកពិតជាចង់លុបមែនទេ?',
-  description = 'រាល់សារ និងប្រវត្តិជជែកទាំងអស់នឹងត្រូវលុបចេញជារៀងរហូត មិនអាចទាញយកមកវិញបានឡើយ!',
+  description = 'រាល់សារ និងប្រវត្តិជជែកទាំងអស់នឹងត្រូវលុបចេញជារៀងរហូត មិនអាចទាញយកមកវិញបានឡើយ',
   confirmText = 'លុបចេញភ្លាម',
-  cancelText = 'ទុកសិន (កុំទាន់លុប)',
+  cancelText = 'ទុកសិន មិនទាន់លុប',
   isDark = true
 }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
-      <div
-        className={`border rounded-3xl shadow-2xl p-6 sm:p-7 max-w-sm w-full text-center relative overflow-hidden animate-bounce-short ${
-          isDark
-            ? 'bg-slate-900 border-rose-500/30 text-white'
-            : 'bg-white border-rose-200 text-slate-900'
-        }`}
-      >
-        {/* Animated Trash / Warning Icon */}
-        <div className="w-14 h-14 bg-gradient-to-tr from-rose-500/20 to-red-500/20 border border-rose-400/40 rounded-2xl mx-auto mb-3.5 flex items-center justify-center shadow-lg shadow-rose-500/20">
-          <i className="fas fa-trash-can text-rose-500 text-2xl animate-pulse"></i>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in font-['Kantumruy_Pro',sans-serif]">
+      <div className="border border-[#25613e] rounded-2xl sm:rounded-3xl shadow-2xl p-6 sm:p-7 max-w-sm w-full text-center relative overflow-hidden animate-scale-up bg-[#0d3822] text-[#fbf8f2]">
+        {/* Warning Icon */}
+        <div className="w-14 h-14 bg-[#fbf8f2] border border-[#e4d9c4] rounded-2xl mx-auto mb-3.5 flex items-center justify-center shadow-md text-[#0d3822]">
+          <i className="fas fa-trash-can text-2xl"></i>
         </div>
 
-        <h3 className="text-base sm:text-lg font-black text-rose-500 mb-1 tracking-tight">
+        <h3 className="text-base sm:text-lg font-bold text-[#fbf8f2] mb-1">
           {title}
         </h3>
 
-        <p
-          className={`text-xs font-medium leading-relaxed mb-4 ${
-            isDark ? 'text-slate-300' : 'text-slate-600'
-          }`}
-        >
+        <p className="text-xs font-normal leading-relaxed mb-4 text-[#d7ccb7]">
           {description}
         </p>
 
-        {/* Troll tip note */}
-        <div
-          className={`text-[10px] p-2.5 rounded-xl border mb-5 font-semibold text-center leading-normal ${
-            isDark
-              ? 'bg-slate-950/60 border-slate-800 text-slate-400'
-              : 'bg-rose-50/70 border-rose-100 text-rose-700'
-          }`}
-        >
-          <i className="fas fa-triangle-exclamation mr-1 text-amber-400"></i>
-          លុបហើយមិនអាចយកមកវិញបានទេណា៎! បើចង់ជជែកថ្មីក៏អាចបង្កើត New Chat បានដែរ។
+        {/* Note */}
+        <div className="text-[11px] p-3 rounded-xl border border-[#235e3c] mb-5 font-normal text-center leading-relaxed bg-[#124229] text-[#d7ccb7]">
+          <i className="fas fa-circle-exclamation mr-1.5 text-[#fbf8f2]"></i>
+          លុបហើយមិនអាចយកមកវិញបានទេណា៎ បើចង់ជជែកថ្មីក៏អាចបង្កើត New Chat បានដែរ
         </div>
 
         {/* Action Buttons */}
@@ -57,11 +41,7 @@ export default function ConfirmDeleteModal({
           <button
             type="button"
             onClick={onClose}
-            className={`py-2.5 px-3 rounded-xl font-bold text-xs transition cursor-pointer active:scale-95 border ${
-              isDark
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
-            }`}
+            className="py-3 px-3 rounded-xl font-bold text-xs transition cursor-pointer active:scale-95 border border-[#2d6c46] bg-transparent hover:bg-[#15462c] text-[#fbf8f2]"
           >
             {cancelText}
           </button>
@@ -70,7 +50,7 @@ export default function ConfirmDeleteModal({
             onClick={() => {
               onConfirm();
             }}
-            className="py-2.5 px-3 rounded-xl font-bold text-xs transition cursor-pointer active:scale-95 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-md shadow-rose-600/30 border border-rose-400/40 flex items-center justify-center gap-1.5"
+            className="py-3 px-3 rounded-xl font-bold text-xs transition cursor-pointer active:scale-95 bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] shadow-md border border-[#e4d9c4] flex items-center justify-center gap-1.5"
           >
             <i className="fas fa-trash text-[11px]"></i>
             <span>{confirmText}</span>

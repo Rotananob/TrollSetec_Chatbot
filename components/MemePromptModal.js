@@ -16,7 +16,6 @@ export default function MemePromptModal({
   onClose,
   onSubmit,
   botPersona = 'កូនពៅ',
-  isDark = true,
   isGenerating = false
 }) {
   const [promptInput, setPromptInput] = useState('');
@@ -35,50 +34,54 @@ export default function MemePromptModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in font-['Kantumruy_Pro',sans-serif]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-fade-in font-['Kantumruy_Pro',sans-serif]">
       <div
-        className={`w-full max-w-lg rounded-3xl p-5 md:p-6 shadow-2xl border transition-all relative overflow-hidden ${
-          isDark
-            ? 'bg-slate-900 border-purple-500/30 text-white shadow-[0_20px_60px_rgba(168,85,247,0.2)]'
-            : 'bg-white border-purple-200 text-slate-800 shadow-[0_20px_50px_rgba(168,85,247,0.15)]'
-        }`}
+        className="w-full max-w-lg rounded-2xl sm:rounded-3xl p-5 md:p-6 bg-[#0d3822] border border-[#25613e] text-[#fbf8f2] shadow-2xl shadow-black/80 relative overflow-hidden animate-scale-up"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Top Glow Accent */}
-        <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-48 h-24 bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-2xl pointer-events-none rounded-full"></div>
-
         {/* Close Button */}
         <button
           onClick={onClose}
           disabled={isGenerating}
-          className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition ${
-            isDark
-              ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-          }`}
+          type="button"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer text-[#d7ccb7] hover:text-[#fbf8f2] bg-[#14472c] hover:bg-[#1a5535] border border-[#276a44] disabled:opacity-50"
           title="បិទ"
         >
-          <i className="fas fa-times text-sm"></i>
+          <i className="fas fa-times text-xs"></i>
         </button>
 
         {/* Modal Header */}
-        <div className="text-center mb-5">
-          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-purple-600 via-pink-500 to-amber-400 flex items-center justify-center shadow-lg shadow-purple-500/30">
-            <i className="fas fa-wand-magic-sparkles text-white text-2xl animate-pulse"></i>
+        <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-[#1c4d32]">
+          <div className="relative shrink-0">
+            <img
+              src="/img/icon.jpg"
+              alt="SETEC Chatbot"
+              className="w-12 h-12 rounded-xl object-cover border-2 border-[#fbf8f2] shadow-sm shrink-0"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/img/logo.jpg';
+              }}
+            />
           </div>
-          <h3 className="text-lg md:text-xl font-black tracking-tight mb-1">
-            តើចង់ឱ្យ {botPersona} បង្កើត Meme បែបណា?
-          </h3>
-          <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            ជ្រើសរើសប្រធានបទកំប្លែងៗខាងក្រោម ឬបញ្ចូលគំនិតផ្ទាល់ខ្លួនរបស់អ្នក
-          </p>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold text-[#0d3822] bg-[#fbf8f2] border border-[#e2d8c3] px-2.5 py-0.5 rounded-full shadow-xs">
+                វិទ្យាស្ថាន ស៊ីតិច
+              </span>
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-[#fbf8f2] tracking-normal mt-0.5">
+              តើចង់ឱ្យ {botPersona} បង្កើតរូបភាព Meme បែបណា?
+            </h3>
+            <p className="text-[11px] text-[#d7ccb7] font-normal">
+              ជ្រើសរើសប្រធានបទកំប្លែងៗខាងក្រោម ឬបញ្ចូលគំនិតផ្ទាល់ខ្លួនរបស់អ្នក
+            </p>
+          </div>
         </div>
 
         {/* Quick Suggestion Pills */}
         <div className="mb-4">
-          <label className={`block text-[11px] font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5 ${
-            isDark ? 'text-purple-300' : 'text-purple-600'
-          }`}>
-            <i className="fas fa-lightbulb text-xs"></i>
+          <label className="block text-xs font-bold text-[#d7ccb7] mb-2 flex items-center gap-1.5">
+            <i className="fas fa-lightbulb text-[#fbf8f2] text-xs"></i>
             <span>គំនិតពេញនិយមសម្រាប់សិស្ស ស៊ីតិច</span>
           </label>
           <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1">
@@ -89,15 +92,13 @@ export default function MemePromptModal({
                   key={idx}
                   type="button"
                   onClick={() => handleSelectSuggestion(item)}
-                  className={`text-xs px-3 py-1.5 rounded-xl border text-left transition-all flex items-center gap-1.5 ${
+                  className={`text-xs px-3 py-1.5 rounded-xl border text-left transition flex items-center gap-1.5 cursor-pointer ${
                     isSelected
-                      ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-500/30 scale-[1.02]'
-                      : isDark
-                      ? 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 border-slate-700/70 hover:border-purple-500/50'
-                      : 'bg-purple-50/70 hover:bg-purple-100/70 text-slate-700 border-purple-200 hover:border-purple-300'
+                      ? 'bg-[#fbf8f2] text-[#0d3822] border-[#fbf8f2] font-bold shadow-sm'
+                      : 'bg-[#124229] hover:bg-[#164a2f] text-[#fbf8f2] border-[#235e3c]'
                   }`}
                 >
-                  <i className={`fas fa-sparkles text-[10px] ${isSelected ? 'text-amber-300' : 'text-purple-400'}`}></i>
+                  <i className={`fas fa-sparkles text-[10px] ${isSelected ? 'text-[#0d3822]' : 'text-[#d7ccb7]'}`}></i>
                   <span>{item}</span>
                 </button>
               );
@@ -108,10 +109,8 @@ export default function MemePromptModal({
         {/* Custom Prompt Input */}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className={`block text-[11px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5 ${
-              isDark ? 'text-slate-300' : 'text-slate-700'
-            }`}>
-              <i className="fas fa-pen text-xs text-purple-400"></i>
+            <label className="block text-xs font-bold text-[#d7ccb7] mb-1.5 flex items-center gap-1.5">
+              <i className="fas fa-pen text-xs text-[#fbf8f2]"></i>
               <span>បញ្ចូលគំនិតរូបភាពតាមការស្រមើស្រមៃ</span>
             </label>
             <div className="relative">
@@ -119,18 +118,14 @@ export default function MemePromptModal({
                 rows={3}
                 value={promptInput}
                 onChange={(e) => setPromptInput(e.target.value)}
-                placeholder="ឧទាហរណ៍៖ សិស្សម្នាក់កំពុងអង្គុយកូដដល់ម៉ោង ៣ យប់ ភ្នែកឡើងក្រហម..."
-                className={`w-full text-xs md:text-sm p-3 rounded-2xl border outline-none transition resize-none ${
-                  isDark
-                    ? 'bg-slate-950/70 border-slate-700 focus:border-purple-400 text-white placeholder-slate-500'
-                    : 'bg-slate-50 border-slate-300 focus:border-purple-500 text-slate-900 placeholder-slate-400'
-                }`}
+                placeholder="ឧទាហរណ៍ សិស្សម្នាក់កំពុងអង្គុយកូដដល់ម៉ោង ៣ យប់ ភ្នែកឡើងក្រហម"
+                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-[#235e3c] bg-[#124229] text-[#fbf8f2] placeholder:text-[#8da698] font-medium outline-none focus:border-[#fbf8f2] transition resize-none leading-relaxed"
               />
               {promptInput && (
                 <button
                   type="button"
                   onClick={() => setPromptInput('')}
-                  className="absolute top-2 right-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
+                  className="absolute top-3 right-3 text-[#d7ccb7] hover:text-[#fbf8f2] text-xs p-1 cursor-pointer"
                   title="លុប"
                 >
                   <i className="fas fa-times-circle"></i>
@@ -139,14 +134,10 @@ export default function MemePromptModal({
             </div>
           </div>
 
-          {/* Device Limit Notification */}
-          <div className={`p-2.5 rounded-xl text-[11px] flex items-center gap-2 mb-5 border ${
-            isDark
-              ? 'bg-amber-500/10 border-amber-500/20 text-amber-300'
-              : 'bg-amber-50 border-amber-200 text-amber-800'
-          }`}>
-            <i className="fas fa-clock text-amber-500 text-xs shrink-0"></i>
-            <span>កំណត់ ១ ឧបករណ៍អាចបង្កើតបាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង</span>
+          {/* Device Limit Notification - Warm Milk Card */}
+          <div className="p-3 rounded-2xl text-xs flex items-center gap-2.5 mb-5 bg-[#faf5ea] text-[#0d3822] border border-[#e4d9c4] shadow-sm">
+            <i className="fas fa-clock text-[#0d3822] text-sm shrink-0"></i>
+            <span className="font-medium">កំណត់ ១ ឧបករណ៍អាចបង្កើតបាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង</span>
           </div>
 
           {/* Action Buttons */}
@@ -155,27 +146,23 @@ export default function MemePromptModal({
               type="button"
               onClick={onClose}
               disabled={isGenerating}
-              className={`px-4 py-2.5 rounded-xl font-bold text-xs transition ${
-                isDark
-                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-              }`}
+              className="px-4 py-2.5 rounded-xl font-bold text-xs bg-[#14472c] hover:bg-[#1a5535] text-[#fbf8f2] border border-[#276a44] transition cursor-pointer active:scale-95 disabled:opacity-50"
             >
               បោះបង់
             </button>
             <button
               type="submit"
               disabled={!promptInput.trim() || isGenerating}
-              className="px-5 py-2.5 rounded-xl font-black text-xs text-white bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/25 transition flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl font-bold text-xs text-[#0d3822] bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] border border-[#e4d9c4] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition flex items-center gap-2 cursor-pointer"
             >
               {isGenerating ? (
                 <>
-                  <i className="fas fa-circle-notch fa-spin text-xs"></i>
+                  <i className="fas fa-circle-notch fa-spin text-xs text-[#0d3822]"></i>
                   <span>កំពុងបង្កើត...</span>
                 </>
               ) : (
                 <>
-                  <i className="fas fa-wand-magic-sparkles text-xs"></i>
+                  <i className="fas fa-wand-magic-sparkles text-xs text-[#0d3822]"></i>
                   <span>បង្កើត Meme ឥឡូវនេះ</span>
                 </>
               )}

@@ -1070,10 +1070,10 @@ export default function Home() {
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
                         <span>ស៊ីតិច Roastbot កូនច្បង</span>
-                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md font-semibold">ឆ្លាត &amp; ស្លូត</span>
+                        <span className="text-[10px] bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-md font-semibold">ឆ្លាត &amp; Flexible</span>
                       </div>
                       <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
-                        ចរិកស្លូតបូត មិនឈ្លើយ ចេះគោរព User សំណេះសំណាល សិស្ស SETEC, Meme, IT, Interior
+                        ចរិកបត់បែន Flexible ស្លូតបូតគោរព User តែហ៊ានជេរតបកាចវិញភ្លាមៗពេលគេមកឈ្លើយ ឬចង់បំពាន
                       </div>
                     </div>
                     <i className="fas fa-chevron-right text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:translate-x-0.5 transition-all"></i>

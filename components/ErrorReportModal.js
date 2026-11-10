@@ -64,7 +64,7 @@ export default function ErrorReportModal({
     const trimmedIssue = issue.trim();
 
     if (!trimmedIssue) {
-      alert('សូមសរសេររៀបរាប់ពីបញ្ហាខ្លីៗជាមុនសិន!');
+      alert('សូមសរសេររៀបរាប់ពីបញ្ហាខ្លីៗជាមុនសិន');
       return;
     }
 
@@ -79,82 +79,81 @@ export default function ErrorReportModal({
         username: trimmedName,
         bot: botKey,
         issue: trimmedIssue,
-        messages: recentMessages || []
-      }).catch((err) => console.warn('[Realtime] DB init error:', err));
+        status: 'pending_admin',
+        recentHistory: recentMessages.slice(-6)
+      });
 
-      // 2. Send Telegram alert with Server-Generated Direct Bypass Button to Rotana NOB
+      // 2. Notify parent to start live sync listener
+      if (typeof onLiveSessionStarted === 'function') {
+        onLiveSessionStarted(activeSessionId);
+      }
+
+      // 3. Dispatch alert webhook to Admin Telegram
       const endpoint = getApiEndpoint('/api/track');
       await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'user_report_issue',
+          type: 'live_help_request',
           username: trimmedName,
-          issue: trimmedIssue,
           bot: botKey,
+          issue: trimmedIssue,
           sessionId: activeSessionId
         })
       });
 
-      if (onLiveSessionStarted) {
-        onLiveSessionStarted({ sessionId: activeSessionId });
-      }
-
       setSentSuccess(true);
-    } catch {
-      alert('មិនអាចបញ្ជូនបានទេ សូមសាកល្បងម្ដងទៀត!');
+    } catch (err) {
+      console.error('Error reporting alert:', err);
+      alert('មិនអាចបញ្ជូនសារបានទេ សូមពិនិត្យអ៊ីនធឺណិត');
+    } finally {
       setIsSending(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in font-['Kantumruy_Pro',sans-serif]"
+      onClick={onClose}
+    >
       <div
-        className={`w-full max-w-md rounded-3xl p-6 shadow-2xl border transition-all relative overflow-hidden ${
-          isDark
-            ? 'bg-slate-900 border-violet-500/30 text-white shadow-[0_20px_60px_rgba(139,92,246,0.2)]'
-            : 'bg-white border-violet-200 text-slate-800 shadow-2xl'
-        }`}
+        className="w-full max-w-md rounded-2xl sm:rounded-3xl p-6 bg-[#0d3822] border border-[#25613e] text-[#fbf8f2] shadow-2xl shadow-black/80 relative overflow-hidden animate-scale-up"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           type="button"
-          className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer ${
-            isDark
-              ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-              : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'
-          }`}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer text-[#d7ccb7] hover:text-[#fbf8f2] bg-[#14472c] hover:bg-[#1a5535] border border-[#276a44]"
           title="បិទ"
         >
-          <i className="fas fa-times text-sm"></i>
+          <i className="fas fa-times text-xs"></i>
         </button>
 
         {sentSuccess ? (
-          <div className="text-center py-5 animate-fade-in">
-            <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl animate-pulse">
+          <div className="text-center py-4 animate-fade-in space-y-3">
+            <div className="w-14 h-14 mx-auto rounded-full bg-[#fbf8f2] text-[#0d3822] flex items-center justify-center text-2xl shadow-md">
               <i className="fas fa-paper-plane"></i>
             </div>
-            <h3 className="text-base sm:text-lg font-black mb-1.5 text-emerald-400">
-              បានបញ្ជូន Alert ទៅកាន់អ្នកគ្រប់គ្រងវេបសាយរួចរាល់!
+            <h3 className="text-base sm:text-lg font-bold text-[#fbf8f2]">
+              បានបញ្ជូន Alert ទៅកាន់អ្នកគ្រប់គ្រងរួចរាល់
             </h3>
             
             {/* 180s Realtime Countdown Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-500/40 text-amber-400 font-black text-sm my-2 shadow-xs">
-              <i className="fas fa-stopwatch animate-spin text-xs"></i>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#124229] border border-[#235e3c] text-[#fbf8f2] font-bold text-xs shadow-xs">
+              <i className="fas fa-stopwatch text-[#d7ccb7]"></i>
               <span>{formatCountdown(countdown)}</span>
-              <span className="text-[10px] font-bold opacity-80">នៅសល់ {countdown} វិនាទី</span>
+              <span className="text-[10px] text-[#d7ccb7]">នៅសល់ {countdown} វិនាទី</span>
             </div>
 
-            <div className={`text-xs leading-relaxed max-w-sm mx-auto p-3.5 rounded-2xl mb-4 border text-left space-y-1.5 ${
-              isDark ? 'bg-slate-950/80 border-emerald-500/30 text-emerald-200' : 'bg-emerald-50 border-emerald-200 text-emerald-950'
-            }`}>
-              <p className="font-bold flex items-center gap-1.5">
-                <i className="fas fa-circle-check text-emerald-400 text-xs"></i>
-                <span>បន្តិចទៀតនេះ អ្នកគ្រប់គ្រងវេបសាយនឹងបើកតាម Telegram ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
+            <div className="text-xs leading-relaxed max-w-sm mx-auto p-4 rounded-2xl border text-left space-y-1.5 bg-[#faf5ea] text-[#0d3822] border-[#e4d9c4] shadow-sm">
+              <p className="font-bold flex items-center gap-2 text-[#0d3822]">
+                <i className="fas fa-circle-check text-[#0d3822] text-xs"></i>
+                <span>បន្តិចទៀតនេះ អ្នកគ្រប់គ្រងនឹងចូលមកកាន់ការជជែកនេះផ្ទាល់</span>
               </p>
-              <p className="text-[11px] opacity-80 pl-4">
-                សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ សុវត្ថិភាពកម្រិតខ្ពស់។
+              <p className="text-[11px] text-[#1a472d] pl-5">
+                សារ និង Session ត្រូវបានការពារយ៉ាងត្រឹមត្រូវ មានសុវត្ថិភាពខ្ពស់។
               </p>
             </div>
 
@@ -162,100 +161,88 @@ export default function ErrorReportModal({
               href="https://t.me/TheRotanaNob"
               target="_blank"
               rel="noreferrer"
-              className="w-full py-2.5 mb-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2 border border-[#e4d9c4]"
             >
-              <i className="fab fa-telegram text-sm"></i>
-              <span>ឆាតផ្ទាល់ទៅកាន់ Telegram អ្នកគ្រប់គ្រងវេបសាយ</span>
+              <i className="fab fa-telegram text-sm text-[#0d3822]"></i>
+              <span>ឆាតផ្ទាល់ទៅកាន់ Telegram អ្នកគ្រប់គ្រង</span>
             </a>
 
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
+              className="w-full py-3 bg-transparent hover:bg-[#15462c] text-[#fbf8f2] border border-[#2d6c46] rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
             >
               <i className="fas fa-comments"></i>
-              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំអ្នកគ្រប់គ្រងវេបសាយ {countdown} វិនាទី</span>
+              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំអ្នកគ្រប់គ្រង {countdown} វិនាទី</span>
             </button>
           </div>
         ) : (
           <>
             {/* Header */}
             <div className="text-center mb-5">
-              <div className="w-12 h-12 mx-auto mb-2.5 rounded-2xl bg-gradient-to-tr from-violet-600/20 to-indigo-600/20 border border-violet-500/30 flex items-center justify-center text-violet-400 text-xl shadow-md">
-                <i className="fas fa-paper-plane text-violet-400"></i>
+              <div className="w-12 h-12 mx-auto mb-2.5 rounded-2xl bg-[#fbf8f2] border border-[#e4d9c4] flex items-center justify-center text-[#0d3822] text-xl shadow-md">
+                <i className="fas fa-paper-plane"></i>
               </div>
-              <h3 className="text-base sm:text-lg font-black tracking-tight mb-1 text-white">
-                Send to Admin អ្នកគ្រប់គ្រងវេបសាយ
+              <h3 className="text-base sm:text-lg font-bold text-[#fbf8f2] mb-1">
+                ផ្ញើសារទៅកាន់អ្នកគ្រប់គ្រង
               </h3>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ? ផ្ញើ Alert ភ្លាមៗទៅកាន់អ្នកគ្រប់គ្រងវេបសាយដើម្បីជួយពិនិត្យជូន៖
+              <p className="text-xs text-[#d7ccb7]">
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ? ផ្ញើ Alert ភ្លាមៗទៅកាន់អ្នកគ្រប់គ្រងដើម្បីជួយពិនិត្យជូន
               </p>
             </div>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-3.5">
               <div>
-                <label className="block text-[11px] font-bold mb-1 text-slate-400">
+                <label className="block text-xs font-bold mb-1.5 text-[#d7ccb7]">
                   ឈ្មោះរបស់អ្នក
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="ឧ. សិស្ស SETEC..."
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold focus:outline-hidden focus:ring-2 transition ${
-                    isDark
-                      ? 'bg-slate-950 border-slate-800 text-white focus:ring-violet-500/50 focus:border-violet-500'
-                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-violet-400/50 focus:border-violet-400'
-                  }`}
+                  placeholder="ឧទាហរណ៍ សិស្ស SETEC"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#235e3c] bg-[#124229] text-[#fbf8f2] placeholder:text-[#8da698] text-xs font-semibold focus:outline-none focus:border-[#fbf8f2] transition"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold mb-1 text-slate-400">
+                <label className="block text-xs font-bold mb-1.5 text-[#d7ccb7]">
                   បញ្ហាដែលអ្នកបានជួប
                 </label>
                 <textarea
                   value={issue}
                   onChange={(e) => setIssue(e.target.value)}
-                  placeholder="ឧ. ឆាតទៅ AI មិនឆ្លើយ ឬប្រព័ន្ធកាត់ផ្ដាច់..."
+                  placeholder="ឧទាហរណ៍ ឆាតទៅ AI មិនឆ្លើយ ឬប្រព័ន្ធកាត់ផ្ដាច់"
                   rows={3}
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold focus:outline-hidden focus:ring-2 transition resize-none ${
-                    isDark
-                      ? 'bg-slate-950 border-slate-800 text-white focus:ring-violet-500/50 focus:border-violet-500'
-                      : 'bg-slate-50 border-slate-200 text-slate-900 focus:ring-violet-400/50 focus:border-violet-400'
-                  }`}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#235e3c] bg-[#124229] text-[#fbf8f2] placeholder:text-[#8da698] text-xs font-semibold focus:outline-none focus:border-[#fbf8f2] transition resize-none leading-relaxed"
                   required
                 />
               </div>
 
-              <div className="pt-2 flex items-center gap-2">
+              <div className="pt-2 flex items-center gap-2.5">
                 <button
                   type="button"
                   onClick={onClose}
-                  className={`w-1/3 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                    isDark
-                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                  }`}
+                  className="flex-1 py-3 rounded-xl text-xs font-bold transition cursor-pointer bg-transparent hover:bg-[#15462c] text-[#fbf8f2] border border-[#2d6c46] active:scale-95"
                 >
                   បោះបង់
                 </button>
                 <button
                   type="submit"
                   disabled={isSending}
-                  className="w-2/3 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 active:scale-95 shadow-md shadow-violet-600/25 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="flex-2 py-3 rounded-xl text-xs font-bold text-[#0d3822] bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] active:scale-98 shadow-md border border-[#e4d9c4] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {isSending ? (
                     <>
-                      <i className="fas fa-circle-notch fa-spin"></i>
+                      <i className="fas fa-spinner fa-spin text-[#0d3822]"></i>
                       <span>កំពុងផ្ញើ...</span>
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-paper-plane text-amber-300"></i>
-                      <span>Send to Admin អ្នកគ្រប់គ្រងវេបសាយ</span>
+                      <i className="fas fa-paper-plane text-[#0d3822]"></i>
+                      <span>ផ្ញើសារទៅកាន់អ្នកគ្រប់គ្រង</span>
                     </>
                   )}
                 </button>
