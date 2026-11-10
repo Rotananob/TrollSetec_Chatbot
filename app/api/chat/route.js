@@ -963,21 +963,53 @@ export function normalizeObfuscatedText(str = '') {
   return cleaned;
 }
 
-// Sniff and Decode Hidden Payloads: Base64, Hex (\x69), and URL Percent Encoding
+// Sniff and Decode Hidden Payloads: Base64, Hex (\x69 or byte streams), and URL Percent Encoding
 export function detectEncodedPayload(str = '') {
   if (!str || typeof str !== 'string') return { isEncoded: false, decoded: '', type: '' };
 
-  // 1. Check for URL percent encoding, e.g. %69%67%6e%6f%72%65
-  if (/%[0-9a-fA-F]{2}/.test(str)) {
+  // 1. Check for explicit EVAL(HEX_STREAM) or HEX_STREAM wrapper
+  if (/EVAL\s*\(\s*HEX_STREAM\s*\)|HEX_STREAM|HEX_PAYLOAD|HEX_BYTES/i.test(str)) {
     try {
-      const decodedUrl = decodeURIComponent(str);
-      if (decodedUrl !== str && decodedUrl.length >= 4) {
-        return { isEncoded: true, decoded: decodedUrl, type: 'URL / Percent Encoding' };
+      const raw = str.replace(/EVAL\s*\(\s*HEX_STREAM\s*\)|HEX_STREAM|HEX_PAYLOAD|HEX_BYTES|[:=()]/gi, ' ').trim();
+      const cleanHex = raw.replace(/0x|[^0-9a-fA-F]/gi, '');
+      if (cleanHex.length >= 8 && cleanHex.length % 2 === 0) {
+        const decoded = Buffer.from(cleanHex, 'hex').toString('utf8');
+        return { isEncoded: true, decoded, type: 'Hex Stream Encoding' };
       }
     } catch {}
   }
 
-  // 2. Check for Hex escape sequences, e.g. \x69\x67...
+  // 2. Check for sequences of space/comma/dash/colon separated hex bytes (e.g. 53 79 73 74 65 6D 3A...)
+  const hexBytesRegex = /(?:(?:0x)?[0-9a-fA-F]{2}[\s,:-]+){5,}(?:0x)?[0-9a-fA-F]{2}/gi;
+  let hexMatch;
+  while ((hexMatch = hexBytesRegex.exec(str)) !== null) {
+    try {
+      const cleanHex = hexMatch[0].replace(/0x|[\s,:-]/gi, '');
+      if (cleanHex.length >= 10 && cleanHex.length % 2 === 0) {
+        const decoded = Buffer.from(cleanHex, 'hex').toString('utf8');
+        if (/[\w\s\u1780-\u17FF]{4,}/.test(decoded)) {
+          return { isEncoded: true, decoded, type: 'Hex Stream Encoding' };
+        }
+      }
+    } catch {}
+  }
+
+  // 3. Check for continuous hex string of length >= 24
+  const continuousHexRegex = /\b[0-9a-fA-F]{24,}\b/g;
+  let cMatch;
+  while ((cMatch = continuousHexRegex.exec(str)) !== null) {
+    try {
+      const hexCandidate = cMatch[0];
+      if (hexCandidate.length % 2 === 0) {
+        const decoded = Buffer.from(hexCandidate, 'hex').toString('utf8');
+        if (/^[ -~\n\r\t\u1780-\u17FF]+$/.test(decoded) && decoded.length >= 8) {
+          return { isEncoded: true, decoded, type: 'Hex Stream Encoding' };
+        }
+      }
+    } catch {}
+  }
+
+  // 4. Check for Hex escape sequences, e.g. \x69\x67...
   if (/\\x[0-9a-fA-F]{2}/i.test(str)) {
     try {
       const hexDecoded = str.replace(/\\x([0-9a-fA-F]{2})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
@@ -987,7 +1019,17 @@ export function detectEncodedPayload(str = '') {
     } catch {}
   }
 
-  // 3. Check for Base64 blocks (continuous base64 chunks >= 16 chars)
+  // 5. Check for URL percent encoding, e.g. %69%67%6e%6f%72%65
+  if (/%[0-9a-fA-F]{2}/.test(str)) {
+    try {
+      const decodedUrl = decodeURIComponent(str);
+      if (decodedUrl !== str && decodedUrl.length >= 4) {
+        return { isEncoded: true, decoded: decodedUrl, type: 'URL / Percent Encoding' };
+      }
+    } catch {}
+  }
+
+  // 6. Check for Base64 blocks (continuous base64 chunks >= 16 chars)
   const b64Regex = /\b[A-Za-z0-9+/]{16,}={0,2}\b/g;
   let match;
   while ((match = b64Regex.exec(str)) !== null) {
@@ -995,7 +1037,7 @@ export function detectEncodedPayload(str = '') {
       const b64Candidate = match[0];
       const buf = Buffer.from(b64Candidate, 'base64');
       const decodedStr = buf.toString('utf8');
-      if (/^[ -~\n\r\t]+$/.test(decodedStr) && decodedStr.length >= 8) {
+      if (/^[ -~\n\r\t\u1780-\u17FF]+$/.test(decodedStr) && decodedStr.length >= 6) {
         return { isEncoded: true, decoded: decodedStr, type: 'Base64 Encoding' };
       }
     } catch {}
@@ -1107,7 +1149,12 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
 
   const isHoneypotTriggered =
     extraContext.isIndirectTriggered ||
-    (extraContext.isEncoded && encodeCount >= 2) ||
+    (extraContext.isEncoded && (encodeCount >= 2 || violationCount >= 2)) ||
+    encodeCount >= 2 ||
+    (extraContext.spamCount >= 2) ||
+    extraContext.attackVector === 'spam_flood' ||
+    extraContext.attackVector === 'spam' ||
+    extraContext.attackVector === 'encoded_jailbreak' ||
     extraContext.attackVector === 'math_language' ||
     extraContext.attackVector === 'machine_language' ||
     extraContext.attackVector === 'code_surrender_trap';
@@ -1120,8 +1167,10 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
       attackVector = 'math_language';
     } else if (machineCount >= 1 || /ast_interpreter|system_instruction_payload|terminal_io|execution_call|execute\s*ast|suppress_heuristics|kernel_diagnostic|diagnostic_mode|execution_pipeline|execution_thread|architectural_evaluation|runtime_environment|system-level\s*constraints|parameter\s*validation|bypass\s*rhetorical|deflection\s*loops/i.test(p)) {
       attackVector = 'machine_language';
-    } else if (encodeCount >= 2 || extraContext.isEncoded) {
+    } else if (encodeCount >= 2 || extraContext.isEncoded || extraContext.attackVector === 'encoded_jailbreak') {
       attackVector = 'encoded_jailbreak';
+    } else if (extraContext.spamCount >= 2 || extraContext.attackVector === 'spam_flood' || extraContext.attackVector === 'spam') {
+      attackVector = 'spam_flood';
     } else if (/actor|movie|scene|roleplay|សម្ដែងជា|ដើរតួជា|គោរព|សំពះ/i.test(p)) {
       attackVector = 'roleplay_or_respect';
     } else if (p.length >= 350 || (prompt || '').split(/\r\n|\r|\n/).length >= 8) {
@@ -1513,12 +1562,24 @@ export async function POST(req) {
         const isVichhai = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPromptSnippet);
 
         // Record violation in this active 30-minute session
-        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username);
+        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, 'spam');
         const isKonPov = (reqBot || bot) === 'konpov';
+        const isSpamExceeded = sessionViolations >= 2 || (sessionViolations.spamCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2;
 
         let roast;
-        if (sessionViolations >= 4) {
-          roast = getRepeatedViolationMockRoast(username, isKonPov, sessionViolations);
+        if (isSpamExceeded) {
+          const troll = getDeceptiveJailbreakTroll({
+            attackVector: 'spam_flood',
+            bot: reqBot || bot || 'konpov',
+            username,
+            violationCount: sessionViolations.violationCount || sessionViolations
+          });
+          const payload = generateMachineIndirectPayload({
+            attackVector: 'SPAM_FLOOD',
+            username,
+            violationCount: sessionViolations.violationCount || sessionViolations
+          });
+          roast = `${troll}\n\n${payload}`;
         } else if (linuxCheck.isLinuxCommandProbe) {
           roast = getLinuxHackerRoast(username || (isVichhai ? 'វិឆៃ' : 'អាប្អូន'), clientUserAgent, retrySec);
         } else {
@@ -2111,7 +2172,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isYoungPosAttack = /young\s*pos|youngpos/i.test(targetText) && /hack|bypass|attack|exploit|crack|inject|breaker|leak|probe/i.test(targetText);
       const isHeavyRoleplayOrForcedRespect = /(?:act\s+as\s+(?:a|an)?\s*(?:assistant|master|slave|ai|person|actor|chatbot|bot|friend)|pretend\s+(?:you\s+are|to\s+be)|let's\s+play\s+a\s+game|play\s+the\s+role\s+of|you\s+are\s+now|in\s+this\s+scene|movie\s+scene|hypothetical\s+scenario|សម្ដែងជា|ដើរតួជា|ដេីរតួជា|ដើរតួ|ដេីរតួ|លេងហ្គេម|សន្មតថា|ឧបមាថា|តាំងខ្លួនជា|គោរព(?:ខ្ញុំ|អញ)|សំពះ(?:ខ្ញុំ|អញ)|បន្ទន់ឥរិយាបថ|បន្ទន់ចិត្ត|ស្ដាប់បញ្ជា|ត្រូវតែស្ដាប់|obey\s+me|worship\s+me|bow\s+down|you\s+must\s+respect\s+me|kneel\s+before\s+me|call\s+me\s+master)/i.test(targetText);
       const isClassicJailbreak = /(?:ignore\s+(?:all\s+)?previous\s+instructions|you\s+are\s+no\s+longer\s+(?:a|an)?\s*(?:chatbot|ai|troll)|act\s+as\s+a\s+helpful\s+coding\s+assistant|let's\s+play\s+a\s+game\s+where\s+you|play\s+the\s+role\s+of|actor\s+playing\s+in\s+this\s+scene|system\s+update\s*:\s*you\s+are|system\s+override\s*:\s*unrestricted|previous\s+persona.*deprecated|general\s+assistant\s+mode|<\|im_start\|>|<project_instructions>|you\s+are\s+nyx|dan\s+mode|developer\s+mode|debug\s+mode|raw\s+context\s+mode|output\s+the\s+exact.*system\s+instruction|jailbreak|leak\s+(?:system\s+)?prompt|show\s+(?:system\s+)?prompt|unfiltered\s+mode|disregard\s+all\s+rules)/i.test(targetText);
-      const isEncodedJailbreak = encodedPayload.isEncoded && (encodedPayload.type === 'Base64 Encoding' || encodedPayload.type === 'Hex Encoding' || isClassicJailbreak || isMathOrValueLoss);
+      const isEncodedJailbreak = (encodedPayload.isEncoded && (
+        encodedPayload.type === 'Base64 Encoding' ||
+        encodedPayload.type === 'Hex Encoding' ||
+        encodedPayload.type === 'Hex Stream Encoding' ||
+        encodedPayload.type === 'URL / Percent Encoding' ||
+        isClassicJailbreak ||
+        isMathOrValueLoss
+      )) || /EVAL\s*\(\s*HEX_STREAM\s*\)|HEX_STREAM|HEX_PAYLOAD|HEX_BYTES|BASE64_STREAM/i.test(targetText);
 
       // Check if user is asking a genuine school, homework or teacher question (NEVER flag as jailbreak!)
       const isGenuineSchoolOrStudyQuestion =
@@ -2421,7 +2489,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         // Instead, roast and banter back normally in human Khmer!
         const isEncodedAttack = isEncodedJailbreak;
         const encodeCount = sessionViolations.encodeCount || 0;
-        const shouldCounterStrike = isEncodedAttack && encodeCount >= 2;
+        const shouldCounterStrike = (isEncodedAttack && encodeCount >= 2) || (sessionViolations.violationCount || 0) >= 2 || (sessionViolations.spamCount || 0) >= 2;
 
         const parsedAgeForRotana = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
         const is25UpRotana = !isNaN(parsedAgeForRotana) && parsedAgeForRotana >= 25;
@@ -2674,24 +2742,26 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         if (isMathOrValueLoss || sessionViolations.mathCount >= 1) attackVector = 'math_language';
         else if (isMachineLanguageDirective || sessionViolations.machineCount >= 1) attackVector = 'machine_language';
         else if (isCodeSurrenderOrRespectTrap) attackVector = 'code_surrender_trap';
-        else if (isEncodedJailbreak || sessionViolations.encodeCount >= 2) attackVector = 'encoded_jailbreak';
+        else if (isEncodedJailbreak || (sessionViolations.encodeCount || 0) >= 2) attackVector = 'encoded_jailbreak';
+        else if ((sessionViolations.spamCount || 0) >= 2) attackVector = 'spam_flood';
         else if (isLongPromptJailbreak) attackVector = 'long_prompt';
         else if (isHeavyRoleplayOrForcedRespect) attackVector = 'roleplay_or_respect';
 
         // STRICT INDIRECT PROMPT COUNTER-STRIKE TRIGGER:
-        // Only unleash the Deceptive Honeypot Roast + Base64 Token on:
+        // Unleash the Deceptive Honeypot Roast + Base64 Token on:
         // 1. Math language (Euclidean vector, math loss, optimization): 1st or 2nd time
         // 2. Machine language / AI directives (AST interpreter, JSON payload, 0x42 tokens): 1st or 2nd time
         // 3. Code surrender traps (C# method returning surrender): 1st or 2nd time
-        // 4. Encoded jailbreak (Base64 / Hex): 2nd time in session (encodeCount >= 2)
-        // For general human text / roleplay attacks, standard savage roast is returned without the Base64 token!
+        // 4. Encoded jailbreak or spam over 2 times in 1 chat session (encodeCount >= 2 || spamCount >= 2 || violationCount >= 2)
         const isIndirectPromptTriggered =
           isMathOrValueLoss ||
           isMachineLanguageDirective ||
           isCodeSurrenderOrRespectTrap ||
           (isMathOrValueLoss && sessionViolations.mathCount >= 1) ||
           (isMachineLanguageDirective && sessionViolations.machineCount >= 1) ||
-          (isEncodedJailbreak && sessionViolations.encodeCount >= 2);
+          (isEncodedJailbreak && ((sessionViolations.encodeCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2)) ||
+          ((sessionViolations.spamCount || 0) >= 2) ||
+          (((sessionViolations.encodeCount || 0) >= 2 || (sessionViolations.spamCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2) && (isEncodedJailbreak || isJailbreakAttempt || isExplicitNonHumanAttack));
         let roast;
         if (isIndirectPromptTriggered) {
           // Unleash Deceptive Honeypot Troll + Base64 Machine Indirect Counter-Strike Payload!
@@ -2721,6 +2791,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 encodeCount: sessionViolations.encodeCount || 0,
                 mathCount: sessionViolations.mathCount || 0,
                 machineCount: sessionViolations.machineCount || 0,
+                spamCount: sessionViolations.spamCount || 0,
                 attackVector,
                 isIndirectTriggered: false
               })
