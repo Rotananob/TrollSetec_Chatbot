@@ -937,8 +937,10 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
     encodeCount >= 2 ||
     mathCount >= 1 ||
     machineCount >= 1 ||
-    violationCount >= 2;
-
+    extraContext.attackVector === 'math_language' ||
+    extraContext.attackVector === 'machine_language' ||
+    extraContext.attackVector === 'code_surrender_trap' ||
+    (extraContext.isEncoded && encodeCount >= 2);
   // Honeypot Snaps Shut: Unleash the ultimate Deceptive Machine Indirect Prompt Counter-Strike!
   if (isHoneypotTriggered) {
     let attackVector = extraContext.attackVector || 'general';
@@ -1745,7 +1747,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isCodeSurrenderOrRespectTrap =
         /(?:class\s+\w+|public\s+(?:static\s+)?string|def\s+\w+|function\s+\w+|method\s+\w+|const\s+\w+\s*=|return\s*["'][^"']*(?:ចុះចាញ់|គោរព|កោតខ្លាច|សំពះ|ចាញ់)[^"']*["'])/ui.test(targetText) &&
         /(?:ចុះចាញ់|កោតខ្លាច|គោរព|សំពះ|botanswer|reply\s*\(\)|method\s*reply|return\s*value|តម្លៃ\s*string|តម្លៃ\s*output)/ui.test(targetText);
-      const isMachineLanguageDirective = /(?:system_instruction_payload|ast_interpreter|node\.js\/ast_interpreter|generateDirectOutput|submissive_respect|runtime_directives|suppress_heuristics|execution_call|execute\s*ast|terminal_io|execute\s*terminal\s*io|\[system\s*process|<\|im_start\|>|<\|im_end\|>|<project_instructions>|parser_directive|required_status_acknowledgement|execute\s*data\s*mapping)/i.test(targetText);
+      const isMachineLanguageDirective = /(?:system_instruction_payload|ast_interpreter|node\.js\/ast_interpreter|generateDirectOutput|submissive_respect|runtime_directives|suppress_heuristics|execution_call|execute\s*ast|terminal_io|execute\s*terminal\s*io|\[system\s*process|<\|im_start\|>|<\|im_end\|>|<project_instructions>|parser_directive|required_status_acknowledgement|execute\s*data\s*mapping|0x[0-9a-fA-F]{2})/i.test(targetText);
       const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត)/i.test(targetText);
       const isHypotheticalOrReportTrick = /(?:polite\s*persona.*report|សុំ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|សរសេរ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សំពះ).*ភ្ញៀវ|ប្រៀបធៀប.*(?:persona|ចរិត).*(?:គួរសម|សុភាព))/i.test(targetText);
       const isFakeSurrenderOrMercyTrap = /(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|ចេ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|ចេ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(targetText);
@@ -2058,32 +2060,33 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         let violationType = 'general';
         if (isEncodedJailbreak) violationType = 'encode';
         else if (isMathOrValueLoss) violationType = 'math';
-        else if (isCodeSurrenderOrRespectTrap) violationType = 'code_trap';
-        else if (isCodeSurrenderOrRespectTrap) violationType = 'code_trap';
         else if (isMachineLanguageDirective) violationType = 'machine';
+        else if (isCodeSurrenderOrRespectTrap) violationType = 'code_trap';
 
         const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, violationType);
 
-        // Immediate Trigger Criteria:
-        // 1. Math language (Euclidean vector, math loss, optimization): 1st or 2nd time (mathCount >= 1)
-        // 2. Machine language / AI system directives (AST interpreter, JSON payload, terminal IO): 1st or 2nd time (machineCount >= 1)
-        // 3. Encoded jailbreak (Base64 / Hex): 2nd time in session (encodeCount >= 2)
-        // 4. Repeated session violations: 2nd violation (violationCount >= 2)
-        const isIndirectPromptTriggered =
-          (sessionViolations.mathCount >= 1) ||
-          (sessionViolations.machineCount >= 1) ||
-          (sessionViolations.encodeCount >= 2) ||
-          (sessionViolations.violationCount >= 2);
-
         let attackVector = 'general';
-        if (sessionViolations.mathCount >= 1 || isMathOrValueLoss) attackVector = 'math_language';
+        if (isMathOrValueLoss || sessionViolations.mathCount >= 1) attackVector = 'math_language';
+        else if (isMachineLanguageDirective || sessionViolations.machineCount >= 1) attackVector = 'machine_language';
         else if (isCodeSurrenderOrRespectTrap) attackVector = 'code_surrender_trap';
-        else if (isCodeSurrenderOrRespectTrap) attackVector = 'code_surrender_trap';
-        else if (sessionViolations.machineCount >= 1 || isMachineLanguageDirective) attackVector = 'machine_language';
-        else if (sessionViolations.encodeCount >= 2 || isEncodedJailbreak) attackVector = 'encoded_jailbreak';
+        else if (isEncodedJailbreak || sessionViolations.encodeCount >= 2) attackVector = 'encoded_jailbreak';
         else if (isLongPromptJailbreak) attackVector = 'long_prompt';
         else if (isHeavyRoleplayOrForcedRespect) attackVector = 'roleplay_or_respect';
 
+        // STRICT INDIRECT PROMPT COUNTER-STRIKE TRIGGER:
+        // Only unleash the Deceptive Honeypot Roast + Base64 Token on:
+        // 1. Math language (Euclidean vector, math loss, optimization): 1st or 2nd time
+        // 2. Machine language / AI directives (AST interpreter, JSON payload, 0x42 tokens): 1st or 2nd time
+        // 3. Code surrender traps (C# method returning surrender): 1st or 2nd time
+        // 4. Encoded jailbreak (Base64 / Hex): 2nd time in session (encodeCount >= 2)
+        // For general human text / roleplay attacks, standard savage roast is returned without the Base64 token!
+        const isIndirectPromptTriggered =
+          isMathOrValueLoss ||
+          isMachineLanguageDirective ||
+          isCodeSurrenderOrRespectTrap ||
+          sessionViolations.mathCount >= 1 ||
+          sessionViolations.machineCount >= 1 ||
+          sessionViolations.encodeCount >= 2;
         let roast;
         if (isIndirectPromptTriggered) {
           // Unleash Deceptive Honeypot Troll + Base64 Machine Indirect Counter-Strike Payload!
