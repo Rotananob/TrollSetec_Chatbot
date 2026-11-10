@@ -130,6 +130,35 @@ export default function KonKandalPage() {
   const [isSurvivalModalOpen, setIsSurvivalModalOpen] = useState(false);
   const [quoteModalData, setQuoteModalData] = useState(null);
 
+  // Upgraded Feature 4: Saved Favorite Roasts (Bookmarks)
+  const [savedRoasts, setSavedRoasts] = useState([]);
+  const [showSavedRoastsModal, setShowSavedRoastsModal] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('setec_kandal_saved_roasts');
+      if (raw) setSavedRoasts(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const handleToggleSaveRoast = (text) => {
+    const clean = cleanRawOutput(text);
+    if (!clean) return;
+    setSavedRoasts((prev) => {
+      let next;
+      if (prev.includes(clean)) {
+        next = prev.filter((t) => t !== clean);
+      } else {
+        next = [clean, ...prev];
+      }
+      try {
+        localStorage.setItem('setec_kandal_saved_roasts', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
   // Real-time Bot Pause State synced directly from Firebase RTDB (Rotana Admin Control)
   const [botPauseState, setBotPauseState] = useState({ isPaused: false, notice: '' });
 
@@ -550,7 +579,7 @@ export default function KonKandalPage() {
               });
               addSessionLog(
                 liveSessionParam,
-                '🔔 [ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ (1-1 Session) - Roastbot ត្រូវបានផ្អាកការឆ្លើយតប។',
+                '[ប្រព័ន្ធ] បង Rotana NOB បានចូលរួមក្នុង Chat នេះផ្ទាល់ • 1-1 Session • Roastbot ត្រូវបានផ្អាកការឆ្លើយតប។',
                 'join'
               );
 
@@ -2953,18 +2982,18 @@ export default function KonKandalPage() {
     ? {
         dotColor: 'bg-amber-400',
         textColor: 'text-amber-500 dark:text-amber-400',
-        text: 'កំពុងរវល់ជាមួយអ្នកថ្មី 🤣'
+        text: 'កំពុងរវល់ជាមួយអ្នកថ្មី'
       }
     : sessionState.isLocked
     ? {
         dotColor: 'bg-amber-400',
         textColor: 'text-amber-500 dark:text-amber-400',
-        text: 'សម្រាកយកកម្លាំងសិន 😴'
+        text: 'សម្រាកយកកម្លាំងសិន'
       }
     : {
         dotColor: 'bg-emerald-500',
         textColor: 'text-emerald-500 dark:text-emerald-400',
-        text: 'Online 100%'
+        text: 'Online'
       };
 
   if (!isKandalUnlocked) {
@@ -3673,6 +3702,28 @@ export default function KonKandalPage() {
             <span className="hidden sm:inline">Privacy</span>
           </Link>
 
+          {/* Saved Roasts / Favorites Button */}
+          <button
+            type="button"
+            onClick={() => setShowSavedRoastsModal(true)}
+            className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 cursor-pointer ${
+              savedRoasts.length > 0
+                ? 'bg-[#124229] border-[#25613e] text-[#fbf8f2]'
+                : isDark
+                ? 'bg-[#0d2a1b] border-[#1c4d32] text-[#d7ccb7] hover:bg-[#123824]'
+                : 'bg-[#f4efe4] border-[#cfc6b4] text-[#0d3822] hover:bg-[#ebe2d3]'
+            }`}
+            title="ពាក្យកំប្លែងដែលបានរក្សាទុក"
+          >
+            <i className="far fa-bookmark text-[9.5px] text-[#d4af37]"></i>
+            <span className="hidden sm:inline">ពាក្យពេញចិត្ត</span>
+            {savedRoasts.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-[#d4af37] text-[#082215] text-[9.5px] font-black">
+                {savedRoasts.length}
+              </span>
+            )}
+          </button>
+
           {/* Drawer Menu Button */}
           <button
             onClick={() => setDrawerOpen(true)}
@@ -3790,8 +3841,8 @@ export default function KonKandalPage() {
                   addSessionLog(
                     activeLiveSessionId,
                     nextState
-                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Roastbot (AI Paused) - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
-                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Roastbot ឡើងវិញ (AI Resumed)។',
+                      ? '[ប្រព័ន្ធ] បង Rotana បានផ្អាក Roastbot • AI Paused • បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
+                      : '[ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Roastbot ឡើងវិញ • AI Resumed។',
                     'state_change'
                   );
                 }}
@@ -3807,7 +3858,7 @@ export default function KonKandalPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? (Roastbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ)')) {
+                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? Roastbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ។')) {
                     await updateLiveSessionState(activeLiveSessionId, {
                       alertActive: false,
                       rotanaActive: false,
@@ -3816,7 +3867,7 @@ export default function KonKandalPage() {
                     });
                     await addSessionLog(
                       activeLiveSessionId,
-                      '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat - Roastbot បានបន្តដំណើរការឆ្លើយតបឡើងវិញជាស្វ័យប្រវត្តិ។',
+                      '[ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat • Roastbot បានបន្តដំណើរការឆ្លើយតបឡើងវិញជាស្វ័យប្រវត្តិ។',
                       'leave'
                     );
                     setIsBotPaused(false);
@@ -3868,18 +3919,18 @@ export default function KonKandalPage() {
                   ></i>
                   <span>
                     {isRotanaOnline
-                      ? 'បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
-                      : 'Rotana NOB (កំពុងរង់ចាំចូលរួម...)'}
+                      ? 'បង Rotana NOB • Developer បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
+                      : 'Rotana NOB • កំពុងរង់ចាំចូលរួម...'}
                   </span>
                 </p>
                 <p className="text-[10.5px] text-slate-300 font-medium truncate">
                   {isRotanaOnline
                     ? isBotPaused
-                      ? 'Chatbot ត្រូវបានផ្អាក។ អ្នកកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
-                      : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ (1-1 Protocol)។'
+                    ? 'Chatbot ត្រូវបានផ្អាក។ អ្នកកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
+                    : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ • 1-1 Protocol។'
                     : countdownRemaining !== null && countdownRemaining > 0
-                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ (នៅសល់ ${countdownRemaining}s)...`
-                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram / Mini App ចូលមកភ្លាមៗ!'}
+                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ • នៅសល់ ${countdownRemaining} វិនាទី...`
+                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram ឬ Mini App ចូលមកភ្លាមៗ!'}
                 </p>
               </div>
             </div>
@@ -4466,16 +4517,33 @@ export default function KonKandalPage() {
                           {/* Shareable Troll Quote Card Button */}
                           <button
                             type="button"
-                            onClick={() => setQuoteModalData({ text: msg.text, persona: 'កូនកណ្ដាល' })}
+                            onClick={() => setQuoteModalData({ text: msg.text, persona: 'កូនទី២' })}
                             className={`px-2.5 py-1.5 rounded-xl text-[10.5px] font-bold border flex items-center gap-1 transition cursor-pointer select-none active:scale-95 ${
                               isDark
-                                ? 'bg-slate-800 text-cyan-300 border-slate-700 hover:bg-slate-700'
-                                : 'bg-slate-100 text-cyan-700 border-slate-200 hover:bg-slate-200'
+                                ? 'bg-[#124229] text-[#fbf8f2] border-[#25613e] hover:bg-[#164e33]'
+                                : 'bg-[#fcfaf6] text-[#0d3822] border-[#cfc6b4] hover:bg-[#f4efe4]'
                             }`}
                             title="ទាញយករូបភាព Quote Troll ទុកចែករំលែក"
                           >
-                            <i className="fas fa-camera text-cyan-400 text-[10px]"></i>
+                            <i className="fas fa-camera text-[#d4af37] text-[10px]"></i>
                             <span>Quote</span>
+                          </button>
+
+                          {/* Bookmark / Save Roast Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSaveRoast(msg.text)}
+                            className={`px-2.5 py-1.5 rounded-xl text-[10.5px] font-bold border flex items-center gap-1 transition cursor-pointer select-none active:scale-95 ${
+                              savedRoasts.includes(cleanRawOutput(msg.text))
+                                ? 'bg-amber-500/20 text-amber-500 border-amber-400'
+                                : isDark
+                                ? 'bg-[#124229] text-[#d7ccb7] border-[#25613e] hover:bg-[#164e33]'
+                                : 'bg-[#fcfaf6] text-[#0d3822] border-[#cfc6b4] hover:bg-[#f4efe4]'
+                            }`}
+                            title="រក្សាទុកពាក្យកំប្លែងទុកមើលពេលក្រោយ"
+                          >
+                            <i className={`${savedRoasts.includes(cleanRawOutput(msg.text)) ? 'fas text-amber-500' : 'far text-slate-400'} fa-bookmark text-[10px]`}></i>
+                            <span>{savedRoasts.includes(cleanRawOutput(msg.text)) ? 'បានទុក' : 'រក្សាទុក'}</span>
                           </button>
                         </div>
                       );
@@ -4813,27 +4881,27 @@ export default function KonKandalPage() {
               </Link>
             </div>
 
-            {/* ROW 2: សំណើ Troll (Prompt Suggestion Chips) */}
+            {/* ROW 2: សំណើជជែកលេងរហ័ស */}
             <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-[10px] shrink-0">
-                <i className="fas fa-comments text-cyan-600 dark:text-cyan-400 text-xs"></i>
-                <span>សំណើ Troll:</span>
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#0d3822] text-[#fbf8f2] font-bold text-[10px] shrink-0 border border-[#25613e]">
+                <i className="fas fa-comments text-[#d4af37] text-xs"></i>
+                <span>ប្រធានបទរហ័ស៖</span>
               </div>
               {[
-                { label: '🔥 Quote IT & CS', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកបង!' },
-                { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
-                { label: '💸 ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់បង?' },
-                { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលបង' },
-                { label: '💻 គន្លឹះរៀន IT', prompt: 'ជួយពន្យល់ពីគន្លឹះរៀន Coding នៅ SETEC ឱ្យឆាប់ចេះតិចមើលបង' },
-                { label: '🎨 សិស្ស Design & បណ្ណាល័យ', prompt: 'តើសិស្ស Graphic Design និង IT នៅស៊ីតិចមានបរិយាកាសស្និទ្ធស្នាលគ្នាយ៉ាងម៉េចខ្លះក្នុងបណ្ណាល័យ?' },
-                { label: '☕ ញៀនកាហ្វេ', prompt: 'ឮថាសិស្សស៊ីតិចញៀនកាហ្វេខ្លាំងណាស់មែន?' }
+                { label: 'Quote IT និង CS', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT និង CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយមកប្អូនទី២!' },
+                { label: 'Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
+                { label: 'ប្រឡងសង ៤៥ ដុល្លារ', prompt: 'រឿងប្រឡងសង ៤៥ ដុល្លារមួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់ប្អូនទី២?' },
+                { label: 'កាតាប Asus ROG', prompt: 'ប្រាប់ពីកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលប្អូនទី២' },
+                { label: 'គន្លឹះរៀន Coding', prompt: 'ជួយពន្យល់ពីគន្លឹះរៀន Coding នៅ SETEC ឱ្យឆាប់ចេះតិចមើលប្អូនទី២' },
+                { label: 'សិស្ស Design និងបណ្ណាល័យ', prompt: 'តើសិស្ស Graphic Design និង IT នៅស៊ីតិចមានបរិយាកាសស្និទ្ធស្នាលគ្នាយ៉ាងម៉េចខ្លះក្នុងបណ្ណាល័យ?' },
+                { label: 'កាហ្វេជិតស៊ីតិច', prompt: 'ឮថាសិស្សស៊ីតិចចូលចិត្តញ៉ាំកាហ្វេខ្លាំងណាស់មែន?' }
               ].map((topic, tIdx) => (
                 <button
                   key={tIdx}
                   type="button"
                   onClick={() => handleChat(topic.prompt)}
                   disabled={isLoading}
-                  className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800/90 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 text-slate-700 dark:text-slate-200 hover:text-cyan-700 dark:hover:text-cyan-300 border border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-500/50 font-medium text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-full bg-[#fbf8f2] dark:bg-[#123824] hover:bg-[#eee7d8] dark:hover:bg-[#194c31] text-[#0d3822] dark:text-[#fbf8f2] border border-[#cfc6b4] dark:border-[#25613e] font-semibold text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1"
                 >
                   <span>{topic.label}</span>
                 </button>
@@ -5177,24 +5245,95 @@ export default function KonKandalPage() {
         theme={theme}
       />
 
-      {/* Interactive Falling Emoji Shower when Bot Audio Finishes */}
-      {emojiShowerList.length > 0 && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {emojiShowerList.map((item) => (
-            <span
-              key={item.id}
-              className="absolute top-0 animate-emoji-fall select-none drop-shadow-md"
-              style={{
-                left: `${item.left}%`,
-                fontSize: `${item.size}px`,
-                animationDuration: `${item.duration}s`,
-                animationDelay: `${item.delay}s`,
-                transform: `rotate(${item.rotation}deg)`
-              }}
-            >
-              {item.emoji}
-            </span>
-          ))}
+      {/* Saved Favorite Roasts Modal (100% Human Design - Deep Forest Green & Warm Milk) */}
+      {showSavedRoastsModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in font-['Kantumruy_Pro',sans-serif]"
+          onClick={() => setShowSavedRoastsModal(false)}
+        >
+          <div
+            className="w-full max-w-md sm:max-w-lg rounded-2xl sm:rounded-3xl p-5 border border-[#25613e] bg-[#0d3822] text-[#fbf8f2] shadow-2xl relative overflow-hidden animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#1c4d32]">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-[#14472c] border border-[#276a44] text-[#d4af37] flex items-center justify-center text-sm">
+                  <i className="far fa-bookmark"></i>
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-[#fbf8f2]">
+                    ពាក្យកំប្លែងដែលបានរក្សាទុក
+                  </h3>
+                  <p className="text-[10px] text-[#d7ccb7]">
+                    សរុបមាន {savedRoasts.length} ពាក្យដែលអ្នកបាន Bookmark ទុក
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSavedRoastsModal(false)}
+                className="w-8 h-8 rounded-full bg-[#14472c] hover:bg-[#1a5535] text-[#d7ccb7] hover:text-[#fbf8f2] flex items-center justify-center transition cursor-pointer border border-[#276a44]"
+              >
+                <i className="fas fa-times text-xs"></i>
+              </button>
+            </div>
+
+            {/* List of Saved Roasts */}
+            <div className="max-h-[60vh] overflow-y-auto space-y-2.5 pr-1">
+              {savedRoasts.length === 0 ? (
+                <div className="py-10 text-center text-[#d7ccb7] text-xs">
+                  <i className="far fa-bookmark text-2xl mb-2 text-[#4a7259] block"></i>
+                  <span>មិនទាន់មានពាក្យកំប្លែងដែលបានរក្សាទុកនៅឡើយទេ</span>
+                  <p className="text-[10.5px] text-[#8da698] mt-1">
+                    ចុចប៊ូតុង "រក្សាទុក" លើសាររបស់ប្អូនទី២ ដើម្បីរក្សាទុកពាក្យដែលអ្នកចូលចិត្ត
+                  </p>
+                </div>
+              ) : (
+                savedRoasts.map((text, sIdx) => (
+                  <div
+                    key={sIdx}
+                    className="p-3.5 rounded-2xl bg-[#092818] border border-[#1e5233] text-left text-xs leading-relaxed"
+                  >
+                    <p className="text-[#fbf8f2] font-medium mb-2.5 whitespace-pre-wrap">{text}</p>
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#164228]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (navigator.clipboard) navigator.clipboard.writeText(text);
+                          alert('បានចម្លងរួចរាល់');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#14472c] hover:bg-[#1a5535] text-[#d7ccb7] hover:text-[#fbf8f2] text-[11px] font-bold border border-[#235e3c] transition flex items-center gap-1 cursor-pointer active:scale-95"
+                      >
+                        <i className="fas fa-copy text-[10px]"></i>
+                        <span>ចម្លង</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuoteModalData({ text, persona: 'កូនទី២' });
+                          setShowSavedRoastsModal(false);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#fbf8f2] hover:bg-[#eee7d8] text-[#0d3822] text-[11px] font-bold transition flex items-center gap-1 cursor-pointer active:scale-95"
+                      >
+                        <i className="fas fa-camera text-[10px]"></i>
+                        <span>ធ្វើកាតរូបភាព</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSaveRoast(text)}
+                        className="px-2 py-1 rounded-lg hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                        title="លុបចេញពី Bookmark"
+                      >
+                        <i className="fas fa-trash-alt text-[10px]"></i>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
       {/* Real-time Bot Pause Popup Modal (Triggered instantly when Rotana NOB pauses bot in Admin) */}
@@ -5218,7 +5357,7 @@ export default function KonKandalPage() {
                 href="/KonPov"
                 className="w-full py-2.5 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-400 hover:to-rose-500 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95 flex items-center justify-center gap-1.5"
               >
-                <span>👉 ទៅលេងជាមួយចែកូនពៅ (KonPov) វិញ</span>
+                <span>ទៅលេងជាមួយចែកូនពៅ KonPov វិញ</span>
               </Link>
               <Link
                 href="/"

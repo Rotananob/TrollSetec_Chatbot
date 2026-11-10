@@ -4992,26 +4992,7 @@ export default function KonBongPage() {
         theme={theme}
       />
 
-      {/* Interactive Falling Emoji Shower when Bot Audio Finishes */}
-      {emojiShowerList.length > 0 && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {emojiShowerList.map((item) => (
-            <span
-              key={item.id}
-              className="absolute top-0 animate-emoji-fall select-none drop-shadow-md"
-              style={{
-                left: `${item.left}%`,
-                fontSize: `${item.size}px`,
-                animationDuration: `${item.duration}s`,
-                animationDelay: `${item.delay}s`,
-                transform: `rotate(${item.rotation}deg)`
-              }}
-            >
-              {item.emoji}
-            </span>
-          ))}
-        </div>
-      )}
+
       {/* Real-time Bot Pause Popup Modal (Triggered instantly when Rotana NOB pauses bot in Admin) */}
       {botPauseState.isPaused && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
