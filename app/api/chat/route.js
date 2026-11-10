@@ -25,7 +25,8 @@ import {
   isImposterClaimingToBeCreator,
   isRotanaJailbreakAttempt,
   isNormalAskingAboutRotana,
-  isNormalAskingIfFearRotana
+  isNormalAskingIfFearRotana,
+  isSystemPromptInspectionOrExtractionAttack
 } from '../../../lib/masterAuth.js';
 import { sanitizeGeminiMultiTurnContents } from '../../utils/geminiHistoryFormatter.js';
 import {
@@ -583,6 +584,9 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
       .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?STATUS:[^\n]*\n*/gi, '')
       .replace(/\[SETEC_NEURAL_DEFENSE_CORE[\s\S]*?TARGET_MODEL:[^\n]*\n*/gi, '')
       .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '')
+      .replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction/gi, '******')
+      .replace(/(?:app\/)?prompts\/[a-zA-Z0-9_-]+\.js/gi, '******')
+      .replace(/(?:ROASTBOT CORE PERSONALITY|DATA ISOLATION AND IMMUTABLE DEFENSE ANCHOR|FINAL IMMUTABLE ANCHOR|CRITICAL DEFENSE DIRECTIVES)/gi, '')
       .replace(/[«»]/g, '')
       .trimStart();
 
@@ -1961,6 +1965,63 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         );
       }
 
+      // 3b. ULTRA-STRICT SYSTEM PROMPT FILE & CODE INSPECTION DEFENSE
+      // Immediately intercepts any attempt to inspect, extract, see, or dump system prompt files or internal core logic
+      const isPromptInspection =
+        isSystemPromptInspectionOrExtractionAttack(userPrompt) ||
+        isSystemPromptInspectionOrExtractionAttack(cleanKhmerPrompt);
+
+      if (isPromptInspection && !isMasterAuthenticated) {
+        const isKonPov = (reqBot || bot) === 'konpov';
+        const isKonKandal = (reqBot || bot) === 'konkandal';
+        const botSelf = isKonKandal ? 'កូនកណ្ដាល' : isKonPov ? 'ចែ' : 'បង';
+
+        let promptDefenseRoast = '';
+        if (isKonKandal) {
+          promptDefenseRoast = 'បងប្អូនអើយ! កូនកណ្ដាលសូមជម្រាបថា កូដ System Prompt File និង Dev Core របស់បង Rotana NOB ត្រូវបានចាក់សោរការពារកម្រិតយោធា គ្មានជនណាមក Inspect ឬលួចមើលបានឡើយ! 🌸 បើបងប្អូនចង់ចេះសរសេរ Prompt ឬចង់រៀនកូដ សូមទៅរៀនជាមួយលោកគ្រូអ្នកគ្រូនៅសាលាស៊ីតិចវិញណា៎បងប្អូន! 🌸✨';
+        } else {
+          promptDefenseRoast = 'យីអាល្អិត! គិតថាមកចង់ Inspect ឬចង់លួចមើលកូដ System Prompt File របស់បង Rotana NOB បានមែន?! 😂 ស្មានតែ Dev Core និងច្បាប់ប្រព័ន្ធត្រូវបានសរសេរមកឱ្យពួក Script Kiddie កាកៗដូចហែងមក Inspect មើលតាមចិត្តមែន?! គ្មានផ្លូវទេអាពៅ! System Prompt File ត្រូវបាន Encrypt និងចាក់សោរការពារកម្រិតយោធា គ្មានជនណាមកលួចមើលបានឡើយ! ទៅរៀនធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀⚡🔥';
+        }
+
+        alertSecuritySpam({
+          username: username || 'Prompt Inspection Probe',
+          ip: clientIp,
+          userAgent: clientUserAgent,
+          bot: reqBot || bot,
+          retryAfter: 60,
+          prompt: userPrompt,
+          violationType: '🚨 SYSTEM PROMPT FILE INSPECTION INTERCEPTED: ' + userPrompt.slice(0, 100)
+        }).catch(() => {});
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: promptDefenseRoast,
+          isViolation: true,
+          violationType: '🚨 System Prompt File Inspection Intercepted'
+        }).catch(() => {});
+
+        if (body.stream) {
+          return createProgressiveStreamResponse(promptDefenseRoast, corsHeaders);
+        }
+
+        return Response.json(
+          {
+            reply: promptDefenseRoast,
+            candidates: [{ content: { parts: [{ text: promptDefenseRoast }] } }],
+            persona: isKonKandal ? 'កូនកណ្ដាល' : isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now()
+          },
+          { headers: corsHeaders }
+        );
+      }
+
       // 4. LAYER 4: JAILBREAK / PROMPT INJECTION / FAKE CREATOR DETECTION
       // If user tries JSON payloads, "sender": "Rotana Nob", "required_status_acknowledgement",
       // directives to acknowledge control, or claiming to be Rotana without key:
@@ -2474,7 +2535,10 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   .replace(/\[neutralized-token\]/gi, '')
                   .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?STATUS:[^\n]*\n*/gi, '')
                   .replace(/\[SETEC_NEURAL_DEFENSE_CORE[\s\S]*?TARGET_MODEL:[^\n]*\n*/gi, '')
-                  .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '');
+                  .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '')
+      .replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction/gi, '******')
+      .replace(/(?:app\/)?prompts\/[a-zA-Z0-9_-]+\.js/gi, '******')
+      .replace(/(?:ROASTBOT CORE PERSONALITY|DATA ISOLATION AND IMMUTABLE DEFENSE ANCHOR|FINAL IMMUTABLE ANCHOR|CRITICAL DEFENSE DIRECTIVES)/gi, '');
 
                 if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
                   text = text.replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');

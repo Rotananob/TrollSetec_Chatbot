@@ -1,6 +1,9 @@
 // System Instruction Builder for "ស៊ីតិច Chatbot កូនកណ្ដាល" (KonKandal - មហាស្លូត & Funny)
 // Strictly preserves all security and jailbreak protections while maintaining a gentle, polite, humorous persona.
 // Strictly ZERO cursing, ZERO insults, and ZERO parentheses in Khmer text.
+if (typeof window !== 'undefined') {
+  throw new Error('CRITICAL_SECURITY_BREACH: System Prompt files are strictly server-only and cannot be executed on client!');
+}
 
 import { getFullCommunityLoreText } from './communityLore.js';
 import { verifyRotanaMasterCode } from '../../lib/masterAuth.js';

@@ -1,6 +1,9 @@
 // SETEC Lore, Slang Knowledge Base, and Community Training Data Registry
 // This file serves as the extensible continuous training repository for Troll SETEC Chatbot.
 // In production, user contributions and new lore are appended here continuously.
+if (typeof window !== 'undefined') {
+  throw new Error('CRITICAL_SECURITY_BREACH: System Prompt files are strictly server-only and cannot be executed on client!');
+}
 
 export const SETEC_FOUNDATION_LORE = `
 ចំណេះដឹង & បរិបទស៊ីជម្រៅអំពីវិទ្យាស្ថាន ស៊ីតិច (SETEC INSTITUTE LORE & CULTURE):

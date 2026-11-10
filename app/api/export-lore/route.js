@@ -9,6 +9,7 @@ import {
   sendWeeklyLoreToTelegram
 } from '@/lib/loreExporter';
 import { getCambodiaTime } from '@/lib/telegram';
+import { verifyRotanaMasterCode, verifySessionBypassCode } from '@/lib/masterAuth';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +24,16 @@ export async function OPTIONS() {
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const action = searchParams.get('action') || 'list';
-  const passcode = req.headers.get('x-rotana-passcode') || searchParams.get('passcode') || '';
+  const passcode = req.headers.get('x-rotana-passcode') || req.headers.get('x-rotana-bypass') || searchParams.get('passcode') || '';
+
+  // Ultra-Strict Access Control: Only Creator Rotana NOB or authenticated bypass can export lore datasets
+  const isAuthorized = verifyRotanaMasterCode(passcode) || verifySessionBypassCode(passcode);
+  if (!isAuthorized) {
+    return Response.json(
+      { success: false, error: 'Unauthorized: Access to system lore dataset is strictly restricted.' },
+      { status: 403, headers: corsHeaders }
+    );
+  }
 
   try {
     // 1. Send Weekly Lore Directly to Rotana's Telegram

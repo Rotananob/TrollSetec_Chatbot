@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  productionBrowserSourceMaps: false,
+  poweredByHeader: false,
   allowedDevOrigins: [
     '172.20.10.2:3000',
     '172.20.10.2',
@@ -9,6 +11,15 @@ const nextConfig = {
   ],
   async headers() {
     return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' }
+        ],
+      },
       {
         source: '/api/:path*',
         headers: [
@@ -51,6 +62,10 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      {
+        source: '/prompts/:path*',
+        destination: '/_not-found',
+      },
       {
         source: '/konbong',
         destination: '/KonBong',
