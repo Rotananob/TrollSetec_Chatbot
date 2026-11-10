@@ -3901,14 +3901,14 @@ export default function KonKandalPage() {
             className="w-8 h-8 rounded-full ring-2 ring-cyan-500/30 shadow-xs shrink-0 mt-0.5"
           />
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Roastbot កូនកណ្ដាល</span>
+            <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Chatbot កូនទី២</span>
             <div
               className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border ${
                 isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
               }`}
             >
               <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                សួស្តី{username && username !== 'User' ? `គ្នាយើង ${username}` : 'គ្នាយើង'}! ខ្ញុំគឺ <b>ស៊ីតិច Roastbot កូនកណ្ដាល</b> មហាស្លូត & Funny ប្រចាំ SETEC! មានរឿងអីចង់ជជែកលេង ឬចង់សួរនាំរឿងរៀន Assignment IT, Design, និងជីវិតសិស្សនៅស៊ីតិច? មកជជែកជាមួយកូនកណ្ដាលមក សប្បាយៗបំបាត់ស្រ្តេសហ្មង!
+                សួស្តី{username && username !== 'User' ? `គ្នាយើង ${username}` : 'គ្នាយើង'}! ខ្ញុំគឺ <b>ស៊ីតិច Chatbot កូនទី២</b> ឬ <b>ប្អូនទី២</b> មហាស្លូត & Funny ប្រចាំ SETEC! មានរឿងអីចង់ជជែកលេង ឬចង់សួរនាំរឿងរៀន Assignment IT, Design, និងជីវិតសិស្សនៅស៊ីតិច? មកជជែកជាមួយប្អូនទី២មក សប្បាយៗបំបាត់ស្រ្តេសហ្មង!
               </p>
             </div>
           </div>
@@ -3918,7 +3918,7 @@ export default function KonKandalPage() {
         {messages.length === 0 && (
           <div className="w-full max-w-md mx-auto space-y-2 py-2 animate-fade-in">
             <p className="text-[11px] text-center text-slate-400 font-medium mb-1">
-              ជ្រើសរើសប្រធានបទរហ័សដើម្បីសួរបងកូនកណ្ដាល៖
+              ជ្រើសរើសប្រធានបទរហ័សដើម្បីសួរប្អូនទី២៖
             </p>
             <div className="space-y-1.5">
               <button
@@ -4219,7 +4219,7 @@ export default function KonKandalPage() {
                   )}
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Roastbot កូនកណ្ដាល</span>
+                  <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Chatbot កូនទី២</span>
 
                   {/* AI Thinking Indicator (Rendered ABOVE the message bubble while thinking) */}
                   {isLoading && !msg.text && idx === messages.length - 1 && !isGeneratingMeme && (
@@ -4569,7 +4569,7 @@ export default function KonKandalPage() {
             />
             <div className="flex flex-col flex-1 min-w-0">
               <span className="font-bold text-cyan-400 text-xs mb-1">
-                Roastbot កូនកណ្ដាល
+                Chatbot កូនទី២
               </span>
               <div className="rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-gradient-to-br from-slate-900/90 to-cyan-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
                 <div className="w-full h-52 sm:h-60 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
@@ -4963,7 +4963,7 @@ export default function KonKandalPage() {
             <div className="space-y-3">
               {selectedSessionModal.messages?.map((msg, i) => (
                 <div key={i} className={`p-2.5 rounded-xl text-xs ${msg.role === 'user' ? 'bg-cyan-500/10 text-cyan-300 ml-6' : 'bg-slate-800/60 mr-6'}`}>
-                  <span className="font-black block text-[10px] mb-1">{msg.role === 'user' ? username : 'កូនកណ្ដាល'}</span>
+                  <span className="font-black block text-[10px] mb-1">{msg.role === 'user' ? username : 'ប្អូនទី២'}</span>
                   <p>{msg.text}</p>
                 </div>
               ))}
@@ -4980,7 +4980,7 @@ export default function KonKandalPage() {
           setShowMemeModal(false);
           handleExecuteMeme(customIdea);
         }}
-        botPersona="រៀមច្បង"
+        botPersona="កូនទី២"
         isDark={isDark}
         isGenerating={isGeneratingMeme}
       />
@@ -4993,7 +4993,7 @@ export default function KonKandalPage() {
         onClose={() => setViewingImage(null)}
       />
 
-      {/* Persona Info Modal: មហាស្លូត & Funny (កូនកណ្ដាល) */}
+      {/* Persona Info Modal: មហាស្លូត & Funny (កូនទី២) */}
       {showPersonaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-sm rounded-3xl p-5 border shadow-2xl relative bg-slate-900 border-cyan-500/40 text-white animate-scale-up">
@@ -5015,10 +5015,10 @@ export default function KonKandalPage() {
                 </span>
               </div>
               <h3 className="text-base font-black tracking-tight text-white flex items-center justify-center gap-1.5">
-                <span>មហាស្លូត & Funny (កូនកណ្ដាល)</span>
+                <span>មហាស្លូត & Funny (កូនទី២)</span>
               </h3>
               <p className="text-[11px] text-cyan-400 font-bold mt-0.5">
-                ស៊ីតិច Roastbot កូនកណ្ដាល • រៀមច្បង SETEC សម្ដីកាំបិតចិតបេះដូង
+                ស៊ីតិច Chatbot កូនទី២ • ប្អូនទី២ SETEC មហាស្លូត និងកំប្លែង
               </p>
             </div>
 
@@ -5033,7 +5033,7 @@ export default function KonKandalPage() {
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
                 <span className="text-slate-400">ចរិតលក្ខណៈ:</span>
                 <span className="font-bold text-cyan-300">
-                  រៀមច្បងឌឺបាញ់សិស្សប្អូន
+                  ប្អូនទី២ មហាស្លូត & Funny
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
@@ -5043,7 +5043,7 @@ export default function KonKandalPage() {
                 </span>
               </div>
               <p className="text-[11px] text-slate-300 italic pt-1 text-center leading-relaxed">
-                សិស្សប្អូនអើយ ចូលមករៀន ឬចូលមកឱ្យបង Troll? សួរមក បងចាំបាញ់!
+                គ្នាយើងអើយ មានរឿងអីចង់ជជែកលេង ឬសួររឿងរៀនសូត្រ សួរមក ប្អូនទី២ ចាំជជែកកំដរ!
               </p>
             </div>
 
@@ -5051,7 +5051,7 @@ export default function KonKandalPage() {
               onClick={() => setShowPersonaModal(false)}
               className="w-full py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white shadow-lg shadow-cyan-500/25 active:scale-98 transition cursor-pointer"
             >
-              បាញ់មកបងច្បង! ខ្ញុំត្រៀមខ្លួនហើយ
+              យល់ព្រម! ខ្ញុំត្រៀមខ្លួនរួចរាល់ហើយ
             </button>
           </div>
         </div>
@@ -5088,7 +5088,7 @@ export default function KonKandalPage() {
       <ContributeKnowledgeModal
         isOpen={contributeModalOpen}
         onClose={() => setContributeModalOpen(false)}
-        defaultBot="Roastbot កូនកណ្ដាល"
+        defaultBot="Chatbot កូនទី២"
       />
 
       {/* Smart Client Cache & Storage Warning Modal */}
@@ -5123,7 +5123,7 @@ export default function KonKandalPage() {
         isOpen={!isCreatorUser && sessionState.isLocked}
         remainingSeconds={sessionState.remainingCooldownSec}
         cooldownUntil={sessionState.cooldownUntil}
-        botName="កូនកណ្ដាល"
+        botName="កូនទី២"
         theme={theme}
         onUnlock={() => {
           setSessionState(getLiveSessionState());
@@ -5135,7 +5135,7 @@ export default function KonKandalPage() {
         isOpen={isSurvivalModalOpen}
         onClose={() => setIsSurvivalModalOpen(false)}
         onSendToChat={(text) => handleChat(text)}
-        botPersona="កូនកណ្ដាល"
+        botPersona="កូនទី២"
         theme={theme}
       />
 
@@ -5144,7 +5144,7 @@ export default function KonKandalPage() {
         isOpen={!!quoteModalData}
         onClose={() => setQuoteModalData(null)}
         quoteText={quoteModalData?.text || ''}
-        botPersona="កូនកណ្ដាល"
+        botPersona="កូនទី២"
         botAvatar="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
         logoUrl="/img/icon.jpg"
         theme={theme}
@@ -5181,7 +5181,7 @@ export default function KonKandalPage() {
               ការជូនដំណឹងពីអ្នកគ្រប់គ្រងវេបសាយ
             </h3>
             <p className="text-[11px] text-amber-200/80 mb-3 font-bold uppercase tracking-wider">
-              បងកូនកណ្ដាលត្រូវបានផ្អាកបណ្ដោះអាសន្ន
+              ប្អូនទី២ត្រូវបានផ្អាកបណ្ដោះអាសន្ន
             </p>
             <div className="text-xs sm:text-sm text-slate-200 leading-relaxed mb-6 font-semibold whitespace-pre-line p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-left">
               {botPauseState.notice}

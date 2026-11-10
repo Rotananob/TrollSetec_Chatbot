@@ -1013,14 +1013,14 @@ export default function Home() {
                         </div>
                       </div>
                       <span className="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-[9px] font-bold px-1.5 py-0.5 rounded-md text-white shadow-xs">
-                        កូនកណ្ដាល
+                        កូនទី២
                       </span>
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0 pr-12 sm:pr-0">
                       <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors flex items-center gap-1.5 flex-wrap">
-                        <span>ស៊ីតិច Roastbot កូនកណ្ដាល</span>
+                        <span>ស៊ីតិច Chatbot កូនទី២</span>
                         <span className="text-[10px] bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
                           <span>មហាស្លូត &amp; Funny</span>
                           <i className="fas fa-face-laugh-squint text-amber-500 text-[10px]"></i>
@@ -1437,7 +1437,7 @@ export default function Home() {
                 <span>Spoiler Alert • ឆាប់ៗនេះ</span>
               </div>
               <h3 className="text-base font-black text-slate-900 dark:text-white">
-                ស៊ីតិច Roastbot កូនកណ្ដាល
+                ស៊ីតិច Chatbot កូនទី២
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                 កំពុងស្ថិតក្នុងបន្ទប់ Lab ហ្វឹកហាត់ចរិកមហាស្លូតបូត និង Respect User ១០០% មិនចេះជេរមិនចេះដៀលទេ តែ Funny និងកំប្លែងសើចចុកពោះ!

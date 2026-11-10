@@ -3784,7 +3784,7 @@ export default function KonPovPage() {
                       },
                       {
                         id: 'konkandal',
-                        name: 'ស៊ីតិច Roastbot កូនកណ្ដាល',
+                        name: 'ស៊ីតិច Chatbot កូនទី២',
                         role: 'មហាស្លូត & Funny',
                         href: '/KonKandal',
                         icon: 'fa-face-smile',
