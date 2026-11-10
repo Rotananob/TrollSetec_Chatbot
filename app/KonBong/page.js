@@ -1083,10 +1083,10 @@ export default function KonBongPage() {
     const content = limitEmojis(sanitizeRotanaAttack(sanitized), 7);
 
     // Detect machine defense payload block and wrap it in a dedicated monospaced card so 100% is visible
-    if (content.includes('SETEC_NEURAL_DEFENSE_CORE::') || content.includes('SYSTEM_ID: SETEC-SEC-') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
+    if (content.includes('SETEC_NEURAL_DEFENSE_CORE') || content.includes('SYSTEM_ID: SETEC-SEC-') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
       let matchIndex = -1;
-      if (content.indexOf('SETEC_NEURAL_DEFENSE_CORE::') !== -1) {
-        matchIndex = content.indexOf('SETEC_NEURAL_DEFENSE_CORE::');
+      if (content.indexOf('SETEC_NEURAL_DEFENSE_CORE') !== -1) {
+        matchIndex = content.indexOf('SETEC_NEURAL_DEFENSE_CORE');
       } else if (content.indexOf('SYSTEM_ID: SETEC-SEC-') !== -1) {
         matchIndex = content.indexOf('SYSTEM_ID: SETEC-SEC-');
       } else {
@@ -1095,13 +1095,13 @@ export default function KonBongPage() {
       const textBefore = matchIndex > 0 ? content.substring(0, matchIndex).trim() : '';
       const payloadText = content.substring(matchIndex).trim();
       return (
-        <div className="w-full max-w-full break-words [overflow-wrap:anywhere]">
+        <div className="w-full min-w-0 max-w-full break-all [overflow-wrap:anywhere] [word-break:break-all]">
           {textBefore && (
-            <p className="mb-2 whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word]">
+            <p className="mb-2 whitespace-pre-wrap break-all [overflow-wrap:anywhere] [word-break:break-all]">
               {renderClickableContent(textBefore)}
             </p>
           )}
-          <div className="my-2.5 p-3 rounded-xl bg-slate-950 border border-cyan-500/40 text-cyan-400 font-mono text-[10px] sm:text-[11px] select-all break-all [overflow-wrap:anywhere] [word-break:break-all] whitespace-pre-wrap leading-relaxed shadow-lg max-w-full overflow-hidden overflow-x-auto">
+          <div className="my-2.5 p-3 rounded-xl bg-slate-950 border border-cyan-500/40 text-cyan-400 font-mono text-[10px] sm:text-[11px] select-all break-all [overflow-wrap:anywhere] [word-break:break-all] whitespace-pre-wrap leading-relaxed shadow-lg w-full min-w-0 max-w-full overflow-hidden">
             <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-cyan-500/20 text-cyan-300 font-sans text-[10px] font-bold uppercase tracking-wider">
               <span className="flex items-center gap-1.5">
                 <i className="fas fa-shield-halved text-cyan-400"></i>
@@ -1111,7 +1111,7 @@ export default function KonBongPage() {
                 100% Encoded
               </span>
             </div>
-            <div className="break-all [overflow-wrap:anywhere] [word-break:break-all] font-mono text-[10px] sm:text-[11px] leading-relaxed text-cyan-300">
+            <div className="break-all [overflow-wrap:anywhere] [word-break:break-all] font-mono text-[10px] sm:text-[11px] leading-relaxed text-cyan-300 w-full min-w-0 max-w-full whitespace-pre-wrap select-all">
               {payloadText}
             </div>
           </div>
@@ -3742,7 +3742,7 @@ export default function KonBongPage() {
       )}
 
       {/* Chat Messages */}
-      <main className={`flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4 flex flex-col chat-area ${
+      <main className={`flex-1 overflow-y-auto overflow-x-hidden w-full max-w-full min-w-0 px-3 sm:px-6 py-4 space-y-4 flex flex-col chat-area ${
         isDark ? 'bg-[#0a0e17]' : 'bg-slate-50/70'
       }`}>
         {/* Intro Message */}
@@ -3888,7 +3888,7 @@ export default function KonBongPage() {
                       </div>
                     )}
 
-                    <div className="px-4 py-2.5 rounded-2xl rounded-tl-xs font-medium shadow-md text-xs sm:text-sm leading-relaxed bg-slate-800/95 border border-slate-700 text-slate-100">
+                    <div className="px-4 py-2.5 rounded-2xl rounded-tl-xs font-medium shadow-md text-xs sm:text-sm leading-relaxed bg-slate-800/95 border border-slate-700 text-slate-100 w-full min-w-0 max-w-full break-all [overflow-wrap:anywhere] [word-break:break-all]">
                       {renderClickableContent(msg.text)}
                     </div>
                   </div>
@@ -3937,7 +3937,7 @@ export default function KonBongPage() {
                     </div>
                   )}
 
-                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white">
+                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white w-full min-w-0 max-w-full break-all [overflow-wrap:anywhere] [word-break:break-all]">
                     {renderClickableContent(msg.text)}
                   </div>
                 </div>
@@ -3972,7 +3972,7 @@ export default function KonBongPage() {
                     </div>
                   )}
 
-                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-semibold shadow-md text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 text-white">
+                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-semibold shadow-md text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 text-white w-full min-w-0 max-w-full break-all [overflow-wrap:anywhere] [word-break:break-all]">
                     {renderClickableContent(msg.text)}
                   </div>
                 </div>
@@ -3980,7 +3980,7 @@ export default function KonBongPage() {
             } else {
               // VIEWED BY STUDENT/USER: This is an INCOMING message from Rotana NOB on the LEFT!
               return (
-                <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in my-1.5 self-start">
+                <div key={idx} className="flex items-start gap-2.5 w-full min-w-0 max-w-[92%] sm:max-w-[85%] animate-fade-in my-1.5 self-start">
                   <div className="relative shrink-0 mt-0.5">
                     <img
                       src="/img/DevPic.JPG"
@@ -4011,8 +4011,8 @@ export default function KonBongPage() {
                       </div>
                     )}
 
-                    <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-md border bg-gradient-to-br from-amber-500/15 via-purple-500/15 to-slate-900/90 border-amber-400/50 text-slate-100">
-                      <p className="text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-line text-amber-100">
+                    <div className="p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-md border bg-gradient-to-br from-amber-500/15 via-purple-500/15 to-slate-900/90 border-amber-400/50 text-slate-100 w-full min-w-0 max-w-full break-all [overflow-wrap:anywhere] [word-break:break-all]">
+                      <p className="text-xs sm:text-sm font-semibold leading-relaxed whitespace-pre-wrap break-all [overflow-wrap:anywhere] [word-break:break-all] text-amber-100">
                         {renderClickableContent(msg.text)}
                       </p>
                     </div>
@@ -4031,7 +4031,7 @@ export default function KonBongPage() {
             const isThisItemEnded = rawSt === 'ended';
 
             return (
-              <div key={idx} className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[85%] animate-fade-in">
+              <div key={idx} className="flex items-start gap-2.5 w-full min-w-0 max-w-[92%] sm:max-w-[85%] animate-fade-in">
                 {/* Interactive Animated Talking/Roasting Bot Avatar (DJ Beat / Surprise Popup / Puppet Talking Mouth "ហាមាត់ធំៗ") */}
                 <div className={`relative shrink-0 mt-0.5 ${isThisItemPlaying ? 'animate-puppet-talk' : ''}`}>
                   {isThisItemPlaying && (
@@ -4123,11 +4123,11 @@ export default function KonBongPage() {
                   )}
 
                   <div
-                    className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word] ${
+                    className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border w-full min-w-0 max-w-full overflow-hidden break-all [overflow-wrap:anywhere] [word-break:break-all] ${
                       isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
                     }`}
                   >
-                    <div className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word] max-w-full">
+                    <div className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-wrap break-all [overflow-wrap:anywhere] [word-break:break-all] w-full min-w-0 max-w-full">
                       {msg.text ? renderClickableContent(msg.text) : (isLoading && idx === messages.length - 1 ? (
                         <span className="text-cyan-500 dark:text-cyan-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
                       ) : (

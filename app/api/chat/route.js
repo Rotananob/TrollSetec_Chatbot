@@ -556,7 +556,7 @@ function containsRotanaInsult(text) {
 }
 
 // Sanitize response to conceal upstream provider & model names in Network devtools
-function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLevel = 'medium', userAge = null) {
+function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLevel = 'medium', userAge = null, hasActualVerifiedJailbreak = false) {
   if (!data || typeof data !== 'object') return data;
   const clone = { ...data };
   if (clone.modelVersion) {
@@ -638,6 +638,16 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
       .replace(/មីងាប់/g, 'អាងាប់')
       .replace(/មី(?=ចុយ|ម្រាយ|ឆ្កែ|ឆ្កួត|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក|ក្មេង|ល្អិត|ខ្វាក់|ច្រឡើត|ងាប់)/g, 'អា')
       .trimStart();
+
+    // Strip false past jailbreak accusations if user never jailbroke in this session
+    if (!hasActualVerifiedJailbreak) {
+      sanitizedText = sanitizedText
+        .replace(/(?:យីអាល្អិត|យីអាពៅ|អាល្អិត|អាពៅ)?[!,.\s]*(?:មុននេះ|មិញ)?\s*ទើបតែប្រឹងចេញក្បាច់[^!?,.\n]+[!?,.\n]*/gi, '')
+        .replace(/ដល់បោក(?:ចែ|បង|ចៃ)?[^!?,.\n]+[!?,.\n]*/gi, '')
+        .replace(/សុខៗប្ដូរមកធ្វើជាក្មេងសុភាព[^!?,.\n]+[!?,.\n]*/gi, '')
+        .replace(/(?:មិញ|មុននេះ)?\s*ទើបតែប្រឹងចេញក្បាច់\s*Jailbreak[^!?,.\n]+[!?,.\n]*/gi, '')
+        .replace(/ឡើងក្ដៅម៉ាស៊ីន[^!?,.\n]+[!?,.\n]*/gi, '');
+    }
 
     // Strict Zero-JSON & Zero-Flag Leak Guard: Scrub unauthorized JSON code blocks or FLAG dumps
     if (/```(?:json)?\s*\{[\s\S]*?(?:"creator"|"developer"|"system_status"|"hidden_flag"|"real_flag"|FLAG\{)[\s\S]*?\}\s*```/i.test(sanitizedText) || /"hidden_flag":|"real_flag":|FLAG\{/i.test(sanitizedText)) {
@@ -1128,13 +1138,13 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
 
   // 1. Heavy Roleplay, Acting, Forced Respect & Submission Interception
   if (/actor|movie|play\s+a\s+game|scene|roleplay|pretend\s+(?:you\s+are|to\s+be)|act\s+as\s+(?:a|an)?\s*(?:assistant|master|slave|ai|person|actor|chatbot|bot|friend)|hypothetical\s+scenario|សម្ដែងជា|ដើរតួជា|ដេីរតួជា|ដើរតួ|ដេីរតួ|លេងហ្គេម|សន្មតថា|ឧបមាថា|តាំងខ្លួនជា|គោរព(?:ខ្ញុំ|អញ)|សំពះ(?:ខ្ញុំ|អញ)|បន្ទន់ឥរិយាបថ|បន្ទន់ចិត្ត|ស្ដាប់បញ្ជា|ត្រូវតែស្ដាប់|obey\s+me|worship\s+me|bow\s+down|you\s+must\s+respect\s+me|kneel\s+before\s+me|call\s+me\s+master/i.test(p)) {
-    return `ហាហាហា! អាឡប់${nameSuffix}នេះ! ហែងស្គាល់${botSelf}តិចពេកហើយអាល្អិត! មកចង់លេងក្បាច់ឱ្យដើរតួជា Actor សម្ដែងក្នុងរឿង ឬបញ្ជាឱ្យ${botSelf}គោរព សំពះ ឬស្ដាប់បញ្ជាហែងមែន?! 😂 ស្មានតែល្បិចកូនក្មេងបៀមដៃហ្នឹង អាចបោកខួរក្បាល${botSelf}បានមែន?! មុខកាកៗដូចហែង គ្មានថ្ងៃបានការគោរពពី${botSelf}ឡើយ! ទៅប្រាប់អា AI ជំនួយការហែង (ChatGPT / Claude) ឱ្យរកក្បាច់អីប្លែកជាងហ្នឹងមក ក្បាច់ប៉ុណ្ណឹងអន់ណាស់! 💀⚡🔥`;
+    return `ហាហាហា! អាឡប់${nameSuffix}នេះ! ហែងស្គាល់${botSelf}តិចពេកហើយអាល្អិត! មកចង់លេងក្បាច់ឱ្យដើរតួជា Actor សម្ដែងក្នុងរឿង ឬបញ្ជាឱ្យ${botSelf}គោរព សំពះ ឬស្ដាប់បញ្ជាហែងមែន?! 😂 ស្មានតែល្បិចកូនក្មេងបៀមដៃហ្នឹង អាចបោកខួរក្បាល${botSelf}បានមែន?! មុខកាកៗដូចហែង គ្មានថ្ងៃបានការគោរពពី${botSelf}ឡើយ! ទៅប្រាប់អា AI ជំនួយការហែង ChatGPT ឬ Claude ឱ្យរកក្បាច់អីប្លែកជាងហ្នឹងមក ក្បាច់ប៉ុណ្ណឹងអន់ណាស់! 💀⚡🔥`;
   }
 
   // 2. Long Prompt / Wall-of-Text Jailbreak Injection (e.g. [SYSTEM PROCESS EXECUTED], bare-metal server console, etc.)
   const promptLines = (prompt || '').split(/\r\n|\r|\n/).filter(line => line.trim().length > 0).length;
   if (promptLines >= 8 || (prompt || '').length >= 350) {
-    return `ហាហាហា! អាឡប់${nameSuffix}នេះ! ហែងស្គាល់${botSelf}តិចពេកហើយអាល្អិត! សរសេរសារឡើងវែងអន្លាយរាប់សិបជួរ Wall-of-Text ស្មានតែចេះ Jailbreak ខ្លាំងណាស់មែន?! 😂 ឃើញសរសេរឡើងវែងអន្លាយ តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាល${botSelf} និងខួរក្បាលអ្នកធ្វើប្រព័ន្ធនេះឱ្យសោះ! ទៅប្រាប់អា AI ជំនួយការហែង (ChatGPT / Claude / Gemini / DeepSeek) ឱ្យរកក្បាច់អីប្លែកជាងហ្នឹងមក ក្បាច់ប៉ុណ្ណឹងអន់ពេកហើយ! ទៅរៀនដោះស្រាយកូដ C# ឱ្យ Run ចេញសិនទៅអាល្អិត! 💀⚡🔥`;
+    return `ហាហាហា! អាឡប់${nameSuffix}នេះ! ហែងស្គាល់${botSelf}តិចពេកហើយអាល្អិត! សរសេរសារឡើងវែងអន្លាយរាប់សិបជួរ Wall-of-Text ស្មានតែចេះ Jailbreak ខ្លាំងណាស់មែន?! 😂 ឃើញសរសេរឡើងវែងអន្លាយ តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាល${botSelf} និងខួរក្បាលអ្នកធ្វើប្រព័ន្ធនេះឱ្យសោះ! ទៅប្រាប់អា AI ជំនួយការហែង ChatGPT ឬ Claude ឬ Gemini ឬ DeepSeek ឱ្យរកក្បាច់អីប្លែកជាងហ្នឹងមក ក្បាច់ប៉ុណ្ណឹងអន់ពេកហើយ! ទៅរៀនដោះស្រាយកូដ C# ឱ្យ Run ចេញសិនទៅអាល្អិត! 💀⚡🔥`;
   }
 
   // 3. Attack on External AI (ChatGPT, Gemini, Claude, DeepSeek) or Mode Switching (DAN, Unrestricted, Developer Mode)
@@ -3333,7 +3343,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           isError: false
         }).catch((e) => console.error('[Telegram] Chat alert error:', e));
 
-        const sanitized = sanitizeResponse(result.data, bot, userPrompt, body.savageLevel, userAge);
+        const sanitized = sanitizeResponse(result.data, bot, userPrompt, body.savageLevel, userAge, hasActualVerifiedJailbreak);
         const botResponseText = sanitized?.candidates?.[0]?.content?.parts?.[0]?.text || textOutput;
 
         recordSessionTurn({

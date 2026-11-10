@@ -255,6 +255,22 @@ body {
 
 .chat-area {
   scrollbar-width: none;
+  overflow-x: hidden !important;
+  max-width: 100vw;
+  width: 100%;
+}
+
+.chat-area,
+.chat-area * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.chat-area p,
+.chat-area div,
+.chat-area span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .chat-area::-webkit-scrollbar {
