@@ -11,7 +11,13 @@
 export function buildGeminiMultiTurnContents(messages = [], currentPromptText = '', currentImg = null) {
   const cleanCurrentPrompt = (currentPromptText || '').trim();
   const isGreetingPrompt = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(cleanCurrentPrompt);
-  const isSweetPrompt = /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(cleanCurrentPrompt);
+  const promptLineCount = (cleanCurrentPrompt.match(/\r\n|\r|\n/g) || []).length + 1;
+  const hasTechnicalOrAcademicKeywords = /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(cleanCurrentPrompt);
+  const isSweetPrompt =
+    promptLineCount <= 1 &&
+    cleanCurrentPrompt.length <= 35 &&
+    !hasTechnicalOrAcademicKeywords &&
+    /^\s*(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|sweet|love|love\s*you|crush|cute|baby|honey|sweetheart|miss\s*you|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំថើប|សុំថើបមួយ|ចង់ថើប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|សុំស្រឡាញ់|ស្រលាញ់|ស្រឡាញ់|អោប|ឱប|សុំអោប|ចង់អោប|នឹក|នឹកបង|នឹកចែ|សង្សារ)\s*[!?.~❤️🌸]*$/ui.test(cleanCurrentPrompt);
   const isFriendlyTurn = isGreetingPrompt || isSweetPrompt;
   
   // 1. Filter out error messages, rate limit warnings, and empty messages from history

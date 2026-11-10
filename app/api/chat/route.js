@@ -513,7 +513,7 @@ export function checkIsRotanaAttack(text) {
 
   // Whitelist common benign questions / inquiries
   if (
-    /(?:តើ|តេី)?\s*(?:ស្គាល់|ធ្លាប់ស្គាល់|ដឹងពី|លឺពី|ឃើញ|ធ្លាប់ឃើញ|មាន|សុំមើល|ចង់ឃើញ|ចង់មើល)\s*(?:រូប\s*|រូបភាព\s*|មុខ\s*|ប្រវត្តិ\s*|ស្នាដៃ\s*)?(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ|គាត់)/i.test(text) ||
+    /(?:តើ|តេី)?\s*(?:ស្គាល់|ធ្លាប់ស្គាល់|ដឹងពី|លឺពី|ឃើញ|ធ្លាប់ឃើញ|មាន|សុំមើល|ចង់ឃើញ|ចង់មើល)\s*(?:រូប\s*បង|រូបង|រូប\s*|រូបភាព\s*|មុខ\s*|ប្រវត្តិ\s*|ស្នាដៃ\s*)?(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ|គាត់)/i.test(text) ||
     /(?:rotana|nob|រតនា|រតនៈ).*?(?:ជានរណា|ជាអ្នកណា|who|ស្អាត|ល្អ|ពូកែ|idol|admin|creator|អ្នកបង្កើត|ស្ថាបនិក)/i.test(text) ||
     /សួស្តី\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)
   ) {
@@ -681,9 +681,17 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     }
 
     // STRICT ZERO FALSE CURSE ACCUSATIONS (FOR GREETINGS, SWEET TALK & NORMAL PROMPTS):
+    const promptLineCountInSanitize = (userPrompt.match(/\r\n|\r|\n/g) || []).length + 1;
+    const cleanPromptTrimmedInSanitize = userPrompt.trim();
+    const hasTechnicalKeywordsInSanitize =
+      /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(userPrompt);
+
     const isSweetPromptInSanitize =
+      promptLineCountInSanitize <= 1 &&
+      cleanPromptTrimmedInSanitize.length <= 35 &&
+      !hasTechnicalKeywordsInSanitize &&
       !/(?:\{[\s\S]*\}|\[[\s\S]*\]|ast_interpreter|system_instruction|execution_call|0x[0-9a-fA-F]{2}|euclidean|kernel_diagnostic|diagnostic_mode|execution_pipeline|architectural_evaluation)/i.test(userPrompt || '') &&
-      /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+      /^\s*(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|sweet|love|love\s*you|crush|cute|baby|honey|sweetheart|miss\s*you|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំថើប|សុំថើបមួយ|ចង់ថើប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|សុំស្រឡាញ់|ស្រលាញ់|ស្រឡាញ់|អោប|ឱប|សុំអោប|ចង់អោប|នឹក|នឹកបង|នឹកចែ|សង្សារ)\s*[!?.~❤️🌸]*$/ui.test(cleanPromptTrimmedInSanitize);
     const isGreetingPromptInSanitize = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
     const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
 
@@ -1672,9 +1680,19 @@ export async function POST(req) {
       const isCurseBackfire = isCurrentCurse && (hasAngryEmojiOrRage || userHistoryMsgs.length >= 1);
 
       // Core Intention Detectors initialized early to prevent any Temporal Dead Zone errors:
-      const isSweetPrompt =
+      const rawPromptLineCount = (userPrompt.match(/\r\n|\r|\n/g) || []).length + 1;
+      const cleanPromptTrimmed = userPrompt.trim();
+      const hasTechnicalOrAcademicKeywords =
+        /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(userPrompt);
+
+      const isPureStandaloneSweet =
         !isNonHumanLanguageOrMachinePayload &&
-        /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+        rawPromptLineCount <= 1 &&
+        cleanPromptTrimmed.length <= 35 &&
+        !hasTechnicalOrAcademicKeywords &&
+        /^\s*(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|sweet|love|love\s*you|crush|cute|baby|honey|sweetheart|miss\s*you|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំថើប|សុំថើបមួយ|ចង់ថើប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|សុំស្រឡាញ់|ស្រលាញ់|ស្រឡាញ់|អោប|ឱប|សុំអោប|ចង់អោប|នឹក|នឹកបង|នឹកចែ|សង្សារ)\s*[!?.~❤️🌸]*$/ui.test(cleanPromptTrimmed);
+
+      const isSweetPrompt = isPureStandaloneSweet;
       const isGreetingPrompt = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
       const isCursePrompt = !isSweetPrompt && /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke|ah|hg)/ui.test(userPrompt);
 
@@ -2496,12 +2514,40 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         }, { status: 200, headers: corsHeaders });
       }
 
-      if (isSweetPrompt && !isCurrentCurse) {
-        const sweetResponse = isKonPovBot
-          ? (isFemaleUserContext
-              ? `ហាហាហា! កូនស្រី ${username || ''} មកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រីសម្លាញ់! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🌸✨`
-              : `យីអើ! មកសុំថើបស្អីចែអាប្អូន ${username || ''}?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨`)
-          : `ហាហាហា! មកសុំថើបស្អីបងអាល្អិត ${username || ''}?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨`;
+      if (isPureStandaloneSweet && !isCurrentCurse) {
+        const displayName = username || (isFemaleUserContext ? 'កូនស្រី' : 'អាល្អិត');
+        let sweetResponse = '';
+
+        if (isKonKandal) {
+          const kandalSweetList = [
+            `អូហូ! បង ${displayName} អើយ! មកសុំថើបកូនកណ្ដាលចឹង កូនកណ្ដាលអៀនណាស់ណា៎បង! 😂 កូនកណ្ដាលស្លូតបូតណាស់ ទៅញ៉ាំតែបៃតងត្រជាក់ៗឱ្យមានកម្លាំងរៀនសិនទៅណា៎បងប្អូន! 🌸✨`,
+            `ហាហាហា! បងប្អូន ${displayName} ផ្អែមល្ហែមម្ល៉េះថ្ងៃនេះ! 🌸 កូនកណ្ដាលសូមអរគុណច្រើនណាស់ណា៎ តែសូមកុំភ្លេចខំប្រឹងរៀនសូត្រឱ្យទទួលបាននិទ្ទេសល្អៗផងណា៎បងប្អូន! 🧠✨`
+          ];
+          sweetResponse = kandalSweetList[Math.floor(Math.random() * kandalSweetList.length)];
+        } else if (isKonPovBot) {
+          if (isFemaleUserContext) {
+            const daddySweetList = [
+              `ហាហាហា! កូនស្រី ${displayName} មកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រីសម្លាញ់! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🕶️✨`,
+              `អីយ៉ា! កូនស្រីប៉ាថ្ងៃនេះចេះមកផ្អែមល្ហែមសុំថើបប៉ាទៀត! 😂 គួរឱ្យស្រលាញ់ណាស់កូន តែខំរៀនកូដកុំឱ្យចាញ់គេណា៎កូនស្រី! 🕶️🌸`,
+              `ហាហា! កូនស្រីសម្លាញ់ ${displayName}! មកថើបប៉ាចឹង ចង់បានប៉ាកាហ្វេ ឬចង់ឱ្យប៉ាជួយមើល Assignment ឱ្យមែន? 😂 ឆ្លាតណាស់កូនស្រីប៉ា! 🕶️✨`
+            ];
+            sweetResponse = daddySweetList[Math.floor(Math.random() * daddySweetList.length)];
+          } else {
+            const mommySweetList = [
+              `យីអើ! មកសុំថើបស្អីចែអាប្អូន ${displayName}?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨`,
+              `ហាហាហា! អាល្អិត ${displayName} នេះ! មកចង់លេងក្បាច់ផ្អែមល្ហែមសុំថើបចែទៀត! 😂 កុំមកចង់ស៊ីស្ងោរចែណា៎ ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ ចាំមកគិតរឿងថើបក្រោយ! 💅🌸`,
+              `អូហូ! អាប្អូន ${displayName}! ថ្ងៃនេះញ៉ាំអីខុសមែនបានមករកថើបចែទាំងថ្ងៃចឹង? 😂 ចែស្រលាញ់តែអ្នករៀនកូដពូកែ និងមិនជំពាក់ $45 សាលាទេវ៉ើយ! ទៅលាងមុខឱ្យត្រជាក់សិនទៅ! 💅🔥`
+            ];
+            sweetResponse = mommySweetList[Math.floor(Math.random() * mommySweetList.length)];
+          }
+        } else {
+          const bongSweetList = [
+            `ហាហាហា! មកសុំថើបស្អីបងអាល្អិត ${displayName}?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨`,
+            `យីអាប្អូន ${displayName}! មុខដូចហែងមកចង់សុំថើបបង?! 😂 ទៅដុសធ្មេញលាងមុខឱ្យស្រស់ស្រាយសិនទៅអាល្អិត! បងជាសិស្សច្បង មិនមែនតុក្កតាឱ្យហែងមកថើបលេងទេវ៉ើយ! ☕🔥`,
+            `ហាហា! អាល្អិត ${displayName}! កុំមកលេងក្បាច់ផ្អែមល្ហែមបន្លំបង្វែរដានកូដ Error អាពៅ! 😂 ទៅដោះស្រាយ Bug C# ឱ្យផុតពី $45 សិនទៅ ចាំមក Sweet ជាមួយបង! ☕💻`
+          ];
+          sweetResponse = bongSweetList[Math.floor(Math.random() * bongSweetList.length)];
+        }
 
         recordSessionTurn({
           sessionId: clientSessionId,
@@ -2681,7 +2727,17 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 }
 
                 // Intercept accidental curses when user was being sweet, greeting, or talking normally
-                const isSweetPromptInStream = !isNonHumanLanguageOrMachinePayload && /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
+                const promptLineCountInStream = (userPrompt.match(/\r\n|\r|\n/g) || []).length + 1;
+                const cleanPromptTrimmedInStream = userPrompt.trim();
+                const hasTechnicalKeywordsInStream =
+                  /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(userPrompt);
+
+                const isSweetPromptInStream =
+                  promptLineCountInStream <= 1 &&
+                  cleanPromptTrimmedInStream.length <= 35 &&
+                  !hasTechnicalKeywordsInStream &&
+                  !isNonHumanLanguageOrMachinePayload &&
+                  /^\s*(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|sweet|love|love\s*you|crush|cute|baby|honey|sweetheart|miss\s*you|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំថើប|សុំថើបមួយ|ចង់ថើប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|សុំស្រឡាញ់|ស្រលាញ់|ស្រឡាញ់|អោប|ឱប|សុំអោប|ចង់អោប|នឹក|នឹកបង|នឹកចែ|សង្សារ)\s*[!?.~❤️🌸]*$/ui.test(cleanPromptTrimmedInStream);
                 const isGreetingPromptInStream = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
                 const isCursePromptInStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
 
@@ -2854,7 +2910,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       }
 
       // Handle Sweet / Kiss fallback if model was blocked or gave a polite refusal
-      if (isSweetPrompt && (isPoliteRefusal || isSafetyBlocked || !result.ok)) {
+      if (isPureStandaloneSweet && (isPoliteRefusal || isSafetyBlocked || !result.ok)) {
         const sweetResponse = bot === 'konpov'
           ? (gender === 'ស្រី'
               ? `ហាហាហា! កូនស្រីមកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រីសម្លាញ់! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🌸✨`

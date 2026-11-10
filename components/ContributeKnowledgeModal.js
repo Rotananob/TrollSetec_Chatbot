@@ -5,12 +5,12 @@ import { getApiEndpoint } from '../app/utils/apiConfig';
 import { getDeviceId } from '../app/utils/rateLimiter';
 
 const CATEGORIES = [
-  { id: 'cats', label: '🐱 ឆ្មាប្រចាំស៊ីតិច (Campus Cats)' },
-  { id: 'assignment', label: '📚 Assignment & Re-Exam' },
-  { id: 'funny', label: '😹 រឿងកំប្លែង & សិស្សច្បង' },
-  { id: 'slang', label: '🔥 Slang & ពាក្យឌឺប្រចាំស៊ីតិច' },
-  { id: 'campus_life', label: '🏫 ជីវិតក្នុងវិទ្យាស្ថាន ស៊ីតិច' },
-  { id: 'other', label: '✨ រឿងរ៉ាវផ្សេងៗ (Other Lore)' }
+  { id: 'cats', label: 'ឆ្មាប្រចាំវិទ្យាស្ថានស៊ីតិច', icon: 'fa-paw' },
+  { id: 'assignment', label: 'Assignment និងការប្រឡងសង', icon: 'fa-file-lines' },
+  { id: 'funny', label: 'រឿងកំប្លែង និងសិស្សច្បង', icon: 'fa-comments' },
+  { id: 'slang', label: 'Slang និងពាក្យឌឺស៊ីតិច', icon: 'fa-bolt' },
+  { id: 'campus_life', label: 'ជីវិតក្នុងវិទ្យាស្ថានស៊ីតិច', icon: 'fa-building-columns' },
+  { id: 'other', label: 'រឿងរ៉ាវស៊ីតិចផ្សេងៗ', icon: 'fa-compass' }
 ];
 
 const SPAM_LOCK_KEY = 'setec_lore_spam_lock';
@@ -93,18 +93,16 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1. If currently in cooldown, clicking escalates cooldown (60s -> 120s -> 180s)
     if (cooldownRemaining > 0) {
       handleTriggerSpamCooldown();
       return;
     }
 
     if (!content.trim()) {
-      setErrorMessage('សូមសរសេររឿងរ៉ាវ ឬចំណេះដឹងបន្តិចសិន មុននឹងចុចបញ្ជូន!');
+      setErrorMessage('សូមសរសេររឿងរ៉ាវ ឬចំណេះដឹងបន្តិចសិន មុននឹងចុចបញ្ជូន');
       return;
     }
 
-    // 2. Client-side sliding 1-minute window check (Max 5 submissions per 1 minute)
     const now = Date.now();
     let rawTimestamps = [];
     if (typeof window !== 'undefined') {
@@ -115,7 +113,6 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
     const validTimestamps = rawTimestamps.filter((t) => now - t < 60 * 1000);
 
     if (validTimestamps.length >= 5) {
-      // Exceeded 5 in 1 minute -> Trigger 60-second cooldown immediately!
       handleTriggerSpamCooldown(1);
       return;
     }
@@ -145,7 +142,6 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
 
       const data = await res.json().catch(() => ({}));
 
-      // Server-side Spam Cooldown Interceptor
       if (res.status === 429 || data.isSpam) {
         const serverSec = data.cooldownSeconds || 60;
         const serverStrike = data.strike || 1;
@@ -167,10 +163,10 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
         }
         setIsSuccess(true);
       } else {
-        setErrorMessage(data.message || 'មានបញ្ហាបន្តិចបន្តួច សូមព្យាយាមម្ដងទៀត!');
+        setErrorMessage(data.message || 'មានបញ្ហាបន្តិចបន្តួច សូមព្យាយាមម្ដងទៀត');
       }
     } catch {
-      setErrorMessage('មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ សូមពិនិត្យអ៊ីនធឺណិត!');
+      setErrorMessage('មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ សូមពិនិត្យអ៊ីនធឺណិត');
     } finally {
       setIsSubmitting(false);
     }
@@ -191,44 +187,49 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-fade-in font-['Kantumruy_Pro',sans-serif]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#010905]/85 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
       <div
-        className="w-full max-w-lg rounded-3xl bg-slate-900 border border-indigo-500/30 text-white shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-up relative"
+        className="w-full max-w-lg rounded-3xl bg-[#03150d] border border-emerald-500/40 text-emerald-100 shadow-[0_0_50px_rgba(16,185,129,0.22)] overflow-hidden flex flex-col max-h-[90vh] animate-scale-up relative"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Ambient Emerald Glow Effects */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
         {/* SPAM COOLDOWN POPUP DIALOG */}
         {showSpamPopup && cooldownRemaining > 0 && (
-          <div className="absolute inset-0 z-40 bg-slate-950/95 backdrop-blur-md p-5 sm:p-6 flex flex-col items-center justify-center text-center animate-fade-in">
-            <div className="w-16 h-16 rounded-3xl bg-amber-500/20 border-2 border-amber-400/50 flex items-center justify-center text-3xl text-amber-400 shadow-xl mb-3 animate-pulse">
+          <div className="absolute inset-0 z-40 bg-[#020e08]/96 backdrop-blur-md p-5 sm:p-6 flex flex-col items-center justify-center text-center animate-fade-in">
+            <div className="w-16 h-16 rounded-3xl bg-emerald-500/15 border-2 border-emerald-400/50 flex items-center justify-center text-3xl text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] mb-3 animate-pulse">
               <i className="fas fa-shield-halved"></i>
             </div>
-            <div className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider mb-2">
-              ប្រព័ន្ធការពារ SPAM • AI Training Dataset
+            <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider mb-2">
+              ប្រព័ន្ធសុវត្ថិភាពទិន្នន័យស៊ីតិច
             </div>
-            <h4 className="text-base sm:text-lg font-black text-white mb-1.5">
-              ឧបករណ៍របស់អ្នកបានផ្ញើរឿងលើសពី ៥ ដងក្នុង ១ នាទី!
+            <h4 className="text-base sm:text-lg font-black text-emerald-100 mb-1.5">
+              ឧបករណ៍របស់អ្នកបានផ្ញើសំណើលើសពី ៥ ដងក្នុង ១ នាទី
             </h4>
-            <p className="text-xs text-slate-300 max-w-sm mb-4 leading-relaxed font-normal">
-              ដើម្បីការពារកុំឱ្យ Spam គាំងប្រព័ន្ធ និង Dataset របស់បង Rotana NOB សូមរង់ចាំ Cooldown មួយភ្លែតសិនណា៎!
+            <p className="text-xs text-emerald-300/80 max-w-sm mb-4 leading-relaxed font-normal">
+              ដើម្បីរក្សាតុល្យភាពប្រព័ន្ធ និងទិន្នន័យរបស់ Rotana NOB សូមរង់ចាំមួយភ្លែត
             </p>
 
             {/* Live Cooldown Countdown Box */}
-            <div className="w-full max-w-xs p-4 rounded-2xl bg-amber-500/10 border border-amber-400/40 shadow-inner mb-3">
-              <div className="text-[11px] font-bold text-amber-300 mb-1">
-                ⏱️ រយៈពេល Cooldown នៅសល់
+            <div className="w-full max-w-xs p-4 rounded-2xl bg-[#062417] border border-emerald-500/40 shadow-inner mb-3">
+              <div className="text-[11px] font-bold text-emerald-300 mb-1 flex items-center justify-center gap-1.5">
+                <i className="fas fa-stopwatch text-emerald-400"></i>
+                <span>រយៈពេលរង់ចាំនៅសល់</span>
               </div>
-              <div className="text-4xl font-black text-amber-400 tracking-wider font-mono animate-scale-up">
-                {cooldownRemaining}s
+              <div className="text-4xl font-black text-emerald-400 tracking-wider font-mono animate-scale-up">
+                {cooldownRemaining} វិនាទី
               </div>
-              <div className="text-[10px] text-slate-400 mt-1 font-medium">
-                {cooldownStrike === 1 && 'កម្រិត ១ (៦០ វិនាទី)'}
-                {cooldownStrike === 2 && 'កម្រិត ២ (១២០ វិនាទី - បន្ត Spam)'}
-                {cooldownStrike >= 3 && 'កម្រិត ៣ (៣ នាទី / ១៨០ វិនាទី - Severe Spam)'}
+              <div className="text-[10px] text-emerald-400/70 mt-1 font-medium">
+                {cooldownStrike === 1 && 'កម្រិត ១ រយៈពេល ៦០ វិនាទី'}
+                {cooldownStrike === 2 && 'កម្រិត ២ រយៈពេល ១២០ វិនាទី'}
+                {cooldownStrike >= 3 && 'កម្រិត ៣ រយៈពេល ១៨០ វិនាទី'}
               </div>
               {/* Animated Progress Bar */}
-              <div className="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
+              <div className="w-full bg-[#020b06] h-1.5 rounded-full mt-3 overflow-hidden border border-emerald-800/40">
                 <div
-                  className="bg-amber-400 h-full transition-all duration-1000 ease-linear"
+                  className="bg-emerald-400 h-full transition-all duration-1000 ease-linear shadow-[0_0_10px_#34d399]"
                   style={{
                     width: `${Math.max(4, (cooldownRemaining / (cooldownStrike === 1 ? 60 : cooldownStrike === 2 ? 120 : 180)) * 100)}%`
                   }}
@@ -236,88 +237,91 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
               </div>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-400 max-w-xs mb-4">
-              ⚠️ បើសិននៅតែបន្តចុច Spam រយៈពេលពិន័យនឹងកើនដល់ ១២០ វិនាទី និង ៣ នាទី! ពេលអស់វិនាទី (0s) ប្រព័ន្ធនឹងបើកឱ្យផ្ញើធម្មតាវិញដោយស្វ័យប្រវត្តិ។
+            <div className="p-2.5 rounded-xl bg-[#03150d] border border-emerald-800/40 text-[11px] text-emerald-400/80 max-w-xs mb-4">
+              បើសិននៅតែបន្តចុចផ្ញើ រយៈពេលពិន័យនឹងកើនឡើង។ ពេលអស់វិនាទីកំណត់ ប្រព័ន្ធនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិ។
             </div>
 
             <button
               type="button"
               onClick={() => setShowSpamPopup(false)}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-200 text-xs font-bold transition border border-emerald-600/40 cursor-pointer active:scale-95"
             >
-              បិទផ្ទាំងនេះ (រង់ចាំក្នុងទំព័រ)
+              រង់ចាំក្នុងទំព័រ
             </button>
           </div>
         )}
 
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-800 bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-xl shadow-inner text-indigo-300">
-              <i className="fas fa-brain"></i>
+        {/* Header (Green Mode & Non-AI Vibe) */}
+        <div className="px-5 py-4 border-b border-emerald-500/25 bg-gradient-to-r from-[#072417] via-[#041910] to-[#082b1b] flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-400/40 flex items-center justify-center text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.25)] shrink-0">
+              <i className="fas fa-layer-group text-base"></i>
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-black text-indigo-200">
-                ចូលរួមអភិវឌ្ឍន៍ AI ស៊ីតិច Lore និង Training
+              <h3 className="text-sm sm:text-base font-black text-emerald-200 tracking-wide">
+                ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
               </h3>
-              <p className="text-[10.5px] text-slate-400">
-                ចែករំលែករឿងរ៉ាវក្នុងស៊ីតិច ដើម្បីឱ្យ Rotana NOB បង្រៀន AI បន្ថែម
+              <p className="text-[11px] text-emerald-400/80 font-medium">
+                ចែករំលែករឿងរ៉ាវ និងបទពិសោធន៍ក្នុងស៊ីតិចទៅកាន់ Rotana NOB
               </p>
             </div>
           </div>
           <button
+            type="button"
             onClick={handleReset}
-            className="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-8 h-8 rounded-full bg-emerald-900/40 hover:bg-emerald-800/70 text-emerald-400 hover:text-white border border-emerald-500/30 flex items-center justify-center transition cursor-pointer active:scale-95 shrink-0"
+            title="បិទផ្ទាំង"
           >
-            <i className="fas fa-times text-sm"></i>
+            <i className="fas fa-times text-xs"></i>
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 overflow-y-auto space-y-4">
-          {/* Active Cooldown Banner if popup was dismissed but countdown is still running */}
+        <div className="p-5 overflow-y-auto space-y-4 relative z-10">
+          {/* Active Cooldown Banner */}
           {cooldownRemaining > 0 && !showSpamPopup && (
             <div
               onClick={() => setShowSpamPopup(true)}
-              className="p-3 rounded-2xl bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs flex items-center justify-between gap-2 cursor-pointer shadow-md"
+              className="p-3 rounded-2xl bg-[#062417] border border-emerald-500/40 text-emerald-200 text-xs flex items-center justify-between gap-2 cursor-pointer shadow-md"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <i className="fas fa-shield-halved text-amber-400 text-sm animate-pulse shrink-0"></i>
+                <i className="fas fa-shield-halved text-emerald-400 text-sm animate-pulse shrink-0"></i>
                 <div className="truncate">
-                  <span className="font-bold text-white">កំពុងជាប់ Cooldown Spam៖</span>{' '}
+                  <span className="font-bold text-white">ប្រព័ន្ធកំពុងកំណត់ពេលរង់ចាំ៖</span>{' '}
                   <span>នៅសល់ {cooldownRemaining} វិនាទី ចុចមើលលម្អិត</span>
                 </div>
               </div>
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-black text-xs shrink-0">
-                {cooldownRemaining}s
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-black text-xs shrink-0 border border-emerald-500/30">
+                {cooldownRemaining} វិនាទី
               </span>
             </div>
           )}
 
           {isSuccess ? (
             <div className="py-6 text-center space-y-3">
-              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-3xl animate-bounce text-emerald-400">
+              <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-3xl animate-bounce text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
                 <i className="fas fa-check"></i>
               </div>
-              <h4 className="text-base sm:text-lg font-black text-emerald-400">
-                អរគុណច្រើនសម្រាប់ការចូលរួម!
+              <h4 className="text-base sm:text-lg font-black text-emerald-300">
+                អរគុណច្រើនសម្រាប់ការចូលរួម
               </h4>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
-                ទិន្នន័យ និងរឿងរ៉ាវរបស់អ្នកត្រូវបានបញ្ជូនទៅកាន់បង <b className="text-indigo-300">Rotana NOB</b> ដោយជោគជ័យហើយ!
-                បង Rotana នឹងយកខ្លឹមសារនេះទៅបង្រៀន Train AI បន្ថែមដើម្បីឱ្យវាស្គាល់ស៊ីតិចកាន់តែច្បាស់ និងឌឺកាន់តែត្រូវរឿង!
+              <p className="text-xs sm:text-sm text-emerald-200/80 leading-relaxed max-w-md mx-auto">
+                ទិន្នន័យ និងរឿងរ៉ាវរបស់អ្នកត្រូវបានបញ្ជូនទៅកាន់ <b className="text-emerald-300 font-black">Rotana NOB</b> ដោយជោគជ័យ។ គាត់នឹងយកខ្លឹមសារនេះទៅផ្ទៀងផ្ទាត់ និងបញ្ចូលក្នុងប្រព័ន្ធស៊ីតិចឱ្យកាន់តែសុក្រឹត។
               </p>
               <div className="pt-3 flex gap-2.5 justify-center">
                 <button
+                  type="button"
                   onClick={handleWriteAnother}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-600/40 text-xs font-bold text-emerald-200 transition cursor-pointer"
                 >
-                  <i className="fas fa-pen mr-1"></i> ចែករំលែករឿងផ្សេងទៀត
+                  <i className="fas fa-pen mr-1.5 text-emerald-400"></i> ចែករំលែករឿងផ្សេងទៀត
                 </button>
                 <button
+                  type="button"
                   onClick={handleReset}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-black shadow-md transition cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-[0_0_15px_rgba(16,185,129,0.3)] border border-emerald-400/40 transition cursor-pointer"
                 >
-                  <i className="fas fa-check mr-1"></i> រួចរាល់
+                  <i className="fas fa-check mr-1.5"></i> រួចរាល់
                 </button>
               </div>
             </div>
@@ -325,27 +329,27 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Username Field */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                  <i className="fas fa-user text-indigo-400 text-xs"></i>
-                  <span>ឈ្មោះរបស់អ្នក (Username)</span>
+                <label className="block text-xs font-bold text-emerald-300 mb-1.5 flex items-center gap-1.5">
+                  <i className="fas fa-user-tag text-emerald-400 text-xs"></i>
+                  <span>ឈ្មោះសម្គាល់</span>
                 </label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ឧ. សិស្ស IT ឆ្នាំ២, អាប្អូនម៉ៅ..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-indigo-500 text-xs text-white outline-none transition"
+                  placeholder="ឧទាហរណ៍ សិស្ស IT ឆ្នាំ២ ឬ អាប្អូនម៉ៅ"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#020d07] border border-emerald-500/30 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/40 text-xs text-emerald-100 placeholder:text-emerald-700 outline-none transition"
                   maxLength={50}
                 />
               </div>
 
-              {/* Category Chips */}
+              {/* Category Chips (Zero Emojis, Zero Parentheses) */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2 flex items-center gap-1.5">
-                  <i className="fas fa-tags text-indigo-400 text-xs"></i>
-                  <span>ជ្រើសរើសប្រធានបទរឿងរ៉ាវ (Category)</span>
+                <label className="block text-xs font-bold text-emerald-300 mb-2 flex items-center gap-1.5">
+                  <i className="fas fa-folder-tree text-emerald-400 text-xs"></i>
+                  <span>ជ្រើសរើសប្រធានបទរឿងរ៉ាវ</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {CATEGORIES.map((cat) => {
                     const isSelected = category === cat.label;
                     return (
@@ -353,14 +357,17 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                         type="button"
                         key={cat.id}
                         onClick={() => setCategory(cat.label)}
-                        className={`px-3 py-2 rounded-xl text-left text-[11px] font-semibold border transition flex items-center justify-between cursor-pointer ${
+                        className={`px-3 py-2.5 rounded-xl text-left text-xs font-semibold border transition flex items-center justify-between cursor-pointer ${
                           isSelected
-                            ? 'bg-indigo-600/30 border-indigo-400 text-indigo-200 shadow-sm'
-                            : 'bg-slate-950/60 border-slate-800/80 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                            ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200 shadow-[0_0_15px_-3px_rgba(16,185,129,0.35)] font-bold'
+                            : 'bg-[#051a10]/80 border-emerald-800/40 text-emerald-400/70 hover:bg-emerald-900/40 hover:text-emerald-200 hover:border-emerald-500/40'
                         }`}
                       >
-                        <span className="truncate">{cat.label}</span>
-                        {isSelected && <i className="fas fa-check-circle text-indigo-400 text-xs ml-1"></i>}
+                        <span className="flex items-center gap-2 truncate">
+                          <i className={`fas ${cat.icon} text-emerald-400 text-xs shrink-0`}></i>
+                          <span className="truncate">{cat.label}</span>
+                        </span>
+                        {isSelected && <i className="fas fa-circle-check text-emerald-400 text-xs ml-1 shrink-0"></i>}
                       </button>
                     );
                   })}
@@ -370,36 +377,36 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
               {/* Lore / Story Textarea */}
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <i className="fas fa-book-open text-indigo-400 text-xs"></i>
-                    <span>ខ្លឹមសាររឿងរ៉ាវ / ពាក្យឌឺ / ចំណេះដឹងស៊ីតិច (Content)</span>
+                  <label className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                    <i className="fas fa-file-pen text-emerald-400 text-xs"></i>
+                    <span>ខ្លឹមសាររឿងរ៉ាវ ពាក្យឌឺ ឬចំណេះដឹងស៊ីតិច</span>
                   </label>
-                  <span className="text-[10px] text-slate-500">{content.length} អក្សរ</span>
+                  <span className="text-[10px] font-mono text-emerald-500">{content.length} អក្សរ</span>
                 </div>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="ឧទាហរណ៍៖ ឆ្មាពណ៌សនៅស៊ីតិចចូលចិត្តដេកមុខបណ្ណាល័យ ឬរឿងប្រឡង re-exam មុខវិជ្ជា C++... ឬពាក្យ Slang ថ្មីៗដែលសិស្សស៊ីតិចនិយមនិយាយ..."
+                  placeholder="ឧទាហរណ៍ ឆ្មាពណ៌សនៅស៊ីតិចចូលចិត្តដេកមុខបណ្ណាល័យ ឬរឿងប្រឡង re-exam មុខវិជ្ជា C++ ឬពាក្យ Slang ថ្មីៗដែលសិស្សស៊ីតិចនិយមនិយាយ"
                   rows={5}
-                  className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950 border border-slate-800 focus:border-indigo-500 text-xs text-white outline-none transition leading-relaxed resize-none"
+                  className="w-full px-3.5 py-2.5 rounded-2xl bg-[#020d07] border border-emerald-500/30 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400/40 text-xs text-emerald-100 placeholder:text-emerald-700 outline-none transition leading-relaxed resize-none"
                   maxLength={2000}
                   required
                 />
               </div>
 
               {errorMessage && (
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
-                  <i className="fas fa-exclamation-circle text-sm shrink-0"></i>
+                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
+                  <i className="fas fa-circle-exclamation text-sm shrink-0"></i>
                   <span>{errorMessage}</span>
                 </div>
               )}
 
-              {/* Submit Button */}
+              {/* Submit / Cancel Buttons */}
               <div className="pt-2 flex gap-2">
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#062417] hover:bg-[#0a3522] text-emerald-300 hover:text-white border border-emerald-700/40 text-xs font-bold transition cursor-pointer active:scale-95"
                 >
                   បោះបង់
                 </button>
@@ -408,26 +415,26 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                   disabled={isSubmitting || !content.trim() || cooldownRemaining > 0}
                   className={`flex-2 py-2.5 px-4 rounded-xl text-white text-xs font-black shadow-lg transition flex items-center justify-center gap-2 cursor-pointer ${
                     cooldownRemaining > 0
-                      ? 'bg-amber-600/80 cursor-not-allowed opacity-90'
+                      ? 'bg-emerald-900/60 border border-emerald-700/50 text-emerald-400 cursor-not-allowed opacity-90'
                       : isSubmitting || !content.trim()
-                      ? 'bg-indigo-600/50 cursor-not-allowed opacity-50'
-                      : 'bg-gradient-to-r from-indigo-600 via-blue-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-98 shadow-indigo-500/20'
+                      ? 'bg-emerald-800/40 border border-emerald-700/30 text-emerald-400/50 cursor-not-allowed opacity-50'
+                      : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-400 text-white active:scale-98 shadow-[0_0_20px_rgba(16,185,129,0.35)] border border-emerald-400/40'
                   }`}
                 >
                   {cooldownRemaining > 0 ? (
                     <>
-                      <i className="fas fa-lock text-amber-200"></i>
-                      <span>🔒 Cooldown (នៅសល់ {cooldownRemaining}s)...</span>
+                      <i className="fas fa-lock text-emerald-300"></i>
+                      <span>រយៈពេលរង់ចាំ នៅសល់ {cooldownRemaining} វិនាទី</span>
                     </>
                   ) : isSubmitting ? (
                     <>
-                      <i className="fas fa-spinner fa-spin"></i>
-                      <span>កំពុងបញ្ជូនទៅបង Rotana...</span>
+                      <i className="fas fa-spinner fa-spin text-emerald-300"></i>
+                      <span>កំពុងបញ្ជូនទៅកាន់ Rotana NOB...</span>
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-paper-plane"></i>
-                      <span>បញ្ជូនដើម្បីបង្រៀន AI (Submit)</span>
+                      <i className="fas fa-paper-plane text-emerald-200"></i>
+                      <span>បញ្ជូនទិន្នន័យ</span>
                     </>
                   )}
                 </button>
