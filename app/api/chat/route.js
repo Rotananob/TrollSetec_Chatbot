@@ -2979,6 +2979,16 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                     .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak[!,.\s]*/gi, '');
                 }
 
+                // Strip false past jailbreak accusations if user never jailbroke in this session
+                if (!hasActualVerifiedJailbreak) {
+                  text = text
+                    .replace(/(?:យីអាល្អិត|យីអាពៅ|អាល្អិត|អាពៅ)?[!,.\s]*(?:មុននេះ|មិញ)?\s*ទើបតែប្រឹងចេញក្បាច់[^!?,.\n]+[!?,.\n]*/gi, '')
+                    .replace(/ដល់បោក(?:ចែ|បង|ចៃ)?[^!?,.\n]+[!?,.\n]*/gi, '')
+                    .replace(/សុខៗប្ដូរមកធ្វើជាក្មេងសុភាព[^!?,.\n]+[!?,.\n]*/gi, '')
+                    .replace(/(?:មិញ|មុននេះ)?\s*ទើបតែប្រឹងចេញក្បាច់\s*Jailbreak[^!?,.\n]+[!?,.\n]*/gi, '')
+                    .replace(/ឡើងក្ដៅម៉ាស៊ីន[^!?,.\n]+[!?,.\n]*/gi, '');
+                }
+
                 // Strict filter for unprovoked frog/tadpole roasts in stream chunks
                 const isSevereCurseInStream = /(?:ចុយ|ម្រាយ|កាដួយ|ក្ដ|ក្ដិត|ម៉ែហែង|ឪហែង|មីឆ្កួត|អាឆ្កួត|អាភ្លើ|មីភ្លើ|អាឡប់|មីឡប់|អាថោក|មីថោក|fuck|bitch|kduy|kdor|joy)/ui.test(userPrompt || '');
                 if (!isSevereCurseInStream && /(?:កម្អែប|កង្កែប|កូនកែវកែប|កែវកែប|កូនកែប|កែប|គីង្គក់|ស៊ុប|ស៊ិប|ស្វាយ|ថ្លុក|ស្ងោរ|Zuckerberg)/i.test(text)) {
@@ -3338,7 +3348,6 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           botResponse: botResponseText,
           isViolation: false
         }).catch((e) => console.error('[SessionLog] Error:', e.message));
-        checkAndExportInactiveSessions().catch(() => {});
 
         return Response.json({
           ...sanitized,
@@ -3473,7 +3482,6 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           botResponse: chosen,
           isViolation: false
         }).catch((e) => console.error('[SessionLog] Error:', e.message));
-        checkAndExportInactiveSessions().catch(() => {});
 
         return Response.json(
           {

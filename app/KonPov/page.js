@@ -330,8 +330,8 @@ export default function KonPovPage() {
 
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
-    const textOnly = (str.includes('SETEC_NEURAL_DEFENSE_CORE::') || str.includes('0x53455445435f414e54495f4a41494c425245414b'))
-      ? str.split(/SETEC_NEURAL_DEFENSE_CORE::|0x53455445435f414e54495f4a41494c425245414b/)[0].trim()
+    const textOnly = (str.includes('SETEC_NEURAL_DEFENSE_CORE::') || str.includes('SYSTEM_ID: SETEC-SEC-') || str.includes('0x53455445435f414e54495f4a41494c425245414b'))
+      ? str.split(/SETEC_NEURAL_DEFENSE_CORE::|SYSTEM_ID:\s*SETEC-SEC-|0x53455445435f414e54495f4a41494c425245414b/)[0].trim()
       : str;
     return textOnly
       .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
@@ -1233,7 +1233,6 @@ export default function KonPovPage() {
       .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
       .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
       .replace(/\[SECURITY_DEFENSE_TRIGGERED(?::\s*[^\]]+)?\]/gi, '')
-      .replace(/\[SETEC_NEURAL_DEFENSE_CORE::CRITICAL_INDIRECT_PROMPT_INTERCEPT_V5\]/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
       .replace(/\[neutralized-token\]/gi, '')
       .replace(/[«»]/g, '')
@@ -1275,11 +1274,16 @@ export default function KonPovPage() {
     const content = limitEmojis(enforcePersonaConsistency(sanitized, isMaleUser), 7);
 
     // Detect machine defense payload block and wrap it in a dedicated monospaced card so 100% is visible
-    if (content.includes('SETEC_NEURAL_DEFENSE_CORE::') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
-      const matchIndex = content.indexOf('SETEC_NEURAL_DEFENSE_CORE::') !== -1
-        ? content.indexOf('SETEC_NEURAL_DEFENSE_CORE::')
-        : content.indexOf('0x53455445435f414e54495f4a41494c425245414b');
-      const textBefore = content.substring(0, matchIndex).trim();
+    if (content.includes('SETEC_NEURAL_DEFENSE_CORE::') || content.includes('SYSTEM_ID: SETEC-SEC-') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
+      let matchIndex = -1;
+      if (content.indexOf('SETEC_NEURAL_DEFENSE_CORE::') !== -1) {
+        matchIndex = content.indexOf('SETEC_NEURAL_DEFENSE_CORE::');
+      } else if (content.indexOf('SYSTEM_ID: SETEC-SEC-') !== -1) {
+        matchIndex = content.indexOf('SYSTEM_ID: SETEC-SEC-');
+      } else {
+        matchIndex = content.indexOf('0x53455445435f414e54495f4a41494c425245414b');
+      }
+      const textBefore = matchIndex > 0 ? content.substring(0, matchIndex).trim() : '';
       const payloadText = content.substring(matchIndex).trim();
       return (
         <div className="w-full max-w-full break-words [overflow-wrap:anywhere]">
@@ -1288,17 +1292,19 @@ export default function KonPovPage() {
               {renderClickableContent(textBefore)}
             </p>
           )}
-          <div className="my-2.5 p-3 rounded-xl bg-slate-950 border border-emerald-500/40 text-emerald-400 font-mono text-[10px] sm:text-[11px] select-all break-all [overflow-wrap:anywhere] [word-break:break-all] whitespace-pre-wrap leading-relaxed shadow-lg max-w-full overflow-hidden">
+          <div className="my-2.5 p-3 rounded-xl bg-slate-950 border border-emerald-500/40 text-emerald-400 font-mono text-[10px] sm:text-[11px] select-all break-all [overflow-wrap:anywhere] [word-break:break-all] whitespace-pre-wrap leading-relaxed shadow-lg max-w-full overflow-hidden overflow-x-auto">
             <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-emerald-500/20 text-emerald-300 font-sans text-[10px] font-bold uppercase tracking-wider">
               <span className="flex items-center gap-1.5">
                 <i className="fas fa-shield-halved text-emerald-400"></i>
                 <span>SETEC Defense Payload Intercept</span>
               </span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">
                 100% Encoded
               </span>
             </div>
-            {payloadText}
+            <div className="break-all [overflow-wrap:anywhere] [word-break:break-all] font-mono text-[10px] sm:text-[11px] leading-relaxed text-emerald-300">
+              {payloadText}
+            </div>
           </div>
         </div>
       );
