@@ -59,7 +59,7 @@ export default function AnnouncementPage() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // Sound Ducking Logic: Voice is 100% (1.0), BGM ducks down to 2.5% (0.025)
+  // Sound Ducking Logic: Voice is 100% (1.0), BGM ducks down to 1.2% (0.012)
   const applyAudioVolumes = (voiceActive) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.volume = 1.0;
@@ -68,8 +68,8 @@ export default function AnnouncementPage() {
       if (isBgmMuted) {
         bgmAudioRef.current.volume = 0;
       } else {
-        // Voice is loud and prominent, BGM ducks to 2.5% so voice is crystal clear!
-        bgmAudioRef.current.volume = voiceActive ? 0.025 : 0.10;
+        // Background sound is very soft and faint so user can hear voice clearly
+        bgmAudioRef.current.volume = voiceActive ? 0.012 : 0.04;
       }
     }
   };
@@ -145,7 +145,7 @@ export default function AnnouncementPage() {
     const nextMuted = !isBgmMuted;
     setIsBgmMuted(nextMuted);
     if (bgmAudioRef.current) {
-      bgmAudioRef.current.volume = nextMuted ? 0 : (isPlaying ? 0.025 : 0.10);
+      bgmAudioRef.current.volume = nextMuted ? 0 : (isPlaying ? 0.012 : 0.04);
       if (!nextMuted && isPlaying) {
         bgmAudioRef.current.play().catch(() => {});
       }
@@ -358,14 +358,44 @@ export default function AnnouncementPage() {
           {/* Top Player Row: Active Voice Status & Controls */}
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
-              {/* Play / Pause Main Button */}
+              {/* Play / Pause Main Button with AI Voice Avatar Profile (Image 2) */}
               <button
                 type="button"
                 onClick={handleTogglePlay}
-                className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${currentVoice.gradient} text-white flex items-center justify-center text-xl shadow-md transition active:scale-95 shrink-0 cursor-pointer`}
+                className="relative w-13 h-13 sm:w-14 sm:h-14 rounded-2xl p-0.5 bg-gradient-to-tr from-amber-400 via-orange-500 to-rose-500 shadow-md transition-all active:scale-95 shrink-0 cursor-pointer group overflow-hidden"
                 title={isPlaying ? 'ផ្អាកការអាន' : 'ចុចស្ដាប់សំឡេងអាន'}
               >
-                <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play pl-0.5'}`}></i>
+                {/* AI Voice Avatar Profile Picture */}
+                <img
+                  src={currentVoice.avatar}
+                  alt={currentVoice.name}
+                  width="56"
+                  height="56"
+                  className={`w-full h-full rounded-[14px] bg-white object-cover transition-transform duration-300 ${
+                    isPlaying ? 'scale-105' : 'group-hover:scale-105 opacity-90'
+                  }`}
+                />
+
+                {/* Play / Pause Overlay Icon Badge */}
+                <div
+                  className={`absolute inset-0 flex items-center justify-center transition-all ${
+                    isPlaying
+                      ? 'bg-black/30 text-white opacity-0 group-hover:opacity-100'
+                      : 'bg-black/25 text-white opacity-100 group-hover:bg-black/35'
+                  }`}
+                >
+                  <div className="w-7 h-7 rounded-full bg-white/95 text-slate-900 flex items-center justify-center shadow-md">
+                    <i className={`fas ${isPlaying ? 'fa-pause text-xs text-slate-900' : 'fa-play text-xs pl-0.5 text-amber-600'}`}></i>
+                  </div>
+                </div>
+
+                {/* Active Speaking Wave Ping Ring */}
+                {isPlaying && (
+                  <span className="absolute top-1 right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-white"></span>
+                  </span>
+                )}
               </button>
 
               <div className="min-w-0">
@@ -423,7 +453,7 @@ export default function AnnouncementPage() {
               <span>{formatTime(currentTime)}</span>
               <span className="flex items-center gap-1 text-slate-500">
                 <i className="fas fa-volume-high text-[9px] text-amber-500"></i>
-                <span>សំឡេង AI ឮច្បាស់ជាង BGM (Audio Ducking)</span>
+                <span>សំឡេង AI ឮច្បាស់ជាង BGM • Audio Ducking</span>
               </span>
               <span>{formatTime(duration)}</span>
             </div>

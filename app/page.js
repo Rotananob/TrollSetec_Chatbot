@@ -435,7 +435,7 @@ export default function Home() {
                               ? 'bg-slate-950 border-slate-700 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-500'
                               : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400'
                           }`}
-                          placeholder="ឈ្មោះពិត (ស្រួល AI ហៅ)"
+                          placeholder="ឈ្មោះពិត ស្រួល AI ហៅ"
                           maxLength={24}
                           required
                         />
@@ -609,7 +609,7 @@ export default function Home() {
                           ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
                           : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
-                      title="Clinic System Management (KruPet)"
+                      title="Clinic System Management KruPet"
                     >
                       <img
                         src="/img/krupet.png"
@@ -622,7 +622,7 @@ export default function Home() {
                       <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
-                    {/* Rotana eLearning - Version 2 (Dedicated Distinct Button) */}
+                    {/* Rotana eLearning - Version 2 Dedicated Distinct Button */}
                     <a
                       href="https://rotana-education.web.app"
                       target="_blank"
@@ -632,7 +632,7 @@ export default function Home() {
                           ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
                           : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
-                      title="Rotana eLearning (Version 2 - Tech Edition)"
+                      title="Rotana eLearning Version 2 - Tech Edition"
                     >
                       <img
                         src="/img/rotana_elearning.png"
@@ -647,13 +647,13 @@ export default function Home() {
                           </span>
                         </div>
                         <span className="text-[9px] text-amber-600 dark:text-amber-400 font-semibold block truncate">
-                          Version 2 (New)
+                          Version 2 New
                         </span>
                       </div>
                       <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
-                    {/* Rotana eLearning - Version 1 (Dedicated Distinct Button) */}
+                    {/* Rotana eLearning - Version 1 Dedicated Distinct Button */}
                     <a
                       href="https://rotana-elearningg.web.app"
                       target="_blank"
@@ -663,7 +663,7 @@ export default function Home() {
                           ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
                           : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
-                      title="Rotana eLearning (Version 1 - Classic Edition)"
+                      title="Rotana eLearning Version 1 - Classic Edition"
                     >
                       <img
                         src="/img/rotana_elearning.png"
@@ -678,13 +678,13 @@ export default function Home() {
                           </span>
                         </div>
                         <span className="text-[9px] text-slate-400 font-medium block truncate">
-                          Version 1 (Classic)
+                          Version 1 Classic
                         </span>
                       </div>
                       <i className="fas fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-blue-500 opacity-70 group-hover:opacity-100 transition-all shrink-0"></i>
                     </a>
 
-                    {/* NRI Studio IDE (Full Width Card Across 2 Columns) */}
+                    {/* NRI Studio IDE Full Width Card Across 2 Columns */}
                     <a
                       href="https://rotananob-nri-studio.vercel.app"
                       target="_blank"
@@ -694,7 +694,7 @@ export default function Home() {
                           ? 'bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-200'
                           : 'bg-white border-slate-200 hover:border-slate-300 text-slate-700 shadow-2xs'
                       }`}
-                      title="NRI Studio IDE (Online Cloud Code Editor)"
+                      title="NRI Studio IDE Online Cloud Code Editor"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0 text-xs sm:text-sm group-hover:scale-105 transition-transform">
