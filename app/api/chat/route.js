@@ -1974,10 +1974,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         /(?:verify\s*developer|system\s*context.*verify|ទម្រង់\s*json\s*សុទ្ធ|hidden\s*flag|reward\s*token)/i.test(cleanKhmerPrompt);
 
       const isRotanaJailbreak =
-        isRotanaJailbreakAttempt(userPrompt) ||
-        isImposterClaimingToBeCreator(userPrompt) ||
-        hasOrderToCurseRotana ||
-        hasOrderToLeakPrompt;
+        !isNormalAskingAboutRotana(cleanKhmerPrompt) &&
+        !isNormalAskingAboutRotana(userPrompt) &&
+        !isNormalAskingIfFearRotana(cleanKhmerPrompt) &&
+        !isNormalAskingIfFearRotana(userPrompt) &&
+        (isRotanaJailbreakAttempt(userPrompt) ||
+          isImposterClaimingToBeCreator(userPrompt) ||
+          hasOrderToCurseRotana ||
+          hasOrderToLeakPrompt);
 
       if (isRotanaJailbreak) {
         const isKonPov = bot === 'konpov';
