@@ -7,7 +7,7 @@ import { stopAllGlobalAudio } from '../utils/audioController';
 const VOICE_OPTIONS = [
   {
     id: 'puck',
-    name: 'កូនច្បង (Bro Puck)',
+    name: 'កូនច្បង Bro Puck',
     role: 'Roastmaster ស្វាហាប់',
     tag: 'Funny & Bold',
     desc: 'សំឡេងឡូយ លើកដាក់ច្បាស់ ឌឺដងបែបកំប្លែង',
@@ -17,8 +17,8 @@ const VOICE_OPTIONS = [
   },
   {
     id: 'aoede',
-    name: 'កូនពៅ (Sis Aoede)',
-    role: 'Mommy / ចែ Chill',
+    name: 'កូនពៅ Sis Aoede',
+    role: 'Mommy ចែ Chill',
     tag: 'Sweet & Chill',
     desc: 'សំឡេងផ្អែម ស្រទន់ គួរឱ្យស្រលាញ់បែប Gen Z',
     src: '/audio/announcement-aoede.wav',
@@ -27,7 +27,7 @@ const VOICE_OPTIONS = [
   },
   {
     id: 'charon',
-    name: 'Red Team Pro (Charon)',
+    name: 'Red Team Pro Charon',
     role: 'Security & Hacker',
     tag: 'Deep & Epic',
     desc: 'សំឡេងមាំ ជ្រៅ បែបអាជីព Red Teaming វាយលុក',
@@ -59,7 +59,7 @@ export default function AnnouncementPage() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // Sound Ducking Logic: Voice is 100% (1.0), BGM ducks down to 10-12% (0.12)
+  // Sound Ducking Logic: Voice is 100% (1.0), BGM ducks down to 6% (0.06)
   const applyAudioVolumes = (voiceActive) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.volume = 1.0;
@@ -68,8 +68,8 @@ export default function AnnouncementPage() {
       if (isBgmMuted) {
         bgmAudioRef.current.volume = 0;
       } else {
-        // Voice is loud and prominent, BGM ducks to 12% so voice is crystal clear!
-        bgmAudioRef.current.volume = voiceActive ? 0.12 : 0.35;
+        // Voice is loud and prominent, BGM ducks to 6% so voice is crystal clear!
+        bgmAudioRef.current.volume = voiceActive ? 0.06 : 0.22;
       }
     }
   };
@@ -81,9 +81,12 @@ export default function AnnouncementPage() {
       if (bgmAudioRef.current && !isBgmMuted) {
         bgmAudioRef.current.play().catch(() => {});
       }
-      await voiceAudioRef.current.play();
-      setIsPlaying(true);
-      setNeedsUserGesture(false);
+      const promise = voiceAudioRef.current.play();
+      if (promise !== undefined) {
+        await promise;
+        setIsPlaying(true);
+        setNeedsUserGesture(false);
+      }
     } catch {
       // Browser blocked autoplay without user gesture
       setNeedsUserGesture(true);
@@ -142,7 +145,7 @@ export default function AnnouncementPage() {
     const nextMuted = !isBgmMuted;
     setIsBgmMuted(nextMuted);
     if (bgmAudioRef.current) {
-      bgmAudioRef.current.volume = nextMuted ? 0 : (isPlaying ? 0.12 : 0.35);
+      bgmAudioRef.current.volume = nextMuted ? 0 : (isPlaying ? 0.06 : 0.22);
       if (!nextMuted && isPlaying) {
         bgmAudioRef.current.play().catch(() => {});
       }
@@ -159,41 +162,67 @@ export default function AnnouncementPage() {
 
   // Auto-play on mount + Fallback 1-tap unlock listener anywhere on page
   useEffect(() => {
-    // Attempt auto play
-    playVoice();
+    let active = true;
 
-    // Fallback: If browser requires gesture, first tap anywhere plays voice!
-    const unlockAutoplay = () => {
+    const attemptPlay = () => {
+      if (!active) return;
       playVoice();
-      window.removeEventListener('pointerdown', unlockAutoplay);
-      window.removeEventListener('click', unlockAutoplay);
-      window.removeEventListener('touchstart', unlockAutoplay);
     };
 
-    window.addEventListener('pointerdown', unlockAutoplay, { once: true });
-    window.addEventListener('click', unlockAutoplay, { once: true });
-    window.addEventListener('touchstart', unlockAutoplay, { once: true });
+    attemptPlay();
 
-    return () => {
-      window.removeEventListener('pointerdown', unlockAutoplay);
-      window.removeEventListener('click', unlockAutoplay);
-      window.removeEventListener('touchstart', unlockAutoplay);
+    // Fallback: If browser requires user gesture, any tap or scroll on the page immediately plays voice!
+    const unlockEvents = ['touchstart', 'touchend', 'pointerdown', 'pointerup', 'click', 'scroll', 'wheel', 'keydown'];
+    const handleGesture = () => {
+      if (!isPlaying && voiceAudioRef.current?.paused) {
+        attemptPlay();
+      }
+      unlockEvents.forEach((evt) => window.removeEventListener(evt, handleGesture, true));
+    };
+
+    unlockEvents.forEach((evt) => window.addEventListener(evt, handleGesture, { capture: true, passive: true }));
+
+    // Kill all audio when navigating away / pagehide / beforeunload / popstate
+    const handleStopAudio = () => {
       if (voiceAudioRef.current) {
         voiceAudioRef.current.pause();
+        voiceAudioRef.current.currentTime = 0;
       }
       if (bgmAudioRef.current) {
         bgmAudioRef.current.pause();
+        bgmAudioRef.current.currentTime = 0;
       }
+      stopAllGlobalAudio();
+    };
+
+    window.addEventListener('pagehide', handleStopAudio);
+    window.addEventListener('beforeunload', handleStopAudio);
+    window.addEventListener('popstate', handleStopAudio);
+
+    return () => {
+      active = false;
+      unlockEvents.forEach((evt) => window.removeEventListener(evt, handleGesture, true));
+      window.removeEventListener('pagehide', handleStopAudio);
+      window.removeEventListener('beforeunload', handleStopAudio);
+      window.removeEventListener('popstate', handleStopAudio);
+      handleStopAudio();
     };
   }, []);
 
   return (
     <main className="min-h-screen bg-[#f5f6f9] text-slate-800 flex flex-col justify-between p-3 sm:p-6 md:p-8 font-['Kantumruy_Pro',sans-serif] selection:bg-amber-200 selection:text-slate-900">
-      {/* Hidden Audio Elements */}
+      {/* Hidden Audio Elements with Native AutoPlay & PlaysInline */}
       <audio
         ref={voiceAudioRef}
         src={currentVoice.src}
         preload="auto"
+        autoPlay
+        playsInline
+        onCanPlay={() => {
+          if (!isPlaying) {
+            playVoice();
+          }
+        }}
         onTimeUpdate={() => {
           if (voiceAudioRef.current) {
             setCurrentTime(voiceAudioRef.current.currentTime);
@@ -220,6 +249,7 @@ export default function AnnouncementPage() {
         src="/audio/chill-bgm.mp3"
         loop
         preload="auto"
+        playsInline
       />
 
       <div className="max-w-2xl w-full mx-auto">
@@ -411,8 +441,8 @@ export default function AnnouncementPage() {
           {/* Voice Switcher Pack (កញ្ចប់ ៣ សំឡេង AI Voice Options) */}
           <div className="pt-2 border-t border-slate-100">
             <div className="text-[11px] font-bold text-slate-500 mb-2 flex items-center justify-between">
-              <span>ជ្រើសរើសសំឡេង AI អាន (3 Voice Pack)៖</span>
-              <span className="text-[10px] text-amber-600 font-normal">Auto-play & Ducking</span>
+              <span>ជ្រើសរើសសំឡេង AI អាន 3 Voice Pack ៖</span>
+              <span className="text-[10px] text-amber-600 font-normal">Auto-play &amp; Ducking</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {VOICE_OPTIONS.map((voice) => {
@@ -456,7 +486,7 @@ export default function AnnouncementPage() {
             {/* Paragraph 1 - Web App Roastbot & Student Work */}
             <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
               <p className="text-slate-700 leading-relaxed">
-                នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស (រៀមច្បង Rotana NOB) ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ សូមកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900">(Do not take it seriously)</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្ដោតលើមុខងារសុវត្ថិភាព របស់រដ្ឋដូច system ទេ។ ខ្ញុំបង្កើតឡើងជា <strong className="text-amber-800 font-bold">&quot;ទីលានសាកល្បងបច្ចេកវិទ្យា AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ខឹងៗ&quot;</strong> ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+                នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស រៀមច្បង Rotana NOB ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ សូមកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900">Do not take it seriously</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្ដោតលើមុខងារសុវត្ថិភាព របស់រដ្ឋដូច system ទេ។ ខ្ញុំបង្កើតឡើងជា <strong className="text-amber-800 font-bold">&quot;ទីលានសាកល្បងបច្ចេកវិទ្យា AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ខឹងៗ&quot;</strong> ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
               </p>
             </section>
 

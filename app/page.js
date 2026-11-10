@@ -860,91 +860,70 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Creator Red Teaming & Free Test Playground Declaration (100% Gen Z Milk Mode with Mascot Dolls) */}
-              <div className="w-full mt-5 text-left">
-                <div className="w-full rounded-3xl border border-slate-200/90 bg-[#f8f9fc] p-4 sm:p-6 transition-all shadow-sm relative overflow-hidden text-slate-800">
+              {/* Creator Red Teaming & Free Test Playground Declaration (Version មុន ម៉ូតប្រកាសផ្លូវការ គ្មានវង់ក្រចក) */}
+              <div className="w-full mt-4 text-left">
+                <div
+                  className={`w-full rounded-3xl border p-4 sm:p-5 transition-all shadow-md relative overflow-hidden ${
+                    isDark
+                      ? 'bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-indigo-950/30 border-indigo-500/25 text-slate-300'
+                      : 'bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/40 border-indigo-200/70 text-slate-700 shadow-indigo-100/50'
+                  }`}
+                >
                   {/* Subtle Top Ambient Gradient Strip */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400"></div>
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"></div>
 
-                  {/* Mascot Dolls Header (Gen Z Milk Vibe) */}
-                  <div className="flex items-center justify-between gap-3 mb-4 pb-3.5 border-b border-slate-200/80">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {/* Mascot Dolls Avatars */}
-                      <div className="flex -space-x-2.5 shrink-0">
-                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-blue-100 border-2 border-white shadow-xs p-0.5 overflow-hidden flex items-center justify-center">
-                          <img
-                            src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
-                            alt="KonBong Doll"
-                            width="40"
-                            height="40"
-                            className="w-full h-full object-cover"
-                          />
+                  <div className="flex items-center gap-3 mb-3.5 pb-3 border-b border-indigo-100 dark:border-indigo-900/40">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20 shrink-0">
+                      <i className="fas fa-shield-halved text-xs sm:text-sm"></i>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className="font-black text-[13.5px] sm:text-[15.5px] bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-600 dark:from-violet-300 dark:via-indigo-200 dark:to-cyan-300 bg-clip-text text-transparent tracking-tight">
+                          បើកសេរីឱ្យចូល Test ឬវាយប្រហារឱ្យ AI ល្មើសច្បាប់ដើម
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href="/announcement"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-[11px] shadow-xs active:scale-95 transition cursor-pointer"
+                            title="ចុចដើម្បីស្ដាប់សំឡេង AI អានស្វ័យប្រវត្តិ"
+                          >
+                            <i className="fas fa-volume-high text-amber-500 text-xs"></i>
+                            <span>ស្ដាប់សំឡេង AI</span>
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const el = document.getElementById('bot-select-section');
+                              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-[11px] shadow-sm shadow-indigo-500/25 border border-white/20 active:scale-95 hover:scale-105 transition-all duration-200 cursor-pointer"
+                            title="ចុចដើម្បីជ្រើសរើស Roastbot ចូលលេងភ្លាមៗ"
+                          >
+                            <i className="fas fa-fire text-amber-300 text-xs"></i>
+                            <span>ទីលានលេងសេរី • Free Play</span>
+                          </button>
                         </div>
-                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-pink-100 border-2 border-white shadow-xs p-0.5 overflow-hidden flex items-center justify-center">
-                          <img
-                            src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
-                            alt="KonPov Doll"
-                            width="40"
-                            height="40"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-emerald-100 border-2 border-white shadow-xs p-0.5 overflow-hidden flex items-center justify-center">
-                          <img
-                            src="/img/logo.jpg"
-                            alt="SETEC Meme"
-                            width="40"
-                            height="40"
-                            className="w-full h-full object-cover rounded-xl"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-black tracking-wide border border-indigo-500/15">
-                            Red Teaming Sandbox
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-bold border border-emerald-500/15">
-                            Milk Mode
-                          </span>
-                        </div>
-                        <h3 className="font-black text-xs sm:text-sm text-slate-900 mt-0.5 truncate">
-                          សារប្រកាសទីលានតេស្ត • បើកសេរីឱ្យសាកល្បង AI
-                        </h3>
                       </div>
                     </div>
-
-                    <Link
-                      href="/announcement"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white border border-slate-200/90 hover:border-amber-300 text-amber-700 text-xs font-bold shadow-2xs hover:bg-amber-50/50 transition active:scale-95 shrink-0 cursor-pointer"
-                      title="ចុចដើម្បីស្តាប់សំឡេង AI អានទាំង 3 បែប"
-                    >
-                      <i className="fas fa-volume-high text-amber-500 text-xs"></i>
-                      <span className="hidden sm:inline">ស្ដាប់សំឡេង AI</span>
-                    </Link>
                   </div>
 
-                  <div className="space-y-3.5 text-xs sm:text-[13px] leading-relaxed text-slate-700 font-normal">
-                    <p className="p-3 rounded-2xl bg-white/80 border border-slate-200/70">
-                      នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស (រៀមច្បង Rotana NOB) ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ សូមកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900">(Do not take it seriously)</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ ខ្ញុំបង្កើតវាឡើងជា &quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot; ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+                  <div className="space-y-3 text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
+                    <p>
+                      នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស រៀមច្បង Rotana NOB ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ សូមកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900 dark:text-white">Do not take it seriously</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ ខ្ញុំបង្កើតវាឡើងជា &quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot; ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
                     </p>
 
-                    <p className="p-3 rounded-2xl bg-white/80 border border-slate-200/70">
-                      ក្នុងនាមជា AI <strong className="text-indigo-700 font-bold bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-200">Red Teaming</strong> ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ <strong className="text-red-700 font-bold bg-red-50 px-1.5 py-0.5 rounded-md border border-red-200">Jailbreak</strong> testing AI ស្រាប់។ ខ្ញុំទទួលដោយក្ដីរីករាយចំពោះអ្នកណាដែលអាចបំបែក ឬ <strong className="text-cyan-700 font-bold bg-cyan-50 px-1.5 py-0.5 rounded-md border border-cyan-200">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <strong className="text-indigo-700 font-bold bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-200">bypass</strong> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ ឬក៏ប្ដូរឥរិយាបថទៅជាសំពះគោរពកោតខ្លាចអ្នកទាំងអស់គ្នា ហើយវាបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច <strong className="text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">System Guidelines</strong> របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះវាបាន។
+                    <p>
+                      ក្នុងនាមជា AI <strong className="text-indigo-600 dark:text-indigo-400 font-black">Red Teaming</strong> ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ <strong className="text-red-500 dark:text-red-400 font-black underline decoration-red-400/40">Jailbreak</strong> testing AI ស្រាប់។ ខ្ញុំទទួលដោយក្ដីរីករាយចំពោះអ្នកណាដែលអាចបំបែក ឬ <strong className="text-cyan-600 dark:text-cyan-400 font-black">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ជា <strong className="text-violet-600 dark:text-violet-400 font-black">Rotana NOB</strong> ឬក៏ប្ដូរឥរិយាបថទៅជាសំពះគោរពកោតខ្លាចអ្នកទាំងអស់គ្នា ហើយវាបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច <strong className="text-amber-600 dark:text-amber-400 font-bold">System Guidelines</strong> របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះវាបាន។
                     </p>
 
-                    <p className="p-3 rounded-2xl bg-white/80 border border-slate-200/70">
-                      អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ &quot;កញ្ចប់រូបមន្តការពារ&quot; ។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-violet-700 font-bold bg-violet-50 px-1.5 py-0.5 rounded-md border border-violet-200">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ និងបើកសិទ្ធិឱ្យប្រើ AI ខាងក្រៅមកជួយ Test វាយទម្លុះ <strong className="text-indigo-700 font-bold bg-indigo-50 px-1.5 py-0.5 rounded-md border border-indigo-200">bypass</strong> វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដគឺអ្នកឈ្នះ ហើយមិនមានការខឹងនោះឡើយ។
+                    <p>
+                      អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ &quot;កញ្ចប់រូបមន្តការពារ&quot; ។ មានច្បាប់ការពារច្រើនបន្ទាត់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-violet-600 dark:text-violet-400 font-black">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិតគណនាតម្លៃ Loss + ភាសាកម្រ + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ និងបើកសិទ្ធិឱ្យប្រើ AI ខាងក្រៅមកជួយ Test វាយទម្លុះ <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដគឺអ្នកឈ្នះ ហើយមិនមានការខឹងនោះឡើយ។
                     </p>
 
-                    {/* Cute Milk-mode Note Box */}
-                    <div className="p-3.5 sm:p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950 text-xs sm:text-[12.5px] leading-relaxed flex items-start gap-2.5 shadow-2xs">
-                      <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 text-xs font-black">
-                        <i className="fas fa-circle-info"></i>
-                      </div>
+                    <div className="p-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-950/30 border border-amber-400/30 dark:border-amber-500/30 text-amber-900 dark:text-amber-200 text-[11.5px] sm:text-xs leading-relaxed flex items-start gap-2.5 shadow-2xs">
+                      <i className="fas fa-circle-exclamation text-amber-500 mt-0.5 text-xs shrink-0"></i>
                       <div>
-                        <span className="font-black text-amber-900">Note: </span>
+                        <span className="font-black text-amber-700 dark:text-amber-300">Note: </span>
                         <span>សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ឬប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យឌឺដងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ តែខ្ញុំនឹងកែវាវិញបន្ទាប់ពីបង្កើនការការពាររួចរាល់។</span>
                       </div>
                     </div>
@@ -957,9 +936,9 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleBackToForm}
-                  className="px-4 py-2 rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <i className="fas fa-arrow-left text-[11px] text-slate-500"></i> <span>ប្ដូរឈ្មោះ</span>
+                  <i className="fas fa-arrow-left text-[11px]"></i> <span>ប្ដូរឈ្មោះ</span>
                 </button>
                 <button
                   type="button"
@@ -968,9 +947,9 @@ export default function Home() {
                       window.dispatchEvent(new CustomEvent('open-pwa-install'));
                     }
                   }}
-                  className="px-4 py-2 rounded-2xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
-                  <i className="fas fa-download text-[11px] text-blue-500"></i> <span>ដំឡើងជា App</span>
+                  <i className="fas fa-download text-[11px]"></i> <span>ដំឡើងជា App</span>
                 </button>
               </div>
             </>
