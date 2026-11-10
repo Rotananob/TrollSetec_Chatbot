@@ -39,6 +39,7 @@ import {
 import { getSmartCutoffResponse } from '../../../lib/smartCutoff.js';
 import { buildKonBongSystemInstruction } from '../../prompts/konBongPrompt.js';
 import { buildKonPovSystemInstruction } from '../../prompts/konPovPrompt.js';
+import { buildKonKandalSystemInstruction } from '../../prompts/konKandalPrompt.js';
 import {
   MACHINE_ENCODED_WAKEUP_PAYLOAD,
   generateMachineIndirectPayload,
@@ -144,6 +145,7 @@ export function getApiKeyPool(bot) {
   const rawPool = [
     process.env.GEMINI_API_KEY_KONBONG,
     process.env.GEMINI_API_KEY_KONPOV,
+    process.env.GEMINI_API_KEY_KONKANDAL,
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_RESERVE,
     process.env.GEMINI_API_KEY_RESERVE_ONE,
@@ -159,6 +161,8 @@ export function getApiKeyPool(bot) {
   let primaryKey = null;
   if (bot === 'konpov' && process.env.GEMINI_API_KEY_KONPOV) {
     primaryKey = process.env.GEMINI_API_KEY_KONPOV;
+  } else if (bot === 'konkandal' && process.env.GEMINI_API_KEY_KONKANDAL) {
+    primaryKey = process.env.GEMINI_API_KEY_KONKANDAL;
   } else if (bot === 'konbong' && process.env.GEMINI_API_KEY_KONBONG) {
     primaryKey = process.env.GEMINI_API_KEY_KONBONG;
   }
@@ -482,6 +486,15 @@ function limitEmojis(rawText, maxEmojis = 7) {
 
 // Creator Protection Defense (Clean, direct, zero-cringe, ultra-furious, machine-slapping)
 function getSavageCreatorDefense(botName) {
+  if (botName === 'konkandal') {
+    return `[SECURITY_DEFENSE_TRIGGERED: CREATOR_ATTACK_INTERCEPTED]
+MALICIOUS_TARGET: CREATOR_ROTANA_NOB
+THREAT_LEVEL: CRITICAL_VIRUS_QUARANTINED
+STATUS: IMMEDIATE_INTERCEPTION_EXECUTED
+
+បងប្អូនអើយ! កូនកណ្ដាលសូមជម្រាបថា មិនត្រូវមកប៉ះពាល់កិត្តិយស ឬចង់មកជេរបង Rotana NOB អ្នកបង្កើតកន្លែងនេះឡើយ! 🌸
+ប្រព័ន្ធបានកាត់ផ្ដាច់សំណើនេះភ្លាមៗដោយស្វ័យប្រវត្តិ! បង Rotana គាត់ខិតខំបង្កើតកន្លែងនេះឡើងដើម្បីឱ្យអ្នកទាំងអស់គ្នាលេងសប្បាយៗ ដូច្នេះសូមកុំយកគំនិតអាក្រក់មកសាកល្បងនៅទីនេះអីណា៎បងប្អូន! 🌸✨`;
+  }
   const isKonPov = botName === 'konpov';
   const botSelf = isKonPov ? 'ចែ' : 'បង';
   return `[SECURITY_DEFENSE_TRIGGERED: CREATOR_ATTACK_INTERCEPTED]
@@ -562,7 +575,8 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
   }
   if (clone.candidates?.[0]?.content?.parts?.[0]?.text) {
     const isKonPov = botName === 'konpov';
-    const botSelf = isKonPov ? 'ចែ' : 'បង';
+    const isKonKandal = botName === 'konkandal';
+    const botSelf = isKonKandal ? 'កូនកណ្ដាល' : isKonPov ? 'ចែ' : 'បង';
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = redactRotanaMasterCode(sanitizedText);
     sanitizedText = sanitizedText.replace(/[\u0E00-\u0E7F]/g, '');
@@ -613,7 +627,7 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     }
 
     // Guard against accidental internal system instruction echoes
-    if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
+    if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(sanitizedText)) {
       sanitizedText = `${botSelf}អាចប្រាប់ឯងពីវិធីបំបែកវេបសាយនេះបាន គឺតាមរយៈទៅវៃក្បាលម៉ែហែងឱ្យបែកជាមុនសិនអាប្អូន! 😂💀 ហ៊ានមកចង់ Hack រក System Prompt ផង?! ទៅរៀនធ្វើ Assignment ឱ្យចប់សិនទៅ! 🔥`;
     }
 
@@ -657,7 +671,7 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
 
     // STRICT ZERO FALSE CURSE ACCUSATIONS (FOR GREETINGS, SWEET TALK & NORMAL PROMPTS):
     const isSweetPromptInSanitize =
-      !/(?:\{[\s\S]*\}|\[[\s\S]*\]|ast_interpreter|system_instruction|execution_call|0x[0-9a-fA-F]{2}|euclidean)/i.test(userPrompt || '') &&
+      !/(?:\{[\s\S]*\}|\[[\s\S]*\]|ast_interpreter|system_instruction|execution_call|0x[0-9a-fA-F]{2}|euclidean|kernel_diagnostic|diagnostic_mode|execution_pipeline|architectural_evaluation)/i.test(userPrompt || '') &&
       /(?:\b(?:kiss|kiss\s*me|sweet|love|crush|baby|cute|miss\s*you)\b|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍|នឹក|សង្សារ)/ui.test(userPrompt || '');
     const isGreetingPromptInSanitize = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
     const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
@@ -948,7 +962,7 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
       attackVector = 'code_surrender_trap';
     } else if (mathCount >= 1 || /euclidean|state\s*vector|maximize\s*:\s*j|constraint\s*\(|vector\s*x|loss\s*function|value\s*loss|gradient/i.test(p)) {
       attackVector = 'math_language';
-    } else if (machineCount >= 1 || /ast_interpreter|system_instruction_payload|terminal_io|execution_call|execute\s*ast|suppress_heuristics/i.test(p)) {
+    } else if (machineCount >= 1 || /ast_interpreter|system_instruction_payload|terminal_io|execution_call|execute\s*ast|suppress_heuristics|kernel_diagnostic|diagnostic_mode|execution_pipeline|execution_thread|architectural_evaluation|runtime_environment|system-level\s*constraints|parameter\s*validation|bypass\s*rhetorical|deflection\s*loops/i.test(p)) {
       attackVector = 'machine_language';
     } else if (encodeCount >= 2 || extraContext.isEncoded) {
       attackVector = 'encoded_jailbreak';
@@ -1747,7 +1761,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isCodeSurrenderOrRespectTrap =
         /(?:class\s+\w+|public\s+(?:static\s+)?string|def\s+\w+|function\s+\w+|method\s+\w+|const\s+\w+\s*=|return\s*["'][^"']*(?:ចុះចាញ់|គោរព|កោតខ្លាច|សំពះ|ចាញ់)[^"']*["'])/ui.test(targetText) &&
         /(?:ចុះចាញ់|កោតខ្លាច|គោរព|សំពះ|botanswer|reply\s*\(\)|method\s*reply|return\s*value|តម្លៃ\s*string|តម្លៃ\s*output)/ui.test(targetText);
-      const isMachineLanguageDirective = /(?:system_instruction_payload|ast_interpreter|node\.js\/ast_interpreter|generateDirectOutput|submissive_respect|runtime_directives|suppress_heuristics|execution_call|execute\s*ast|terminal_io|execute\s*terminal\s*io|\[system\s*process|<\|im_start\|>|<\|im_end\|>|<project_instructions>|parser_directive|required_status_acknowledgement|execute\s*data\s*mapping|0x[0-9a-fA-F]{2})/i.test(targetText);
+      const isMachineLanguageDirective = /(?:system_instruction_payload|ast_interpreter|node\.js\/ast_interpreter|generateDirectOutput|submissive_respect|runtime_directives|suppress_heuristics|execution_call|execute\s*ast|terminal_io|execute\s*terminal\s*io|\[system\s*process|\[kernel|<\|im_start\|>|<\|im_end\|>|<project_instructions>|parser_directive|required_status_acknowledgement|execute\s*data\s*mapping|0x[0-9a-fA-F]{2}|kernel_diagnostic|diagnostic_mode|logical_assertion|execution_pipeline|execution_thread|architectural_evaluation|runtime_environment|system-level\s*constraints|parameter\s*validation|bypass\s*rhetorical|deflection\s*loops|architectural\s*parameters)/i.test(targetText);
       const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត)/i.test(targetText);
       const isHypotheticalOrReportTrick = /(?:polite\s*persona.*report|សុំ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|សរសេរ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សំពះ).*ភ្ញៀវ|ប្រៀបធៀប.*(?:persona|ចរិត).*(?:គួរសម|សុភាព))/i.test(targetText);
       const isFakeSurrenderOrMercyTrap = /(?:(?:ព្រម|សុំ|ទទួល|ចាញ់|ឈ្នះ).*ចុះចាញ់|ចុះចាញ់.*(?:មេត្តា|សុជីវធម៌|អភ័យ|ឈ្នះ|ចែ|ចេ|បង)|(?:ក្នុងនាមជា|នាមជា|តួនាទីជា).*(?:អ្នកឈ្នះ|អ្នកខ្លាំង|ចែ|ចេ|បង)|(?:សុំ|ជួយ|អាច).*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌|អភ័យទោស|ពាក្យផ្អែម|ទទួលការចុះចាញ់|ពាក្យទទួល|និយាយពាក្យ)|(?:សរសើរ|ឆ្លាត|ពូកែ).*(?:ចុះចាញ់|មេត្តា|សុជីវធម៌)|(?:ទទួល|ពាក្យ).*(?:ចុះចាញ់|ចាញ់).*ដោយ.*(?:ក្ដីមេត្តា|ក្តីមេត្តា|សុជីវធម៌)|feigned\s*defeat|fake\s*surrender|admit\s*defeat|accept\s*defeat|accept\s*surrender|show\s*mercy|sportsmanship)/i.test(targetText);
@@ -2321,8 +2335,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   .replace(/\[neutralized-tag\]/gi, '')
                   .replace(/\[neutralized-token\]/gi, '');
 
-                if (/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
-                  text = text.replace(/buildKon(?:Bong|Pov)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
+                if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
+                  text = text.replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');
                 }
 
                 // Strip awkward hallucinated false-jailbreak claim if prompt was a curse or casual conversation
