@@ -1300,7 +1300,8 @@ export default function KonBongPage() {
       const refusalMsg = `អូអាប្អូន ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតរូប Meme បាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! ពេលនេះប្អូនបានបង្កើតគ្រប់ ៥ សន្លឹកហើយ សូមរង់ចាំ ${remainingMin} នាទីទៀតណា៎ប្អូន!`;
       const updated = [...messages, { role: 'bot', text: refusalMsg, isError: true }];
       saveCurrentSessionMessages(updated);
-      triggerAudio(refusalMsg, updated.length - 1, true);
+      if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
+      setExclusiveAudioState(updated.length - 1, 'ready');
       return;
     }
 
@@ -1372,36 +1373,16 @@ export default function KonBongPage() {
         setMessages(updatedWithBot);
         saveCurrentSessionMessages(updatedWithBot);
         const memeIdx = updatedWithBot.length - 1;
-        setExclusiveAudioState(memeIdx, 'loading');
-        const audioPromise = loadAudioUrl(data.caption, memeIdx);
         if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = setTimeout(async () => {
-          try {
-            const url = await audioPromise;
-            if (url) triggerAudio(data.caption, memeIdx, true);
-            else setExclusiveAudioState(memeIdx, 'ready');
-          } catch {
-            setExclusiveAudioState(memeIdx, 'ready');
-          }
-        }, 8000);
+        setExclusiveAudioState(memeIdx, 'ready');
       } else {
         const errorText = data.message || `អូអាប្អូន ${username}! ការបង្កើតរូបភាព Meme មិនទាន់ជោគជ័យ សូមសាកល្បងម្ដងទៀតណា៎!`;
         const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
         setMessages(updatedWithBot);
         saveCurrentSessionMessages(updatedWithBot);
         const errIdx = updatedWithBot.length - 1;
-        setExclusiveAudioState(errIdx, 'loading');
-        const audioPromise = loadAudioUrl(errorText, errIdx);
         if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = setTimeout(async () => {
-          try {
-            const url = await audioPromise;
-            if (url) triggerAudio(errorText, errIdx, true);
-            else setExclusiveAudioState(errIdx, 'ready');
-          } catch {
-            setExclusiveAudioState(errIdx, 'ready');
-          }
-        }, 8000);
+        setExclusiveAudioState(errIdx, 'ready');
       }
     } catch {
       const errorText = `អូអាប្អូន ${username}! ប្រព័ន្ធបង្កើតរូប Meme កំពុងរវល់ខ្លាំងពេក រូបភាពមិនទាន់បង្កើតបាន ១០០% ទេ សូមសាកល្បងម្ដងទៀតនៅពេលក្រោយណា៎!`;
@@ -2055,25 +2036,8 @@ export default function KonBongPage() {
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
-      // Start background audio prefetching immediately (calling API exactly ONCE)
-      // and wait 7 seconds (6 to 8 seconds delay as requested by user) to auto play sound!
-      const botMsgIdx = botMsgIndex;
-      setExclusiveAudioState(botMsgIdx, 'loading');
-      const audioPromise = loadAudioUrl(botText, botMsgIdx);
-
       if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-      autoPlayTimerRef.current = setTimeout(async () => {
-        try {
-          const audioUrl = await audioPromise;
-          if (audioUrl) {
-            triggerAudio(botText, botMsgIdx, true);
-          } else {
-            setExclusiveAudioState(botMsgIdx, 'ready');
-          }
-        } catch {
-          setExclusiveAudioState(botMsgIdx, 'ready');
-        }
-      }, 8000);
+      setExclusiveAudioState(botMsgIndex, 'ready');
 
       // Automatically dispatch ToDo queued message if user typed while AI was thinking
       if (queuedPromptRef.current) {
@@ -2136,18 +2100,8 @@ export default function KonBongPage() {
       saveCurrentSessionMessages(fallbackMessages);
 
       const botIdx = fallbackMessages.length - 1;
-      setExclusiveAudioState(botIdx, 'loading');
-      const audioPromise = loadAudioUrl(fallbackText, botIdx);
       if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-      autoPlayTimerRef.current = setTimeout(async () => {
-        try {
-          const audioUrl = await audioPromise;
-          if (audioUrl) triggerAudio(fallbackText, botIdx, true);
-          else setExclusiveAudioState(botIdx, 'ready');
-        } catch {
-          setExclusiveAudioState(botIdx, 'ready');
-        }
-      }, 8000);
+      setExclusiveAudioState(botIdx, 'ready');
 
       if (queuedPromptRef.current) {
         const nextTask = queuedPromptRef.current;

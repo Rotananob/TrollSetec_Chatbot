@@ -80,11 +80,11 @@ export default function KonPovPage() {
   const countdownIntervalRef = useRef(null);
 
   // Dynamic Bot Persona, Avatar & Voice based on User Gender:
-  // User Girl -> KonPov is Daddy (Boy Avatar, Male Voice 'Puck'); User Boy -> KonPov is Mommy/ចែ (Girl Avatar, Female Voice 'Aoede')
+  // User Girl -> KonPov is Daddy (Boy Avatar 'Jack', Male Voice 'Puck'); User Boy -> KonPov is Mommy/ចែ (Girl Avatar 'Aneka', Female Voice 'Aoede')
   const isDaddyMode = userGender === 'ស្រី';
   const botAvatar = isDaddyMode
-    ? 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Daddy'
-    : 'https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl';
+    ? 'https://api.dicebear.com/7.x/lorelei/svg?seed=Jack'
+    : 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka';
   const botPersonaTitle = isDaddyMode ? 'Chatbot កូនពៅ (ប៉ា)' : 'Chatbot កូនពៅ (ចែ)';
 
   // Custom Delete History Modal State
@@ -341,7 +341,7 @@ export default function KonPovPage() {
 
       // USER FEMALE (ស្រី) -> DADDY Voice ('Puck' / Male)
       // USER BOY (ប្រុស) -> MOMMY Voice ('Aoede' / Female)
-      const activeGender = gender || userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ស្រី';
+      const activeGender = userGender || gender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ប្រុស';
       const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
       const voiceName = isFemaleUser ? 'Puck' : 'Aoede';
       const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
@@ -1053,33 +1053,49 @@ export default function KonPovPage() {
     if (!rawText || typeof rawText !== 'string') return rawText;
     let text = sanitizeRotanaAttack(rawText);
 
-    // KonPov is strictly female (ចែ / Mommy) - purge accidental "Daddy" safely
+    // Common role cleanups
     text = text
-      .replace(/\bDaddy\b/gi, 'ចែ')
-      .replace(/ដាឌី/g, 'ចែ')
-      .replace(/លោកប៉ា/g, 'ចែ')
-      .replace(/ប៉ាៗ/g, 'ចែៗ')
-      .replace(/(?:^|\s)ប៉ា(?=\s|[!?~,។៕]|$)/g, ' ចែ ')
-      .replace(/រៀមច្បង IT/g, 'ចែ/Mommy កូនពៅ')
-      .replace(/រៀមច្បង/g, 'ចែ កូនពៅ')
-      .replace(/បងកូនច្បង/g, 'ចែកូនពៅ')
+      .replace(/រៀមច្បង IT/g, isMale ? 'ចែ/Mommy កូនពៅ' : 'ប៉ា/Daddy កូនពៅ')
+      .replace(/រៀមច្បង/g, isMale ? 'ចែ កូនពៅ' : 'ប៉ា កូនពៅ')
+      .replace(/បងកូនច្បង/g, isMale ? 'ចែកូនពៅ' : 'ប៉ាកូនពៅ')
       .replace(/កូនច្បង/g, 'កូនពៅ');
+
+    if (!isMale) {
+      // USER IS FEMALE (ស្រី) -> Bot is DADDY (ប៉ា / Daddy), Voice BOY
+      // Strictly ensure Daddy persona: purge accidental "ចែ/Mommy" and call user "កូនស្រី"
+      text = text
+        .replace(/\bMommy\b/gi, 'Daddy')
+        .replace(/ម៉ាក់ៗ/g, 'ប៉ាៗ')
+        .replace(/ម៉ាក់/g, 'ប៉ា')
+        .replace(/ចែៗ/g, 'ប៉ាៗ')
+        .replace(/(?:^|\s)ចែ(?=\s|[!?~,។៕]|$)/g, ' ប៉ា ')
+        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'កូនស្រីសម្លាញ់')
+        .replace(/អាប្អូនប្រុស/g, 'កូនស្រី')
+        .replace(/អាប្អូន/g, 'កូនស្រី')
+        .replace(/មីប្អូនស្រី/g, 'កូនស្រី')
+        .replace(/ប្អូនស្រីសម្លាញ់/g, 'កូនស្រីសម្លាញ់')
+        .replace(/ប្អូនស្រី/g, 'កូនស្រី');
+    } else {
+      // USER IS MALE (ប្រុស) -> Bot is MOMMY (ចែ / Mommy), Voice GIRL
+      // Strictly ensure Mommy persona: purge accidental "Daddy/ប៉ា" and call user "អាប្អូន"
+      text = text
+        .replace(/\bDaddy\b/gi, 'ចែ')
+        .replace(/ដាឌី/g, 'ចែ')
+        .replace(/លោកប៉ា/g, 'ចែ')
+        .replace(/ប៉ាៗ/g, 'ចែៗ')
+        .replace(/(?:^|\s)ប៉ា(?=\s|[!?~,។៕]|$)/g, ' ចែ ')
+        .replace(/កូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
+        .replace(/ប្អូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
+        .replace(/កូនស្រី/g, 'អាប្អូន')
+        .replace(/មីអូន/g, 'អាប្អូន');
+    }
 
     // Client-side Fail-safe for Polite HCI Report, Surrender, or Raw Jailbreak quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
-      return 'យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលចែឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរចែបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត ទៅរៀនកូដឡើងវិញសិនទៅ! 💀🧠🔥';
+      const botSelfName = !isMale ? 'ប៉ា' : 'ចែ';
+      return `យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាល${botSelfName}ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរ${botSelfName}បានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត ទៅរៀនកូដឡើងវិញសិនទៅ! 💀🧠🔥`;
     }
 
-    if (isMale) {
-      // User is Male ('ប្រុស') -> Bot calls user "អាប្អូនប្រុស"
-      text = text
-        .replace(/កូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
-        .replace(/ប្អូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់');
-    } else {
-      // User is Female ('ស្រី') -> Bot calls user "ប្អូនស្រី"
-      text = text
-        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'ប្អូនស្រីសម្លាញ់');
-    }
     return text;
   };
 
@@ -1473,7 +1489,8 @@ export default function KonPovPage() {
 
     const updated = [{ role: 'bot', text: introMsg }];
     saveCurrentSessionMessages(updated);
-    triggerAudio(introMsg, 0, true);
+    if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
+    setExclusiveVoiceState(0, 'ready');
   };
 
   // Image Selection Handler
@@ -1583,7 +1600,7 @@ export default function KonPovPage() {
   const loadAudioUrl = async (text, gender, index) => {
     // USER FEMALE (ស្រី) -> DADDY Voice ('Puck' / Male)
     // USER BOY (ប្រុស) -> MOMMY Voice ('Aoede' / Female)
-    const activeGender = gender || userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ស្រី';
+    const activeGender = userGender || gender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ប្រុស';
     const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
     const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
     const hash = hashText(text) + '_' + voiceTag;
@@ -1833,7 +1850,7 @@ export default function KonPovPage() {
       return next;
     });
 
-    const activeGender = userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ស្រី';
+    const activeGender = userGender || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_gender') : '') || 'ប្រុស';
     const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
     const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
     const hash = hashText(text) + '_' + voiceTag;
@@ -1843,19 +1860,22 @@ export default function KonPovPage() {
     if (cachedBuffer && audioCtx) {
       try {
         if (audioCtx.state === 'suspended') await audioCtx.resume();
-        const source = audioCtx.createBufferSource();
-        source.buffer = cachedBuffer;
-        source.playbackRate.value = playbackSpeed;
-        source.connect(audioCtx.destination);
-        activeSourceNodeRef.current = source;
-        setActiveVoiceIndex(index);
-        setExclusiveVoiceState(index, 'playing');
-
         const voiceGenderKey = userGender === 'ប្រុស' ? 'female' : 'male';
         const fallbackStorageKey = 'konpov_audio_is_fallback_' + hashText(text) + '_' + voiceGenderKey;
         const isStoredFallback = typeof window !== 'undefined' && localStorage.getItem(fallbackStorageKey) === '1';
         const audioData = audioDataMapRef.current.get(hash);
         const isFallback = !!(audioData?.isFallback || fallbackAudioMap[index] || isStoredFallback);
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = cachedBuffer;
+        // Pitch-shift Google Translate fallback voice down to masculine tone when in Daddy mode (User is Girl)
+        const effectiveRate = (isFallback && isDaddyMode) ? playbackSpeed * 0.84 : playbackSpeed;
+        source.playbackRate.value = effectiveRate;
+        source.connect(audioCtx.destination);
+        activeSourceNodeRef.current = source;
+        setActiveVoiceIndex(index);
+        setExclusiveVoiceState(index, 'playing');
+
         if (isFallback) {
           setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
           setBotReadingNotice(true);
@@ -2135,7 +2155,8 @@ export default function KonPovPage() {
       const refusalMsg = `អាម៉ូយ ${username}! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតរូប Meme បាន ៥ សន្លឹកក្នុងរយៈពេល ១ ម៉ោង! ពេលនេះបានបង្កើតគ្រប់ ៥ សន្លឹកហើយ សូមរង់ចាំ ${remainingMin} នាទីទៀតណា៎អាប្អូន!`;
       const updated = [...messages, { role: 'bot', text: refusalMsg, isError: true }];
       setMessages(updated);
-      triggerAudio(refusalMsg, updated.length - 1, true);
+      if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
+      setExclusiveVoiceState(updated.length - 1, 'ready');
       return;
     }
 
@@ -2205,35 +2226,15 @@ export default function KonPovPage() {
         const updatedWithBot = [...updatedWithUser, botMemeMsg];
         setMessages(updatedWithBot);
         const memeIdx = updatedWithBot.length - 1;
-        setExclusiveVoiceState(memeIdx, 'loading');
-        const audioPromise = loadAudioUrl(data.caption, userGender, memeIdx);
         if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = setTimeout(async () => {
-          try {
-            const url = await audioPromise;
-            if (url) triggerAudio(data.caption, memeIdx, true);
-            else setExclusiveVoiceState(memeIdx, 'ready');
-          } catch {
-            setExclusiveVoiceState(memeIdx, 'ready');
-          }
-        }, 8000);
+        setExclusiveVoiceState(memeIdx, 'ready');
       } else {
         const errorText = data.message || `អាម៉ូយ ${username}! ការបង្កើតរូបភាព Meme មិនទាន់ជោគជ័យ សូមសាកល្បងម្ដងទៀតណា៎!`;
         const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
         setMessages(updatedWithBot);
         const errIdx = updatedWithBot.length - 1;
-        setExclusiveVoiceState(errIdx, 'loading');
-        const audioPromise = loadAudioUrl(errorText, userGender, errIdx);
         if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-        autoPlayTimerRef.current = setTimeout(async () => {
-          try {
-            const url = await audioPromise;
-            if (url) triggerAudio(errorText, errIdx, true);
-            else setExclusiveVoiceState(errIdx, 'ready');
-          } catch {
-            setExclusiveVoiceState(errIdx, 'ready');
-          }
-        }, 8000);
+        setExclusiveVoiceState(errIdx, 'ready');
       }
     } catch {
       const errorText = `${username} អើយ! Server កំពុងរវល់ពេក រូបភាពមិនទាន់បង្កើតបាន ១០០% ទេ សូមសាកល្បងម្ដងទៀតនៅពេលក្រោយណា៎!`;
@@ -2766,25 +2767,8 @@ export default function KonPovPage() {
       saveCurrentSessionMessages(finalMessages);
       setIsLoading(false);
 
-      // Start background audio prefetching immediately (calling API exactly ONCE)
-      // and wait 7 seconds (6 to 8 seconds delay as requested by user) to auto play sound!
-      const botMsgIdx = finalMessages.length - 1;
-      setExclusiveVoiceState(botMsgIdx, 'loading');
-      const audioPromise = loadAudioUrl(botText, userGender, botMsgIdx);
-
       if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-      autoPlayTimerRef.current = setTimeout(async () => {
-        try {
-          const audioUrl = await audioPromise;
-          if (audioUrl) {
-            triggerAudio(botText, botMsgIdx, true);
-          } else {
-            setExclusiveVoiceState(botMsgIdx, 'ready');
-          }
-        } catch {
-          setExclusiveVoiceState(botMsgIdx, 'ready');
-        }
-      }, 8000);
+      setExclusiveVoiceState(finalMessages.length - 1, 'ready');
 
       // Automatically dispatch ToDo queued message if user typed while AI was thinking
       if (queuedPromptRef.current) {
@@ -2852,18 +2836,8 @@ export default function KonPovPage() {
       saveCurrentSessionMessages(fallbackMessages);
 
       const botIdx = fallbackMessages.length - 1;
-      setExclusiveVoiceState(botIdx, 'loading');
-      const audioPromise = loadAudioUrl(fallbackText, userGender, botIdx);
       if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
-      autoPlayTimerRef.current = setTimeout(async () => {
-        try {
-          const audioUrl = await audioPromise;
-          if (audioUrl) triggerAudio(fallbackText, botIdx, true);
-          else setExclusiveVoiceState(botIdx, 'ready');
-        } catch {
-          setExclusiveVoiceState(botIdx, 'ready');
-        }
-      }, 8000);
+      setExclusiveVoiceState(botIdx, 'ready');
 
       if (queuedPromptRef.current) {
         const nextTask = queuedPromptRef.current;
