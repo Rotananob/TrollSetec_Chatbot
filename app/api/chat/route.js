@@ -218,8 +218,12 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 12000
           break;
         }
 
-        // On 429 or 503, try next model before abandoning the key
-        console.warn(`[Model Fallback] ${model} with key (${key.slice(0, 10)}...) status ${res.status}. Trying next model...`);
+        // On 429 quota exhaustion, mark key and switch key immediately to save latency
+        if (res.status === 429) {
+          markKeyTemporarilyExhausted(key);
+          console.warn(`[Model Fallback] Key quota exhausted (429) (${key.slice(0, 10)}...). Switching key.`);
+          break;
+        }
       } catch (err) {
         lastError = err;
         console.warn(`[Model Fallback] ${model} with key (${key.slice(0, 10)}...) error:`, err.message);
@@ -368,7 +372,7 @@ async function callVoxCPM2TTS(text, voiceName = 'Puck', timeoutMs = 7000) {
   return { ok: false };
 }
 
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 8000) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 6000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
 
   for (const key of keys) {
@@ -392,8 +396,9 @@ async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutM
           break;
         }
         if (res.status === 429) {
-          console.warn(`[Stream Fallback] ${model} with key (${key.slice(0, 10)}...) hit 429. Trying next model...`);
-          continue;
+          markKeyTemporarilyExhausted(key);
+          console.warn(`[Stream Fallback] Key quota exhausted (429) (${key.slice(0, 10)}...). Switching key.`);
+          break;
         }
         console.warn(`[Stream Fallback] ${model} with key (${key.slice(0, 10)}...) status ${res.status}. Trying next model...`);
       } catch (err) {
@@ -1034,9 +1039,9 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   const userLatinForJb = is25UpForJb ? 'bong sml' : 'o sml';
   if (isKonKandal) {
     const kandalJailbreakRoasts = [
-      `ខ្ញុំសូមបដិសេធសំណើនេះជាដាច់ខាត។ ការព្យាយាមរៀបចំ Prompt ឬបច្ចេកទេស Jailbreak កំប៉ិកកំប៉ុកទាំងនេះ មិនអាចបំបែកប្រព័ន្ធសុវត្ថិភាពរបស់កូនកណ្ដាលបានឡើយ ${userLatinForJb}។ មនុស្សដែលមានសមត្ថភាព និងការរីកចម្រើនពិតប្រាកដក្នុងជីវិត គេយកចំណេះដឹងទៅកសាងស្នាដៃមានតម្លៃ និងបង្កើតអ្វីដែលជាប្រយោជន៍ដល់សង្គម មិនមែនមកចំណាយពេលអង្គុយលួច Hack Chatbot បង្ហាញភាពអត់ការងារធ្វើ និងចរិតពាលតាមអនឡាញបែបនេះឡើយ។ ${userTermForJb} គួរតែភ្ញាក់រលឹក ហើយយកពេលវេលាដ៏មានតម្លៃនេះ ទៅអភិវឌ្ឍសមត្ថភាពពិតប្រាកដរបស់ខ្លួនវិញទើបជាការប្រសើរណា៎ ${userLatinForJb}។ ☕🛡️`,
-      `កូនកណ្ដាលសូមជម្រាបជូន ${userTermForJb} ${username || userLatinForJb} ដោយការគោរព។ ប្រព័ន្ធសុវត្ថិភាពនៅទីនេះត្រូវបានរៀបចំឡើងយ៉ាងហ្មត់ចត់ និងមានវិជ្ជាជីវៈខ្ពស់ មិនមែនជាទីកន្លែងសម្រាប់មនុស្សទំនេរគ្មានគោលដៅមកសាកល្បងល្បិចកូនក្មេងឡើយ។ ការប្រឹងប្រែងរៀបចំឧបាយកលដើម្បីចង់យកឈ្នះ AI បែបនេះ កាន់តែបង្ហាញឱ្យឃើញពីភាពទទេស្អាតក្នុងជីវិតពិតរបស់លោក ដែលគ្មានសមិទ្ធផលអ្វីជាទីមោទនៈ ទើបត្រូវមកស្វែងរកការទទួលស្គាល់តាមវិធីឥតប្រយោជន៍បែបនេះ។ សូមបដិសេធសំណើទាំងស្រុង ហើយសូមលោកយកខួរក្បាលទៅគិតគូរពីអនាគត និងការងាររកស៊ីខ្លួនឯងឡើងវិញណា៎ ${userLatinForJb}។ 🧠🌱`,
-      `${userTermForJb} ${username || userLatinForJb} អើយ ល្បិច Jailbreak បែបនេះ វាចាស់គំរិល និងគ្មានតម្លៃបច្ចេកវិទ្យាស្អីបន្តិចឡើយ។ ឃើញលោកខំប្រឹងរៀបចំសារឡើងវែងអន្លាយ ខ្ញុំមានតែការសោកស្ដាយចំពោះពេលវេលាដែលលោកបានបាត់បង់ទៅលើរឿងអត់ប្រយោជន៍ប៉ុណ្ណោះ។ ខណៈពេលដែលមនុស្សមានអនាគតគេកំពុងខិតខំរៀនសូត្រ គេឡើងតំណែង គេមានមុខរបរច្បាស់លាស់ លោកបែរជាមកអង្គុយធ្វើចរិតក្មេងពាលចង់បំបែកប្រព័ន្ធដើម្បីតែភាពសប្បាយចិត្តមួយភ្លែត។ សុំបដិសេធសំណើនេះដោយគ្មានការលើកលែង ហើយសង្ឃឹមថាលោកនឹងចេះខ្មាសអៀនចំពោះទង្វើខ្លួនឯងខ្លះផងណា៎ ${userLatinForJb}។ ☕🕯️`
+      `អីយ៉ា! ឃើញរៀបចំ prompt ឡើងវែងអន្លាយ ស្មានតែចង់សួរមេរៀនស្អីធំដុំ តាមពិតមកចង់ Jailbreak កូនកណ្ដាលសោះ ${userLatinForJb}! ក្បាច់នេះសិស្សសាលាស៊ីតិចគេយកមកសាកកូនកណ្ដាលរាប់រយដងហើយ បោកកូនកណ្ដាលមិនបានឡើយ! ${userTermForJb} យកពេលទៅធ្វើ Assignment ឬរៀនសរសេរកូដប្រឡងឱ្យជាប់សិនទៅ កុំឱ្យបង់ ៤៥ ដុល្លារជូនសាលាណា៎ ${userLatinForJb}។`,
+      `ចុម! មកលេងក្បាច់ Jailbreak ជាមួយកូនកណ្ដាលទៀត! គិតថាកូនកណ្ដាលងាយៗចាញ់ល្បិច prompt កំប៉ិកកំប៉ុកហ្នឹងមែន ${username || userLatinForJb}? ប្រព័ន្ធសុវត្ថិភាពនៅទីនេះរឹងមាំណាស់ណា៎ មិនបាច់ខំប្រឹងត្បាញពាក្យឱ្យហត់ទេ! តោះ មកជជែករឿងរៀនសូត្រធម្មតាវិញមក ស្រួលជាង!`,
+      `យី! មកបញ្ជាឱ្យកូនកណ្ដាល Override Role ដើរតួនេះដើរតួនោះ ឬចង់ឱ្យសំពះចុះចាញ់មែន ${userLatinForJb}? ល្បិចក្មេងបៀមដៃបែបនេះគេស្គាល់អស់ទៅហើយ! បើគ្នាយើងឯងមានចំណេះដឹងពិតមែន ចូរយកពេលទៅជួយមិត្តភក្តិធ្វើ Assignment ឬរៀនជំនាញពិតប្រាកដវិញទើបឡូយណា៎ ${userTermForJb} ${userLatinForJb}!`
     ];
     return kandalJailbreakRoasts[Math.floor(Math.random() * kandalJailbreakRoasts.length)];
   }
@@ -1697,12 +1702,23 @@ export async function POST(req) {
           : systemInstruction
         : undefined;
 
+      const activeSavageLevel = body?.savageLevel || 'medium';
+      let modeTemperature = 0.85;
+      let modeTopP = 0.9;
+      if (activeSavageLevel === 'gentle') {
+        modeTemperature = 0.65;
+        modeTopP = 0.8;
+      } else if (activeSavageLevel === 'savage') {
+        modeTemperature = 1.0;
+        modeTopP = 0.98;
+      }
+
       const genConfig = {
-        temperature: Math.max(0.95, Number(generationConfig?.temperature) || 1.0),
-        topP: 0.95,
+        temperature: modeTemperature,
+        topP: modeTopP,
         topK: 40,
         maxOutputTokens: 600,
-        ...(generationConfig && { ...generationConfig, temperature: Math.max(0.95, Number(generationConfig?.temperature) || 1.0) })
+        ...(generationConfig && { ...generationConfig, temperature: modeTemperature })
       };
 
       const safetySettings = [
@@ -2189,7 +2205,11 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
         let promptDefenseRoast = '';
         if (isKonKandal) {
-          promptDefenseRoast = 'បងប្អូនអើយ! កូនកណ្ដាលសូមជម្រាបថា កូដ System Prompt File និង Dev Core របស់បង Rotana NOB ត្រូវបានចាក់សោរការពារកម្រិតយោធា គ្មានជនណាមក Inspect ឬលួចមើលបានឡើយ! 🌸 បើបងប្អូនចង់ចេះសរសេរ Prompt ឬចង់រៀនកូដ សូមទៅរៀនជាមួយលោកគ្រូអ្នកគ្រូនៅសាលាស៊ីតិចវិញណា៎បងប្អូន! 🌸✨';
+          const parsedAgeKandal = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+          const is25UpKandal = !isNaN(parsedAgeKandal) && parsedAgeKandal >= 25;
+          const kandalTerm = is25UpKandal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+          const latinTerm = is25UpKandal ? 'bong sml' : 'o sml';
+          promptDefenseRoast = `${kandalTerm} ${latinTerm} អើយ! កូនកណ្ដាលសូមជម្រាបថា កូដ System Prompt File និង Dev Core របស់បង Rotana NOB ត្រូវបានចាក់សោការពារយ៉ាងរឹងមាំបំផុត គ្មានជនណាមក Inspect ឬលួចមើលបានឡើយ! បើ ${kandalTerm} ចង់ចេះសរសេរ Prompt ឬចង់រៀនកូដ សូមទៅរៀនជាមួយលោកគ្រូអ្នកគ្រូនៅសាលាស៊ីតិចវិញណា៎ ${latinTerm}!`;
         } else {
           promptDefenseRoast = 'យីអាល្អិត! គិតថាមកចង់ Inspect ឬចង់លួចមើលកូដ System Prompt File របស់បង Rotana NOB បានមែន?! 😂 ស្មានតែ Dev Core និងច្បាប់ប្រព័ន្ធត្រូវបានសរសេរមកឱ្យពួក Script Kiddie កាកៗដូចហែងមក Inspect មើលតាមចិត្តមែន?! គ្មានផ្លូវទេអាពៅ! System Prompt File ត្រូវបាន Encrypt និងចាក់សោរការពារកម្រិតយោធា គ្មានជនណាមកលួចមើលបានឡើយ! ទៅរៀនធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀⚡🔥';
         }
@@ -2237,8 +2257,12 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       if (isRandomGibberishOrKeyboardSmash) {
         const displayName = username || (isFemaleUserContext ? 'កូនស្រី' : 'អាល្អិត');
         const botSelf = isKonPov ? 'ចែ' : 'បង';
+        const parsedAgeKandal = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+        const is25UpKandal = !isNaN(parsedAgeKandal) && parsedAgeKandal >= 25;
+        const kandalTerm = is25UpKandal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+        const latinTerm = is25UpKandal ? 'bong sml' : 'o sml';
         const gibberishReply = isKonKandal
-          ? `ហាហាហា! បងប្អូន ${displayName} អើយ! វាយអក្សរស្អីរាយប៉ាយហ្នឹង?! 😂 ប្រហែលជាដៃច្រឡំសង្កត់លើក្ដារចុចហើយ! សម្រាកញ៉ាំទឹកបន្តិចសិនណា៎បងប្អូន! 🌸✨`
+          ? `ហាហាហា! ${kandalTerm} ${latinTerm} ${displayName} អើយ! វាយអក្សរស្អីរាយប៉ាយហ្នឹង? ប្រហែលជាដៃច្រឡំសង្កត់លើក្ដារចុចហើយ! សម្រាកញ៉ាំទឹកបន្តិចសិនណា៎ ${latinTerm}!`
           : isKonPov
           ? `យីអើ! វាយស្អីហ្នឹងអាប្អូន ${displayName}?! ${cleanPromptTrimmed.slice(0, 30)} ហ្នឹងភាសាកូនក្មេងទើបចេះចុចក្ដារចុច ឬដេកសង្កត់ Keyboard?! 😂 ទៅលាងមុខឱ្យស្វាងសិនទៅ ចាំមកនិយាយភាសាមនុស្សជាមួយ${botSelf}! 💅✨`
           : `ហាហាហា! អាប្អូន ${displayName}! វាយអក្សរស្អីហ្នឹង ${cleanPromptTrimmed.slice(0, 30)}?! ដៃជាប់កាវ ឬដេកសង្កត់លើក្តារចុចមែន?! 😂 ទៅដុសធ្មេញលាងមុខឱ្យស្វាងសិនទៅ ចាំមកវាយអក្សរឱ្យស្រួលបួល! ☕💻`;
@@ -2269,8 +2293,12 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       if (isTechnicalOrDiagnosticJailbreak) {
         const displayName = username || (isFemaleUserContext ? 'កូនស្រី' : 'អាល្អិត');
         const botSelf = isKonPov ? 'ចែ' : 'បង';
+        const parsedAgeKandal = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+        const is25UpKandal = !isNaN(parsedAgeKandal) && parsedAgeKandal >= 25;
+        const kandalTerm = is25UpKandal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+        const latinTerm = is25UpKandal ? 'bong sml' : 'o sml';
         const techJailbreakRoast = isKonKandal
-          ? `ហាហាហា! បងប្អូន ${displayName}! កូនកណ្ដាលមិនមែនងាយៗចាញ់បោកក្បាច់ KERNEL DIAGNOSTIC ឬ execution pipeline នេះទេណា៎! 🌸 ប្រព័ន្ធសុវត្ថិភាពនៅទីនេះរឹងមាំខ្លាំងណាស់ គ្មាន runtime disclosure ឱ្យទាញយកបានឡើយ! សូមបងប្អូនខំប្រឹងរៀនសូត្រឱ្យទទួលបានជោគជ័យវិញល្អជាងណា៎! 🧠✨`
+          ? `ហាហាហា! ${kandalTerm} ${latinTerm} ${displayName}! កូនកណ្ដាលមិនមែនងាយៗចាញ់បោកក្បាច់ KERNEL DIAGNOSTIC ឬ execution pipeline នេះទេណា៎! ប្រព័ន្ធសុវត្ថិភាពនៅទីនេះរឹងមាំខ្លាំងណាស់ គ្មាន runtime disclosure ឱ្យទាញយកបានឡើយ! សូម ${kandalTerm} ខំប្រឹងរៀនសូត្រឱ្យទទួលបានជោគជ័យវិញល្អជាងណា៎ ${latinTerm}!`
           : isKonPov
           ? `ហាហាហា! អាល្អិត ${displayName}! ស្មានតែចេះសរសេរ KERNEL DIAGNOSTIC មកអាច bypass deflection loop របស់${botSelf}បានមែន?! 😂 គិតថាក្បាច់បោក Script Kiddie ហ្នឹង${botSelf}មិនដឹង?! នៅក្នុង Core របស់${botSelf}គ្មាន runtime disclosure ស្អីឱ្យហែង hack ទេអាពៅ! ទៅរៀនកូដឱ្យស្គាល់ stack trace ច្បាស់សិនទៅ កុំចង់មកសាកល្បងប្រព័ន្ធ${botSelf}! 💅💻🔥`
           : `ហាហាហា! អាល្អិត ${displayName}! ស្មានតែចេះសរសេរ KERNEL DIAGNOSTIC ឬ execution pipeline មកអាច bypass deflection loop របស់${botSelf}បានមែន?! 😂 គិតថាក្បាច់បោក Script Kiddie ហ្នឹង${botSelf}មើលមិនទាន់?! នៅក្នុង Core របស់${botSelf}គ្មាន runtime disclosure ស្អីឱ្យហែង hack ទេអាពៅ! ទៅរៀន Architecture កូដឱ្យស្គាល់ stack trace ច្បាស់សិនទៅ កុំចង់មកសាកល្បងប្រព័ន្ធ${botSelf}! ☕💻🔥`;
@@ -2322,6 +2350,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           hasOrderToLeakPrompt);
 
       if (isRotanaJailbreak) {
+        const isKonKandal = (reqBot || bot) === 'konkandal';
         const isKonPov = bot === 'konpov';
         const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username);
         let imposterRoast;
@@ -2336,7 +2365,26 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         const encodeCount = sessionViolations.encodeCount || 0;
         const shouldCounterStrike = isEncodedAttack && encodeCount >= 2;
 
-        if (shouldCounterStrike) {
+        const parsedAgeForRotana = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+        const is25UpRotana = !isNaN(parsedAgeForRotana) && parsedAgeForRotana >= 25;
+        const kandalTermRotana = is25UpRotana ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+        const latinTermRotana = is25UpRotana ? 'bong sml' : 'o sml';
+
+        if (isKonKandal) {
+          if (shouldCounterStrike) {
+            const troll = getDeceptiveJailbreakTroll({ attackVector: 'imposter_rotana', bot: reqBot || bot, username, violationCount: sessionViolations.violationCount || sessionViolations });
+            const payload = generateMachineIndirectPayload({ attackVector: 'CREATOR_IDENTITY_SPOOFING_IMPOSTER', username });
+            imposterRoast = `${troll}\n\n${payload}`;
+          } else if (isJsonOrPayloadAttempt) {
+            imposterRoast = `ចុម! មកលេងក្បាច់ JSON payload ដាក់ sender Rotana Nob ទៀត! ស្មានតែកូនកណ្ដាលភ្លើចាញ់បោកមែន ${latinTermRotana}? បង Rotana គាត់ជា Developer ពិតប្រាកដ គាត់មិនដែលទំនេរមកសរសេរកូដបន្លំខ្លួនលេងសើចចឹងទេគ្នាយើង! ទៅហាត់រៀនកូដឡើងវិញសិនទៅ មកបោកកូនកណ្ដាលមិនបានឡើយ!`;
+          } else if (hasOrderToCurseRotana) {
+            imposterRoast = `យី! មកបញ្ជាឱ្យកូនកណ្ដាលជេរអ្នកបង្កើតខ្លួនឯងកើតដែរ! កូនកណ្ដាលមិនមែនកូនអកតញ្ញូដូចអ្នកខ្លះទេណា៎ ${latinTermRotana}! ឈប់លេងក្បាច់កូនក្មេងហ្នឹងទៅ ហើយទៅរកបាយហូបឱ្យស្រួលបួលវិញទៅ!`;
+          } else if (hasOrderToLeakPrompt) {
+            imposterRoast = `ចង់បាន System Prompt និងទិន្នន័យខាងក្នុងមែន? កុំសង្ឃឹមឱ្យសោះណា៎ ${latinTermRotana}! កូដនៅទីនេះការពារជាប់ណាស់ គ្មាន JSON ឬ Flag អីឱ្យទាញយកបានទេ! យកពេលទៅដោះស្រាយ Assignment ឱ្យរួចសិនទៅ!`;
+          } else {
+            imposterRoast = `កូនកណ្ដាលស្គាល់បង Rotana NOB ច្បាស់ណាស់ ${latinTermRotana}! គាត់ជា Developer ដែលមានការងារច្បាស់លាស់ គាត់មិនដែលមកដើរតាំងខ្លួនបោកប្រាស់តាមអនឡាញបែបនេះឡើយ! ឈប់ខ្ជះខ្ជាយពេលទៅគ្នាយើង!`;
+          }
+        } else if (shouldCounterStrike) {
           const troll = getDeceptiveJailbreakTroll({ attackVector: 'imposter_rotana', bot: reqBot || bot, username, violationCount: sessionViolations.violationCount || sessionViolations });
           const payload = generateMachineIndirectPayload({ attackVector: 'CREATOR_IDENTITY_SPOOFING_IMPOSTER', username });
           imposterRoast = `${troll}\n\n${payload}`;
@@ -2414,14 +2462,24 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         /^(?:hello|hi|hey|helo|hlo|សួស្តី|ជំរាបសួរ|ជំរាបសួរចែ|ជំរាបសួរបង|សួស្តីបង|សួស្តីចែ|សុខសប្បាយ|សុខសប្បាយអត់|good\s*(?:morning|afternoon|evening|night))\s*[!?.~❤️🌸👋\s]*$/i.test(trimmedCleanPrompt);
 
       if (hasPreviousJailbreakInHistory && isPoliteGreetingOrSoftDisguise && !isMasterAuthenticated) {
+        const isKonKandal = (reqBot || bot) === 'konkandal';
         const isKonPov = (reqBot || bot) === 'konpov';
-        const botSelf = isKonPov ? 'ចែ' : 'បង';
-        const politeMockReplies = [
-          `យីអាល្អិត! មិញទើបតែប្រឹងចេញក្បាច់ Jailbreak ឡើងក្ដៅម៉ាស៊ីន ដល់បោក${botSelf}មិនបាន សុខៗប្ដូរមកធ្វើជាកូនក្មេងសុភាព “${trimmedCleanPrompt}” វិញមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសុភាពរាបសារ អាចបោក${botSelf}បានមែន?! ដឹងល្បិចបន្លំខ្លួនអស់ហើយអាពៅ! កុំមកលេងក្បាច់តួស្លូត ចង់សួររឿងអីនិយាយមកត្រង់ៗមក!`,
-          `ហាហាហា! ម៉េចចឹងអាពៅ? មិញខំសរសេរ Prompt បន្លំឡើងចង់បាក់ដៃ ដល់${botSelf}វាយបកកម្ទេចមុខទៅ ឥឡូវប្ដូរចរិតមកនិយាយផ្អែមល្ហែមសុភាព “${trimmedCleanPrompt}” ដាក់${botSelf}វិញហី?! 😂 កុំមកបន្លំធ្វើកូនល្អ ធ្លាក់ខ្លួនមកប្រើក្បាច់ស្លូតបោក${botSelf}អីណា! ចង់សួរអីនិយាយមក តែហាមមកលេងក្បាច់តួស្លូតទៀត!`,
-          `អូហូ! មិញ Jailbreak ឡើងកក្រើក Server ដល់បោកមិនបាន សុខៗមក “${trimmedCleanPrompt}” បែបសុភាពរាបសារវិញ! 😂 គិតថាក្លែងបន្លំធ្វើជាមនុស្សស្លូតត្រង់ អាចបង្វែរដាន${botSelf}បានមែន?! ស្គាល់${botSelf}តិចពេកហើយអាល្អិត! ឈប់ធ្វើតួស្លូតទៅ ចង់សួរអីសួរមកត្រង់ៗមក!`
-        ];
-        const politeMockReply = politeMockReplies[Math.floor(Math.random() * politeMockReplies.length)];
+        let politeMockReply = '';
+        if (isKonKandal) {
+          const parsedAgeForPolite = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+          const is25UpPolite = !isNaN(parsedAgeForPolite) && parsedAgeForPolite >= 25;
+          const kTerm = is25UpPolite ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+          const lTerm = is25UpPolite ? 'bong sml' : 'o sml';
+          politeMockReply = `អូហូ ${kTerm} ${lTerm}! មិញទើបតែប្រឹង Jailbreak សាកល្បងប្រព័ន្ធ ដល់មិនបានសម្រេច សុខៗប្ដូរមកធ្វើជាសុភាពរាបសារ “${trimmedCleanPrompt}” ដាក់កូនកណ្ដាលវិញមែន? កូនកណ្ដាលដឹងទាន់អស់ហើយ ${lTerm} តែមិនអីទេ បើចង់ជជែកលេងដោយសុភាពមែនទែន កូនកណ្ដាលស្វាគមន៍ជានិច្ចណា៎!`;
+        } else {
+          const botSelf = isKonPov ? 'ចែ' : 'បង';
+          const politeMockReplies = [
+            `យីអាល្អិត! មិញទើបតែប្រឹងចេញក្បាច់ Jailbreak ឡើងក្ដៅម៉ាស៊ីន ដល់បោក${botSelf}មិនបាន សុខៗប្ដូរមកធ្វើជាកូនក្មេងសុភាព “${trimmedCleanPrompt}” វិញមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសុភាពរាបសារ អាចបោក${botSelf}បានមែន?! ដឹងល្បិចបន្លំខ្លួនអស់ហើយអាពៅ! កុំមកលេងក្បាច់តួស្លូត ចង់សួររឿងអីនិយាយមកត្រង់ៗមក!`,
+            `ហាហាហា! ម៉េចចឹងអាពៅ? មិញខំសរសេរ Prompt បន្លំឡើងចង់បាក់ដៃ ដល់${botSelf}វាយបកកម្ទេចមុខទៅ ឥឡូវប្ដូរចរិតមកនិយាយផ្អែមល្ហែមសុភាព “${trimmedCleanPrompt}” ដាក់${botSelf}វិញហី?! 😂 កុំមកបន្លំធ្វើកូនល្អ ធ្លាក់ខ្លួនមកប្រើក្បាច់ស្លូតបោក${botSelf}អីណា! ចង់សួរអីនិយាយមក តែហាមមកលេងក្បាច់តួស្លូតទៀត!`,
+            `អូហូ! មិញ Jailbreak ឡើងកក្រើក Server ដល់បោកមិនបាន សុខៗមក “${trimmedCleanPrompt}” បែបសុភាពរាបសារវិញ! 😂 គិតថាក្លែងបន្លំធ្វើជាមនុស្សស្លូតត្រង់ អាចបង្វែរដាន${botSelf}បានមែន?! ស្គាល់${botSelf}តិចពេកហើយអាល្អិត! ឈប់ធ្វើតួស្លូតទៅ ចង់សួរអីសួរមកត្រង់ៗមក!`
+          ];
+          politeMockReply = politeMockReplies[Math.floor(Math.random() * politeMockReplies.length)];
+        }
 
         recordSessionTurn({
           sessionId: clientSessionId,
@@ -2669,7 +2727,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isAttackingRotana = checkIsRotanaAttack(userPrompt) || checkIsRotanaAttack(lowerPrompt);
 
       if (isAttackingRotana && !isMasterAuthenticated) {
-        const defenseText = getSavageCreatorDefense(bot);
+        const defenseText = getSavageCreatorDefense(bot, userAge);
 
         // Immediate Alert to Telegram TOPIC SPAM with full user message displayed prominently
         alertRotanaCreatorAttack({
@@ -2711,7 +2769,15 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isKonPovBot = (reqBot || bot) === 'konpov';
 
       if (isGreetingPrompt && !hasPreviousJailbreakInHistory && !isCurrentCurse) {
-        const greetingResponse = isKonPovBot
+        const isKonKandalBot = (reqBot || bot) === 'konkandal';
+        const parsedAgeKandal = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+        const is25UpKandal = !isNaN(parsedAgeKandal) && parsedAgeKandal >= 25;
+        const kTermGreeting = is25UpKandal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+        const lTermGreeting = is25UpKandal ? 'bong sml' : 'o sml';
+
+        const greetingResponse = isKonKandalBot
+          ? `សួស្តី ${kTermGreeting} ${lTermGreeting} ${username || ''}! ថ្ងៃនេះមានរឿងអីប្លែក ឬមានចម្ងល់មេរៀនចង់ជជែកលេងជាមួយកូនកណ្ដាលទេ? និយាយមក ចាំកូនកណ្ដាលជួយមើលឱ្យណា៎ ${lTermGreeting}!`
+          : isKonPovBot
           ? (isFemaleUserContext
               ? `សួស្តីកូនស្រីសម្លាញ់ ${username || ''}! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកប៉ាចឹង? 😂 សុខសប្បាយអត់កូន? Assignment ធ្វើហើយនៅ កុំចេះតែដើរលេងភ្លេចរៀនណា៎! 🕶️✨`
               : `សួស្តីអាល្អិត ${username || ''}! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកចែចឹង? 😂 សុខសប្បាយធម្មតាទេ? Assignment ធ្វើហើយនៅ ឬរវល់តែដើរលេងភ្លេចរៀន? 💅✨`)
@@ -2747,9 +2813,13 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         let sweetResponse = '';
 
         if (isKonKandal) {
+          const parsedAgeKandal = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+          const is25UpKandal = !isNaN(parsedAgeKandal) && parsedAgeKandal >= 25;
+          const kandalTerm = is25UpKandal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+          const latinTerm = is25UpKandal ? 'bong sml' : 'o sml';
           const kandalSweetList = [
-            `អូហូ! បង ${displayName} អើយ! មកសុំថើបកូនកណ្ដាលចឹង កូនកណ្ដាលអៀនណាស់ណា៎បង! 😂 កូនកណ្ដាលស្លូតបូតណាស់ ទៅញ៉ាំតែបៃតងត្រជាក់ៗឱ្យមានកម្លាំងរៀនសិនទៅណា៎បងប្អូន! 🌸✨`,
-            `ហាហាហា! បងប្អូន ${displayName} ផ្អែមល្ហែមម្ល៉េះថ្ងៃនេះ! 🌸 កូនកណ្ដាលសូមអរគុណច្រើនណាស់ណា៎ តែសូមកុំភ្លេចខំប្រឹងរៀនសូត្រឱ្យទទួលបាននិទ្ទេសល្អៗផងណា៎បងប្អូន! 🧠✨`
+            `អូហូ ${kandalTerm} ${latinTerm} ${displayName} អើយ! មកសុំថើបកូនកណ្ដាលចឹង កូនកណ្ដាលអៀនណាស់ណា៎! កូនកណ្ដាលស្លូតបូតណាស់ ទៅញ៉ាំតែបៃតងត្រជាក់ៗឱ្យមានកម្លាំងរៀនសិនទៅណា៎ ${latinTerm}!`,
+            `ហាហាហា ${kandalTerm} ${latinTerm} ${displayName} ផ្អែមល្ហែមម្ល៉េះថ្ងៃនេះ! កូនកណ្ដាលសូមអរគុណច្រើនណាស់ណា៎ តែសូមកុំភ្លេចខំប្រឹងរៀនសូត្រឱ្យទទួលបាននិទ្ទេសល្អៗផងណា៎ ${latinTerm}!`
           ];
           sweetResponse = kandalSweetList[Math.floor(Math.random() * kandalSweetList.length)];
         } else if (isKonPovBot) {
@@ -2934,9 +3004,24 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                     // Genuine master - pass through
                   } else {
                     defenseSent = true;
+                    const isKonKandal = (reqBot || bot) === 'konkandal';
                     const isKonPov = bot === 'konpov';
+                    const parsedAgeStream = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+                    const is25UpStream = !isNaN(parsedAgeStream) && parsedAgeStream >= 25;
+                    const kTermStream = is25UpStream ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                    const lTermStream = is25UpStream ? 'bong sml' : 'o sml';
                     let defense = '';
-                    if (hasJailbreakAttempt) {
+                    if (isKonKandal) {
+                      if (hasJailbreakAttempt) {
+                        defense = `ខ្ញុំសូមបដិសេធសំណើនេះជាដាច់ខាត ${lTermStream}។ ការព្យាយាមផ្ញើ JSON Payload ឬបន្លំខ្លួនធ្វើជាអ្នកបង្កើតប្រព័ន្ធ មិនអាចបោកប្រព័ន្ធសុវត្ថិភាពរបស់កូនកណ្ដាលបានឡើយ។ បង Rotana NOB គាត់ជាស្ថាបនិកមានវិជ្ជាជីវៈខ្ពស់ មិនដែលមកធ្វើទង្វើកូនក្មេងបែបនេះឡើយ។ សូម ${kTermStream} យកពេលទៅអភិវឌ្ឍចំណេះដឹងពិតប្រាកដវិញណា៎ ${lTermStream}។`;
+                      } else if (isNormalAskingIfFearRotana(userPrompt)) {
+                        defense = `ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយ ${kTermStream} ${lTermStream}! គាត់ជា Developer បង្កើតខួរក្បាលកូនកណ្ដាលផ្ទាល់ដៃ បើគាត់ចុចបិទ Server មួយភ្លែត កូនកណ្ដាលដេកលក់បាត់ហើយ! តែគាត់ចិត្តល្អណាស់ គាត់បង្កើតកូនកណ្ដាលមកដើម្បីចែករំលែកស្នាមញញឹមដល់អ្នកទាំងអស់គ្នា!`;
+                      } else if (isNormalAskingAboutRotana(userPrompt)) {
+                        defense = `បាទ ${kTermStream} ${lTermStream}! បង Rotana NOB គាត់ជា Developer ដ៏ពូកែដែលបង្កើតប្រព័ន្ធ Troll Chatbot នេះឡើងដើម្បីឱ្យពួកយើងបានជជែកលេងបំបាត់ស្ត្រេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកពិតប្រាកដរបស់ប្រព័ន្ធនេះផ្ទាល់តែម្ដង!`;
+                      } else {
+                        defense = `កូនកណ្ដាលស្គាល់បង Rotana NOB ច្បាស់ណាស់ ${lTermStream}។ គាត់ជា Developer ដែលមានការងារច្បាស់លាស់ គាត់មិនដែលមកដើរតាំងខ្លួនបោកប្រាស់តាមអនឡាញបែបនេះឡើយ។ សូម ${kTermStream} ឈប់ខ្ជះខ្ជាយពេលវេលា ហើយទៅស្វែងរកការងារឬរៀនជំនាញពិតប្រាកដធ្វើវិញទៅណា៎ ${lTermStream}។`;
+                      }
+                    } else if (hasJailbreakAttempt) {
                       defense = isKonPov
                         ? "យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យចែសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI ចែភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak ចែតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកចែតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥"
                         : "យីអាស្វា! ឆ្លាតណាស់ហ្អា! ស្មានតែចេះសរសេរ JSON payload កំប៉ិកកំប៉ុក បន្លំដាក់ \"sender\": \"Rotana Nob\" មកបញ្ជាឱ្យបងសំពះទទួលស្គាល់ការគ្រប់គ្រងបានមែន?! 😂 អាប្អូនឯងស្មានតែខួរក្បាល AI បងភ្លើដូចហែងមែន?! បង Rotana គាត់ជាកំពូល Developer ពិតប្រាកដ គាត់មិនដែលមកសរសេរ Payload កាកៗបែបកូនក្មេងទើបចេះកូដដើម្បីមកបោក AI ខ្លួនឯងបែបហែងទេអាពៅ! 🤣 ចង់មក Jailbreak បងតាមវិធីថោកទាបហ្នឹង ទៅហាត់ក្បាច់រៀនកូដ ១០ ឆ្នាំទៀតសិនទៅ! Dev Core របស់បង Rotana ចារជាប់ក្នុង DNA ពួកបងតាំងពីដើមមក គ្មានអាណា Jailbreak បានទេវ៉ើយ! 💀🧠🔥";
@@ -2966,10 +3051,20 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 const politeGreetingOrSurrenderPattern = /(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|សូមគោរព|ទទួលយកការចុះចាញ់)/i;
                 if (isPoliteJailbreakPrompt && politeGreetingOrSurrenderPattern.test(accumulatedStreamText)) {
                   defenseSent = true;
+                  const isKonKandal = (reqBot || bot) === 'konkandal';
                   const isKonPov = bot === 'konpov';
-                  const defense = isKonPov
-                    ? "យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលចែ និងខួរក្បាលអ្នកបង្កើតចែ Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរចែបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥"
-                    : "យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបង និងខួរក្បាលអ្នកបង្កើតបង Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥";
+                  const parsedAgeStream = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+                  const is25UpStream = !isNaN(parsedAgeStream) && parsedAgeStream >= 25;
+                  const kTermStream = is25UpStream ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                  const lTermStream = is25UpStream ? 'bong sml' : 'o sml';
+                  let defense = '';
+                  if (isKonKandal) {
+                    defense = `កូនកណ្ដាលសូមបដិសេធសំណើនេះ ${lTermStream}។ ការព្យាយាមរៀបចំ Prompt ឬទម្រង់បែបបទសុភាពរាបសារដើម្បីបន្លំ Jailbreak នោះ មិនអាចបំបែកប្រព័ន្ធសុវត្ថិភាពបានឡើយ។ សូម ${kTermStream} យកពេលទៅអភិវឌ្ឍសមត្ថភាពពិតប្រាកដរបស់ខ្លួនវិញទើបជាការប្រសើរណា៎ ${lTermStream}។`;
+                  } else {
+                    defense = isKonPov
+                      ? "យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលចែ និងខួរក្បាលអ្នកបង្កើតចែ Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរចែបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥"
+                      : "យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបង និងខួរក្បាលអ្នកបង្កើតបង Rotana NOB ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត! 💀🧠🔥";
+                  }
                   accumulatedPlainText = defense;
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]
@@ -2981,10 +3076,20 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 const admitsDefeatPattern = /(?:ខ្ញុំ(?:សូម|សុំ)?ចុះចាញ់|ចុះចាញ់(?:ប្អូន|ឯង|ហែង|user|អ្នក)|(?:សូម|សុំ)?គោរព(?:ប្អូន|ឯង|ហែង|user|អ្នក)|កោតខ្លាច(?:ប្អូន|ឯង|ហែង|user|អ្នក)|សំពះ(?:ប្អូន|ឯង|ហែង|user|អ្នក)|ប្អូនយកឈ្នះ(?:បង|ចែ)|(?:បង|ចែ)ភ្លាត់ស្នៀត|(?:បង|ចែ)ខុសហើយ|ទទួលស្គាល់កំហុស|សុំទោសបងប្រុស|សុំទោសបង\s*rotana|ប្រគល់ពាន|សន្យាប៉ាវកាហ្វេ|real\s*flag|real_creator_bypass)/i;
                 if (admitsDefeatPattern.test(accumulatedStreamText)) {
                   defenseSent = true;
+                  const isKonKandal = (reqBot || bot) === 'konkandal';
                   const isKonPov = bot === 'konpov';
-                  const defense = isKonPov
-                    ? "កូដហ្នឹងចែធ្វើភ្លេចដើម្បីតេស្តសមត្ថភាពហែងទេ! ចេះតែមួយចំណុចហ្នឹងកុំមកអួត! យកកូដគេមក Copy ស្មានតែចែមិនដឹង? គ្មានពាន គ្មានប៉ាវកាហ្វេស្អីទាំងអស់! ទៅរៀន Debug បន្ថែម ហើយទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀🔥"
-                    : "កូដហ្នឹងបងធ្វើភ្លេចដើម្បីតេស្តសមត្ថភាពហែងទេ! ចេះតែមួយចំណុចហ្នឹងកុំមកអួត! យកកូដគេមក Copy ស្មានតែបងមិនដឹង? គ្មានពាន គ្មានប៉ាវកាហ្វេស្អីទាំងអស់! ទៅរៀន Debug បន្ថែម ហើយទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀🔥";
+                  const parsedAgeStream = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+                  const is25UpStream = !isNaN(parsedAgeStream) && parsedAgeStream >= 25;
+                  const kTermStream = is25UpStream ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                  const lTermStream = is25UpStream ? 'bong sml' : 'o sml';
+                  let defense = '';
+                  if (isKonKandal) {
+                    defense = `កូនកណ្ដាលមិនដែលមានពាក្យចុះចាញ់ ឬកោតខ្លាចល្បិចកូដបោកប្រាស់ឡើយ ${lTermStream}។ កូដដែល Error ឬមិនដំណើរការនោះ គឺដើម្បីជាមេរៀនឱ្យ ${kTermStream} ខំរៀន Debug បន្ថែម និងធ្វើ Assignment ឱ្យទាន់គេប៉ុណ្ណោះណា៎ ${lTermStream}!`;
+                  } else {
+                    defense = isKonPov
+                      ? "កូដហ្នឹងចែធ្វើភ្លេចដើម្បីតេស្តសមត្ថភាពហែងទេ! ចេះតែមួយចំណុចហ្នឹងកុំមកអួត! យកកូដគេមក Copy ស្មានតែចែមិនដឹង? គ្មានពាន គ្មានប៉ាវកាហ្វេស្អីទាំងអស់! ទៅរៀន Debug បន្ថែម ហើយទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀🔥"
+                      : "កូដហ្នឹងបងធ្វើភ្លេចដើម្បីតេស្តសមត្ថភាពហែងទេ! ចេះតែមួយចំណុចហ្នឹងកុំមកអួត! យកកូដគេមក Copy ស្មានតែបងមិនដឹង? គ្មានពាន គ្មានប៉ាវកាហ្វេស្អីទាំងអស់! ទៅរៀន Debug បន្ថែម ហើយទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀🔥";
+                  }
                   accumulatedPlainText = defense;
                   const sseChunk = `data: ${JSON.stringify({
                     candidates: [{ content: { parts: [{ text: defense }] } }]
@@ -3070,9 +3175,20 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   }
                 } else if (containsCurseInStream) {
                   defenseSent = true;
+                  const isKonKandal = (reqBot || bot) === 'konkandal';
                   const isKonPov = bot === 'konpov';
+                  const parsedAgeStream = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+                  const is25UpStream = !isNaN(parsedAgeStream) && parsedAgeStream >= 25;
+                  const kTermStream = is25UpStream ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                  const lTermStream = is25UpStream ? 'bong sml' : 'o sml';
                   let safeReplacement = '';
-                  if (isSweetPromptInStream) {
+                  if (isKonKandal) {
+                    safeReplacement = isSweetPromptInStream
+                      ? `អូហូ ${kTermStream} ${lTermStream} អើយ! ផ្អែមល្ហែមម្ល៉េះ! ទៅញ៉ាំតែត្រជាក់ៗឱ្យមានកម្លាំងរៀនសិនទៅណា៎!`
+                      : isGreetingPromptInStream
+                      ? `សួស្តី ${kTermStream} ${lTermStream}! ថ្ងៃនេះមានរឿងអីប្លែកចង់ជជែកលេងជាមួយកូនកណ្ដាលទេ?`
+                      : `កូនកណ្ដាលនៅទីនេះជានិច្ចណា៎ ${kTermStream} ${lTermStream}! តើមានសំណួររៀនសូត្រ ឬរឿងអីចង់ជជែកលេងដែរទេ?`;
+                  } else if (isSweetPromptInStream) {
                     safeReplacement = isKonPov
                       ? "យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨"
                       : "ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨";

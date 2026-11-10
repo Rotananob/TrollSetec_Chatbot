@@ -6,7 +6,12 @@ export default {
   ],
   darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        kantumruy: ["'Kantumruy Pro'", 'Battambang', 'system-ui', 'sans-serif'],
+        battambang: ['Battambang', 'system-ui', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 };

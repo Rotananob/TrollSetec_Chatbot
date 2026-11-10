@@ -41,6 +41,10 @@ body {
   font-family: inherit;
 }
 
+.font-kantumruy {
+  font-family: 'Kantumruy Pro', 'Battambang', system-ui, -apple-system, sans-serif !important;
+}
+
 /* Beautiful Text Selection */
 ::selection {
   background: rgba(99, 102, 241, 0.4);
