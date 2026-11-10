@@ -62,6 +62,10 @@ export default function SystemBroadcast() {
   const [dismissedNotice, setDismissedNotice] = useState('');
   const [hideTopBanner, setHideTopBanner] = useState(false);
   const [isBypassed, setIsBypassed] = useState(false);
+  const [showBypassDialog, setShowBypassDialog] = useState(false);
+  const [inputBypassCode, setInputBypassCode] = useState('');
+  const [bypassError, setBypassError] = useState('');
+  const [isVerifyingBypass, setIsVerifyingBypass] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [cambodiaClock, setCambodiaClock] = useState('');
   const eventSourceRef = useRef(null);
@@ -71,29 +75,80 @@ export default function SystemBroadcast() {
   // Exclude Admin Control Panel from ever seeing maintenance locks or student popups
   const isAdminRoute = pathname?.includes('jam-tic-kapea-1-sin');
 
+  // Local Dev Detection (localhost, 127.0.0.1, .local)
+  const isLocalDev = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.endsWith('.local')
+  );
+
+  // Execute Bypass verification (Local + Server)
+  const handleExecuteBypass = useCallback(async (codeToVerify) => {
+    const candidate = (codeToVerify || inputBypassCode || '').trim();
+    if (!candidate) {
+      setBypassError('សូមបញ្ចូលលេខកូដ Bypass');
+      return;
+    }
+    setIsVerifyingBypass(true);
+    setBypassError('');
+
+    const lower = candidate.toLowerCase();
+    const configuredCode = (systemState?.maintenanceBypassCode || '').trim().toLowerCase();
+    const isMasterMatch =
+      lower === 'rotana' ||
+      lower === 'rotana2026' ||
+      lower === 'nob' ||
+      lower === 'rotanabypass' ||
+      lower === 'bypass2026' ||
+      (configuredCode && lower === configuredCode);
+
+    if (isMasterMatch || isLocalDev) {
+      sessionStorage.setItem('rotana_maintenance_bypass', candidate);
+      localStorage.setItem('rotana_maintenance_bypass', candidate);
+      sessionStorage.setItem('rotana_admin_passcode', candidate);
+      setIsBypassed(true);
+      setShowBypassDialog(false);
+      setIsVerifyingBypass(false);
+      return;
+    }
+
+    try {
+      const endpoint = getApiEndpoint('/api/system-status');
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify-bypass', code: candidate })
+      });
+      const data = await res.json();
+      if (data?.valid) {
+        sessionStorage.setItem('rotana_maintenance_bypass', candidate);
+        localStorage.setItem('rotana_maintenance_bypass', candidate);
+        sessionStorage.setItem('rotana_admin_passcode', candidate);
+        setIsBypassed(true);
+        setShowBypassDialog(false);
+      } else {
+        setBypassError('លេខកូដមិនត្រឹមត្រូវ! សូមពិនិត្យលេខកូដដែលបានកំណត់ក្នុង Admin Page។');
+      }
+    } catch {
+      setBypassError('មិនអាចផ្ទៀងផ្ទាត់បាន សូមសាកល្បងម្ដងទៀត');
+    } finally {
+      setIsVerifyingBypass(false);
+    }
+  }, [inputBypassCode, systemState?.maintenanceBypassCode, isLocalDev]);
+
+  const handleLocalDevBypass = useCallback(() => {
+    const code = systemState?.maintenanceBypassCode || 'rotana2026';
+    sessionStorage.setItem('rotana_maintenance_bypass', code);
+    localStorage.setItem('rotana_maintenance_bypass', code);
+    sessionStorage.setItem('rotana_admin_passcode', code);
+    setIsBypassed(true);
+    setShowBypassDialog(false);
+  }, [systemState?.maintenanceBypassCode]);
+
   // Unified Creator Rotana Bypass Prompt
   const handlePromptBypass = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    const code = window.prompt('Bypass Code / Creator Key:');
-    if (code) {
-      const trimmed = code.trim().toLowerCase();
-      if (
-        trimmed === 'rotana' ||
-        trimmed === 'rotana2026' ||
-        trimmed === 'nob' ||
-        trimmed === 'rotanabypass' ||
-        trimmed === 'bypass2026' ||
-        trimmed.includes('rotana')
-      ) {
-        sessionStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
-        localStorage.setItem('rotana_maintenance_bypass', 'rotana2026');
-        sessionStorage.setItem('rotana_admin_passcode', 'rotana2026');
-        setIsBypassed(true);
-        alert('Bypass ជោគជ័យ! Mode Test ត្រូវបានបើកដំណើរការ។');
-      } else {
-        alert('លេខកូដមិនត្រឹមត្រូវ!');
-      }
-    }
+    setShowBypassDialog(true);
+    setBypassError('');
   }, []);
 
   // Live ticking Phnom Penh clock (HH:mm:ss UTC+7)
@@ -725,21 +780,171 @@ export default function SystemBroadcast() {
                   </p>
                 </div>
 
-                {/* Action Buttons: Only Home Link, NO Refresh, NO Passcode Button */}
-                <div className="flex items-center justify-center w-full">
-                  <Link
-                    href="/"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
-                  >
-                    <i className="fa-solid fa-house text-xs text-slate-300" />
-                    <span>ត្រឡប់ទៅទំព័រដើម</span>
-                  </Link>
+                {/* Action Buttons: Home Link + Admin / Dev Bypass */}
+                <div className="flex flex-col gap-2 w-full">
+                  <div className="flex items-center gap-2 w-full">
+                    <Link
+                      href="/"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
+                    >
+                      <i className="fa-solid fa-house text-xs text-slate-300" />
+                      <span>ត្រឡប់ទៅទំព័រដើម</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowBypassDialog(true);
+                        setBypassError('');
+                      }}
+                      className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-2xs"
+                      title="Bypass សម្រាប់ Developer / Admin"
+                    >
+                      <i className="fa-solid fa-key text-amber-500 text-xs" />
+                      <span>Bypass Dev</span>
+                    </button>
+                  </div>
+
+                  {/* 1-Click Bypass for Localhost */}
+                  {isLocalDev && (
+                    <button
+                      type="button"
+                      onClick={handleLocalDevBypass}
+                      className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                    >
+                      <i className="fa-solid fa-bolt text-emerald-600 text-xs" />
+                      <span>⚡ 1-Click Local Dev Bypass (Localhost Mode)</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         );
       })()}
+
+      {/* Clean Admin/Dev Passcode Dialog Modal */}
+      {showBypassDialog && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-[9999999] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150 font-['Kantumruy_Pro',sans-serif]"
+          onClick={() => setShowBypassDialog(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 shadow-2xl text-slate-900 text-left relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center text-xs">
+                  <i className="fa-solid fa-key" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Developer / Admin Bypass</h3>
+                  <p className="text-[11px] text-slate-500">ចូលតេស្តប្រព័ន្ធកំឡុងពេល Maintenance</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBypassDialog(false)}
+                className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+              >
+                <i className="fa-solid fa-xmark text-sm" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleExecuteBypass();
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  លេខកូដ Bypass (កំណត់ក្នុង Admin Page)
+                </label>
+                <input
+                  type="password"
+                  autoFocus
+                  value={inputBypassCode}
+                  onChange={(e) => {
+                    setInputBypassCode(e.target.value);
+                    setBypassError('');
+                  }}
+                  placeholder="បញ្ចូលលេខកូដ Bypass..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white text-slate-900 font-mono text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all"
+                />
+                {bypassError && (
+                  <p className="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
+                    <i className="fa-solid fa-circle-exclamation text-[11px]" />
+                    <span>{bypassError}</span>
+                  </p>
+                )}
+              </div>
+
+              {isLocalDev && (
+                <button
+                  type="button"
+                  onClick={handleLocalDevBypass}
+                  className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <i className="fa-solid fa-bolt text-emerald-600" />
+                  <span>1-Click Bypass សម្រាប់ Local Dev</span>
+                </button>
+              )}
+
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowBypassDialog(false)}
+                  className="w-1/3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                >
+                  បោះបង់
+                </button>
+                <button
+                  type="submit"
+                  disabled={isVerifyingBypass || !inputBypassCode.trim()}
+                  className="w-2/3 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm"
+                >
+                  {isVerifyingBypass ? (
+                    <>
+                      <i className="fa-solid fa-circle-notch fa-spin text-xs" />
+                      <span>កំពុងផ្ទៀងផ្ទាត់...</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-unlock text-xs" />
+                      <span>ផ្ទៀងផ្ទាត់ & Bypass</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Discrete Floating Dev Bypass Badge (Allows Locking Back to Preview) */}
+      {isBypassed && !isAdminRoute && (isResting || isCurrentBotDisabled) && (
+        <div className="fixed bottom-3 right-3 z-[99990] bg-slate-900/90 text-amber-300 border border-amber-500/40 rounded-full px-3 py-1.5 text-[11px] font-bold shadow-xl backdrop-blur-md flex items-center gap-2 animate-in fade-in font-['Kantumruy_Pro',sans-serif]">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          <span>Dev Bypass Active</span>
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.removeItem('rotana_maintenance_bypass');
+              localStorage.removeItem('rotana_maintenance_bypass');
+              setIsBypassed(false);
+            }}
+            className="text-slate-400 hover:text-white underline cursor-pointer text-[10px] ml-1"
+            title="ចាក់សោ Maintenance វិញដើម្បីមើលឃើញដូចសិស្សធម្មតា"
+          >
+            ចាក់សោវិញ
+          </button>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* 3. PERSISTENT TOP ANNOUNCEMENT BANNER (LIGHT / NON-AI)    */}

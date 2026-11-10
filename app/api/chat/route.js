@@ -1171,14 +1171,14 @@ export async function POST(req) {
     const isMasterAuth = (hasSecretKeyInPrompt || hasSecretKeyInHeader) && !isImposterOrTraitorAttack(textCandidate);
     const isRotanaCreator = isMasterAuth;
 
+    // Master System Status & Resting Schedule Interceptor (Audio synthesis requests are exempt)
+    const systemState = await getSystemControlState();
+
     // Check Session & Maintenance Bypass (Permits playing past limits, but does NOT grant creator persona identity)
     const hasSessionBypass =
       isRotanaCreator ||
-      verifySessionBypassCode(req.headers.get('x-rotana-bypass') || '') ||
-      verifySessionBypassCode(req.headers.get('x-rotana-passcode') || '');
-
-    // Master System Status & Resting Schedule Interceptor (Audio synthesis requests are exempt)
-    const systemState = await getSystemControlState();
+      verifySessionBypassCode(req.headers.get('x-rotana-bypass') || '', systemState?.maintenanceBypassCode) ||
+      verifySessionBypassCode(req.headers.get('x-rotana-passcode') || '', systemState?.maintenanceBypassCode);
 
     if (!isRotanaCreator && !hasSessionBypass && !audio) {
       const restEval = evaluateSystemRest(systemState);

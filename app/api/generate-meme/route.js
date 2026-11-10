@@ -80,9 +80,6 @@ export async function POST(req) {
       );
     }
 
-    // Record generation timestamp
-    quotaResult.record();
-
     const userIdea = (prompt || 'SETEC student trying to pass exam without studying').trim();
 
     // Expert meme prompt focusing strictly on pure comedic troll meme humor
@@ -136,14 +133,14 @@ export async function POST(req) {
       const seed = Math.floor(Math.random() * 9000000) + 1000000;
       const candidateEngines = [
         {
-          name: 'Nano Banana Neural Flux Core (1024x1024 HD Base64)',
-          url: `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=1024&height=1024&model=flux&seed=${seed}&nologo=true`,
-          timeoutMs: 25000
-        },
-        {
           name: 'Neural Turbo Fast Core (768x768 Base64)',
           url: `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=768&height=768&model=turbo&seed=${seed}&nologo=true`,
-          timeoutMs: 18000
+          timeoutMs: 14000
+        },
+        {
+          name: 'Nano Banana Neural Flux Core (1024x1024 HD Base64)',
+          url: `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=1024&height=1024&model=flux&seed=${seed}&nologo=true`,
+          timeoutMs: 20000
         }
       ];
 
@@ -198,6 +195,9 @@ export async function POST(req) {
         { status: 502, headers: corsHeaders }
       );
     }
+
+    // Record quota ONLY after successful 100% verified image creation
+    quotaResult.record();
 
     const funnyCaption =
       bot === 'konpov'

@@ -75,6 +75,25 @@ export async function POST(req) {
     const passcodeHeader = req.headers.get('x-rotana-passcode') || '';
     const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
 
+    // Action: Public Maintenance Bypass Verification (Used by Maintenance Screen)
+    if (body.action === 'verify-bypass') {
+      const candidateCode = String(body.code || '').trim();
+      const state = await getSystemControlState();
+      const configuredBypass = state?.maintenanceBypassCode || 'rotana2026';
+      const isValid =
+        verifySessionBypassCode(candidateCode, configuredBypass) ||
+        (configuredBypass && candidateCode.toLowerCase() === configuredBypass.toLowerCase());
+
+      return Response.json(
+        {
+          ok: true,
+          valid: !!isValid,
+          message: isValid ? 'Bypass code verified successfully.' : 'Invalid bypass code.'
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
     const candidatePasscode = String(
       body.passcode || body.code || passcodeHeader || bearerToken || ''
     ).trim();
@@ -128,6 +147,7 @@ export async function POST(req) {
       'serverOnline',
       'maintenanceMode',
       'maintenanceReason',
+      'maintenanceBypassCode',
       'nightScheduleEnabled',
       'nightStartHour',
       'nightEndHour',

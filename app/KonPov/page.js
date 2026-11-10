@@ -2185,6 +2185,7 @@ export default function KonPovPage() {
     const userMsg = { role: 'user', text: `សុំបង្កើតរូបភាព Meme៖ "${idea}"` };
     const updatedWithUser = [...messages, userMsg];
     setMessages(updatedWithUser);
+    saveCurrentSessionMessages(updatedWithUser);
 
     try {
       const res = await fetch(getMemeEndpoint(), {
@@ -2204,17 +2205,42 @@ export default function KonPovPage() {
       if (res.ok && data.success && data.imageUrl) {
         // Wait until image creation and decoding is 100% complete and verified before showing output
         const isLoadedSuccessfully = await new Promise((resolve) => {
+          if (typeof window === 'undefined') return resolve(false);
           const preloadImg = new Image();
-          preloadImg.onload = () => {
-            if (preloadImg.naturalWidth > 0 && preloadImg.naturalHeight > 0) {
-              resolve(true);
-            } else {
-              resolve(false);
+          preloadImg.crossOrigin = 'anonymous';
+
+          const timer = setTimeout(() => {
+            preloadImg.onload = null;
+            preloadImg.onerror = null;
+            resolve(false);
+          }, 25000);
+
+          preloadImg.onload = async () => {
+            clearTimeout(timer);
+            try {
+              if ('decode' in preloadImg) {
+                await preloadImg.decode();
+              }
+              if (preloadImg.naturalWidth > 50 && preloadImg.naturalHeight > 50) {
+                resolve(true);
+              } else {
+                resolve(false);
+              }
+            } catch {
+              if (preloadImg.naturalWidth > 50 && preloadImg.naturalHeight > 50) {
+                resolve(true);
+              } else {
+                resolve(false);
+              }
             }
           };
-          preloadImg.onerror = () => resolve(false);
+
+          preloadImg.onerror = () => {
+            clearTimeout(timer);
+            resolve(false);
+          };
+
           preloadImg.src = data.imageUrl;
-          setTimeout(() => resolve(false), 20000);
         });
 
         if (!isLoadedSuccessfully) {
@@ -2238,6 +2264,7 @@ export default function KonPovPage() {
         };
         const updatedWithBot = [...updatedWithUser, botMemeMsg];
         setMessages(updatedWithBot);
+        saveCurrentSessionMessages(updatedWithBot);
         const memeIdx = updatedWithBot.length - 1;
         if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
         setExclusiveVoiceState(memeIdx, 'ready');
@@ -2245,6 +2272,7 @@ export default function KonPovPage() {
         const errorText = data.message || `អាម៉ូយ ${username}! ការបង្កើតរូបភាព Meme មិនទាន់ជោគជ័យ សូមសាកល្បងម្ដងទៀតណា៎!`;
         const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
         setMessages(updatedWithBot);
+        saveCurrentSessionMessages(updatedWithBot);
         const errIdx = updatedWithBot.length - 1;
         if (autoPlayTimerRef.current) clearTimeout(autoPlayTimerRef.current);
         setExclusiveVoiceState(errIdx, 'ready');
@@ -2253,6 +2281,7 @@ export default function KonPovPage() {
       const errorText = `${username} អើយ! Server កំពុងរវល់ពេក រូបភាពមិនទាន់បង្កើតបាន ១០០% ទេ សូមសាកល្បងម្ដងទៀតនៅពេលក្រោយណា៎!`;
       const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
       setMessages(updatedWithBot);
+      saveCurrentSessionMessages(updatedWithBot);
     } finally {
       setIsGeneratingMeme(false);
     }
@@ -2373,9 +2402,9 @@ export default function KonPovPage() {
     }
 
     // Check if user is asking to generate a meme
-    const lower = promptText.toLowerCase();
-    if (lower.includes('បង្កើត meme') || lower.includes('សុំ meme') || lower.includes('គូរ meme') || lower.startsWith('/meme')) {
-      const memePrompt = promptText.replace(/\/meme|បង្កើត meme|សុំ meme|គូរ meme/gi, '').trim();
+    const isMemeRequest = /(?:បង្កើត|សុំ|គូរ|ធ្វើ|ចង់បាន).*?meme|\/meme/i.test(promptText);
+    if (isMemeRequest) {
+      const memePrompt = promptText.replace(/\/meme|សុំបង្កើតរូបភាព\s*meme|បង្កើតរូបភាព\s*meme|សុំ\s*meme|បង្កើត\s*meme|គូរ\s*meme|ចង់បាន\s*meme/gi, '').replace(/^[:៖"'\s]+|[:៖"'\s]+$/g, '').trim();
       setInputText('');
       handleRequestMeme(memePrompt);
       return;
@@ -4095,14 +4124,15 @@ export default function KonPovPage() {
 
                   {item.memeImage && (
                     <div className="mb-2 rounded-2xl overflow-hidden border border-amber-400/60 shadow-md max-w-sm bg-slate-900">
-                      <div className="relative min-h-[220px] w-full flex items-center justify-center bg-slate-950">
+                      <div className="relative min-h-[220px] w-full flex items-center justify-center bg-slate-950 overflow-hidden">
                         <img
                           src={item.memeImage}
                           alt="SETEC Meme"
                           loading="eager"
+                          decoding="sync"
                           onClick={() => setViewingImage({ url: item.memeImage, caption: item.text })}
                           onError={(e) => { try { if (e.currentTarget?.parentElement?.parentElement) e.currentTarget.parentElement.parentElement.style.display = 'none'; } catch {} }}
-                          className="w-full h-auto object-cover cursor-pointer hover:scale-[1.02] transition-transform"
+                          className="w-full h-auto max-h-[440px] object-contain cursor-pointer hover:scale-[1.02] transition-transform duration-200"
                         />
                       </div>
                       <div className="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
@@ -4114,7 +4144,7 @@ export default function KonPovPage() {
                           download="setec-meme.jpg"
                           target="_blank"
                           rel="noreferrer"
-                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-[10px] transition flex items-center gap-1"
+                          className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-[10px] transition flex items-center gap-1 active:scale-95 cursor-pointer"
                         >
                           <i className="fas fa-download"></i> Save
                         </a>

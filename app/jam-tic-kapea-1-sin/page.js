@@ -63,6 +63,9 @@ export default function JamTicKapeaAdminPage() {
 
   // Editable form fields
   const [editMaintenanceReason, setEditMaintenanceReason] = useState('');
+  const [editMaintenanceBypassCode, setEditMaintenanceBypassCode] = useState('rotana2026');
+  const [showBypassCodePlain, setShowBypassCodePlain] = useState(false);
+  const isEditingBypassCodeRef = useRef(false);
   const [editNightMessage, setEditNightMessage] = useState('');
   const [editBroadcastNotice, setEditBroadcastNotice] = useState('');
   const [editKonBongNotice, setEditKonBongNotice] = useState('');
@@ -264,6 +267,9 @@ export default function JamTicKapeaAdminPage() {
           if (!initialLoadedRef.current || forceSyncFields) {
             if (!isEditingMaintenanceRef.current || forceSyncFields) {
               setEditMaintenanceReason(data.state.maintenanceReason || '');
+            }
+            if (!isEditingBypassCodeRef.current || forceSyncFields) {
+              setEditMaintenanceBypassCode(data.state.maintenanceBypassCode || 'rotana2026');
             }
             if (!isEditingNightMessageRef.current || forceSyncFields) {
               setEditNightMessage(data.state.nightRestMessage || '');
@@ -720,6 +726,7 @@ export default function JamTicKapeaAdminPage() {
 
         // Reset editing flags on successful save
         if (patch.maintenanceReason !== undefined) isEditingMaintenanceRef.current = false;
+    if (patch.maintenanceBypassCode !== undefined) isEditingBypassCodeRef.current = false;
         if (patch.nightRestMessage !== undefined) isEditingNightMessageRef.current = false;
         if (patch.broadcastNotice !== undefined) isEditingBroadcastRef.current = false;
 
@@ -879,6 +886,26 @@ export default function JamTicKapeaAdminPage() {
       },
       'រក្សាទុកការកំណត់ម៉ោងសម្រាកពេលយប់'
     );
+  };
+
+  // Save Custom Maintenance Bypass Passcode Handler
+  const handleSaveBypassCode = (e) => {
+    if (e) e.preventDefault();
+    const code = (editMaintenanceBypassCode || '').trim();
+    if (!code) {
+      alert('សូមបញ្ចូលលេខកូដ Bypass!');
+      return;
+    }
+    sendUpdate({ maintenanceBypassCode: code }, `កំណត់លេខកូដ Bypass ការថែទាំថ្មី: ${code}`);
+    isEditingBypassCodeRef.current = false;
+  };
+
+  const handleBypassCurrentBrowser = () => {
+    const code = (editMaintenanceBypassCode || systemState.maintenanceBypassCode || 'rotana2026').trim();
+    sessionStorage.setItem('rotana_maintenance_bypass', code);
+    localStorage.setItem('rotana_maintenance_bypass', code);
+    sessionStorage.setItem('rotana_admin_passcode', code);
+    alert(`បាន Bypass Maintenance នៅលើ Browser នេះជោគជ័យ! អ្នកអាចចូលតេស្ត Chatbot បានធម្មតា។ លេខកូដ: ${code}`);
   };
 
   const handleSaveMaintenanceConfig = (e) => {
@@ -2142,6 +2169,81 @@ export default function JamTicKapeaAdminPage() {
                   </div>
                 </div>
               </form>
+
+              {/* Custom Maintenance & Dev Bypass Code Card */}
+              <div className="mt-5 p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-amber-500/30 text-left shadow-lg font-['Kantumruy_Pro',sans-serif]">
+                <div className="flex items-center justify-between gap-3 mb-3 pb-2.5 border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center text-sm shrink-0">
+                      <i className="fa-solid fa-key" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
+                        <span>លេខកូដសម្ងាត់ Bypass ការថែទាំ (Maintenance &amp; Dev Bypass Code)</span>
+                        {isEditingBypassCodeRef.current && (
+                          <span className="text-[10px] text-amber-400 bg-amber-950/50 border border-amber-800/60 px-1.5 py-0.5 rounded">
+                            កំពុងកែ... មិនទាន់ Save
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        កំណត់លេខកូដផ្ទាល់ខ្លួន ដើម្បីអនុញ្ញាតឱ្យខ្លួនឯង ឬ Local Dev អាច Bypass ចូលតេស្ត Chatbot បានពេល Server ស្ថិតក្នុង Maintenance
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                  <div className="relative flex-1">
+                    <input
+                      type={showBypassCodePlain ? 'text' : 'password'}
+                      value={editMaintenanceBypassCode}
+                      onFocus={() => {
+                        isEditingBypassCodeRef.current = true;
+                      }}
+                      onChange={(e) => {
+                        setEditMaintenanceBypassCode(e.target.value);
+                        isEditingBypassCodeRef.current = true;
+                      }}
+                      placeholder="បញ្ចូលលេខកូដ Bypass ថ្មី..."
+                      className="w-full pl-3.5 pr-10 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all selection:bg-amber-600 selection:text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowBypassCodePlain(!showBypassCodePlain)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors cursor-pointer text-xs p-1"
+                      title={showBypassCodePlain ? 'លាក់លេខកូដ' : 'បង្ហាញលេខកូដ'}
+                    >
+                      <i className={`fa-solid ${showBypassCodePlain ? 'fa-eye-slash' : 'fa-eye'}`} />
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveBypassCode}
+                    disabled={isSubmitting || !editMaintenanceBypassCode.trim()}
+                    className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 active:scale-95 text-white text-xs font-bold transition-all shadow-md shadow-amber-600/25 flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                  >
+                    <i className="fa-solid fa-floppy-disk" />
+                    <span>រក្សាទុកលេខកូដ Bypass</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleBypassCurrentBrowser}
+                    className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
+                    title="Bypass លើ Browser នេះផ្ទាល់ដើម្បីតេស្តភ្លាមៗ"
+                  >
+                    <i className="fa-solid fa-unlock-keyhole" />
+                    <span>Bypass Browser នេះភ្លាមៗ</span>
+                  </button>
+                </div>
+
+                <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 flex-wrap gap-2">
+                  <span>លេខកូដបច្ចុប្បន្នលើ Server: <strong className="text-amber-400 font-mono font-bold">{systemState.maintenanceBypassCode || 'rotana2026'}</strong></span>
+                  <span className="text-slate-500">អ្នកតេស្ត Local Dev លើ localhost នឹងមានប៊ូតុង 1-Click Bypass ស្វ័យប្រវត្តិតែម្ដង</span>
+                </div>
+              </div>
             </div>
 
             {/* Right 1 Col: Quick Control & Diagnostic Panel */}
