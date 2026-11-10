@@ -47,12 +47,12 @@ body {
 
 /* Beautiful Text Selection */
 ::selection {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(13, 56, 34, 0.25);
   color: inherit;
 }
 
 ::-moz-selection {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(13, 56, 34, 0.25);
   color: inherit;
 }
 
@@ -180,10 +180,10 @@ body {
 
 @keyframes trollBorderGlow {
   0%, 100% {
-    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.45));
+    filter: drop-shadow(0 2px 6px rgba(13, 56, 34, 0.15));
   }
   50% {
-    filter: drop-shadow(0 0 22px rgba(236, 72, 153, 0.75));
+    filter: drop-shadow(0 4px 12px rgba(13, 56, 34, 0.28));
   }
 }
 
@@ -311,35 +311,27 @@ body {
 @keyframes avatarMusicBeatMega {
   0% {
     transform: scale(1) translateY(0) rotate(0deg);
-    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
   }
   15% {
-    transform: scale(1.38) translateY(-5px) rotate(-7deg);
-    filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.95)) drop-shadow(0 0 35px rgba(236, 72, 153, 0.6));
+    transform: scale(1.15) translateY(-3px) rotate(-3deg);
   }
   30% {
-    transform: scale(0.88) translateY(3px) rotate(5deg);
-    filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.3));
+    transform: scale(0.95) translateY(2px) rotate(2deg);
   }
   45% {
-    transform: scale(1.3) translateY(-4px) rotate(-4deg);
-    filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.9));
+    transform: scale(1.12) translateY(-2px) rotate(-2deg);
   }
   60% {
-    transform: scale(0.94) translateY(2px) rotate(3deg);
-    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.4));
+    transform: scale(0.97) translateY(1px) rotate(1deg);
   }
   75% {
-    transform: scale(1.34) translateY(-5px) rotate(6deg);
-    filter: drop-shadow(0 0 22px rgba(236, 72, 153, 0.95)) drop-shadow(0 0 30px rgba(59, 130, 246, 0.7));
+    transform: scale(1.14) translateY(-3px) rotate(3deg);
   }
   88% {
-    transform: scale(1.06) translateY(-1px) rotate(-2deg);
-    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.6));
+    transform: scale(1.03) translateY(-1px) rotate(-1deg);
   }
   100% {
     transform: scale(1) translateY(0) rotate(0deg);
-    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
   }
 }
 
@@ -347,7 +339,7 @@ body {
 .bot-avatar-beat-mega {
   animation: avatarMusicBeatMega 0.62s cubic-bezier(0.25, 1.4, 0.5, 1) infinite;
   transform-origin: center bottom;
-  will-change: transform, filter;
+  will-change: transform;
   z-index: 10;
 }
 
@@ -356,16 +348,16 @@ body {
   0% {
     transform: scale(0.8);
     opacity: 0.95;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.9);
+    box-shadow: 0 0 0 2px rgba(13, 56, 34, 0.6);
   }
   50% {
-    opacity: 0.55;
-    box-shadow: 0 0 14px 4px rgba(147, 51, 234, 0.7);
+    opacity: 0.45;
+    box-shadow: 0 0 10px 2px rgba(13, 56, 34, 0.4);
   }
   100% {
-    transform: scale(2.35);
+    transform: scale(2.1);
     opacity: 0;
-    box-shadow: 0 0 26px 8px rgba(236, 72, 153, 0);
+    box-shadow: 0 0 16px 4px rgba(13, 56, 34, 0);
   }
 }
 
@@ -373,16 +365,16 @@ body {
   0% {
     transform: scale(0.8);
     opacity: 0.95;
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.9);
+    box-shadow: 0 0 0 2px rgba(22, 78, 51, 0.6);
   }
   50% {
-    opacity: 0.5;
-    box-shadow: 0 0 12px 3px rgba(59, 130, 246, 0.6);
+    opacity: 0.4;
+    box-shadow: 0 0 8px 2px rgba(22, 78, 51, 0.35);
   }
   100% {
-    transform: scale(2.05);
+    transform: scale(1.9);
     opacity: 0;
-    box-shadow: 0 0 20px 6px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 14px 4px rgba(22, 78, 51, 0);
   }
 }
 
@@ -416,31 +408,6 @@ body {
 }
 .animate-eq-3 {
   animation: eqBarPulse3 0.48s ease-in-out infinite;
-}
-
-@keyframes emojiFall {
-  0% {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.5) rotate(0deg);
-  }
-  12% {
-    opacity: 1;
-    transform: translateY(12vh) scale(1.15) rotate(45deg);
-  }
-  85% {
-    opacity: 0.95;
-    transform: translateY(88vh) scale(1) rotate(240deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(105vh) scale(0.7) rotate(360deg);
-  }
-}
-
-.animate-emoji-fall {
-  animation-name: emojiFall;
-  animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  animation-fill-mode: forwards;
 }
 
 /* Puppet Talking Mouth Animation (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */

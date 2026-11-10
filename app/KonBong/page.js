@@ -2323,21 +2323,8 @@ export default function KonBongPage() {
   }
 
   function triggerEmojiShower() {
-    playTrollCelebrationChime();
-    const icons = ['😂', '🤣', '💀', '🔥', '😜', '🤪', '👑', '🎉', '✨', '😹', '💥', '👻', '💩', '😎'];
-    const items = Array.from({ length: 36 }, (_, i) => ({
-      id: `${Date.now()}_${i}`,
-      emoji: icons[Math.floor(Math.random() * icons.length)],
-      left: Math.random() * 94 + 3,
-      size: Math.floor(Math.random() * 22) + 22,
-      duration: (Math.random() * 1.5 + 2.0).toFixed(2),
-      delay: (Math.random() * 0.6).toFixed(2),
-      rotation: Math.floor(Math.random() * 70) - 35
-    }));
-    setEmojiShowerList(items);
-    setTimeout(() => {
-      setEmojiShowerList([]);
-    }, 4200);
+    // Strictly Zero Emojis: Human editorial design mode
+    setEmojiShowerList([]);
   }
 
   // Load or fetch audio data with instant persistent caching (No duplicate API calls)
@@ -3401,7 +3388,7 @@ export default function KonBongPage() {
                       {
                         id: 'konbong',
                         name: 'ស៊ីតិច Chatbot កូនច្បង',
-                        role: 'រៀមច្បង IT ស្ដេចឌឺ',
+                        role: 'រៀមច្បង IT Flexible កាច & ស្លូត',
                         href: '/KonBong',
                         icon: 'fa-user-tie',
                         color: 'text-indigo-400',

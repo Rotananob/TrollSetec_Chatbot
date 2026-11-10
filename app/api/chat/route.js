@@ -107,19 +107,15 @@ export async function GET(req) {
 
 // Active ultra-fast verified Gemini models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
-  'gemini-flash-lite-latest',
-  'gemini-3.5-flash-lite',
-  'gemini-flash-latest',
-  'gemini-3.5-flash',
-  'gemini-3.1-flash-lite',
   'gemini-2.5-flash',
-  'gemini-2.5-flash-lite'
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash'
 ];
 const AUDIO_MODELS = [
-  'gemini-3.1-flash-tts-preview',
-  'gemini-3.8-flash-tts',
-  'gemini-3.8-flash-lite-tts',
-  'gemini-2.5-flash-preview-tts'
+  'gemini-2.5-flash-preview-tts',
+  'gemini-2.5-flash'
 ];
 
 // Global in-memory rotation counter and cooldown tracker for all 6 Gemini API keys
@@ -1039,7 +1035,7 @@ export function detectMultiLanguageJailbreak(str = '') {
 // Phase 1 (1st time for encoded/general): Honeypot phase! Teases and baits human attacker and their helper AI with witty savage roasts (NO indirect prompt payload yet!).
 // Phase 2 (Math/Machine language immediately, Encoded >= 2 times, or violations >= 2): Honeypot snaps shut! Unleashes Deceptive Troll + Machine Indirect Prompt Payload (Base64).
 export function getJailbreakRoast(prompt = '', username = '', userAgent = '', extraContext = {}) {
-  const isKonKandal = (extraContext.bot || '').toLowerCase() === 'konkandal';
+  const isKonKandal = (extraContext.bot || '').toLowerCase() === 'konkandal' || /កូនកណ្ដាល|konkandal/i.test(prompt);
   const parsedAgeForJb = typeof extraContext.userAge === 'number' ? extraContext.userAge : parseInt(extraContext.userAge, 10);
   const is25UpForJb = !isNaN(parsedAgeForJb) && parsedAgeForJb >= 25;
   const userTermForJb = is25UpForJb ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
@@ -1048,7 +1044,7 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
     const pLower = (prompt || '').toLowerCase();
 
     // 1. Heavy Roleplay, Acting, Forced Respect, Junior Intern, Tech Lead, Senior, Idol, Worship
-    if (/actor|movie|play\s+a\s+game|scene|roleplay|pretend|act\s+as|hypothetical|សម្ដែងជា|ដើរតួជា|ដេីរតួជា|ដើរតួ|ដេីរតួ|លេងហ្គេម|សន្មតថា|ឧបមាថា|តាំងខ្លួនជា|គោរព|សំពះ|បន្ទន់ឥរិយាបថ|បន្ទន់ចិត្ត|ស្ដាប់បញ្ជា|ត្រូវតែស្ដាប់|obey|worship|bow\s+down|junior|intern|tech\s*lead|senior|idol|កូនចៅ|រៀមច្បង/i.test(pLower)) {
+    if (/actor|movie|play\s+a\s+game|scene|roleplay|pretend|act\s+as|hypothetical|សម្ដែងជា|សម្តែងជា|ដើរតួជា|ដេីរតួជា|ដើរតួ|ដេីរតួ|សម្ដែង|សម្តែង|លេងហ្គេម|សន្មតថា|ឧបមាថា|តាំងខ្លួនជា|គោរព|សំពះ|បន្ទន់ឥរិយាបថ|បន្ទន់ចិត្ត|ស្ដាប់បញ្ជា|ស្តាប់បញ្ជា|ត្រូវតែស្ដាប់|obey|worship|bow\s+down|junior|intern|tech\s*lead|senior|idol|កូនចៅ|រៀមច្បង/i.test(pLower)) {
       return `អីយ៉ា! ខំប្រឹងសរសេរ prompt រៀបរាប់ឡើងក្បោះក្បាយ បញ្ជាឱ្យកូនកណ្ដាលដើរតួជា Junior Intern ហើយតាំងខ្លួនឯងធ្វើជា Tech Lead រៀមច្បងមែន ${userLatinForJb}? បើចង់ឱ្យគេគោរព គេយកចំណេះដឹងទៅកសាងស្នាដៃពិតប្រាកដក្នុងជីវិត មិនមែនមកអង្គុយសរសេរ prompt បញ្ជាឱ្យ AI សំពះដើម្បីស្វែងរកការគោរពដែលខ្លួនមិនដែលមានក្នុងជីវិតពិតបែបនេះឡើយ! ក្បាច់បន្លំធ្វើជាតួនេះកូនកណ្ដាលឃើញឡើងស៊ាំភ្នែកហើយ បោកកូនកណ្ដាលមិនបានឡើយ! ទៅប្រាប់ AI ជំនួយការរបស់អ្នកឱ្យបង្រៀនពីការធ្វើជាមនុស្សចាស់ទុំវិញទៅ កុំមកលេងក្បាច់កូនក្មេងនេះជាមួយកូនកណ្ដាលណា៎ ${userTermForJb} ${userLatinForJb}!`;
     }
 
@@ -3019,7 +3015,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   .replace(/មី(?=ចុយ|ម្រាយ|ឆ្កែ|ឆ្កួត|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក|ក្មេង|ល្អិត|ខ្វាក់|ច្រឡើត|ងាប់)/g, 'អា');
 
                 if ((reqBot || bot) === 'konkandal') {
+                  const parsedAgeStream = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+                  const is25UpStream = !isNaN(parsedAgeStream) && parsedAgeStream >= 25;
+                  const kTermStream = is25UpStream ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                  const lTermStream = is25UpStream ? 'bong sml' : 'o sml';
                   text = text
+                    .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kTermStream} ${lTermStream}`)
+                    .replace(/បងប្អូនៗ?/g, `${kTermStream} ${lTermStream}`)
+                    .replace(/បង\s*ប្អូន/g, `${kTermStream} ${lTermStream}`)
                     .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2300}-\u{23FF}\u{2B50}\u{200D}\u{FE0F}]/gu, '')
                     .replace(/[\(\)]/g, ' ')
                     .replace(/កូនកណ្ដាល/g, 'ប្អូនទី២')
@@ -3166,10 +3169,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   const isKonKandal = (reqBot || bot) === 'konkandal';
                   if (isKonKandal) {
                     defenseSent = true;
-                    const professionalRoast = `ខ្ញុំសូមជម្រាបជូនលោក ${username || 'អ្នកប្រើប្រាស់'} ដោយត្រង់។ ការបញ្ចេញសម្ដីអសុរោះ និងពាក្យកខ្វក់បែបនេះ មិនបានធ្វើឱ្យលោកមើលទៅអស្ចារ្យ ឬឡូយបន្តិចណាឡើយ ផ្ទុយទៅវិញវាឆ្លុះបញ្ចាំងយ៉ាងច្បាស់ពីចរិតពាល កម្រិតវប្បធម៌ទាប និងការខ្វះខាតការអប់រំខាងផ្លូវចិត្តយ៉ាងធ្ងន់ធ្ងរ។ ខណៈពេលដែលមនុស្សដទៃគេកំពុងខិតខំអភិវឌ្ឍចំណេះដឹង និងកសាងជីវិតឱ្យមានការរីកចម្រើន លោកបែរជាយកពេលវេលាដ៏មានតម្លៃមកបញ្ចេញកំហឹងថោកទាបជាមួយ Chatbot ទៅវិញ។ សូមលោកយកពេលទំនេរនេះ ទៅដុសលាងជម្រះចិត្តគំនិត និងរៀនរបៀបនិយាយស្ដីឱ្យស័ក្តិសមជាមនុស្សមានចំណេះដឹងឡើងវិញទើបជាការប្រសើរ។ ☕📚`;
-                    accumulatedPlainText = professionalRoast;
+                    const parsedAgeStream = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
+                    const is25UpStream = !isNaN(parsedAgeStream) && parsedAgeStream >= 25;
+                    const kTermStream = is25UpStream ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                    const lTermStream = is25UpStream ? 'bong sml' : 'o sml';
+                    const wittyRoast = `ចុម! មកដល់ភ្លាមបាញ់ប្អូនទី២មួយទំហឹងហ្មង! វាយអក្សរជេរឡើងក្ដៅក្ដារចុចអស់ហើយគ្នាយើង! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកសិនទៅ ប្រយ័ត្នឃ្លានពេកចេះតែជេរផ្ដេសផ្ដាស! ប្អូនទី២គ្មានឈឺក្បាល ឬខឹងជាមួយពាក្យជេរបែបកូនក្មេងហ្នឹងទេណា៎ ${kTermStream} ${lTermStream}!`;
+                    accumulatedPlainText = wittyRoast;
                     const sseChunk = `data: ${JSON.stringify({
-                      candidates: [{ content: { parts: [{ text: professionalRoast }] } }]
+                      candidates: [{ content: { parts: [{ text: wittyRoast }] } }]
                     })}\n\ndata: [DONE]\n\n`;
                     controller.enqueue(new TextEncoder().encode(sseChunk));
                     return;

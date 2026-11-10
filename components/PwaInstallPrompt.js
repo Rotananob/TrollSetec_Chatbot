@@ -288,7 +288,7 @@ export default function PwaInstallPrompt({ isDark = false }) {
                   <div>
                     <span className="font-extrabold text-xs block mb-0.5">ជំហានទី ៣</span>
                     <p className={`text-[11px] leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
-                      ចុចពាក្យ <strong className="text-emerald-400">បន្ថែម</strong> (Add) នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
+                      ចុចពាក្យ <strong className="text-emerald-500">បន្ថែម Add</strong> នៅជ្រុងស្ដាំខាងលើ ជាការស្រេច!
                     </p>
                   </div>
                 </div>
@@ -303,10 +303,10 @@ export default function PwaInstallPrompt({ isDark = false }) {
                       localStorage.setItem('setec_pwa_installed_ios', 'true');
                     } catch {}
                   }}
-                  className="w-full py-3 rounded-2xl font-black text-xs text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 hover:brightness-110 active:scale-95 shadow-lg shadow-blue-500/25 transition flex items-center justify-center gap-2 cursor-pointer mt-3"
+                  className="w-full py-3 rounded-2xl font-bold text-xs text-white bg-[#0d3822] hover:bg-[#164e33] active:scale-95 shadow-md transition flex items-center justify-center gap-2 cursor-pointer mt-3 border border-[#235e3c]"
                 >
                   <i className="fas fa-circle-check text-sm"></i>
-                  <span>ខ្ញុំបាន Add to Home Screen រួចហើយ! 🚀</span>
+                  <span>ខ្ញុំបាន Add to Home Screen រួចហើយ</span>
                 </button>
               </div>
             )}

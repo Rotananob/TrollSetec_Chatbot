@@ -404,8 +404,8 @@ export default function SystemBroadcast() {
     (isKonBongPage && systemState.konbongActive === false) ||
     (isKonPovPage && systemState.konpovActive === false);
 
-  const disabledBotName = isKonBongPage ? 'បងកូនច្បង (KonBong)' : 'ចែកូនពៅ (KonPov)';
-  const alternateBotName = isKonBongPage ? 'ចែកូនពៅ (KonPov)' : 'បងកូនច្បង (KonBong)';
+  const disabledBotName = isKonBongPage ? 'បងកូនច្បង KonBong' : 'ចែកូនពៅ KonPov';
+  const alternateBotName = isKonBongPage ? 'ចែកូនពៅ KonPov' : 'បងកូនច្បង KonBong';
   const alternateBotPath = isKonBongPage ? '/KonPov' : '/KonBong';
   const disabledNotice = isKonBongPage
     ? (systemState.konbongNotice || 'បងកូនច្បង KonBong កំពុងសម្រាកបណ្ដោះអាសន្នតាមការកំណត់របស់អ្នកគ្រប់គ្រង។ សូមអញ្ជើញទៅជជែកជាមួយចែកូនពៅជំនួសវិញ!')

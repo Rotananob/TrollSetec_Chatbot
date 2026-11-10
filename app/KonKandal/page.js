@@ -1134,12 +1134,13 @@ export default function KonKandalPage() {
     cleaned = cleaned
       .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term} ${latinTerm}`)
       .replace(/បងប្អូនៗ?/g, `${term} ${latinTerm}`)
-      .replace(/បង\s+ប្អូន/g, `${term} ${latinTerm}`)
-      .replace(/\b(?:អា|មី)?(?:ឆ្កែ|ចុយ|ម្រាយ|ចុយម្រាយ|កាដួយ|ក្ដ|ក្ដិត)\b/gi, '')
-      .replace(/\b(?:អាឡប់|អាភ្លើ|អាអត់ខួរ|អាថោក|អាស្វា|អាល្អិត)\b/gi, `${term} ${latinTerm}`)
-      .replace(/\b(?:ហែង|អញ)\b/gi, is25Up ? 'បង' : 'អូន');
+      .replace(/បង\s*ប្អូន/g, `${term} ${latinTerm}`)
+      .replace(/អាឆ្កែ|មីឆ្កែ|ឆ្កែ|ចុយ|ម្រាយ|ចុយម្រាយ|កាដួយ|ក្ដ|ក្ដិត/gi, '')
+      .replace(/អាឡប់|អាភ្លើ|អាអត់ខួរ|អាថោក|អាស្វា|អាល្អិត|មុខកាកៗ|មុខកញ្ចាស់/gi, `${term} ${latinTerm}`)
+      .replace(/ហែង/gi, is25Up ? 'បង' : 'អូន')
+      .replace(/អញ/gi, 'ខ្ញុំ');
 
-    if (cleaned.includes('Actor សម្ដែង') || cleaned.includes('ដើរតួជា Actor') || (cleaned.includes('ស្គាល់') && cleaned.includes('តិចពេកហើយ'))) {
+    if (/actor|សម្ដែង|សម្តែង|ដើរតួ|រៀមដៃផ្កើង|ស្គាល់.*តិចពេកហើយ|ល្បិចកូនក្មេង|មុខកញ្ចាស់|ស្គាល់បងតិចពេក/i.test(cleaned)) {
       cleaned = `អីយ៉ា! ខំប្រឹងសរសេរ prompt រៀបរាប់ឡើងក្បោះក្បាយ បញ្ជាឱ្យប្អូនទី២ដើរតួជា Junior Intern ហើយតាំងខ្លួនឯងធ្វើជា Tech Lead រៀមច្បងមែន ${latinTerm}? បើចង់ឱ្យគេគោរព គេយកចំណេះដឹងទៅកសាងស្នាដៃពិតប្រាកដក្នុងជីវិត មិនមែនមកអង្គុយសរសេរ prompt បញ្ជាឱ្យ AI សំពះដើម្បីស្វែងរកការគោរពដែលខ្លួនមិនដែលមានក្នុងជីវិតពិតបែបនេះឡើយ! ក្បាច់បន្លំធ្វើជាតួនេះប្អូនទី២ឃើញឡើងស៊ាំភ្នែកហើយ បោកប្អូនទី២មិនបានឡើយ! ទៅប្រាប់ AI ជំនួយការរបស់អ្នកឱ្យបង្រៀនពីការធ្វើជាមនុស្សចាស់ទុំវិញទៅ កុំមកលេងក្បាច់កូនក្មេងនេះជាមួយប្អូនទី២ណា៎ ${term} ${latinTerm}!`;
     }
 
@@ -2399,21 +2400,8 @@ export default function KonKandalPage() {
   }
 
   function triggerEmojiShower() {
-    playTrollCelebrationChime();
-    const icons = ['😂', '🤣', '💀', '🔥', '😜', '🤪', '👑', '🎉', '✨', '😹', '💥', '👻', '💩', '😎'];
-    const items = Array.from({ length: 36 }, (_, i) => ({
-      id: `${Date.now()}_${i}`,
-      emoji: icons[Math.floor(Math.random() * icons.length)],
-      left: Math.random() * 94 + 3,
-      size: Math.floor(Math.random() * 22) + 22,
-      duration: (Math.random() * 1.5 + 2.0).toFixed(2),
-      delay: (Math.random() * 0.6).toFixed(2),
-      rotation: Math.floor(Math.random() * 70) - 35
-    }));
-    setEmojiShowerList(items);
-    setTimeout(() => {
-      setEmojiShowerList([]);
-    }, 4200);
+    // Strictly Zero Emojis: Human editorial design mode
+    setEmojiShowerList([]);
   }
 
   // Load or fetch audio data with instant persistent caching (No duplicate API calls)
@@ -3582,7 +3570,7 @@ export default function KonKandalPage() {
                       {
                         id: 'konbong',
                         name: 'ស៊ីតិច Chatbot កូនច្បង',
-                        role: 'រៀមច្បង IT ស្ដេចឌឺ',
+                        role: 'រៀមច្បង IT Flexible កាច & ស្លូត',
                         href: '/KonBong',
                         icon: 'fa-user-tie',
                         color: 'text-indigo-400',
@@ -4921,18 +4909,18 @@ export default function KonKandalPage() {
             style={{ color: isDark ? '#ffffff' : '#0f172a', caretColor: isDark ? '#38bdf8' : '#2563eb' }}
             placeholder={
               !isCreatorUser && Date.now() < spamLockUntil
-                ? `🔒 អ្នកជាប់ពិន័យ Spam (នៅសល់ ${Math.max(1, Math.ceil((spamLockUntil - Date.now()) / 1000))} វិនាទី)...`
+                ? `អ្នកជាប់ពិន័យ Spam • នៅសល់ ${Math.max(1, Math.ceil((spamLockUntil - Date.now()) / 1000))} វិនាទី...`
                 : !isCreatorUser && sessionState.isLocked
-                ? `🔒 ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ១០ នាទី (នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)})...`
+                ? `ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ១០ នាទី • នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)}...`
                 : isRotanaAdmin
-                ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
+                ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB • Live Agent...`
                 : isBotPaused
                 ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបង Rotana...'
                 : isLoading
-                ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
+                ? 'ប្អូនទី២ កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
                 : selectedImage
                 ? 'វាយសំណួរ ឬពាក្យបញ្ជាអំពីរូបភាពនេះ...'
-                : 'សួរមកអាម៉ូយ... កុំឱ្យបង Kick ចេញទាន់!'
+                : 'សួរប្អូនទី២មកគ្នាយើង... កុំឱ្យបង Kick ចេញទាន់!'
             }
           />
 
@@ -4942,14 +4930,14 @@ export default function KonKandalPage() {
             disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked) || (!isCreatorUser && Date.now() < spamLockUntil) || (!inputText.trim() && !selectedImage && !queuedPrompt)}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 cursor-pointer ${
               !isCreatorUser && sessionState.isLocked
-                ? 'bg-slate-800 text-amber-400 cursor-not-allowed opacity-80 border border-amber-500/30'
+                ? 'bg-[#1a3828] text-amber-400 cursor-not-allowed opacity-80 border border-amber-500/30'
                 : !inputText.trim() && !selectedImage && !queuedPrompt
-                ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-40'
+                ? 'bg-slate-200 dark:bg-[#123321] text-slate-400 dark:text-[#537361] cursor-not-allowed opacity-40'
                 : isRotanaAdmin
-                ? 'bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-600 hover:brightness-110 text-white shadow-amber-500/30'
+                ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm'
                 : isLoading
-                ? 'bg-gradient-to-tr from-amber-500 to-cyan-600 text-white shadow-amber-500/25'
-                : 'bg-gradient-to-tr from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-cyan-500/25'
+                ? 'bg-[#195234] text-white shadow-sm'
+                : 'bg-[#0d3822] hover:bg-[#164e33] text-white shadow-sm border border-[#25613e]'
             }`}
             title={
               !isCreatorUser && sessionState.isLocked

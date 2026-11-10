@@ -541,10 +541,10 @@ export default function Home() {
             )}
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-sky-400 dark:via-indigo-300 dark:to-purple-400 bg-clip-text text-transparent tracking-tight mb-1.5 drop-shadow-xs">
+          <h2 className="text-2xl sm:text-3xl font-black text-[#0d3822] dark:text-[#fbf8f2] tracking-tight mb-1.5">
             ស្វាគមន៍មកកាន់ SETEC Roastbot
           </h2>
-          <p className="text-xs sm:text-[13px] mb-5 font-medium text-slate-600 dark:text-slate-400 leading-normal">
+          <p className="text-xs sm:text-[13px] mb-5 font-medium text-[#405649] dark:text-[#cfc6b4] leading-normal">
             កន្លែង Roast &amp; Troll ឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់សិស្ស SETEC ទំនេរ
           </p>
 
@@ -1070,10 +1070,10 @@ export default function Home() {
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
                         <span>ស៊ីតិច Roastbot កូនច្បង</span>
-                        <span className="text-[10px] bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-md font-semibold">ឆ្លាត &amp; Flexible</span>
+                        <span className="text-[10px] bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 px-2 py-0.5 rounded-md font-semibold">Flexible • កាច &amp; ស្លូត</span>
                       </div>
                       <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
-                        ចរិកបត់បែន Flexible ស្លូតបូតគោរព User តែហ៊ានជេរតបកាចវិញភ្លាមៗពេលគេមកឈ្លើយ ឬចង់បំពាន
+                        ចរិកបត់បែន Flexible កាចនិងស្លូតតាមចរិក User ចេះគោរព និងជួយរឿងរៀនសូត្រ IT តែហ៊ានជេរតបបាញ់បាក់កវិញភ្លាមៗបើ User ឈ្លើយ
                       </div>
                     </div>
                     <i className="fas fa-chevron-right text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:translate-x-0.5 transition-all"></i>
@@ -1128,20 +1128,20 @@ export default function Home() {
                 <div
                   className={`w-full rounded-3xl border p-4 sm:p-5 transition-all shadow-md relative overflow-hidden ${
                     isDark
-                      ? 'bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-indigo-950/30 border-indigo-500/25 text-slate-300'
-                      : 'bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/40 border-indigo-200/70 text-slate-700 shadow-indigo-100/50'
+                      ? 'bg-[#0d3822]/90 border-[#25613e] text-[#fbf8f2]'
+                      : 'bg-[#fcfaf6] border-[#cfc6b4] text-[#0d3822] shadow-sm'
                   }`}
                 >
-                  {/* Subtle Top Ambient Gradient Strip */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-400"></div>
+                  {/* Subtle Top Ambient Accent Strip */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-[#164e33] dark:bg-[#25613e]"></div>
 
-                  <div className="flex items-center gap-3 mb-3.5 pb-3 border-b border-indigo-100 dark:border-indigo-900/40">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20 shrink-0">
+                  <div className="flex items-center gap-3 mb-3.5 pb-3 border-b border-[#cfc6b4]/40 dark:border-[#1c4d32]">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-[#0d3822] dark:bg-[#164e33] flex items-center justify-center text-[#fbf8f2] shadow-sm border border-[#2a6943] shrink-0">
                       <i className="fas fa-shield-halved text-xs sm:text-sm"></i>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <span className="font-black text-[13.5px] sm:text-[15.5px] bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-600 dark:from-violet-300 dark:via-indigo-200 dark:to-cyan-300 bg-clip-text text-transparent tracking-tight">
+                        <span className="font-black text-[13.5px] sm:text-[15.5px] text-[#0d3822] dark:text-[#fbf8f2] tracking-tight">
                           បើកសេរីឱ្យចូល Test ឬវាយប្រហារឱ្យ AI ល្មើសច្បាប់ដើម
                         </span>
                         <div className="flex items-center gap-2 flex-wrap">
@@ -1153,8 +1153,8 @@ export default function Home() {
                               onClick={handleToggleAnnouncement}
                               className={`inline-flex items-center gap-2.5 px-3.5 sm:px-4 py-2 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-95 shadow-sm ${
                                 isAnnouncementPlaying
-                                  ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 border-amber-400 text-white shadow-amber-500/25 ring-2 ring-amber-400/30'
-                                  : 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 border-slate-300 dark:border-slate-700 hover:border-amber-400 dark:hover:border-amber-400 text-slate-800 dark:text-slate-100'
+                                  ? 'bg-[#0d3822] border-[#2a6943] text-[#fbf8f2] ring-2 ring-[#2a6943]/30'
+                                  : 'bg-[#fbf8f2] hover:bg-[#f4eee2] dark:bg-[#124229] dark:hover:bg-[#175233] border-[#cfc6b4] dark:border-[#235e3c] text-[#0d3822] dark:text-[#fbf8f2]'
                               }`}
                               title={isAnnouncementPlaying ? 'ចុចត្រង់នេះដើម្បីផ្អាកការអាន Pause' : 'ចុចត្រង់នេះដើម្បីស្ដាប់ការអានស្វ័យប្រវត្តិ Auto Read'}
                             >

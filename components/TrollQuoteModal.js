@@ -7,7 +7,7 @@ export default function TrollQuoteModal({
   isOpen,
   onClose,
   quoteText = '',
-  botPersona = 'កូនច្បង',
+  botPersona = 'កូនទី២',
   botAvatar = '',
   logoUrl = '/img/icon.jpg',
   theme = 'dark'
@@ -19,20 +19,25 @@ export default function TrollQuoteModal({
   const [activeCategory, setActiveCategory] = useState('current');
   const [currentText, setCurrentText] = useState(quoteText || '');
   const [currentDept, setCurrentDept] = useState('');
-  const [cardStyle, setCardStyle] = useState('cyber'); // 'cyber' | 'neon' | 'oled'
+  const [cardStyle, setCardStyle] = useState('classic'); // 'classic' | 'milk' | 'paper'
 
   // Helper to clean raw quote text from bot prefixes
   function sanitizeQuote(text) {
     if (!text) return '';
     return text
-      .replace(/^\[(?:កូនច្បង|កូនពៅ|ចែ|chatbot)[^\]]*\]\s*:\s*/i, '')
+      .replace(/^\[(?:កូនច្បង|កូនពៅ|កូនទី២|ប្អូនទី២|ចែ|chatbot)[^\]]*\]\s*:\s*/i, '')
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
       .trim();
   }
 
   // Determine avatar if not explicitly provided
+  const isKandal = botPersona.includes('កូនទី២') || botPersona.includes('ប្អូនទី២');
+  const isKonBong = botPersona.includes('កូនច្បង');
   const resolvedBotAvatar =
     botAvatar ||
-    (botPersona.includes('កូនច្បង')
+    (isKandal
+      ? 'https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite'
+      : isKonBong
       ? 'https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot'
       : 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka');
 
@@ -58,7 +63,6 @@ export default function TrollQuoteModal({
 
   if (!isOpen) return null;
 
-  // Helper to load image safely without throwing or blocking
   function loadImage(src) {
     return new Promise((resolve) => {
       if (!src) return resolve(null);
@@ -66,7 +70,6 @@ export default function TrollQuoteModal({
       img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
       img.onerror = () => {
-        // Fallback without crossOrigin (for local domain assets)
         const fallback = new Image();
         fallback.onload = () => resolve(fallback);
         fallback.onerror = () => resolve(null);
@@ -76,7 +79,6 @@ export default function TrollQuoteModal({
     });
   }
 
-  // Helper to tokenize Khmer and English text cleanly into words/syllables
   function tokenizeText(text) {
     if (typeof Intl !== 'undefined' && Intl.Segmenter) {
       try {
@@ -89,7 +91,6 @@ export default function TrollQuoteModal({
     return text.split(' ');
   }
 
-  // Wrap a single paragraph into lines that never exceed maxWidth
   function wrapSingleParagraph(ctx, text, maxWidth, size) {
     ctx.font = `bold ${size}px "Kantumruy Pro", "Battambang", sans-serif`;
     const tokens = tokenizeText(text);
@@ -114,7 +115,6 @@ export default function TrollQuoteModal({
     return lines;
   }
 
-  // Auto-fit all text dynamically into the allowed vertical height and width (Zero-Overlap Guarantee)
   function autoFitQuoteText(ctx, rawText, maxWidth, maxHeight) {
     const rawParagraphs = rawText
       .split('\n')
@@ -125,7 +125,6 @@ export default function TrollQuoteModal({
       return { size: 36, lineHeight: 56, paraGap: 18, lines: [], totalHeight: 0 };
     }
 
-    // Try font sizes from 36 down to 14 with optimal Khmer line-height (1.6x) to avoid subscript clipping
     for (let size = 36; size >= 14; size -= 1) {
       const lineHeight = Math.round(size * 1.58);
       const paraGap = Math.round(size * 0.45);
@@ -149,7 +148,6 @@ export default function TrollQuoteModal({
         return { size, lineHeight, paraGap, lines: allLines, totalHeight };
       }
 
-      // If at minimum size (14) and still exceeds maxHeight, strictly clamp lines to fit maxHeight
       if (size === 14) {
         const safeLines = [];
         let accumulatedHeight = 0;
@@ -160,7 +158,6 @@ export default function TrollQuoteModal({
             safeLines.push(item);
             accumulatedHeight += lineHeight + extra;
           } else {
-            // Add ellipsis to the last fitting line
             if (safeLines.length > 0) {
               const last = safeLines[safeLines.length - 1];
               last.text = last.text.replace(/[.,!?…\s]+$/, '') + '...';
@@ -175,7 +172,6 @@ export default function TrollQuoteModal({
     return { size: 14, lineHeight: 22, paraGap: 8, lines: [], totalHeight: 0 };
   }
 
-  // Draw rounded rectangle helper
   function roundRect(ctx, x, y, width, height, radius, fill = true, stroke = false) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -203,168 +199,127 @@ export default function TrollQuoteModal({
     canvas.width = width;
     canvas.height = height;
 
-    const isKonBong = botPersona.includes('កូនច្បង');
-    const primaryColor = isKonBong ? '#06b6d4' : '#ec4899'; // Cyan or Pink
-    const secondaryColor = isKonBong ? '#38bdf8' : '#f472b6';
-    const accentGold = '#fbbf24';
+    // Palette Configurations based on Human Editorial Design
+    let bgMain = '#082215';
+    let bgSecondary = '#0d3822';
+    let textColor = '#fbf8f2';
+    let textSub = '#d7ccb7';
+    let accentBorder = '#2a6943';
+    let goldAccent = '#d4af37';
+    let cardFrameColor = 'rgba(212, 175, 55, 0.4)';
 
-    // 1. Background Style Rendering (Gemini Nano Banana Cyber / Neon / OLED)
-    if (cardStyle === 'cyber') {
-      // Cyber Dark with radial ambient glow
-      const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-      if (isKonBong) {
-        bgGrad.addColorStop(0, '#040d1a');
-        bgGrad.addColorStop(0.5, '#07162c');
-        bgGrad.addColorStop(1, '#020611');
-      } else {
-        bgGrad.addColorStop(0, '#160515');
-        bgGrad.addColorStop(0.5, '#260a22');
-        bgGrad.addColorStop(1, '#09020a');
-      }
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // Ambient radial glow behind the center text
-      const radialGlow = ctx.createRadialGradient(540, 560, 60, 540, 560, 480);
-      radialGlow.addColorStop(0, isKonBong ? 'rgba(6, 182, 212, 0.22)' : 'rgba(236, 72, 153, 0.22)');
-      radialGlow.addColorStop(1, 'transparent');
-      ctx.fillStyle = radialGlow;
-      ctx.fillRect(0, 0, width, height);
-
-      // Subtle tech scanline effect
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.012)';
-      for (let y = 0; y < height; y += 8) {
-        ctx.fillRect(0, y, width, 2);
-      }
-    } else if (cardStyle === 'neon') {
-      // Vibrant Neon Party Wave
-      const neonGrad = ctx.createLinearGradient(0, 0, width, height);
-      if (isKonBong) {
-        neonGrad.addColorStop(0, '#0f172a');
-        neonGrad.addColorStop(0.5, '#082f49');
-        neonGrad.addColorStop(1, '#0284c7');
-      } else {
-        neonGrad.addColorStop(0, '#1e1b4b');
-        neonGrad.addColorStop(0.5, '#500724');
-        neonGrad.addColorStop(1, '#831843');
-      }
-      ctx.fillStyle = neonGrad;
-      ctx.fillRect(0, 0, width, height);
-    } else {
-      // OLED Pitch Black Luxury
-      ctx.fillStyle = '#020617';
-      ctx.fillRect(0, 0, width, height);
-
-      const subtleGlow = ctx.createRadialGradient(540, 540, 100, 540, 540, 500);
-      subtleGlow.addColorStop(0, 'rgba(251, 191, 36, 0.08)');
-      subtleGlow.addColorStop(1, 'transparent');
-      ctx.fillStyle = subtleGlow;
-      ctx.fillRect(0, 0, width, height);
+    if (cardStyle === 'milk') {
+      bgMain = '#fcfaf6';
+      bgSecondary = '#f4eee2';
+      textColor = '#082215';
+      textSub = '#3d5948';
+      accentBorder = '#cfc6b4';
+      goldAccent = '#8a6e27';
+      cardFrameColor = 'rgba(13, 56, 34, 0.25)';
+    } else if (cardStyle === 'paper') {
+      bgMain = '#f5efe4';
+      bgSecondary = '#ebe2d3';
+      textColor = '#0a2e1c';
+      textSub = '#4a6353';
+      accentBorder = '#c5baaa';
+      goldAccent = '#997424';
+      cardFrameColor = 'rgba(10, 46, 28, 0.3)';
     }
 
-    // 2. High-Tech Cyber Framing & Glowing Corner Brackets
-    ctx.strokeStyle = isKonBong ? 'rgba(6, 182, 212, 0.4)' : 'rgba(236, 72, 153, 0.4)';
-    ctx.lineWidth = 4;
-    roundRect(ctx, 42, 42, width - 84, height - 84, 28, false, true);
+    // 1. Background Fill
+    const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+    bgGrad.addColorStop(0, bgMain);
+    bgGrad.addColorStop(1, bgSecondary);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
 
-    // Glowing Tech Corner Accents ⌜ ⌝ ⌞ ⌟
-    ctx.fillStyle = primaryColor;
-    const bLen = 56;
-    const bThick = 8;
-    // Top-Left
-    ctx.fillRect(42, 42, bLen, bThick);
-    ctx.fillRect(42, 42, bThick, bLen);
-    // Top-Right
-    ctx.fillRect(width - 42 - bLen, 42, bLen, bThick);
-    ctx.fillRect(width - 42 - bThick, 42, bThick, bLen);
-    // Bottom-Left
-    ctx.fillRect(42, height - 42 - bThick, bLen, bThick);
-    ctx.fillRect(42, height - 42 - bLen, bThick, bLen);
-    // Bottom-Right
-    ctx.fillRect(width - 42 - bLen, height - 42 - bThick, bLen, bThick);
-    ctx.fillRect(width - 42 - bThick, height - 42 - bLen, bThick, bLen);
+    // Subtle paper texture effect (human editorial)
+    ctx.fillStyle = cardStyle === 'classic' ? 'rgba(255, 255, 255, 0.015)' : 'rgba(0, 0, 0, 0.015)';
+    for (let y = 0; y < height; y += 6) {
+      ctx.fillRect(0, y, width, 1);
+    }
 
-    // 3. Preload and Draw SETEC Troll Logo & Chatbot Avatar
+    // 2. Tactile Double Frame Border (Fine Academic Print Style)
+    ctx.strokeStyle = cardFrameColor;
+    ctx.lineWidth = 3;
+    roundRect(ctx, 44, 44, width - 88, height - 88, 24, false, true);
+
+    ctx.strokeStyle = accentBorder;
+    ctx.lineWidth = 1;
+    roundRect(ctx, 56, 56, width - 112, height - 112, 18, false, true);
+
+    // Corner Ornaments
+    ctx.fillStyle = goldAccent;
+    const cSize = 6;
+    ctx.fillRect(56, 56, cSize, cSize);
+    ctx.fillRect(width - 56 - cSize, 56, cSize, cSize);
+    ctx.fillRect(56, height - 56 - cSize, cSize, cSize);
+    ctx.fillRect(width - 56 - cSize, height - 56 - cSize, cSize, cSize);
+
+    // 3. Preload and Draw SETEC Logo & Chatbot Avatar
     const [logoImg, avatarImg] = await Promise.all([
       loadImage(resolvedLogoUrl),
       loadImage(resolvedBotAvatar)
     ]);
 
-    // Draw Top-Left SETEC Troll Logo
-    const logoX = 72;
-    const logoY = 68;
-    const logoSize = 78;
+    // Top-Left SETEC Logo Seal
+    const logoX = 76;
+    const logoY = 74;
+    const logoSize = 72;
 
-    // Logo Outer Glow & Frame
-    ctx.save();
-    ctx.shadowColor = primaryColor;
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = primaryColor;
-    ctx.lineWidth = 3;
-    roundRect(ctx, logoX, logoY, logoSize, logoSize, 20, true, true);
-    ctx.restore();
+    ctx.fillStyle = cardStyle === 'classic' ? '#0d3822' : '#f4eee2';
+    ctx.strokeStyle = goldAccent;
+    ctx.lineWidth = 2;
+    roundRect(ctx, logoX, logoY, logoSize, logoSize, 18, true, true);
 
     if (logoImg) {
       ctx.save();
       ctx.beginPath();
-      roundRect(ctx, logoX + 3, logoY + 3, logoSize - 6, logoSize - 6, 17, false, false);
+      roundRect(ctx, logoX + 3, logoY + 3, logoSize - 6, logoSize - 6, 15, false, false);
       ctx.clip();
       ctx.drawImage(logoImg, logoX + 3, logoY + 3, logoSize - 6, logoSize - 6);
       ctx.restore();
-    } else {
-      // Logo Vector Fallback
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillStyle = accentGold;
-      ctx.textAlign = 'center';
-      ctx.fillText('⚡', logoX + logoSize / 2, logoY + 52);
     }
 
     // Logo Text Header
     ctx.textAlign = 'left';
-    ctx.font = '900 24px "Kantumruy Pro", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('SETEC TROLL MEME', logoX + logoSize + 18, logoY + 36);
+    ctx.font = 'bold 22px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = textColor;
+    ctx.fillText('SETEC TROLL MEME', logoX + logoSize + 16, logoY + 32);
 
-    ctx.font = 'bold 18px "Kantumruy Pro", sans-serif';
-    ctx.fillStyle = secondaryColor;
-    ctx.fillText('troll-setec-chatbot.web.app', logoX + logoSize + 18, logoY + 64);
+    ctx.font = 'normal 15px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = textSub;
+    ctx.fillText('troll-setec-chatbot.web.app', logoX + logoSize + 16, logoY + 58);
 
-    // Top-Right Nano Banana 2.1 AI Engine Badge
-    const badgeW = 270;
-    const badgeH = 46;
-    const badgeX = width - 72 - badgeW;
-    const badgeY = 82;
+    // Top-Right Seal Badge (Human Editorial)
+    const badgeW = 260;
+    const badgeH = 42;
+    const badgeX = width - 76 - badgeW;
+    const badgeY = 86;
 
-    ctx.save();
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-    ctx.strokeStyle = 'rgba(251, 191, 36, 0.6)';
-    ctx.lineWidth = 2;
-    roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 23, true, true);
-    ctx.restore();
+    ctx.fillStyle = cardStyle === 'classic' ? 'rgba(13, 56, 34, 0.9)' : 'rgba(235, 226, 211, 0.9)';
+    ctx.strokeStyle = goldAccent;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 12, true, true);
 
-    ctx.font = '900 16px "Kantumruy Pro", sans-serif';
-    ctx.fillStyle = '#fde047';
+    ctx.font = 'bold 15px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = goldAccent;
     ctx.textAlign = 'center';
-    ctx.fillText('🍌 NANO BANANA 2.1 • AI', badgeX + badgeW / 2, badgeY + 29);
+    ctx.fillText('វិទ្យាស្ថានស៊ីតិច • SETEC TROLL', badgeX + badgeW / 2, badgeY + 26);
 
     // 4. Center Chatbot Avatar Profile Header
     const avatarCenterX = width / 2;
-    const avatarCenterY = 230;
-    const avatarRadius = 56;
+    const avatarCenterY = 226;
+    const avatarRadius = 52;
 
-    // Glowing Outer Circle Ring
     ctx.save();
-    ctx.shadowColor = primaryColor;
-    ctx.shadowBlur = 24;
-    ctx.strokeStyle = primaryColor;
-    ctx.lineWidth = 5;
+    ctx.strokeStyle = goldAccent;
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(avatarCenterX, avatarCenterY, avatarRadius + 4, 0, Math.PI * 2);
+    ctx.arc(avatarCenterX, avatarCenterY, avatarRadius + 3, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
 
-    // Draw Avatar Image or Vector Fallback
     ctx.save();
     ctx.beginPath();
     ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2);
@@ -379,149 +334,109 @@ export default function TrollQuoteModal({
         avatarRadius * 2
       );
     } else {
-      ctx.fillStyle = isKonBong ? '#0891b2' : '#be185d';
+      ctx.fillStyle = '#0d3822';
       ctx.fillRect(
         avatarCenterX - avatarRadius,
         avatarCenterY - avatarRadius,
         avatarRadius * 2,
         avatarRadius * 2
       );
-      ctx.font = '48px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(isKonBong ? '🤖' : '💅', avatarCenterX, avatarCenterY + 16);
     }
     ctx.restore();
 
-    // Verified Checkmark Badge on Avatar
-    const checkX = avatarCenterX + 40;
-    const checkY = avatarCenterY + 40;
-    ctx.save();
-    ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = '#0284c7';
-    ctx.beginPath();
-    ctx.arc(checkX, checkY, 16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    ctx.font = '900 16px sans-serif';
-    ctx.fillStyle = '#ffffff';
+    // Bot Persona Title (Strictly Zero Parentheses)
     ctx.textAlign = 'center';
-    ctx.fillText('✓', checkX, checkY + 6);
-    ctx.restore();
+    ctx.font = 'bold 32px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = textColor;
+    const personaTitle = isKandal
+      ? 'ស៊ីតិច Chatbot កូនទី២'
+      : isKonBong
+      ? 'ស៊ីតិច Roastbot កូនច្បង'
+      : 'ស៊ីតិច Roastbot កូនពៅ';
+    ctx.fillText(personaTitle, avatarCenterX, 324);
 
-    // Bot Persona Title
-    ctx.textAlign = 'center';
-    ctx.font = '900 36px "Kantumruy Pro", sans-serif';
-    ctx.fillStyle = '#ffffff';
-    const personaTitle = isKonBong ? 'កូនច្បង (ស្ដេចឌឺ)' : 'កូនពៅ (ចែ/Mommy)';
-    ctx.fillText(personaTitle, avatarCenterX, 332);
-
-    // Department Pill Badge (if exists)
+    // Department Pill Badge if exists
     if (currentDept) {
-      const deptPillW = 340;
-      const deptPillH = 38;
+      const deptPillW = 320;
+      const deptPillH = 34;
       const deptPillX = avatarCenterX - deptPillW / 2;
-      const deptPillY = 352;
+      const deptPillY = 344;
 
-      ctx.save();
-      ctx.fillStyle = isKonBong ? 'rgba(6, 182, 212, 0.15)' : 'rgba(236, 72, 153, 0.15)';
-      ctx.strokeStyle = isKonBong ? 'rgba(6, 182, 212, 0.5)' : 'rgba(236, 72, 153, 0.5)';
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, deptPillX, deptPillY, deptPillW, deptPillH, 19, true, true);
-      ctx.restore();
+      ctx.fillStyle = cardStyle === 'classic' ? 'rgba(212, 175, 55, 0.12)' : 'rgba(138, 110, 39, 0.1)';
+      ctx.strokeStyle = goldAccent;
+      ctx.lineWidth = 1;
+      roundRect(ctx, deptPillX, deptPillY, deptPillW, deptPillH, 17, true, true);
 
-      ctx.font = 'bold 20px "Kantumruy Pro", sans-serif';
-      ctx.fillStyle = secondaryColor;
-      ctx.fillText(currentDept, avatarCenterX, deptPillY + 26);
+      ctx.font = 'bold 17px "Kantumruy Pro", sans-serif';
+      ctx.fillStyle = goldAccent;
+      ctx.fillText(currentDept, avatarCenterX, deptPillY + 23);
     }
 
-    // 5. Large Decorative Quotation Mark Watermark
-    ctx.font = '900 180px serif';
-    ctx.fillStyle = isKonBong ? 'rgba(56, 189, 248, 0.12)' : 'rgba(244, 114, 182, 0.12)';
+    // 5. Quotation Mark Accent (Human Typography)
+    ctx.font = 'bold 140px Georgia, serif';
+    ctx.fillStyle = cardStyle === 'classic' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(13, 56, 34, 0.1)';
     ctx.textAlign = 'left';
-    ctx.fillText('“', 90, 480);
+    ctx.fillText('“', 88, 470);
 
-    // 6. Main Quote Content Body (Auto-fitted with Zero Overlap Guarantee)
-    const contentTopLimit = currentDept ? 405 : 365;
-    const contentBottomLimit = 865;
+    // 6. Main Quote Content Body
+    const contentTopLimit = currentDept ? 398 : 360;
+    const contentBottomLimit = 870;
     const availableHeight = contentBottomLimit - contentTopLimit;
-    const maxLineWidth = 880;
+    const maxWidth = width - 180;
 
-    const {
-      size: quoteFontSize,
-      lineHeight,
-      paraGap,
-      lines: formattedLines,
-      totalHeight
-    } = autoFitQuoteText(ctx, currentText, maxLineWidth, availableHeight);
+    const fitResult = autoFitQuoteText(ctx, currentText, maxWidth, availableHeight);
+    const { size, lineHeight, paraGap, lines, totalHeight } = fitResult;
 
-    // Center vertical placement within the designated safe box
-    let currentY =
-      contentTopLimit +
-      Math.max(0, Math.round((availableHeight - totalHeight) / 2)) +
-      Math.round(quoteFontSize * 0.9);
+    const startY = Math.max(
+      contentTopLimit + 20,
+      contentTopLimit + (availableHeight - totalHeight) / 2
+    );
 
+    ctx.font = `bold ${size}px "Kantumruy Pro", "Battambang", sans-serif`;
     ctx.textAlign = 'center';
 
-    formattedLines.forEach(({ text: lineText, isNewPara }) => {
-      if (isNewPara) {
-        currentY += paraGap;
-      }
+    let currentY = startY;
+    for (let i = 0; i < lines.length; i++) {
+      const item = lines[i];
+      if (item.isNewPara) currentY += paraGap;
 
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-      ctx.shadowBlur = 14;
+      const trimmed = item.text.trim();
+      const isEnglish = /^[A-Za-z0-9#\s.,!?:;"'()|/\\-]+$/.test(trimmed);
+      const isTag = trimmed.startsWith('#');
 
-      const isHashtag = lineText.trim().startsWith('#');
-      if (isHashtag) {
-        ctx.fillStyle = secondaryColor;
-        ctx.font = `900 ${Math.max(16, quoteFontSize - 4)}px "Kantumruy Pro", sans-serif`;
+      if (isTag) {
+        ctx.fillStyle = goldAccent;
+        ctx.font = `bold ${Math.max(14, size - 4)}px "Kantumruy Pro", sans-serif`;
+      } else if (isEnglish) {
+        ctx.fillStyle = textSub;
+        ctx.font = `normal ${Math.max(15, size - 2)}px "Kantumruy Pro", Georgia, sans-serif`;
       } else {
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = `bold ${quoteFontSize}px "Kantumruy Pro", "Battambang", sans-serif`;
+        ctx.fillStyle = textColor;
+        ctx.font = `bold ${size}px "Kantumruy Pro", "Battambang", sans-serif`;
       }
 
-      ctx.fillText(lineText, width / 2, currentY);
-      ctx.restore();
-
+      ctx.fillText(trimmed, width / 2, currentY + size * 0.9);
       currentY += lineHeight;
-    });
+    }
 
-    // 7. Divider Line with Center Glowing Diamond
-    const divY = 890;
-    const divGrad = ctx.createLinearGradient(120, divY, width - 120, divY);
-    divGrad.addColorStop(0, 'transparent');
-    divGrad.addColorStop(0.5, isKonBong ? 'rgba(6, 182, 212, 0.6)' : 'rgba(236, 72, 153, 0.6)');
-    divGrad.addColorStop(1, 'transparent');
-
-    ctx.strokeStyle = divGrad;
-    ctx.lineWidth = 2.5;
+    // 7. Divider Line
+    const divY = 896;
+    ctx.strokeStyle = accentBorder;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(120, divY);
-    ctx.lineTo(width - 120, divY);
+    ctx.moveTo(140, divY);
+    ctx.lineTo(width - 140, divY);
     ctx.stroke();
 
-    // Center Diamond
-    ctx.save();
-    ctx.translate(width / 2, divY);
-    ctx.rotate((45 * Math.PI) / 180);
-    ctx.fillStyle = primaryColor;
-    ctx.fillRect(-7, -7, 14, 14);
-    ctx.restore();
-
-    // 8. Footer Section: Clean & Viral Brand Signature
-    ctx.font = '900 22px "Kantumruy Pro", sans-serif';
-    ctx.fillStyle = '#e2e8f0';
-    ctx.textAlign = 'center';
-    ctx.fillText('SETEC TROLL ROASTBOT • VIRAL STUDENT QUOTES', width / 2, 945);
-
+    // 8. Footer Section: Human Editorial Signature
     ctx.font = 'bold 18px "Kantumruy Pro", sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('troll-setec-chatbot.web.app • Powered by SETEC Neural Core', width / 2, 985);
+    ctx.fillStyle = textColor;
+    ctx.textAlign = 'center';
+    ctx.fillText('វិទ្យាស្ថានស៊ីតិច • SETEC TROLL MEME & ROASTBOT', width / 2, 940);
+
+    ctx.font = 'normal 15px "Kantumruy Pro", sans-serif';
+    ctx.fillStyle = textSub;
+    ctx.fillText('រៀបចំដោយ Rotana NOB • troll-setec-chatbot.web.app', width / 2, 970);
   };
 
   const handleDownload = () => {
@@ -606,10 +521,10 @@ export default function TrollQuoteModal({
             </div>
             <div>
               <h3 className="font-bold text-sm sm:text-base text-[#fbf8f2] flex items-center gap-1.5">
-                <span>Quote Troll SETEC</span>
+                <span>កាតសម្រង់សម្ដី Troll ស៊ីតិច</span>
               </h3>
               <p className="text-[10px] text-[#d7ccb7] font-medium">
-                Logo SETEC Troll និង Avatar Bot កម្រិតច្បាស់
+                រៀបចំជាកាតរូបភាពបែបមនុស្សសម្រាប់ចែករំលែក Story
               </p>
             </div>
           </div>
@@ -688,7 +603,7 @@ export default function TrollQuoteModal({
             }`}
           >
             <i className="fas fa-graduation-cap text-[10px]"></i>
-            <span>ស៊ីតិច Life</span>
+            <span>ជីវិតស៊ីតិច</span>
           </button>
 
           <button
@@ -705,39 +620,39 @@ export default function TrollQuoteModal({
         {/* Visual Style Selector & Live Edit Toggle */}
         <div className="flex items-center justify-between pb-2 mb-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-[#d7ccb7] font-bold">ម៉ូត៖</span>
+            <span className="text-[10px] text-[#d7ccb7] font-bold">ពណ៌កាត៖</span>
             <button
               type="button"
-              onClick={() => setCardStyle('cyber')}
+              onClick={() => setCardStyle('classic')}
               className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                cardStyle === 'cyber'
+                cardStyle === 'classic'
                   ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
                   : 'bg-[#124229] text-[#d7ccb7] hover:text-[#fbf8f2] border border-[#235e3c]'
               }`}
             >
-              Classic
+              បៃតងដិត
             </button>
             <button
               type="button"
-              onClick={() => setCardStyle('neon')}
+              onClick={() => setCardStyle('milk')}
               className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                cardStyle === 'neon'
+                cardStyle === 'milk'
                   ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
                   : 'bg-[#124229] text-[#d7ccb7] hover:text-[#fbf8f2] border border-[#235e3c]'
               }`}
             >
-              Forest
+              ទឹកដោះគោ
             </button>
             <button
               type="button"
-              onClick={() => setCardStyle('oled')}
+              onClick={() => setCardStyle('paper')}
               className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer ${
-                cardStyle === 'oled'
+                cardStyle === 'paper'
                   ? 'bg-[#fbf8f2] text-[#0d3822] shadow border border-[#e4d9c4]'
                   : 'bg-[#124229] text-[#d7ccb7] hover:text-[#fbf8f2] border border-[#235e3c]'
               }`}
             >
-              Deep Green
+              ក្រដាសបុរាណ
             </button>
           </div>
 

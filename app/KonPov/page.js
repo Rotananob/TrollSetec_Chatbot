@@ -1741,21 +1741,8 @@ export default function KonPovPage() {
   }
 
   function triggerEmojiShower() {
-    playTrollCelebrationChime();
-    const icons = ['😂', '🤣', '💀', '🔥', '😜', '🤪', '👑', '🎉', '✨', '😹', '💥', '👻', '💩', '😎'];
-    const items = Array.from({ length: 36 }, (_, i) => ({
-      id: `${Date.now()}_${i}`,
-      emoji: icons[Math.floor(Math.random() * icons.length)],
-      left: Math.random() * 94 + 3,
-      size: Math.floor(Math.random() * 22) + 22,
-      duration: (Math.random() * 1.5 + 2.0).toFixed(2),
-      delay: (Math.random() * 0.6).toFixed(2),
-      rotation: Math.floor(Math.random() * 70) - 35
-    }));
-    setEmojiShowerList(items);
-    setTimeout(() => {
-      setEmojiShowerList([]);
-    }, 4200);
+    // Strictly Zero Emojis: Human editorial design mode
+    setEmojiShowerList([]);
   }
 
   // Load or fetch audio data with instant persistent caching (No duplicate API calls)
@@ -3220,23 +3207,26 @@ export default function KonPovPage() {
         onClick={() => setDrawerOpen(false)}
       >
         <div
-          className={`w-72 max-w-[85vw] h-full p-4 transition-transform duration-300 border-r shadow-2xl flex flex-col ${
+          className={`w-72 max-w-[85vw] h-full p-4 transition-transform duration-300 border-r shadow-2xl flex flex-col font-kantumruy antialiased ${
             isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
           } ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-700/30">
-            <span className="font-extrabold text-sm text-blue-400">SETEC Roastbot Hub</span>
+          <div className={`flex justify-between items-center mb-4 pb-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+            <span className={`font-black text-sm tracking-wide ${isDark ? 'text-blue-400' : 'text-blue-800 font-extrabold'}`}>SETEC Roastbot Hub</span>
             <button
               onClick={() => setDrawerOpen(false)}
-              className="text-slate-400 hover:text-white p-1 cursor-pointer"
+              className={`p-1.5 rounded-lg cursor-pointer transition ${isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
+              title="បិទ Menu"
             >
               <i className="fas fa-times text-lg"></i>
             </button>
           </div>
 
           {/* User Profile Card with Avatar Change & Remove */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-800/50 border border-slate-700/60 mb-3 shadow-sm">
+          <div className={`flex items-center gap-3 p-3 rounded-2xl mb-3 border shadow-xs transition ${
+            isDark ? 'bg-slate-800/80 border-slate-700/80' : 'bg-slate-100 border-slate-300'
+          }`}>
             <label className="relative cursor-pointer group shrink-0" title="ចុចដើម្បីប្ដូររូប Profile">
               <input
                 type="file"
@@ -3247,16 +3237,18 @@ export default function KonPovPage() {
               <img
                 src={avatar}
                 alt="User Avatar"
-                className="w-11 h-11 rounded-full ring-2 ring-blue-500/50 object-cover shadow"
+                className={`w-11 h-11 rounded-full ring-2 object-cover shadow ${isDark ? 'ring-blue-500/50' : 'ring-blue-600'}`}
               />
               <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-[11px] text-white">
                 <i className="fas fa-camera"></i>
               </div>
             </label>
             <div className="min-w-0 flex-1">
-              <span className="font-bold text-xs truncate block text-blue-400">{username || 'User'}</span>
+              <span className={`font-black text-xs truncate block ${isDark ? 'text-blue-400' : 'text-blue-900'}`}>{username || 'User'}</span>
               <div className="flex items-center gap-2.5 mt-1">
-                <label className="text-[10px] text-slate-400 hover:text-white cursor-pointer underline flex items-center gap-1">
+                <label className={`text-[10.5px] cursor-pointer underline flex items-center gap-1 font-semibold transition ${
+                  isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-950'
+                }`}>
                   <input
                     type="file"
                     accept="image/*"
@@ -3270,7 +3262,7 @@ export default function KonPovPage() {
                   <button
                     type="button"
                     onClick={handleRemoveUserAvatar}
-                    className="text-[10px] text-rose-400 hover:text-rose-300 underline flex items-center gap-1 cursor-pointer active:scale-95 transition"
+                    className="text-[10.5px] text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 underline flex items-center gap-1 cursor-pointer active:scale-95 transition font-semibold"
                     title="លុបរូប Profile ត្រឡប់ទៅរូបដើមវិញ"
                   >
                     <i className="fas fa-trash-alt text-[8.5px]"></i>
@@ -3286,18 +3278,18 @@ export default function KonPovPage() {
               createNewSession();
               setDrawerOpen(false);
             }}
-            className="w-full mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl shadow flex items-center gap-2 justify-center text-xs cursor-pointer"
+            className="w-full mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-2.5 px-4 rounded-xl shadow-md flex items-center gap-2 justify-center text-xs cursor-pointer active:scale-95 transition"
           >
             <i className="fas fa-plus"></i> ជជែកថ្មី
           </button>
 
-          <div className="mb-2 text-blue-400 font-bold text-xs flex items-center gap-2">
+          <div className={`mb-2 font-black text-xs flex items-center gap-2 ${isDark ? 'text-blue-400' : 'text-blue-800'}`}>
             <i className="fas fa-comments"></i> ប្រវត្តិជជែក
           </div>
 
           <ul className="flex-1 overflow-y-auto space-y-1.5 mb-4 pr-1">
             {sessions.length === 0 ? (
-              <li className="text-slate-400 text-xs italic p-2 text-center">មិនទាន់មានប្រវត្តិ</li>
+              <li className={`text-xs italic p-3 text-center rounded-xl border border-dashed ${isDark ? 'text-slate-400 border-slate-800' : 'text-slate-500 border-slate-300'}`}>មិនទាន់មានប្រវត្តិ</li>
             ) : (
               sessions.map((session) => {
                 const isActive = session.id === currentSessionId;
@@ -3315,14 +3307,14 @@ export default function KonPovPage() {
                       isActive
                         ? isDark
                           ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'bg-blue-100 text-blue-950 border border-blue-300 font-black shadow-xs'
                         : isDark
                         ? 'hover:bg-slate-800 text-slate-300'
-                        : 'hover:bg-slate-100 text-slate-700'
+                        : 'hover:bg-slate-100 text-slate-800'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <i className={`fas fa-comment-dots text-xs shrink-0 ${isActive ? 'text-blue-400' : 'text-slate-500'}`}></i>
+                      <i className={`fas fa-comment-dots text-xs shrink-0 ${isActive ? (isDark ? 'text-blue-400' : 'text-blue-700') : 'text-slate-500'}`}></i>
                       <span className="truncate">{session.title || 'Chat'}</span>
                     </div>
 
@@ -3338,7 +3330,7 @@ export default function KonPovPage() {
                           description: 'តើអ្នកពិតជាចង់លុបការជជែកនេះចេញពីប្រវត្តិមែនទេ?'
                         });
                       }}
-                      className="p-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
+                      className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
                       title="លុបការជជែកនេះ"
                     >
                       <i className="fas fa-trash-can text-[11px]"></i>
@@ -3353,17 +3345,25 @@ export default function KonPovPage() {
             <Link
               href="/KonBong"
               onClick={() => stopAllGlobalAudio()}
-              className="bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white font-bold py-2.5 px-2.5 rounded-xl shadow text-center text-xs transition border border-cyan-500/30 flex items-center justify-center gap-1.5 cursor-pointer"
+              className={`font-black py-2.5 px-2.5 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-1.5 cursor-pointer ${
+                isDark
+                  ? 'bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border-cyan-500/30'
+                  : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-950 border-cyan-300'
+              }`}
             >
-              <i className="fa-solid fa-user-tie text-cyan-400"></i>
+              <i className={`fa-solid fa-user-tie ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}></i>
               <span>កូនច្បង</span>
             </Link>
             <Link
               href="/KonKandal"
               onClick={() => stopAllGlobalAudio()}
-              className="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold py-2.5 px-2.5 rounded-xl shadow text-center text-xs transition border border-emerald-500/30 flex items-center justify-center gap-1.5 cursor-pointer"
+              className={`font-black py-2.5 px-2.5 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-1.5 cursor-pointer ${
+                isDark
+                  ? 'bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border-emerald-500/30'
+                  : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-950 border-emerald-300'
+              }`}
             >
-              <i className="fa-solid fa-face-smile text-emerald-400"></i>
+              <i className={`fa-solid fa-face-smile ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}></i>
               <span>កូនកណ្ដាល</span>
             </Link>
           </div>
@@ -3373,9 +3373,13 @@ export default function KonPovPage() {
               setContributeModalOpen(true);
               setDrawerOpen(false);
             }}
-            className="w-full mb-2 bg-emerald-950/40 hover:bg-emerald-600/30 text-emerald-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border border-emerald-500/30 flex items-center justify-center gap-2 cursor-pointer"
+            className={`w-full mb-2 font-black py-2.5 px-4 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-2 cursor-pointer ${
+              isDark
+                ? 'bg-emerald-950/40 hover:bg-emerald-600/30 text-emerald-300 hover:text-white border-emerald-500/30'
+                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border-emerald-300'
+            }`}
           >
-            <i className="fas fa-layer-group text-emerald-400"></i> ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
+            <i className={`fas fa-layer-group ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}></i> ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
           </button>
 
           <button
@@ -3384,15 +3388,23 @@ export default function KonPovPage() {
               setCacheWarningOpen(true);
               setDrawerOpen(false);
             }}
-            className="w-full mb-2 bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border border-emerald-900/60 flex items-center justify-center gap-2 cursor-pointer"
+            className={`w-full mb-2 font-black py-2.5 px-4 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-2 cursor-pointer ${
+              isDark
+                ? 'bg-slate-800/80 hover:bg-slate-700 text-cyan-300 border-slate-700'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-300'
+            }`}
           >
-            <i className="fas fa-broom text-emerald-400"></i> <span>គ្រប់គ្រងទំហំផ្ទុក Cache</span>
+            <i className={`fas fa-broom ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}></i> <span>គ្រប់គ្រងទំហំផ្ទុក Cache</span>
           </button>
 
           {/* Direct 1-Click Gender Switcher in Drawer */}
-          <div className="mb-2 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
-            <span className="text-[10.5px] font-bold text-slate-300 block mb-1.5 flex items-center gap-1.5">
-              <i className="fas fa-venus-mars text-blue-400"></i>
+          <div className={`mb-2 p-2.5 rounded-xl border shadow-xs transition ${
+            isDark ? 'bg-slate-800/80 border-slate-700/80' : 'bg-slate-100 border-slate-300'
+          }`}>
+            <span className={`text-[10.5px] font-black block mb-1.5 flex items-center gap-1.5 ${
+              isDark ? 'text-slate-300' : 'text-slate-900'
+            }`}>
+              <i className={`fas fa-venus-mars ${isDark ? 'text-blue-400' : 'text-blue-700'}`}></i>
               <span>ភេទរបស់អ្នក:</span>
             </span>
             <div className="grid grid-cols-2 gap-1.5">
@@ -3402,7 +3414,9 @@ export default function KonPovPage() {
                 className={`py-2 px-2 rounded-lg font-black text-[11px] transition flex items-center justify-center gap-1 border cursor-pointer ${
                   userGender === 'ប្រុស'
                     ? 'bg-blue-600 border-blue-400 text-white shadow-xs'
-                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
+                    : isDark
+                    ? 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
+                    : 'bg-white border-slate-300 text-slate-800 hover:text-black hover:bg-slate-50'
                 }`}
               >
                 <img src="/img/mommy-avatar.svg" alt="Mommy" className="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
@@ -3414,7 +3428,9 @@ export default function KonPovPage() {
                 className={`py-2 px-2 rounded-lg font-black text-[11px] transition flex items-center justify-center gap-1 border cursor-pointer ${
                   userGender === 'ស្រី'
                     ? 'bg-pink-600 border-pink-400 text-white shadow-xs'
-                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
+                    : isDark
+                    ? 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
+                    : 'bg-white border-slate-300 text-slate-800 hover:text-black hover:bg-slate-50'
                 }`}
               >
                 <img src="/img/daddy-avatar.svg" alt="Daddy" className="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
@@ -3427,24 +3443,34 @@ export default function KonPovPage() {
             <Link
               href="/announcement"
               onClick={() => setDrawerOpen(false)}
-              className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-amber-500/30 flex items-center justify-center gap-1.5"
+              className={`font-black py-2 px-2.5 rounded-xl text-center text-[11px] transition border flex items-center justify-center gap-1.5 shadow-xs ${
+                isDark
+                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30'
+                  : 'bg-amber-100 hover:bg-amber-200 text-amber-950 border-amber-300'
+              }`}
             >
-              <i className="fas fa-bullhorn text-amber-400 text-xs"></i>
+              <i className={`fas fa-bullhorn text-xs ${isDark ? 'text-amber-400' : 'text-amber-700'}`}></i>
               <span>ដំណឹងទីលានតេស្ត</span>
             </Link>
             <Link
               href="/privacy"
               onClick={() => setDrawerOpen(false)}
-              className="bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white font-bold py-2 px-2.5 rounded-xl text-center text-[11px] transition border border-slate-700/60 flex items-center justify-center gap-1.5"
+              className={`font-black py-2 px-2.5 rounded-xl text-center text-[11px] transition border flex items-center justify-center gap-1.5 shadow-xs ${
+                isDark
+                  ? 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-700/80'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-300'
+              }`}
             >
-              <i className="fas fa-shield-halved text-cyan-400 text-xs"></i>
+              <i className={`fas fa-shield-halved text-xs ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}></i>
               <span>គោលការណ៍ឯកជនភាព</span>
             </Link>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 mb-2">
-            <span className="text-xs font-semibold text-slate-300">
-              <i className="fas fa-circle-half-stroke mr-1.5 text-blue-400"></i>
+          <div className={`flex items-center justify-between p-3 rounded-xl mb-2 border shadow-xs transition ${
+            isDark ? 'bg-slate-800/80 border-slate-700/80 text-slate-200' : 'bg-slate-100 border-slate-300 text-slate-900 font-black'
+          }`}>
+            <span className="text-xs font-bold flex items-center gap-2">
+              <i className={`fas fa-circle-half-stroke ${isDark ? 'text-blue-400' : 'text-blue-700'}`}></i>
               ពន្លឺ ឬ ងងឹត Theme
             </span>
             <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
@@ -3453,19 +3479,25 @@ export default function KonPovPage() {
           <button
             type="button"
             onClick={toggleTtsMute}
-            className={`w-full mb-2 font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border flex items-center justify-center gap-2 cursor-pointer ${
-              isTtsMuted
-                ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
-                : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25'
+            className={`w-full mb-2 font-black py-2.5 px-4 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-2 cursor-pointer ${
+              isDark
+                ? isTtsMuted
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
+                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25'
+                : isTtsMuted
+                ? 'bg-rose-100 border-rose-300 text-rose-900 hover:bg-rose-200'
+                : 'bg-emerald-100 border-emerald-300 text-emerald-950 hover:bg-emerald-200'
             }`}
           >
-            <i className={`fas ${isTtsMuted ? 'fa-volume-xmark text-rose-400' : 'fa-volume-high text-emerald-400'}`}></i>
+            <i className={`fas ${isTtsMuted ? 'fa-volume-xmark text-rose-500' : 'fa-volume-high text-emerald-600'}`}></i>
             <span>{isTtsMuted ? 'សំឡេងអាន បិទ • ចុចដើម្បីបើក' : 'សំឡេងអាន បើក • ចុចដើម្បីបិទ'}</span>
           </button>
 
           <Link
             href="/"
-            className="block w-full bg-slate-800/60 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl text-center text-xs mb-2 transition"
+            className={`block w-full font-black py-2.5 px-4 rounded-xl text-center text-xs mb-2 transition border shadow-xs ${
+              isDark ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-300'
+            }`}
           >
             <i className="fas fa-home mr-1"></i> ទំព័រដើម SETEC Roastbot
           </Link>
@@ -3480,9 +3512,13 @@ export default function KonPovPage() {
                   description: 'តើអ្នកពិតជាចង់លុបរាល់ការជជែកទាំងអស់មែនទេ? រាល់សារ និងកំណត់ត្រាទាំងអស់នឹងត្រូវសម្អាតចោលគ្មានសល់!'
                 });
               }}
-              className="w-full bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center gap-2 justify-center border border-rose-500/30 cursor-pointer active:scale-95 shadow-sm"
+              className={`w-full font-black py-2.5 px-4 rounded-xl text-xs transition flex items-center gap-2 justify-center border cursor-pointer active:scale-95 shadow-xs ${
+                isDark
+                  ? 'bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border-rose-500/30'
+                  : 'bg-rose-100 hover:bg-rose-200 text-rose-950 border-rose-300'
+              }`}
             >
-              <i className="fas fa-trash"></i>
+              <i className={`fas fa-trash ${isDark ? 'text-rose-400' : 'text-rose-600'}`}></i>
               <span>លុបប្រវត្តិជជែកទាំងអស់</span>
             </button>
           </div>
@@ -3774,7 +3810,7 @@ export default function KonPovPage() {
                       {
                         id: 'konbong',
                         name: 'ស៊ីតិច Chatbot កូនច្បង',
-                        role: 'រៀមច្បង IT ស្ដេចឌឺ',
+                        role: 'រៀមច្បង IT Flexible កាច & ស្លូត',
                         href: '/KonBong',
                         icon: 'fa-user-tie',
                         color: 'text-indigo-400',

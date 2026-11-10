@@ -333,7 +333,7 @@ export default function SessionBreakModal({
       const result = await validatePromoCode(targetCode, devId, uName);
 
       if (result.valid) {
-        setPromoSuccess(result.message || 'ដោះសោជោគជ័យ! ប្អូនទទួលបានម៉ោងជជែកបន្ថែម 30 នាទីភ្លាមៗ! 🎉');
+        setPromoSuccess(result.message || 'ដោះសោជោគជ័យ! ប្អូនទទួលបានម៉ោងជជែកបន្ថែម 30 នាទីភ្លាមៗ!');
         if (requestTimerRef.current) {
           clearInterval(requestTimerRef.current);
           requestTimerRef.current = null;
