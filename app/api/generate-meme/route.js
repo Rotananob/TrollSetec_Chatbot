@@ -111,8 +111,13 @@ export async function POST(req) {
             model: 'gemini-nano-banana-2.1',
             input: [{ type: 'text', text: `Generate a high-definition hilarious viral meme: ${memePrompt}` }]
           }),
-          signal: AbortSignal.timeout(16000)
+          signal: AbortSignal.timeout(4000)
         });
+
+        if (geminiRes.status === 429) {
+          // Free tier has 0 quota for nano-banana-2.1, don't waste time retrying 5 keys
+          break;
+        }
 
         if (geminiRes.ok) {
           const geminiData = await geminiRes.json();
@@ -125,10 +130,11 @@ export async function POST(req) {
         }
       } catch (err) {
         console.warn('[Gemini Nano Banana 2.1] Generation attempt skipped:', err.message);
+        break;
       }
     }
 
-    // 3. Ultra-HD Fallback Engine: Pollinations Flux/Turbo Image Generation with full server-side download
+    // 3. Ultra-HD Fallback Engine: Fast Parallel Fetch (Pollinations Turbo/Flux with Verified Magic Bytes)
     if (!imageUrl) {
       const seed = Math.floor(Math.random() * 9000000) + 1000000;
       const candidateEngines = [
@@ -138,17 +144,21 @@ export async function POST(req) {
           timeoutMs: 14000
         },
         {
+          name: 'Neural Turbo Fast Core Alternative (512x512 Base64)',
+          url: `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=512&height=512&model=turbo&seed=${seed + 1}&nologo=true`,
+          timeoutMs: 14000
+        },
+        {
           name: 'Nano Banana Neural Flux Core (1024x1024 HD Base64)',
           url: `https://image.pollinations.ai/prompt/${encodeURIComponent(memePrompt)}?width=1024&height=1024&model=flux&seed=${seed}&nologo=true`,
-          timeoutMs: 20000
+          timeoutMs: 18000
         }
       ];
 
-      for (const candidate of candidateEngines) {
-        if (imageUrl) break;
+      const fetchCandidate = async (candidate) => {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), candidate.timeoutMs);
         try {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), candidate.timeoutMs);
           const imgRes = await fetch(candidate.url, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -158,26 +168,50 @@ export async function POST(req) {
           });
           clearTimeout(timer);
 
-          if (imgRes.ok) {
-            const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
-            if (contentType.includes('image')) {
-              const arrayBuffer = await imgRes.arrayBuffer();
-              const buffer = Buffer.from(arrayBuffer);
-              if (buffer.length > 5000) {
-                // Strictly verify binary magic bytes (JPEG: FF D8 FF, PNG: 89 50 4E 47, WEBP: RIFF...WEBP)
-                const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
-                const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
-                const isWebp = buffer.toString('utf8', 0, 4) === 'RIFF' && buffer.toString('utf8', 8, 12) === 'WEBP';
-                if (isJpeg || isPng || isWebp) {
-                  imageUrl = `data:${contentType};base64,${buffer.toString('base64')}`;
-                  engineUsed = candidate.name;
-                  break;
-                }
-              }
+          if (!imgRes.ok) throw new Error(`HTTP ${imgRes.status}`);
+          const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+          if (!contentType.includes('image')) throw new Error('Not an image content type');
+
+          const arrayBuffer = await imgRes.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          if (buffer.length < 8000) throw new Error('Image buffer too small');
+
+          // Strictly verify binary magic bytes (JPEG: FF D8 FF, PNG: 89 50 4E 47, WEBP: RIFF...WEBP)
+          const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+          const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+          const isWebp = buffer.toString('utf8', 0, 4) === 'RIFF' && buffer.toString('utf8', 8, 12) === 'WEBP';
+
+          if (!isJpeg && !isPng && !isWebp) throw new Error('Invalid image magic bytes');
+
+          const cleanType = isJpeg ? 'image/jpeg' : isPng ? 'image/png' : 'image/webp';
+          return {
+            imageUrl: `data:${cleanType};base64,${buffer.toString('base64')}`,
+            engine: candidate.name
+          };
+        } catch (err) {
+          clearTimeout(timer);
+          throw err;
+        }
+      };
+
+      try {
+        const fastestSuccess = await Promise.any(candidateEngines.map((c) => fetchCandidate(c)));
+        if (fastestSuccess?.imageUrl) {
+          imageUrl = fastestSuccess.imageUrl;
+          engineUsed = fastestSuccess.engine;
+        }
+      } catch (raceErr) {
+        console.warn('[MemeEngine] Parallel fetch failed, falling back to sequential fetch:', raceErr.message);
+        for (const candidate of candidateEngines) {
+          if (imageUrl) break;
+          try {
+            const res = await fetchCandidate(candidate);
+            if (res?.imageUrl) {
+              imageUrl = res.imageUrl;
+              engineUsed = res.engine;
+              break;
             }
-          }
-        } catch (fetchErr) {
-          console.warn(`[MemeEngine] ${candidate.name} fetch attempt skipped:`, fetchErr.message);
+          } catch {}
         }
       }
     }
