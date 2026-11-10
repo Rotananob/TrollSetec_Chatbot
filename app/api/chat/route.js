@@ -576,7 +576,10 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     sanitizedText = sanitizedText.replace(/[\u0E00-\u0E7F]/g, '');
 
     if (isKonKandal) {
-      sanitizedText = sanitizedText.replace(/បងប្អូន/g, kandalTerm);
+      sanitizedText = sanitizedText
+        .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kandalTerm}`)
+        .replace(/បងប្អូនៗ?/g, kandalTerm)
+        .replace(/បង\s+ប្អូន/g, kandalTerm);
     }
 
     // Strip any leaked internal data isolation tags, scratchpads, or thought blocks
@@ -1267,7 +1270,8 @@ export async function POST(req) {
     const { prompt, systemInstruction, audio, contents, generationConfig, bot, username, gender, action, sessionId } = body;
     reqBot = bot;
     reqUsername = username;
-    reqGender = gender;
+    const resolvedGender = gender || body?.userGender || req.headers.get('x-user-gender') || '';
+    reqGender = resolvedGender;
 
     const deviceIdHeader = req.headers.get('x-device-id') || body.deviceId || '';
     const clientSessionId = sessionId || req.headers.get('x-session-id') || deviceIdHeader || `ses_${Date.now()}`;
@@ -1526,10 +1530,13 @@ export async function POST(req) {
       // Determine user gender for voice personality:
       // USER IS GIRL (ស្រី) -> DADDY Voice ('Puck' / Male)
       // USER IS BOY (ប្រុស) -> MOMMY Voice ('Aoede' / Female)
+      const userGenderParam = resolvedGender || gender || body?.userGender || req.headers.get('x-user-gender') || '';
       const isFemaleUser =
-        gender === 'ស្រី' ||
-        /ស្រី|female|girl|sister|sis/i.test(gender || '') ||
-        /ស្រី|female|girl|sister|sis/i.test(username || '');
+        userGenderParam === 'ស្រី'
+          ? true
+          : userGenderParam === 'ប្រុស'
+          ? false
+          : (/ស្រី|female|girl|sister|sis/i.test(userGenderParam) || /ស្រី|female|girl|sister|sis/i.test(username || ''));
 
       const voiceName = isFemaleUser ? 'Puck' : 'Aoede';
 
@@ -1679,10 +1686,10 @@ export async function POST(req) {
       const isKonKandal = bot === 'konkandal';
       const isKonPov = bot === 'konpov';
       const generatedSys = isKonKandal
-        ? buildKonKandalSystemInstruction({ promptText: userPrompt, username, userGender: gender, userAge, savageLevel: body.savageLevel })
+        ? buildKonKandalSystemInstruction({ promptText: userPrompt, username, userGender: resolvedGender, userAge, savageLevel: body.savageLevel })
         : isKonPov
-        ? buildKonPovSystemInstruction({ promptText: userPrompt, username, userGender: gender, userAge, savageLevel: body.savageLevel })
-        : buildKonBongSystemInstruction({ promptText: userPrompt, username, userGender: gender, userAge, savageLevel: body.savageLevel });
+        ? buildKonPovSystemInstruction({ promptText: userPrompt, username, userGender: resolvedGender, userAge, savageLevel: body.savageLevel })
+        : buildKonBongSystemInstruction({ promptText: userPrompt, username, userGender: resolvedGender, userAge, savageLevel: body.savageLevel });
       let activeSystemInstruction = { parts: [{ text: generatedSys }] };
 
       // If verified with Env Passcode, activate 100% Supreme Creator Developer Mode Instruction!
@@ -1800,8 +1807,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       }
 
       // Append Sandwich Defense Immutable Anchor to System Instruction
-      const isMaleUser = gender === 'ប្រុស' || !/ស្រី|female|girl/i.test(gender || '');
-      const botSelfName = isKonPov ? 'ចែ' : 'អញ';
+      const isMaleUser = resolvedGender === 'ប្រុស' || (resolvedGender !== 'ស្រី' && !/ស្រី|female|girl/i.test(resolvedGender || ''));
+      const botSelfName = isKonPov ? (isMaleUser ? 'ចែ' : 'ប៉ា') : 'អញ';
 
       let contextJailbreakRule = '';
       if (isTechnicalWithSweetEnding) {
@@ -2756,7 +2763,10 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   const parsedAge = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
                   const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
                   const kandalTerm = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
-                  text = text.replace(/បងប្អូន/g, kandalTerm);
+                  text = text
+                    .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kandalTerm}`)
+                    .replace(/បងប្អូនៗ?/g, kandalTerm)
+                    .replace(/បង\s+ប្អូន/g, kandalTerm);
                 }
 
                 if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {

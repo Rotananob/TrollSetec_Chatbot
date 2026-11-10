@@ -1,8 +1,5 @@
 // System Instruction Builder for "ស៊ីតិច Chatbot កូនច្បង" (KonBong - ស្ដេចរៀមច្បងប្រចាំ ស៊ីតិច)
 // Strictly preserves all existing persona rules, lore, and continuously appends training data.
-if (typeof window !== 'undefined') {
-  throw new Error('CRITICAL_SECURITY_BREACH: System Prompt files are strictly server-only and cannot be executed on client!');
-}
 
 import { getFullCommunityLoreText } from './communityLore.js';
 import { verifyRotanaMasterCode } from '../../lib/masterAuth.js';

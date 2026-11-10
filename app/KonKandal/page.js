@@ -366,7 +366,9 @@ export default function KonKandalPage() {
     const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
     const term = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
     return str
-      .replace(/បងប្អូន/g, term)
+      .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term}`)
+      .replace(/បងប្អូនៗ?/g, term)
+      .replace(/បង\s+ប្អូន/g, term)
       .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
       .replace(/https?:\/\/\S+/gi, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -1103,7 +1105,10 @@ export default function KonKandalPage() {
     const parsedAge = typeof activeAge === 'number' ? activeAge : parseInt(activeAge, 10);
     const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
     const term = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
-    cleaned = cleaned.replace(/បងប្អូន/g, term);
+    cleaned = cleaned
+      .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term}`)
+      .replace(/បងប្អូនៗ?/g, term)
+      .replace(/បង\s+ប្អូន/g, term);
 
     return cleaned.trimStart();
   };

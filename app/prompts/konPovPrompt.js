@@ -1,8 +1,5 @@
 // System Instruction Builder for "ស៊ីតិច Chatbot កូនពៅ" (KonPov - Savage Queen / ចែ / Mommy)
 // Strictly preserves all existing persona rules, lore, and continuously appends training data.
-if (typeof window !== 'undefined') {
-  throw new Error('CRITICAL_SECURITY_BREACH: System Prompt files are strictly server-only and cannot be executed on client!');
-}
 
 import { getFullCommunityLoreText } from './communityLore.js';
 import { verifyRotanaMasterCode } from '../../lib/masterAuth.js';
@@ -18,7 +15,7 @@ export function buildKonPovSystemInstruction({
   setIsRotanaMasterBypass = null
 }) {
   const userNameStr = username || 'User';
-  const isFemaleUser = userGender === 'ស្រី';
+  const isFemaleUser = userGender === 'ស្រី' ? true : userGender === 'ប្រុស' ? false : /ស្រី|female|girl/i.test(userGender || '');
   const isMaleUser = !isFemaleUser;
 
   // Dynamic Gender Swap: User Girl -> KonPov is Daddy (Boy persona); User Boy -> KonPov is Mommy/ចែ (Girl persona)

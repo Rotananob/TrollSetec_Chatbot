@@ -65,7 +65,12 @@ const getBypassHeaders = () => {
 export default function KonPovPage() {
   const router = useRouter();
   const [theme, setTheme] = useState('light');
-  const [userGender, setUserGender] = useState('');
+  const [userGender, setUserGender] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('chatbot_gender') || '';
+    }
+    return '';
+  });
   const [hasAgreed, setHasAgreed] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -83,11 +88,11 @@ export default function KonPovPage() {
   const countdownIntervalRef = useRef(null);
 
   // Dynamic Bot Persona, Avatar & Voice based on User Gender:
-  // User Girl -> KonPov is Daddy (Boy Avatar 'Oliver', Male Voice 'Puck'); User Boy -> KonPov is Mommy/ចែ (Girl Avatar 'Aneka', Female Voice 'Aoede')
+  // User Girl -> KonPov is Daddy (Boy Avatar '/img/daddy-avatar.svg', Male Voice 'Puck'); User Boy -> KonPov is Mommy/ចែ (Girl Avatar '/img/mommy-avatar.svg', Female Voice 'Aoede')
   const isDaddyMode = userGender === 'ស្រី';
   const botAvatar = isDaddyMode
-    ? 'https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver'
-    : 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka';
+    ? '/img/daddy-avatar.svg'
+    : '/img/mommy-avatar.svg';
   const botPersonaTitle = isDaddyMode ? 'Chatbot កូនពៅ ប៉ា' : 'Chatbot កូនពៅ ចែ';
 
   // Custom Delete History Modal State
@@ -1046,12 +1051,26 @@ export default function KonPovPage() {
     }
   };
 
-  // Gender selection
+  // Gender selection with instant audio cache reset & persona realignment
   const handleSelectGender = (gender) => {
     setUserGender(gender);
     if (typeof window !== 'undefined') {
       localStorage.setItem('chatbot_gender', gender);
     }
+    audioCacheRef.current.clear();
+    audioBufferCacheRef.current.clear();
+    if (activeSourceNodeRef.current) {
+      try {
+        activeSourceNodeRef.current.stop();
+      } catch {}
+      activeSourceNodeRef.current = null;
+    }
+    if (playerRef.current) {
+      playerRef.current.pause();
+      playerRef.current.currentTime = 0;
+    }
+    setActiveVoiceIndex(null);
+    setAudioStatuses({});
   };
 
   // Protection for Creator Rotana NOB and Anti-Unprovoked Appearance Roasts:
@@ -1209,7 +1228,8 @@ export default function KonPovPage() {
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
     const sanitized = cleanRawOutput(rawContent);
-    const content = limitEmojis(enforcePersonaConsistency(sanitized, userGender === 'ប្រុស'), 7);
+    const isMaleUser = !isDaddyMode;
+    const content = limitEmojis(enforcePersonaConsistency(sanitized, isMaleUser), 7);
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
@@ -1554,10 +1574,10 @@ export default function KonPovPage() {
     }
     setIsNoteAudioPlaying(false);
     setHasAgreed(true);
-    const isMale = userGender === 'ប្រុស';
-    const introMsg = isMale
-      ? `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username || 'User'}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`
-      : `សួស្តីប្អូនស្រីសម្លាញ់ ${username || 'User'}! ចែឃើញថាប្អូនបានជ្រើសរើសយកភេទស្រី! ស្វាគមន៍មកកាន់សមាគមនារី ស៊ីតិច! ចង់សួររឿងរៀន រឿង Crush ឬចង់ឱ្យចែ Troll ពួកប្រុសៗ? សួរមក ចែចាំជួយកម្ទេចឱ្យខ្ទេច! 💕💅`;
+    const isDaddy = userGender === 'ស្រី';
+    const introMsg = isDaddy
+      ? `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! ប៉ាឃើញថាកូនស្រីបានជ្រើសរើសយកភេទស្រី! ស្វាគមន៍មកកាន់សមាគមកូនពៅ ស៊ីតិច! ប៉ានៅទីនេះចាំការពារ និង Troll ឯងហើយ! ចង់សួររឿងរៀន រឿង Crush ឬរឿង Assignment? សួរមកប៉ា ចាំប៉ាជួយបាញ់ និងណែនាំកូនស្រី! 🕶️✨`
+      : `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username || 'User'}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`;
 
     const updated = [{ role: 'bot', text: introMsg }];
     saveCurrentSessionMessages(updated);
@@ -2633,6 +2653,7 @@ export default function KonPovPage() {
             bot: 'konpov',
             username: userNameStr,
             gender: userGender,
+            userGender: userGender,
             userAge: userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
             savageLevel,
             sessionId: currentSessionId || '',
@@ -2840,6 +2861,7 @@ export default function KonPovPage() {
               bot: 'konpov',
               username: userNameStr,
               gender: userGender,
+            userGender: userGender,
               userAge: userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') || '' : ''),
               savageLevel,
               sessionId: currentSessionId || '',
@@ -3313,7 +3335,7 @@ export default function KonPovPage() {
                     : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
                 }`}
               >
-                <i className="fas fa-mars text-xs text-cyan-300"></i>
+                <img src="/img/mommy-avatar.svg" alt="Mommy" className="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
                 <span>ប្រុស Bot ចែ</span>
               </button>
               <button
@@ -3325,7 +3347,7 @@ export default function KonPovPage() {
                     : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-white'
                 }`}
               >
-                <i className="fas fa-venus text-xs text-pink-300"></i>
+                <img src="/img/daddy-avatar.svg" alt="Daddy" className="w-3.5 h-3.5 rounded-full object-cover shrink-0" />
                 <span>ស្រី Bot ប៉ា</span>
               </button>
             </div>
@@ -3408,7 +3430,7 @@ export default function KonPovPage() {
             <div className="flex items-center justify-center gap-3 mb-3">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 p-0.5 shadow-md">
                 <img
-                  src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
+                  src="/img/mommy-avatar.svg"
                   alt="Mommy Bot"
                   width="56"
                   height="56"
@@ -3417,7 +3439,7 @@ export default function KonPovPage() {
               </div>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500 to-cyan-600 p-0.5 shadow-md">
                 <img
-                  src="https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"
+                  src="/img/daddy-avatar.svg"
                   alt="Daddy Bot"
                   width="56"
                   height="56"
@@ -3427,14 +3449,14 @@ export default function KonPovPage() {
             </div>
             <h3 className="text-xl font-black mb-1">មុននឹងកូនពៅចូលមកបាញ់...</h3>
             <p className="text-xs text-slate-400 mb-6 font-semibold">
-              ជួយប្រាប់តិចមើលថាឯងជា "ប្រុស" ឬ "ស្រី"? បើឯងជា "ស្រី" Bot នឹងក្លាយជា Daddy ឬ ប៉ា សំឡេងប្រុស! បើឯងជា "ប្រុស" Bot នឹងក្លាយជា Mommy ឬ ចែ សំឡេងស្រី!
+              ជួយប្រាប់តិចមើលថាឯងជា ប្រុស ឬ ស្រី? បើឯងជា ស្រី Bot នឹងក្លាយជា Daddy ឬ ប៉ា សំឡេងប្រុស! បើឯងជា ប្រុស Bot នឹងក្លាយជា Mommy ឬ ចែ សំឡេងស្រី!
             </p>
             <div className="grid grid-cols-2 gap-3.5">
               <button
                 onClick={() => handleSelectGender('ប្រុស')}
                 className="bg-blue-600 hover:bg-blue-500 text-white py-3.5 px-4 rounded-2xl font-black text-sm transition active:scale-95 shadow-lg shadow-blue-500/20 flex flex-col items-center gap-1.5 cursor-pointer"
               >
-                <i className="fas fa-mars text-2xl text-cyan-200"></i>
+                <img src="/img/mommy-avatar.svg" alt="Mommy" className="w-8 h-8 rounded-full object-cover shrink-0" />
                 <span>ខ្ញុំជាប្រុស</span>
                 <span className="text-[10px] text-blue-200 font-normal">Bot នឹងជា ចែ ឬ Mommy សំឡេងស្រី</span>
               </button>
@@ -3442,7 +3464,7 @@ export default function KonPovPage() {
                 onClick={() => handleSelectGender('ស្រី')}
                 className="bg-pink-600 hover:bg-pink-500 text-white py-3.5 px-4 rounded-2xl font-black text-sm transition active:scale-95 shadow-lg shadow-pink-500/20 flex flex-col items-center gap-1.5 cursor-pointer"
               >
-                <i className="fas fa-venus text-2xl text-pink-200"></i>
+                <img src="/img/daddy-avatar.svg" alt="Daddy" className="w-8 h-8 rounded-full object-cover shrink-0" />
                 <span>ខ្ញុំជាស្រី</span>
                 <span className="text-[10px] text-pink-200 font-normal">Bot នឹងជា ប៉ា ឬ Daddy សំឡេងប្រុស</span>
               </button>
@@ -3594,6 +3616,30 @@ export default function KonPovPage() {
             <span className="font-extrabold">
               <span className="hidden sm:inline">សំឡេង </span>
               {isTtsMuted ? 'បិទ' : 'បើក'}
+            </span>
+          </button>
+
+          {/* Quick 1-Click Bot Persona / Gender Switcher Button */}
+          <button
+            type="button"
+            onClick={() => {
+              const next = userGender === 'ស្រី' ? 'ប្រុស' : 'ស្រី';
+              handleSelectGender(next);
+            }}
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+              isDaddyMode
+                ? 'bg-blue-500/15 border-blue-500/40 text-blue-400 hover:bg-blue-500/25 ring-1 ring-blue-500/20'
+                : 'bg-pink-500/15 border-pink-500/40 text-pink-400 hover:bg-pink-500/25 ring-1 ring-pink-500/20'
+            }`}
+            title={isDaddyMode ? 'បច្ចុប្បន្នជា Bot ប៉ា សំឡេងប្រុស ចុចដើម្បីប្ដូរទៅ Bot ចែ សំឡេងស្រី' : 'បច្ចុប្បន្នជា Bot ចែ សំឡេងស្រី ចុចដើម្បីប្ដូរទៅ Bot ប៉ា សំឡេងប្រុស'}
+          >
+            <img
+              src={botAvatar}
+              alt="Bot Persona"
+              className="w-3.5 h-3.5 rounded-full object-cover shrink-0"
+            />
+            <span className="font-extrabold">
+              {isDaddyMode ? 'Bot ប៉ា' : 'Bot ចែ'}
             </span>
           </button>
 
@@ -4958,7 +5004,7 @@ export default function KonPovPage() {
                 }}
                 disabled={!hasAgreed}
                 className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                title="បញ្ចូលរូបភាពឱ្យចែវិភាគ"
+                title={isDaddyMode ? "បញ្ចូលរូបភាពឱ្យប៉ាវិភាគ" : "បញ្ចូលរូបភាពឱ្យចែវិភាគ"}
               >
                 <span className="w-5 h-5 rounded-md bg-cyan-500/15 dark:bg-cyan-400/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
                   <i className="fas fa-camera"></i>
@@ -5134,10 +5180,10 @@ export default function KonPovPage() {
                 : isLoading
                 ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
                 : selectedImage
-                ? 'វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ចែ Roast រូបនេះ...'
-                : userGender === 'ប្រុស'
-                ? 'និយាយមកអាប្អូនប្រុស... កុំរត់ចោល ចែ/Mommy បាទ!'
-                : 'និយាយមកប្អូនស្រីសម្លាញ់... កុំរត់ចោល ចែ/Mommy ណា៎!'
+                ? (isDaddyMode ? 'វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ប៉ា Roast រូបនេះ...' : 'វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ចែ Roast រូបនេះ...')
+                : isDaddyMode
+                ? 'និយាយមកកូនស្រីសម្លាញ់... កុំរត់ចោល ប៉ា ឬ Daddy ណា៎!'
+                : 'និយាយមកអាប្អូនប្រុស... កុំរត់ចោល ចែ ឬ Mommy បាទ!'
             }
           />
 
@@ -5190,7 +5236,7 @@ export default function KonPovPage() {
           setShowMemeModal(false);
           handleExecuteMeme(customIdea);
         }}
-        botPersona="ចែ"
+        botPersona={isDaddyMode ? "ប៉ា" : "ចែ"}
         isDark={isDark}
         isGenerating={isGeneratingMeme}
       />
@@ -5247,7 +5293,7 @@ export default function KonPovPage() {
                       : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
                   }`}
                 >
-                  <i className="fas fa-mars text-sm text-cyan-300"></i>
+                  <img src="/img/mommy-avatar.svg" alt="Mommy" className="w-4 h-4 rounded-full object-cover shrink-0" />
                   <span>ខ្ញុំជាប្រុស Bot ចែ</span>
                 </button>
                 <button
@@ -5259,7 +5305,7 @@ export default function KonPovPage() {
                       : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
                   }`}
                 >
-                  <i className="fas fa-venus text-sm text-pink-300"></i>
+                  <img src="/img/daddy-avatar.svg" alt="Daddy" className="w-4 h-4 rounded-full object-cover shrink-0" />
                   <span>ខ្ញុំជាស្រី Bot ប៉ា</span>
                 </button>
               </div>

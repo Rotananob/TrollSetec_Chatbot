@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { VIRAL_TROLL_QUOTES } from '../app/prompts/communityLore';
+import { VIRAL_TROLL_QUOTES } from '../app/utils/viralQuotes';
 
 export default function TrollQuoteModal({
   isOpen,
