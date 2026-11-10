@@ -1444,15 +1444,8 @@ export async function POST(req) {
 
       const voiceName = isFemaleUser ? 'Puck' : 'Aoede';
 
-      // Ensure the voice begins with a punchy, humorous Cambodian vocal flavor (laughter / tease) if none is present
-      const hasComicVocal = /ហាហា|ហាស់|ហិហិ|ហ៊ឺ|ហឹក|យីអើ|អូហូ|យើស|អេន|អ្ហា|កក្អឹក|ហេស/u.test(audioPromptText);
-      if (!hasComicVocal && audioPromptText.length > 0) {
-        // DADDY (Puck) laughs "ហាហាហា! យីអើ! ", MOMMY (Aoede) giggles "ហិហិហិ! យីអើ! "
-        const comicIntro = isFemaleUser
-          ? 'ហាហាហា! យីអើ! '
-          : 'ហិហិហិ! យីអើ! ';
-        audioPromptText = comicIntro + audioPromptText;
-      }
+      // Dynamic & natural speech delivery: deliver the clean generated text directly without repetitive forced prefixes
+      // Prevents audio responses from looping the exact same laughter / intro on every turn
 
       // 1. Primary AI Voice: Call Gemini Native TTS if keys available (DADDY 'Puck' for Girl / MOMMY 'Aoede' for Boy)
       let ttsResult = { ok: false };
@@ -1559,8 +1552,10 @@ export async function POST(req) {
         : undefined;
 
       const genConfig = {
-        temperature: generationConfig?.temperature ?? 0.85,
+        temperature: generationConfig?.temperature ?? 0.95,
         topP: generationConfig?.topP ?? 0.95,
+        presencePenalty: 0.5,
+        frequencyPenalty: 0.5,
         maxOutputTokens: 600,
         ...generationConfig
       };
