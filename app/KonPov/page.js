@@ -2602,7 +2602,7 @@ export default function KonPovPage() {
       let isSmartCutoff = false;
       try {
         const streamAbortCtrl = new AbortController();
-        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 35000);
+        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 20000);
 
         const response = await fetch(getChatEndpoint(), {
           method: 'POST',
@@ -2809,7 +2809,7 @@ export default function KonPovPage() {
       if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
           const fallbackCtrl = new AbortController();
-          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 35000);
+          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 15000);
 
           const fallbackRes = await fetch(getChatEndpoint(), {
             method: 'POST',

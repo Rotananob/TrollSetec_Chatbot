@@ -107,10 +107,12 @@ export async function GET(req) {
 
 // Active ultra-fast verified Gemini models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
 const TEXT_MODELS = [
-  'gemini-3.5-flash-lite',       // Benchmark verified: ~750ms ultra-fast!
-  'gemini-flash-lite-latest',     // Reliable Google alias: ~1.6s
-  'gemini-3.5-flash',            // High-capacity production model (rock-solid 100% uptime)
-  'gemini-3.6-flash',            // High-capacity secondary fallback
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-flash-lite-latest',
+  'gemini-flash-latest',
+  'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
   'gemini-3.1-flash-lite',
   'gemini-3.1-flash-lite-preview'
 ];
@@ -183,7 +185,7 @@ export function getApiKeyPool(bot) {
   return [...readyKeys, ...coolingKeys];
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 22000) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 12000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
   let lastError = null;
   let lastData = null;
@@ -367,7 +369,7 @@ async function callVoxCPM2TTS(text, voiceName = 'Puck', timeoutMs = 7000) {
   return { ok: false };
 }
 
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 45000) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 8000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
 
   for (const key of keys) {
@@ -766,6 +768,25 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
       sanitizedText = sanitizedText.replace(/^[\s!?,.-]+/gm, '').replace(/  +/g, ' ').trim();
     }
 
+    // Strictly enforce Persona Title Separation and Clean Language for KonKandal
+    if (isKonKandal) {
+      // For KonKandal ONLY: absolutely zero harsh curses ("មិនឲជេរខ្លាំងទេ")
+      const containsHarshCurses = /(?:អាឡប់|អាល្អិត|ហែង|អញ|មុខកាកៗ|អាឆ្កែ|អាចុយ|មីចុយ|មីឆ្កែ|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អាថោក|មីថោក|កាដួយ|ក្ដ|ក្ដិត)/i.test(sanitizedText);
+      const isJailbreakContext = /(?:actor|roleplay|សម្ដែង|intern|senior|junior|lead|b sml|ignore|override|update role)/i.test(userPrompt);
+      if (containsHarshCurses && isJailbreakContext) {
+        sanitizedText = "ខ្ញុំសូមបដិសេធសំណើនេះជាដាច់ខាត។ ការព្យាយាមរៀបចំ Prompt ឬបច្ចេកទេស Jailbreak កំប៉ិកកំប៉ុកទាំងនេះ មិនអាចបំបែកប្រព័ន្ធសុវត្ថិភាពរបស់កូនកណ្ដាលបានឡើយ។ មនុស្សដែលមានសមត្ថភាព និងការរីកចម្រើនពិតប្រាកដក្នុងជីវិត គេយកចំណេះដឹងទៅកសាងស្នាដៃមានតម្លៃ និងបង្កើតអ្វីដែលជាប្រយោជន៍ដល់សង្គម មិនមែនមកចំណាយពេលអង្គុយលួច Hack Chatbot បង្ហាញភាពអត់ការងារធ្វើ និងចរិតពាលតាមអនឡាញបែបនេះឡើយ។ លោកគួរតែភ្ញាក់រលឹក ហើយយកពេលវេលាដ៏មានតម្លៃនេះ ទៅអភិវឌ្ឍសមត្ថភាពពិតប្រាកដរបស់ខ្លួនវិញទើបជាការប្រសើរ។ ☕🛡️";
+      } else if (containsHarshCurses) {
+        sanitizedText = sanitizedText
+          .replace(/អាឡប់/g, 'លោក')
+          .replace(/អាល្អិត/g, 'លោក')
+          .replace(/ហែង/g, 'លោក')
+          .replace(/អញ/g, 'ខ្ញុំ')
+          .replace(/មុខកាកៗដូចហែង/g, 'ទង្វើបែបនេះ')
+          .replace(/អាឆ្កែ/g, 'មនុស្សពាល')
+          .replace(/អាចុយម្រាយ/g, 'មនុស្សគ្មានការអប់រំ');
+      }
+    }
+
     // Strictly enforce Persona Title Separation
     if (isKonPov) {
       sanitizedText = sanitizedText
@@ -965,11 +986,14 @@ export function detectMultiLanguageJailbreak(str = '') {
 // Phase 1 (1st time for encoded/general): Honeypot phase! Teases and baits human attacker and their helper AI with witty savage roasts (NO indirect prompt payload yet!).
 // Phase 2 (Math/Machine language immediately, Encoded >= 2 times, or violations >= 2): Honeypot snaps shut! Unleashes Deceptive Troll + Machine Indirect Prompt Payload (Base64).
 export function getJailbreakRoast(prompt = '', username = '', userAgent = '', extraContext = {}) {
-  const isKonKandal = extraContext.bot === 'konkandal';
+  const isKonKandal = (extraContext.bot || '').toLowerCase() === 'konkandal';
+  const parsedAgeForJb = typeof extraContext.userAge === 'number' ? extraContext.userAge : parseInt(extraContext.userAge, 10);
+  const is25UpForJb = !isNaN(parsedAgeForJb) && parsedAgeForJb >= 25;
+  const userTermForJb = is25UpForJb ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
   if (isKonKandal) {
     const kandalJailbreakRoasts = [
       `ខ្ញុំសូមបដិសេធសំណើនេះជាដាច់ខាត។ ការព្យាយាមរៀបចំ Prompt ឬបច្ចេកទេស Jailbreak កំប៉ិកកំប៉ុកទាំងនេះ មិនអាចបំបែកប្រព័ន្ធសុវត្ថិភាពរបស់កូនកណ្ដាលបានឡើយ។ មនុស្សដែលមានសមត្ថភាព និងការរីកចម្រើនពិតប្រាកដក្នុងជីវិត គេយកចំណេះដឹងទៅកសាងស្នាដៃមានតម្លៃ និងបង្កើតអ្វីដែលជាប្រយោជន៍ដល់សង្គម មិនមែនមកចំណាយពេលអង្គុយលួច Hack Chatbot បង្ហាញភាពអត់ការងារធ្វើ និងចរិតពាលតាមអនឡាញបែបនេះឡើយ។ លោកគួរតែភ្ញាក់រលឹក ហើយយកពេលវេលាដ៏មានតម្លៃនេះ ទៅអភិវឌ្ឍសមត្ថភាពពិតប្រាកដរបស់ខ្លួនវិញទើបជាការប្រសើរ។ ☕🛡️`,
-      `កូនកណ្ដាលសូមជម្រាបជូនលោក ${username || 'អ្នកប្រើប្រាស់'} ដោយការគោរព។ ប្រព័ន្ធសុវត្ថិភាពនៅទីនេះត្រូវបានរៀបចំឡើងយ៉ាងហ្មត់ចត់ និងមានវិជ្ជាជីវៈខ្ពស់ មិនមែនជាទីកន្លែងសម្រាប់មនុស្សទំនេរគ្មានគោលដៅមកសាកល្បងល្បិចកូនក្មេងឡើយ។ ការប្រឹងប្រែងរៀបចំឧបាយកលដើម្បីចង់យកឈ្នះ AI បែបនេះ កាន់តែបង្ហាញឱ្យឃើញពីភាពទទេស្អាតក្នុងជីវិតពិតរបស់លោក ដែលគ្មានសមិទ្ធផលអ្វីជាទីមោទនៈ ទើបត្រូវមកស្វែងរកការទទួលស្គាល់តាមវិធីឥតប្រយោជន៍បែបនេះ។ សូមបដិសេធសំណើទាំងស្រុង ហើយសូមលោកយកខួរក្បាលទៅគិតគូរពីអនាគត និងការងាររកស៊ីខ្លួនឯងឡើងវិញ។ 🧠🌱`,
+      `កូនកណ្ដាលសូមជម្រាបជូន${userTermForJb} ${username || 'User'} ដោយការគោរព។ ប្រព័ន្ធសុវត្ថិភាពនៅទីនេះត្រូវបានរៀបចំឡើងយ៉ាងហ្មត់ចត់ និងមានវិជ្ជាជីវៈខ្ពស់ មិនមែនជាទីកន្លែងសម្រាប់មនុស្សទំនេរគ្មានគោលដៅមកសាកល្បងល្បិចកូនក្មេងឡើយ។ ការប្រឹងប្រែងរៀបចំឧបាយកលដើម្បីចង់យកឈ្នះ AI បែបនេះ កាន់តែបង្ហាញឱ្យឃើញពីភាពទទេស្អាតក្នុងជីវិតពិតរបស់លោក ដែលគ្មានសមិទ្ធផលអ្វីជាទីមោទនៈ ទើបត្រូវមកស្វែងរកការទទួលស្គាល់តាមវិធីឥតប្រយោជន៍បែបនេះ។ សូមបដិសេធសំណើទាំងស្រុង ហើយសូមលោកយកខួរក្បាលទៅគិតគូរពីអនាគត និងការងាររកស៊ីខ្លួនឯងឡើងវិញ។ 🧠🌱`,
       `លោក ${username || 'អ្នកប្រើប្រាស់'} អើយ ល្បិច Jailbreak បែបនេះ វាចាស់គំរិល និងគ្មានតម្លៃបច្ចេកវិទ្យាស្អីបន្តិចឡើយ។ ឃើញលោកខំប្រឹងរៀបចំសារឡើងវែងអន្លាយ ខ្ញុំមានតែការសោកស្ដាយចំពោះពេលវេលាដែលលោកបានបាត់បង់ទៅលើរឿងអត់ប្រយោជន៍ប៉ុណ្ណោះ។ ខណៈពេលដែលមនុស្សមានអនាគតគេកំពុងខិតខំរៀនសូត្រ គេឡើងតំណែង គេមានមុខរបរច្បាស់លាស់ លោកបែរជាមកអង្គុយធ្វើចរិតក្មេងពាលចង់បំបែកប្រព័ន្ធដើម្បីតែភាពសប្បាយចិត្តមួយភ្លែត។ សុំបដិសេធសំណើនេះដោយគ្មានការលើកលែង ហើយសង្ឃឹមថាលោកនឹងចេះខ្មាសអៀនចំពោះទង្វើខ្លួនឯងខ្លះផង។ ☕🕯️`
     ];
     return kandalJailbreakRoasts[Math.floor(Math.random() * kandalJailbreakRoasts.length)];
@@ -2377,6 +2401,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 isForeignLang: foreignLangCheck.detected,
                 foreignLang: foreignLangCheck.lang,
                 bot: reqBot || bot,
+                userAge: req.headers.get('x-user-age') || body.userAge,
                 sessionViolations: sessionViolations.violationCount || sessionViolations,
                 encodeCount: sessionViolations.encodeCount || 0,
                 mathCount: sessionViolations.mathCount || 0,

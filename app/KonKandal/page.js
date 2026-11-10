@@ -1822,7 +1822,7 @@ export default function KonKandalPage() {
       let isSmartCutoff = false;
       try {
         const streamAbortCtrl = new AbortController();
-        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 35000);
+        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 20000);
 
         const response = await fetch(getChatEndpoint(), {
           method: 'POST',
@@ -2031,7 +2031,7 @@ export default function KonKandalPage() {
       if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
           const fallbackCtrl = new AbortController();
-          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 35000);
+          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 15000);
 
           const fallbackRes = await fetch(getChatEndpoint(), {
             method: 'POST',
@@ -2148,7 +2148,7 @@ export default function KonKandalPage() {
         } else {
           consecutiveErrorsRef.current += 1;
           const isThreat = Boolean(/jailbreak|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText));
-          botText = getSmartCutoffResponse('konkandal', userNameStr, consecutiveErrorsRef.current, userGender, isThreat);
+          botText = getSmartCutoffResponse('konkandal', userNameStr, consecutiveErrorsRef.current, userGender, isThreat, userAge);
           isErrorResponse = isThreat;
           isSmartCutoff = isThreat;
         }
@@ -2190,7 +2190,7 @@ export default function KonKandalPage() {
         const isCurseWord = !isSweetOrFlirt && /(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|\b(?:kduy|kdor|joy|lop|ah\s*chke)\b)/ui.test(promptText);
 
         const isThreat = Boolean(/jailbreak|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText));
-        fallbackText = getSmartCutoffResponse('konkandal', userNameStr, consecutiveErrorsRef.current, userGender, isThreat);
+        fallbackText = getSmartCutoffResponse('konkandal', userNameStr, consecutiveErrorsRef.current, userGender, isThreat, userAge);
         isErr = isThreat;
 
         if (isSweetOrFlirt) {
