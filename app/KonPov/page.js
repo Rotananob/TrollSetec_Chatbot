@@ -2919,7 +2919,7 @@ export default function KonPovPage() {
   }
 
   // Real-time Dynamic Bot Status (Green Online 100% vs Yellow Busy Funny)
-  const isBotBusy = isLoading || isGeneratingMeme || botPauseState.isPaused;
+  const isBotBusy = isLoading || isGeneratingMeme || botPauseState.isPaused || (typeof consecutiveErrorsRef !== "undefined" && consecutiveErrorsRef.current > 0);
   const botStatus = isBotBusy
     ? {
         dotColor: 'bg-amber-400',
@@ -3257,7 +3257,7 @@ export default function KonPovPage() {
       {/* Permanent Fixed Header (stays pinned at top at all times, clean & spacious) */}
       <header
         className={`shrink-0 backdrop-blur-md border-b flex justify-between items-center z-30 transition-colors px-3 sm:px-4 py-2 ${
-          isDark ? 'bg-slate-950/90 border-slate-800/80' : 'bg-white/90 border-slate-200/80 shadow-xs'
+          isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
         }`}
         style={{
           paddingTop: 'max(env(safe-area-inset-top, 0px), 0.65rem)'

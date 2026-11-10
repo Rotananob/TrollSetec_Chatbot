@@ -1350,13 +1350,23 @@ export default function Home() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setKandalModalOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs shadow-md shadow-amber-500/25 transition active:scale-95 cursor-pointer"
-            >
-              យល់ហើយ ចាំលេងពេលចេញផ្លូវការ!
-            </button>
+            <div className="space-y-2 pt-2">
+              <Link
+                href="/KonKandal"
+                onClick={() => setKandalModalOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-xs shadow-md shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <i className="fas fa-flask text-xs"></i>
+                <span>ចូល Test Chat ឥឡូវនេះ • Dev Test Access</span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setKandalModalOpen(false)}
+                className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition active:scale-95 cursor-pointer"
+              >
+                បិទផ្ទាំងនេះ
+              </button>
+            </div>
           </div>
         </div>
       )}
