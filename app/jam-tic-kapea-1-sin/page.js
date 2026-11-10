@@ -2057,7 +2057,7 @@ export default function JamTicKapeaAdminPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      const text = 'បង Rotana កំពុងសម្រួល Server ឱ្យដើរស្រួល កុំទាន់ស្លន់ អង្គុយ Chill ផឹកកាហ្វេសិនទៅ តិចទៀតបើកវិញហើយ!';
+                      const text = 'Admin កំពុងសម្រួល Server ឱ្យដើរស្រួល ចិត្តត្រជាក់ៗសិនពួកយើង អង្គុយ Chill ផឹកកាហ្វេសិនទៅ តិចទៀតបើកវិញហើយ!';
                       setEditMaintenanceReason(text);
                       isEditingMaintenanceRef.current = true;
                     }}

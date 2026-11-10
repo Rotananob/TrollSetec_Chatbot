@@ -3006,9 +3006,9 @@ export default function KonBongPage() {
               setContributeModalOpen(true);
               setDrawerOpen(false);
             }}
-            className="w-full mb-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border border-indigo-500/30 flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full mb-2 bg-emerald-950/40 hover:bg-emerald-600/30 text-emerald-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border border-emerald-500/30 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <i className="fas fa-brain text-amber-300"></i> ចូលរួមបង្រៀន AI SETEC Lore
+            <i className="fas fa-layer-group text-emerald-400"></i> ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
           </button>
 
           <div className="grid grid-cols-2 gap-2 mb-2">
@@ -3560,15 +3560,15 @@ export default function KonBongPage() {
                 onClick={() => setContributeModalOpen(true)}
                 className={`w-full p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-between group cursor-pointer ${
                   isDark
-                    ? 'bg-indigo-950/40 border-indigo-500/40 text-indigo-300 hover:bg-indigo-900/50'
-                    : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 shadow-xs'
+                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100 shadow-xs'
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <i className="fas fa-lightbulb text-amber-300 text-sm w-4 text-center"></i>
-                  <span>ចូលរួមបង្រៀន AI (SETEC Lore & Slang)</span>
+                  <i className="fas fa-layer-group text-emerald-400 text-sm w-4 text-center"></i>
+                  <span>ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច</span>
                 </span>
-                <span className="text-[10px] bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full font-black">
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-black">
                   Contribute
                 </span>
               </button>
@@ -4068,10 +4068,10 @@ export default function KonBongPage() {
                             <button
                               type="button"
                               onClick={() => setContributeModalOpen(true)}
-                              className="px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30 cursor-pointer"
+                              className="px-3.5 py-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-950/40 border border-emerald-400/40 cursor-pointer"
                             >
-                              <i className="fas fa-brain text-cyan-300 text-xs"></i>
-                              <span>ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
+                              <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
+                              <span>ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច</span>
                             </button>
 
                             <a
@@ -4130,10 +4130,10 @@ export default function KonBongPage() {
                           <button
                             type="button"
                             onClick={() => setContributeModalOpen(true)}
-                            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-950/40 border border-emerald-400/40 cursor-pointer"
                           >
-                            <i className="fas fa-brain text-cyan-300 text-xs"></i>
-                            <span>ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
+                            <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
+                            <span>ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច</span>
                           </button>
                         </div>
                       </div>

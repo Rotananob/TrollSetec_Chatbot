@@ -462,7 +462,7 @@ export default function SystemBroadcast() {
                   <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight font-['Kantumruy_Pro',sans-serif]">
                     សេចក្ដីជូនដំណឹងពីអ្នកគ្រប់គ្រង
                   </h2>
-                  <p className="text-xs text-slate-500 font-sans">
+                  <p className="text-xs text-slate-500 font-['Kantumruy_Pro',sans-serif]">
                     សេចក្ដីជូនដំណឹងផ្លូវការ
                   </p>
                 </div>
@@ -480,7 +480,7 @@ export default function SystemBroadcast() {
 
             {/* Message Body */}
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 sm:p-5 mb-5 text-left">
-              <p className="text-sm sm:text-base font-sans text-slate-800 leading-relaxed whitespace-pre-wrap break-words select-text">
+              <p className="text-sm sm:text-base font-['Kantumruy_Pro',sans-serif] text-slate-800 leading-relaxed whitespace-pre-wrap break-words select-text">
                 {activeNotice}
               </p>
             </div>
@@ -533,7 +533,7 @@ export default function SystemBroadcast() {
             </div>
 
             {/* Pill status */}
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 uppercase tracking-widest bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full shadow-2xs font-sans mb-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-amber-800 uppercase tracking-widest bg-amber-50 border border-amber-200 px-3.5 py-1 rounded-full shadow-2xs font-['Kantumruy_Pro',sans-serif] mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
               <span>ផ្អាកដំណើរការបណ្ដោះអាសន្ន • BOT PAUSED</span>
             </span>
@@ -542,7 +542,7 @@ export default function SystemBroadcast() {
             <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-1 leading-snug">
               {disabledBotName} កំពុងសម្រាក
             </h2>
-            <p className="text-xs text-slate-500 font-sans mb-4">
+            <p className="text-xs text-slate-500 font-['Kantumruy_Pro',sans-serif] mb-4">
               អ្នកគ្រប់គ្រងប្រព័ន្ធបានផ្អាកដំណើរការ {disabledBotName} មួយរយៈ
             </p>
 
@@ -552,7 +552,7 @@ export default function SystemBroadcast() {
                 <i className="fa-solid fa-bullhorn text-indigo-500 text-xs" />
                 <span>សារជូនដំណឹងពីអ្នកកាន់ប្រព័ន្ធ៖</span>
               </div>
-              <p className="text-xs sm:text-sm font-sans text-slate-800 font-medium leading-relaxed whitespace-pre-wrap break-words">
+              <p className="text-xs sm:text-sm font-['Kantumruy_Pro',sans-serif] text-slate-800 font-medium leading-relaxed whitespace-pre-wrap break-words">
                 {disabledNotice}
               </p>
             </div>
@@ -585,7 +585,7 @@ export default function SystemBroadcast() {
               onClick={() => setDismissedBotPause(true)}
               className="text-xs text-slate-400 hover:text-slate-600 underline cursor-pointer transition-colors"
             >
-              អានប្រវត្តិសារចាស់ (View Past Chat)
+              អានប្រវត្តិសារចាស់
             </button>
           </div>
         </div>
@@ -701,12 +701,12 @@ export default function SystemBroadcast() {
                 {/* Status Pill Badge (Gray Mode / Gen Z Minimal) */}
                 <div className="mb-2.5">
                   {isNightOnly ? (
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-800 uppercase tracking-widest bg-indigo-50 border border-indigo-200 px-3.5 py-1 rounded-full shadow-2xs font-sans">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-indigo-800 uppercase tracking-widest bg-indigo-50 border border-indigo-200 px-3.5 py-1 rounded-full shadow-2xs font-['Kantumruy_Pro',sans-serif]">
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping" />
                       <span>ម៉ោងគេងសម្រាក • SLEEP MODE</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-800 uppercase tracking-widest bg-slate-100 border border-slate-300 px-3.5 py-1 rounded-full shadow-2xs font-sans">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-800 uppercase tracking-widest bg-slate-100 border border-slate-300 px-3.5 py-1 rounded-full shadow-2xs font-['Kantumruy_Pro',sans-serif]">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                       <span>ការថែទាំប្រព័ន្ធ • SYSTEM MAINTENANCE</span>
                     </span>
@@ -717,9 +717,9 @@ export default function SystemBroadcast() {
                 <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug mb-1 tracking-tight font-['Kantumruy_Pro',sans-serif]">
                   {isNightOnly ? 'ពេលយប់ជ្រៅហើយ AI សុំគេងសាកថ្មបន្តិចណា៎' : 'សូមអភ័យទោស! ប្រព័ន្ធកំពុងកែលម្អមុខងារថ្មី'}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-500 font-sans leading-relaxed mb-4">
+                <p className="text-xs sm:text-sm text-slate-600 font-['Kantumruy_Pro',sans-serif] leading-relaxed mb-4">
                   {isNightOnly
-                    ? `ប្រព័ន្ធសម្រាកចន្លោះពីម៉ោង ${String(nightStartH).padStart(2, '0')}:00 ដល់ ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក (មិនមែនបិទប្រព័ន្ធទេ)`
+                    ? `ប្រព័ន្ធសម្រាកចន្លោះពីម៉ោង ${String(nightStartH).padStart(2, '0')}:00 ដល់ ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក មិនមែនជាការបិទប្រព័ន្ធឡើយ`
                     : 'អ្នកអភិវឌ្ឍន៍កំពុង Update ប្រព័ន្ធឱ្យឆ្លើយតបកាន់តែរលូន និងឆ្លាតវៃ'}
                 </p>
 
@@ -737,11 +737,11 @@ export default function SystemBroadcast() {
 
                   {/* Highlighted Message Box */}
                   <div className="bg-white rounded-xl p-3.5 border border-slate-200 shadow-xs">
-                    <p className="text-xs sm:text-sm font-sans text-slate-900 font-medium leading-relaxed whitespace-pre-wrap break-words">
+                    <p className="text-xs sm:text-sm font-['Kantumruy_Pro',sans-serif] text-slate-900 font-medium leading-relaxed whitespace-pre-wrap break-words">
                       {displayReason}
                     </p>
                     {reasonExplanation && (
-                      <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-600 font-sans flex items-start gap-1.5">
+                      <div className="mt-2.5 pt-2 border-t border-slate-100 text-[11px] text-slate-600 font-['Kantumruy_Pro',sans-serif] flex items-start gap-1.5">
                         <span className="font-bold text-slate-800 shrink-0">អានយល់៖</span>
                         <span className="leading-relaxed">{reasonExplanation}</span>
                       </div>
@@ -749,16 +749,16 @@ export default function SystemBroadcast() {
                   </div>
 
                   {/* Reassuring Friendly Community Note (NO EMOJIS, GEN Z VIBE) */}
-                  <div className="text-xs text-slate-600 font-sans leading-relaxed pt-0.5">
-                    <strong className="text-slate-800 font-semibold">កុំទាន់ស្លន់!</strong>{' '}
+                  <div className="text-xs text-slate-600 font-['Kantumruy_Pro',sans-serif] leading-relaxed pt-0.5">
+                    <strong className="text-slate-800 font-semibold">ចិត្តត្រជាក់ៗសិនពួកយើង!</strong>{' '}
                     {isNightOnly
-                      ? `យប់ជ្រៅហើយ គេងសិនទៅបងៗ កុំនៅយឺតពេក! ប្រព័ន្ធនឹងភ្ញាក់មកដំណើរការធម្មតាវិញនៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក។`
-                      : 'គណនី និងទិន្នន័យរបស់អ្នកមានសុវត្ថិភាព ១០០%។ អ្នកកាន់ប្រព័ន្ធកំពុងរៀបចំសម្រួលប្រព័ន្ធឱ្យរលូនឡើងវិញ តិចទៀតរួចរាល់ហើយ អង្គុយ Chill សិនណា៎!'}
+                      ? `យប់ជ្រៅហើយ គេងយកកម្លាំងសិនទៅបងៗ កុំនៅយឺតពេក! ប្រព័ន្ធនឹងភ្ញាក់មកដំណើរការធម្មតាវិញនៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក។`
+                      : 'គណនី និងទិន្នន័យនៅសុវត្ថិភាព ១០០% ទាំងអស់។ Admin កំពុងសម្រួលប្រព័ន្ធឱ្យរត់ស្រួលជាងមុន បន្តិចទៀតរួចរាល់ហើយ អង្គុយ Chill សិនទៅ!'}
                   </div>
                 </div>
 
                 {/* Real-time Status & Live Phnom Penh Clock Bar */}
-                <div className="w-full flex items-center justify-between text-xs font-sans px-1 py-1 mb-3 text-slate-600">
+                <div className="w-full flex items-center justify-between text-xs font-['Kantumruy_Pro',sans-serif] px-1 py-1 mb-3 text-slate-600">
                   <span className="flex items-center gap-1.5 font-medium text-emerald-700">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
@@ -767,16 +767,16 @@ export default function SystemBroadcast() {
                     <span>Auto-Sync Real-time</span>
                   </span>
                   <span className="text-slate-500 font-mono text-[11px] sm:text-xs">
-                    ម៉ោងនៅភ្នំពេញ: <strong className="text-slate-800">{cambodiaClock || `${String(cambodiaHour).padStart(2, '0')}:00`}</strong> (UTC+7)
+                    ម៉ោងនៅភ្នំពេញ: <strong className="text-slate-800">{cambodiaClock || `${String(cambodiaHour).padStart(2, '0')}:00`}</strong> ម៉ោងតំបន់ UTC+7
                   </span>
                 </div>
 
                 {/* Auto-reconnect Notification Chip */}
                 <div className="w-full p-3 rounded-xl bg-slate-100 border border-slate-200 text-center mb-4">
-                  <p className="text-xs text-slate-700 font-sans font-medium leading-relaxed">
+                  <p className="text-xs text-slate-700 font-['Kantumruy_Pro',sans-serif] font-medium leading-relaxed">
                     {isNightOnly
-                      ? `ប្រព័ន្ធនឹងភ្ញាក់ដំណើរការធម្មតាវិញស្វ័យប្រវត្តិតែម្ដង នៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក (ពុំបាច់ចុច Refresh ទេ)`
-                      : 'ទំព័រនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិតែម្ដង នៅពេល Server ដំណើរការធម្មតា (ពុំបាច់ចុច Refresh ទេ)'}
+                      ? `ប្រព័ន្ធនឹងភ្ញាក់ដំណើរការធម្មតាវិញស្វ័យប្រវត្តិតែម្ដង នៅម៉ោង ${String(nightEndH).padStart(2, '0')}:00 ព្រឹក ពុំបាច់ចុច Refresh ឡើយ`
+                      : 'ទំព័រនឹងបើកដំណើរការឡើងវិញស្វ័យប្រវត្តិតែម្ដង នៅពេល Server ដំណើរការធម្មតា ពុំបាច់ចុច Refresh ឡើយ'}
                   </p>
                 </div>
 
@@ -785,7 +785,7 @@ export default function SystemBroadcast() {
                   <div className="flex items-center gap-2 w-full">
                     <Link
                       href="/"
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-semibold font-['Kantumruy_Pro',sans-serif] transition-all shadow-sm active:scale-95 cursor-pointer"
                     >
                       <i className="fa-solid fa-house text-xs text-slate-300" />
                       <span>ត្រឡប់ទៅទំព័រដើម</span>
@@ -797,7 +797,7 @@ export default function SystemBroadcast() {
                         setShowBypassDialog(true);
                         setBypassError('');
                       }}
-                      className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-2xs"
+                      className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold font-['Kantumruy_Pro',sans-serif] transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95 shadow-2xs"
                       title="Bypass សម្រាប់ Developer / Admin"
                     >
                       <i className="fa-solid fa-key text-amber-500 text-xs" />
@@ -810,10 +810,10 @@ export default function SystemBroadcast() {
                     <button
                       type="button"
                       onClick={handleLocalDevBypass}
-                      className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                      className="w-full py-2 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold font-['Kantumruy_Pro',sans-serif] transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                     >
                       <i className="fa-solid fa-bolt text-emerald-600 text-xs" />
-                      <span>⚡ 1-Click Local Dev Bypass (Localhost Mode)</span>
+                      <span>1-Click Local Dev Bypass សម្រាប់ Localhost</span>
                     </button>
                   )}
                 </div>
@@ -862,8 +862,8 @@ export default function SystemBroadcast() {
               className="space-y-3"
             >
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  លេខកូដ Bypass (កំណត់ក្នុង Admin Page)
+                <label className="block text-xs font-semibold text-slate-700 mb-1 font-['Kantumruy_Pro',sans-serif]">
+                  លេខកូដសម្ងាត់ Bypass កំណត់ក្នុង Admin Page
                 </label>
                 <input
                   type="password"
@@ -956,7 +956,7 @@ export default function SystemBroadcast() {
               <span className="font-bold text-slate-900 shrink-0 px-2 py-0.5 rounded bg-slate-200 border border-slate-300 text-[11px]">
                 ដំណឹង
               </span>
-              <span className="truncate max-w-md md:max-w-2xl text-slate-700 font-sans font-medium">
+              <span className="truncate max-w-md md:max-w-2xl text-slate-700 font-['Kantumruy_Pro',sans-serif] font-medium">
                 {activeNotice}
               </span>
             </div>
