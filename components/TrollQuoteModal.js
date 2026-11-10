@@ -34,7 +34,7 @@ export default function TrollQuoteModal({
     botAvatar ||
     (botPersona.includes('កូនច្បង')
       ? 'https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot'
-      : 'https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl');
+      : 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka');
 
   const resolvedLogoUrl = logoUrl || '/img/icon.jpg';
 

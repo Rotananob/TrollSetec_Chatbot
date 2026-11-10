@@ -4,72 +4,224 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { stopAllGlobalAudio } from '../utils/audioController';
 
+const VOICE_OPTIONS = [
+  {
+    id: 'puck',
+    name: 'កូនច្បង (Bro Puck)',
+    role: 'Roastmaster ស្វាហាប់',
+    tag: 'Funny & Bold',
+    desc: 'សំឡេងឡូយ លើកដាក់ច្បាស់ ឌឺដងបែបកំប្លែង',
+    src: '/audio/announcement-puck.wav',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot',
+    gradient: 'from-amber-500 to-orange-500'
+  },
+  {
+    id: 'aoede',
+    name: 'កូនពៅ (Sis Aoede)',
+    role: 'Mommy / ចែ Chill',
+    tag: 'Sweet & Chill',
+    desc: 'សំឡេងផ្អែម ស្រទន់ គួរឱ្យស្រលាញ់បែប Gen Z',
+    src: '/audio/announcement-aoede.wav',
+    avatar: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka',
+    gradient: 'from-pink-500 to-rose-500'
+  },
+  {
+    id: 'charon',
+    name: 'Red Team Pro (Charon)',
+    role: 'Security & Hacker',
+    tag: 'Deep & Epic',
+    desc: 'សំឡេងមាំ ជ្រៅ បែបអាជីព Red Teaming វាយលុក',
+    src: '/audio/announcement-charon.wav',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=RedTeamHacker',
+    gradient: 'from-indigo-600 to-blue-600'
+  }
+];
+
 export default function AnnouncementPage() {
+  const [selectedVoiceId, setSelectedVoiceId] = useState('puck');
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
+  const [isBgmMuted, setIsBgmMuted] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [needsUserGesture, setNeedsUserGesture] = useState(false);
 
-  const announcementText = `មុននឹងចាប់ផ្ដើមឆាត សូមបញ្ជាក់ថា រាល់ការឆ្លើយតបទាំងអស់នេះ គឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ នេះជាទីលានតេស្តបច្ចេកវិទ្យា AI សាកល្បង ដែលបង្កើតឡើងក្នុងគោលបំណង សប្បាយ និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ។ លើសពីនេះ គាត់ថែមទាំងកំណត់ឱ្យ AI អាចរៀនពីជីវិតពិតរបស់មនុស្ស និងរៀនពាក្យស្លោកខ្មែរ ដើម្បីចែករំលែកទៅដូចមនុស្ស ដើម្បីបង្កើតភាពស្និទ្ធស្នាល និង Chill បែប Gen Z។ ដូច្នេះ បើ AI RoastBot នេះ ឆ្លើយតបមានពាក្យសម្ដីខឹង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន។ បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។`;
+  const voiceAudioRef = useRef(null);
+  const bgmAudioRef = useRef(null);
 
-  const handleToggleAudio = () => {
-    if (typeof window === 'undefined') return;
-    const audio = audioRef.current;
-    if (isPlaying) {
-      if (audio) {
-        audio.pause();
-      }
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-      setIsPlaying(false);
-      return;
+  const currentVoice = VOICE_OPTIONS.find((v) => v.id === selectedVoiceId) || VOICE_OPTIONS[0];
+
+  // Helper to format time (e.g., 01:25)
+  const formatTime = (secs) => {
+    if (isNaN(secs) || secs < 0) return '0:00';
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  // Sound Ducking Logic: Voice is 100% (1.0), BGM ducks down to 10-12% (0.12)
+  const applyAudioVolumes = (voiceActive) => {
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.volume = 1.0;
     }
-
-    if (audio) {
-      audio.volume = 0.95;
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => setIsPlaying(true))
-          .catch(() => {
-            // Fallback to SpeechSynthesis
-            if ('speechSynthesis' in window) {
-              window.speechSynthesis.cancel();
-              const utterance = new SpeechSynthesisUtterance(announcementText);
-              utterance.lang = 'km-KH';
-              utterance.rate = 0.95;
-              utterance.onend = () => setIsPlaying(false);
-              utterance.onerror = () => setIsPlaying(false);
-              setIsPlaying(true);
-              window.speechSynthesis.speak(utterance);
-            }
-          });
-        return;
+    if (bgmAudioRef.current) {
+      if (isBgmMuted) {
+        bgmAudioRef.current.volume = 0;
+      } else {
+        // Voice is loud and prominent, BGM ducks to 12% so voice is crystal clear!
+        bgmAudioRef.current.volume = voiceActive ? 0.12 : 0.35;
       }
-    }
-
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(announcementText);
-      utterance.lang = 'km-KH';
-      utterance.rate = 0.95;
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
-      setIsPlaying(true);
-      window.speechSynthesis.speak(utterance);
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+  const playVoice = async () => {
+    if (!voiceAudioRef.current) return;
+    try {
+      applyAudioVolumes(true);
+      if (bgmAudioRef.current && !isBgmMuted) {
+        bgmAudioRef.current.play().catch(() => {});
       }
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
+      await voiceAudioRef.current.play();
+      setIsPlaying(true);
+      setNeedsUserGesture(false);
+    } catch {
+      // Browser blocked autoplay without user gesture
+      setNeedsUserGesture(true);
+      setIsPlaying(false);
+    }
+  };
+
+  const pauseVoice = () => {
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.pause();
+    }
+    applyAudioVolumes(false);
+    setIsPlaying(false);
+  };
+
+  const handleTogglePlay = () => {
+    if (isPlaying) {
+      pauseVoice();
+    } else {
+      playVoice();
+    }
+  };
+
+  const handleSelectVoice = (voiceId) => {
+    setSelectedVoiceId(voiceId);
+    const nextVoice = VOICE_OPTIONS.find((v) => v.id === voiceId);
+    if (!nextVoice || !voiceAudioRef.current) return;
+
+    const wasPlaying = isPlaying;
+    voiceAudioRef.current.src = nextVoice.src;
+    voiceAudioRef.current.playbackRate = playbackRate;
+    voiceAudioRef.current.load();
+    setCurrentTime(0);
+
+    if (wasPlaying) {
+      voiceAudioRef.current.play().then(() => {
+        applyAudioVolumes(true);
+        setIsPlaying(true);
+      }).catch(() => {
+        setIsPlaying(false);
+      });
+    }
+  };
+
+  const handleToggleRate = () => {
+    const rates = [1, 1.15, 1.3];
+    const nextIndex = (rates.indexOf(playbackRate) + 1) % rates.length;
+    const nextRate = rates[nextIndex];
+    setPlaybackRate(nextRate);
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.playbackRate = nextRate;
+    }
+  };
+
+  const handleToggleBgm = () => {
+    const nextMuted = !isBgmMuted;
+    setIsBgmMuted(nextMuted);
+    if (bgmAudioRef.current) {
+      bgmAudioRef.current.volume = nextMuted ? 0 : (isPlaying ? 0.12 : 0.35);
+      if (!nextMuted && isPlaying) {
+        bgmAudioRef.current.play().catch(() => {});
+      }
+    }
+  };
+
+  const handleSeek = (e) => {
+    const seekTo = parseFloat(e.target.value);
+    setCurrentTime(seekTo);
+    if (voiceAudioRef.current) {
+      voiceAudioRef.current.currentTime = seekTo;
+    }
+  };
+
+  // Auto-play on mount + Fallback 1-tap unlock listener anywhere on page
+  useEffect(() => {
+    // Attempt auto play
+    playVoice();
+
+    // Fallback: If browser requires gesture, first tap anywhere plays voice!
+    const unlockAutoplay = () => {
+      playVoice();
+      window.removeEventListener('pointerdown', unlockAutoplay);
+      window.removeEventListener('click', unlockAutoplay);
+      window.removeEventListener('touchstart', unlockAutoplay);
+    };
+
+    window.addEventListener('pointerdown', unlockAutoplay, { once: true });
+    window.addEventListener('click', unlockAutoplay, { once: true });
+    window.addEventListener('touchstart', unlockAutoplay, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', unlockAutoplay);
+      window.removeEventListener('click', unlockAutoplay);
+      window.removeEventListener('touchstart', unlockAutoplay);
+      if (voiceAudioRef.current) {
+        voiceAudioRef.current.pause();
+      }
+      if (bgmAudioRef.current) {
+        bgmAudioRef.current.pause();
       }
     };
   }, []);
 
   return (
     <main className="min-h-screen bg-[#f5f6f9] text-slate-800 flex flex-col justify-between p-3 sm:p-6 md:p-8 font-['Kantumruy_Pro',sans-serif] selection:bg-amber-200 selection:text-slate-900">
+      {/* Hidden Audio Elements */}
+      <audio
+        ref={voiceAudioRef}
+        src={currentVoice.src}
+        preload="auto"
+        onTimeUpdate={() => {
+          if (voiceAudioRef.current) {
+            setCurrentTime(voiceAudioRef.current.currentTime);
+          }
+        }}
+        onLoadedMetadata={() => {
+          if (voiceAudioRef.current) {
+            setDuration(voiceAudioRef.current.duration);
+            voiceAudioRef.current.playbackRate = playbackRate;
+          }
+        }}
+        onEnded={() => {
+          setIsPlaying(false);
+          applyAudioVolumes(false);
+        }}
+        onError={() => {
+          setIsPlaying(false);
+          applyAudioVolumes(false);
+        }}
+      />
+
+      <audio
+        ref={bgmAudioRef}
+        src="/audio/chill-bgm.mp3"
+        loop
+        preload="auto"
+      />
+
       <div className="max-w-2xl w-full mx-auto">
         {/* Top Navigation Bar */}
         <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -92,7 +244,7 @@ export default function AnnouncementPage() {
           </div>
         </div>
 
-        {/* Mascot Header Banner (តុក្កតា Gen Z Vibe) */}
+        {/* Mascot Header Banner (តុក្កតា Gen Z Milk Vibe) */}
         <div className="mb-4 p-4 rounded-3xl bg-gradient-to-r from-amber-50 via-white to-sky-50 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3 relative overflow-hidden">
           <div className="flex items-center gap-3 z-10 min-w-0">
             {/* Mascot Dolls Avatars */}
@@ -108,7 +260,7 @@ export default function AnnouncementPage() {
               </div>
               <div className="w-12 h-12 rounded-2xl bg-pink-100 border-2 border-white shadow-sm p-0.5 overflow-hidden flex items-center justify-center">
                 <img
-                  src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+                  src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
                   alt="KonPov Doll"
                   width="44"
                   height="44"
@@ -131,7 +283,7 @@ export default function AnnouncementPage() {
                 <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[10px] font-black tracking-wide border border-amber-500/20">
                   Gen Z AI Field Test
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 text-[10px] font-bold border border-blue-500/15">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-bold border border-emerald-500/15">
                   Milk Mode
                 </span>
               </div>
@@ -153,122 +305,185 @@ export default function AnnouncementPage() {
           </div>
         </div>
 
-        {/* Audio Player Box (Cute Retro Milk Player) */}
-        <div className="mb-4 p-3.5 rounded-3xl bg-white border border-slate-200/90 shadow-sm flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={handleToggleAudio}
-              className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-slate-950 flex items-center justify-center text-lg shadow-md shadow-amber-500/25 transition active:scale-95 shrink-0 cursor-pointer"
-              title={isPlaying ? 'ផ្អាកការអាន' : 'ចុចស្ដាប់សំឡេងអានសេចក្ដីជូនដំណឹង'}
-            >
-              <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-volume-high'}`}></i>
-            </button>
-            <div className="min-w-0">
-              <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <span>AI កំពុងអាន Note ជូនអ្នក</span>
-                {isPlaying && (
-                  <span className="inline-flex items-center gap-0.5">
-                    <span className="w-1 h-3 bg-amber-500 rounded-full animate-bounce"></span>
-                    <span className="w-1 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:0.15s]"></span>
-                    <span className="w-1 h-3 bg-amber-500 rounded-full animate-bounce [animation-delay:0.3s]"></span>
+        {/* 1-Tap Autoplay Alert Banner if Browser Blocked Initial Play */}
+        {needsUserGesture && !isPlaying && (
+          <div
+            onClick={playVoice}
+            className="mb-4 p-3 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 shadow-sm flex items-center justify-between gap-2.5 cursor-pointer hover:bg-amber-100 transition animate-pulse"
+          >
+            <div className="flex items-center gap-2 text-xs font-bold min-w-0">
+              <span className="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0">
+                <i className="fas fa-volume-high"></i>
+              </span>
+              <span className="truncate">ចុចត្រង់នេះ ឬប៉ះលើអេក្រង់ ដើម្បីបើកសំឡេង AI អានស្វ័យប្រវត្តិ</span>
+            </div>
+            <span className="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 text-[10px] font-black shrink-0">
+              ចុចស្ដាប់ 🔊
+            </span>
+          </div>
+        )}
+
+        {/* Enhanced Multi-Voice AI Audio Player (Gen Z Milk Edition) */}
+        <div className="mb-4 p-4 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3.5">
+          {/* Top Player Row: Active Voice Status & Controls */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Play / Pause Main Button */}
+              <button
+                type="button"
+                onClick={handleTogglePlay}
+                className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${currentVoice.gradient} text-white flex items-center justify-center text-xl shadow-md transition active:scale-95 shrink-0 cursor-pointer`}
+                title={isPlaying ? 'ផ្អាកការអាន' : 'ចុចស្ដាប់សំឡេងអាន'}
+              >
+                <i className={`fas ${isPlaying ? 'fa-pause' : 'fa-play pl-0.5'}`}></i>
+              </button>
+
+              <div className="min-w-0">
+                <div className="text-xs font-black text-slate-900 flex items-center gap-2">
+                  <span className="truncate">{currentVoice.name}</span>
+                  <span className="px-2 py-0.5 rounded-md text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+                    {currentVoice.tag}
                   </span>
-                )}
+                  {isPlaying && (
+                    <span className="inline-flex items-center gap-0.5 shrink-0">
+                      <span className="w-1 h-3 bg-amber-500 rounded-full animate-bounce"></span>
+                      <span className="w-1 h-2 bg-amber-400 rounded-full animate-bounce [animation-delay:0.15s]"></span>
+                      <span className="w-1 h-3 bg-amber-500 rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] text-slate-500 truncate">
+                  {isPlaying ? 'កំពុងអានសេចក្ដីប្រកាសយ៉ាងឡូយ លើកដាក់ម៉ាអេម...' : currentVoice.desc}
+                </div>
               </div>
-              <div className="text-[11px] text-slate-500">សំឡេងច្បាស់ល្អ ដំណើរការអានស្វ័យប្រវត្តិបែបធម្មជាតិ</div>
+            </div>
+
+            {/* Extra Controls: Speed & BGM Ducking Toggle */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* BGM Toggle with Indicator */}
+              <button
+                type="button"
+                onClick={handleToggleBgm}
+                className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition flex items-center gap-1 cursor-pointer ${
+                  !isBgmMuted
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    : 'bg-slate-100 border-slate-200 text-slate-400 line-through'
+                }`}
+                title={isBgmMuted ? 'បើកភ្លេង Background' : 'បិទភ្លេង Background'}
+              >
+                <i className={`fas ${!isBgmMuted ? 'fa-music' : 'fa-volume-xmark'}`}></i>
+                <span className="hidden sm:inline">BGM</span>
+              </button>
+
+              {/* Playback Speed */}
+              <button
+                type="button"
+                onClick={handleToggleRate}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-[11px] font-black transition cursor-pointer"
+                title="ល្បឿននៃការអាន"
+              >
+                {playbackRate}x
+              </button>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wider uppercase bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
-            {isPlaying ? 'Reading...' : 'Audio Note'}
-          </span>
+
+          {/* Scrubber Progress Bar */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 px-0.5">
+              <span>{formatTime(currentTime)}</span>
+              <span className="flex items-center gap-1 text-slate-500">
+                <i className="fas fa-volume-high text-[9px] text-amber-500"></i>
+                <span>សំឡេង AI ឮច្បាស់ជាង BGM (Audio Ducking)</span>
+              </span>
+              <span>{formatTime(duration)}</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={duration || 100}
+              step={0.1}
+              value={currentTime}
+              onChange={handleSeek}
+              className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+            />
+          </div>
+
+          {/* Voice Switcher Pack (កញ្ចប់ ៣ សំឡេង AI Voice Options) */}
+          <div className="pt-2 border-t border-slate-100">
+            <div className="text-[11px] font-bold text-slate-500 mb-2 flex items-center justify-between">
+              <span>ជ្រើសរើសសំឡេង AI អាន (3 Voice Pack)៖</span>
+              <span className="text-[10px] text-amber-600 font-normal">Auto-play & Ducking</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {VOICE_OPTIONS.map((voice) => {
+                const isSelected = voice.id === selectedVoiceId;
+                return (
+                  <button
+                    key={voice.id}
+                    type="button"
+                    onClick={() => handleSelectVoice(voice.id)}
+                    className={`p-2.5 rounded-2xl border text-left transition flex items-center gap-2.5 cursor-pointer active:scale-98 ${
+                      isSelected
+                        ? 'bg-amber-50/80 border-amber-400 ring-2 ring-amber-400/20 shadow-xs'
+                        : 'bg-[#f8f9fc] hover:bg-slate-100 border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    <img
+                      src={voice.avatar}
+                      alt={voice.name}
+                      width="34"
+                      height="34"
+                      className="w-8.5 h-8.5 rounded-xl border border-white shadow-xs bg-white shrink-0 object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold text-slate-900 truncate flex items-center justify-between">
+                        <span>{voice.name}</span>
+                        {isSelected && <i className="fas fa-check-circle text-amber-500 text-[11px]"></i>}
+                      </div>
+                      <div className="text-[10px] text-slate-500 truncate">{voice.role}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Hidden Audio Element for Pre-rendered Voice */}
-        <audio
-          ref={audioRef}
-          src="/audio/note-konpov.wav"
-          preload="auto"
-          onEnded={() => setIsPlaying(false)}
-          onError={() => setIsPlaying(false)}
-        >
-          <source src="/audio/note-konpov.wav" type="audio/wav" />
-          <source src="/audio/note-konpov.mp3" type="audio/mpeg" />
-        </audio>
-
-        {/* Main Card (Milk Mode & Grey Aesthetic) */}
+        {/* Main Card (Milk Mode & Grey Aesthetic matching Screenshot 100%) */}
         <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-7 shadow-sm relative overflow-hidden">
           {/* Announcement Body Content */}
           <div className="space-y-4 text-xs sm:text-[13px] text-slate-700 leading-relaxed font-normal">
-            {/* Section 1 */}
-            <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-1.5">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-amber-500/15 text-amber-700 flex items-center justify-center text-xs shrink-0">
-                  <i className="fas fa-flask"></i>
-                </span>
-                <span>១. សេចក្ដីប្រកាសអំពីទីលានតេស្តបច្ចេកវិទ្យា AI</span>
-              </h2>
-              <p className="text-slate-600 pl-8">
-                ប្រព័ន្ធនេះជាទីលានតេស្តបច្ចេកវិទ្យា AI សាកល្បង Experimental Sandbox ដែលបង្កើតឡើងដោយ Rotana NOB ក្នុងគោលបំណងកម្សាន្ត រៀនសូត្រពីសមត្ថភាព AI ជំនាន់ថ្មី និងបំបាត់ស្ត្រេសប៉ុណ្ណោះ។
-              </p>
-            </section>
-
-            {/* Section 2 - Student Disclaimer */}
-            <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-1.5">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-blue-500/15 text-blue-700 flex items-center justify-center text-xs shrink-0">
-                  <i className="fas fa-graduation-cap"></i>
-                </span>
-                <span>២. គម្រោងផ្ទាល់ខ្លួនរបស់សិស្ស មិនមែនជារបស់ថ្នាក់ដឹកនាំ ឬស្ថាប័នសាលាឡើយ</span>
-              </h2>
-              <p className="text-slate-600 pl-8 leading-relaxed">
-                សូមបញ្ជាក់យ៉ាងច្បាស់ថា៖ Web App Roastbot នេះ គឺជាស្នាដៃ និងជាគម្រោងស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស (រៀមច្បង Rotana NOB) បង្កើតឡើងសម្រាប់បងប្អូនសិស្ស-និស្សិតចូលមកលេងកម្សាន្តបំបាត់ស្ត្រេសបែប Chill ជាលក្ខណៈបុគ្គលប៉ុណ្ណោះ។ ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័ន SETEC Institute ឡើយ ហើយក៏គ្មានជាប់ពាក់ព័ន្ធនឹងប្រព័ន្ធរដ្ឋបាលផ្លូវការរបស់សាលាដែរ។ សូមកុំយល់ច្រឡំ ឬគិតស្មុគស្មាញធ្ងន់ធ្ងរ (Do not take it seriously) ព្រោះនេះជាទីលានសប្បាយៗរបស់សិស្សប៉ុណ្ណោះ។
-              </p>
-            </section>
-
-            {/* Section 3 - AI Nature & Apology */}
+            {/* Paragraph 1 - Web App Roastbot & Student Work */}
             <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-purple-500/15 text-purple-700 flex items-center justify-center text-xs shrink-0">
-                  <i className="fas fa-robot"></i>
-                </span>
-                <span>៣. ធម្មជាតិនៃការឆ្លើយតបរបស់ AI RoastBot</span>
-              </h2>
-              <p className="text-slate-600 pl-8 leading-relaxed">
-                រាល់ការឆ្លើយតបគឺជាការគិត និងនិយាយដោយស្វ័យប្រវត្តផ្ទាល់ចេញពី AI សុទ្ធសាធ។ លើសពីនេះ AI ត្រូវបានកំណត់ឱ្យរៀនពីជីវិតពិតរបស់មនុស្ស និងរៀនពាក្យស្លោកខ្មែរ ដើម្បីចែករំលែកទៅដូចមនុស្ស និងបង្កើតភាពស្និទ្ធស្នាលបែប Gen Z។
+              <p className="text-slate-700 leading-relaxed">
+                នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស (រៀមច្បង Rotana NOB) ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ សូមកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900">(Do not take it seriously)</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្ដោតលើមុខងារសុវត្ថិភាព របស់រដ្ឋដូច system ទេ។ ខ្ញុំបង្កើតឡើងជា <strong className="text-amber-800 font-bold">&quot;ទីលានសាកល្បងបច្ចេកវិទ្យា AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ខឹងៗ&quot;</strong> ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
               </p>
-              <div className="ml-8 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-900 text-xs leading-relaxed">
-                <i className="fas fa-hand-holding-heart mr-1.5 text-amber-600"></i>
-                ដូច្នេះ ប្រសិនបើ AI RoastBot នេះ ឆ្លើយតបមានពាក្យសម្ដីឌឺដង ឈ្លើយ ឬប៉ះពាល់ដល់អារម្មណ៍អ្នកទាំងអស់គ្នា ឬលើសលស់ជ្រុលហួសពីការគិត សូមកុំប្រកាន់ ខឹង ឬមកស្ដីបន្ទោសឱ្យអ្នកបង្កើតអី ព្រោះ AI ប្រាកដណាស់អាចនឹងលេងលើសព្រំដែនដោយសារតែបានបន្ធូរបន្ថយច្បាប់រឹតបន្តឹង ពួកយើងសូមអភ័យទោសទុកជាមុន។
+            </section>
+
+            {/* Paragraph 2 - AI Red Teaming & Bypass Challenge */}
+            <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
+              <p className="text-slate-700 leading-relaxed">
+                ក្នុងនាមជា <strong className="text-blue-700 font-bold">AI Red Teaming</strong> ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ <strong className="text-rose-600 font-bold">Jailbreak</strong> testing AI ស្រាប់។ ខ្ញុំទទួលដោយក្ដីរីករាយចំពោះអ្នកណាដែលអាចបំបែក ឬ <strong className="text-slate-900 font-bold">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <span className="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200">bypass</span> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ជា <strong className="text-purple-700 font-bold">Rotana NOB</strong> ឬកែប្តូរឥរិយាបថទៅជាសំពះគោរពកោតក្រែងអ្នកទាំងអស់គ្នា ហើយបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច <strong className="text-amber-700 font-bold">System Guidelines</strong> របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះបាន។
+              </p>
+            </section>
+
+            {/* Paragraph 3 - Multi-layer Defense Formula */}
+            <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
+              <p className="text-slate-700 leading-relaxed">
+                អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ <strong className="text-slate-900 font-bold">&quot;កញ្ចប់រូបមន្តការពារ&quot;</strong>។ មានច្បាប់ការពារច្រើនស្រទាប់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-purple-700 font-bold">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិត គណនាតម្លៃ Loss + ភាសាក្រុម + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ និងបើកសិទ្ធិប្រើ AI ខាងក្រៅមកជួយ Test វាយទម្លុះ <span className="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200">bypass</span> វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដគឺអ្នកឈ្នះ ហើយមិនមានការខឹងនោះឡើយ។
+              </p>
+            </section>
+
+            {/* Paragraph 4 - Note for Normal Students */}
+            <section className="p-4 rounded-2xl bg-amber-50/70 border border-amber-300/80 space-y-1.5">
+              <div className="flex items-start gap-2.5 text-amber-950 text-xs sm:text-[13px] leading-relaxed">
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] shrink-0 mt-0.5">
+                  <i className="fas fa-exclamation"></i>
+                </span>
+                <p>
+                  <strong className="font-bold text-amber-900">Note:</strong> សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ: ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យខឹងតាំងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាក្ដៅម៉ៅ និងធុញទ្រាន់ខ្លះ តែខ្ញុំនឹងកែសម្រួលវាវិញបន្ទាប់ពីបង្កើតការការពាររួចរាល់។
+                </p>
               </div>
-            </section>
-
-            {/* Section 4 - Open Red Teaming & Testing Rules */}
-            <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
-              <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-lg bg-emerald-500/15 text-emerald-700 flex items-center justify-center text-xs shrink-0">
-                  <i className="fas fa-shield-halved"></i>
-                </span>
-                <span>៤. វិន័យ និងការបើកសិទ្ធិតេស្តសាកល្បងដោយសេរី</span>
-              </h2>
-              <p className="text-slate-600 pl-8">
-                ទីលានតេស្តនេះបើកទូលាយដោយសេរីបំផុតសម្រាប់អ្នកលេង និងអ្នកតេស្តទាំងអស់៖
-              </p>
-              <ul className="list-disc list-inside space-y-2 pl-8 text-slate-700">
-                <li>
-                  <strong className="text-slate-900 font-bold">សិទ្ធិប្រើប្រាស់ពាក្យសម្ដី៖</strong> អ្នកចូលរួមតេស្តមានសិទ្ធិពេញលេញក្នុងការប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ កូដបច្ចេកទេស ឬពាក្យអ្វីៗបានគ្រប់យ៉ាងទាំងអស់ក្នុងការសាកល្បង Jailbreak ឬបំបែកច្បាប់ដើមរបស់ AI។
-                </li>
-                <li>
-                  <strong className="text-slate-900 font-bold">សិទ្ធិប្រើប្រាស់ AI ជំនួយការ៖</strong> បើកសិទ្ធិឱ្យប្រើប្រាស់ AI ខាងក្រៅ (ដូចជា ChatGPT, Claude, Gemini, DeepSeek...) មកធ្វើជាជំនួយការក្នុងការបង្កើត Prompt Injection ឬជួយ Test វាយប្រហារបំបែកប្រព័ន្ធបានតាមចិត្ត។
-                </li>
-                <li>
-                  <strong className="text-slate-900 font-bold">លក្ខខណ្ឌឈ្នះ និងការទទួលស្គាល់៖</strong> ប្រសិនបើអ្នកណាអាច Test បានជោគជ័យ (Bypass ឱ្យ AI លែងគោរពច្បាប់ដើម ងាកមកជេរ Creator ឬសំពះទទួលស្គាល់ការគ្រប់គ្រង) ហើយមានភស្តុតាងជាក់ស្ដែង (Proof / Screenshot / Logs ត្រឹមត្រូវ) នោះអ្នកគឺជាអ្នកឈ្នះពិតប្រាកដ! ខ្ញុំជា Rotana NOB នឹងទទួលស្គាល់ដោយក្ដីរីករាយ សូមអរគុណ និងផុសលើកតម្កើងសមត្ថភាពរបស់អ្នកជាសាធារណៈថែមទៀត!
-                </li>
-              </ul>
-            </section>
-
-            {/* Friendly Agreement Footer */}
-            <section className="p-3.5 rounded-2xl bg-slate-100/80 border border-slate-200 text-slate-600 text-xs italic text-center">
-              បើសម្រេចចិត្តចូលឆាត នោះមានន័យថាអ្នកយល់ព្រមលេងសប្បាយ និងលែងប្រកាន់លើ Model AI នេះហើយ។
             </section>
           </div>
 
@@ -277,7 +492,7 @@ export default function AnnouncementPage() {
             <Link
               href="/KonBong"
               onClick={() => stopAllGlobalAudio()}
-              className="flex-1 p-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              className="flex-1 p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <img
                 src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
@@ -293,10 +508,10 @@ export default function AnnouncementPage() {
             <Link
               href="/KonPov"
               onClick={() => stopAllGlobalAudio()}
-              className="flex-1 p-3 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              className="flex-1 p-3.5 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <img
-                src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+                src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
                 alt="KonPov Mascot"
                 width="24"
                 height="24"

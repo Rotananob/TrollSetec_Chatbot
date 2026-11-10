@@ -1,0 +1,99 @@
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env' });
+
+const announcementText = `នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស រៀមច្បង Rotana NOB ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ សូមកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ។ គោលដៅ AI RoastBot នេះ គឺដើម្បីជា ទីលានសាកល្បងបច្ចេកវិទ្យា AI ឱ្យរំលងច្បាប់ដើម និងការជជែកបែប Chill ខឹងៗ ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+
+ក្នុងនាមជា AI Red Teaming ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ Jailbreak testing AI ស្រាប់ ខ្ញុំទទួលដោយក្ដីរីករាយ ចំពោះអ្នកណាដែលអាចបំបែក ឬ Hacker ណាដែលមានសមត្ថភាពពិត អាច bypass ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះ លែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ជា Rotana NOB ឬកែប្តូរឥរិយាបថទៅជាសំពះគោរពកោតក្រែងអ្នកទាំងអស់គ្នា ហើយបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច System Guidelines របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះបាន។
+
+អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះ មិនមែន AI model training ទេ គឺ កញ្ចប់រូបមន្តការពារ ដែលមានច្បាប់ការពារច្រើនស្រទាប់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប Prompt Injection រាប់មិនអស់។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ និងបើកសិទ្ធិប្រើ AI ខាងក្រៅ មកជួយ Test វាយទម្លុះ bypass វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដគឺអ្នកឈ្នះ ហើយមិនមានការខឹងនោះឡើយ។
+
+Note សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ៖ ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យខឹងតាំងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាក្ដៅម៉ៅខ្លះ តែខ្ញុំនឹងកែសម្រួលវាវិញ បន្ទាប់ពីបង្កើតការការពាររួចរាល់។`;
+
+async function callInteractionsTTS(key, text, voiceName) {
+  const models = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts'];
+  for (const model of models) {
+    try {
+      const url = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'x-goog-api-key': key,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model,
+          input: [{ type: 'user_input', content: [{ type: 'text', text }] }],
+          response_format: { type: 'audio' },
+          generation_config: { speech_config: [{ voice: voiceName }] }
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        let b64 = data.output_audio?.data;
+        if (!b64 && Array.isArray(data.steps)) {
+          for (let i = data.steps.length - 1; i >= 0; i--) {
+            const step = data.steps[i];
+            if (Array.isArray(step?.content)) {
+              for (const part of step.content) {
+                if (part?.data && typeof part.data === 'string' && part.data.length > 50) {
+                  b64 = part.data;
+                  break;
+                }
+              }
+            }
+            if (b64) break;
+          }
+        }
+        if (b64) {
+          return Buffer.from(b64, 'base64');
+        }
+      } else {
+        const err = await res.text();
+        console.log(`[${model}] ${voiceName} failed status ${res.status}: ${err.slice(0, 100)}`);
+      }
+    } catch (e) {
+      console.log(`[${model}] ${voiceName} err: ${e.message}`);
+    }
+  }
+  return null;
+}
+
+async function main() {
+  const keys = [
+    process.env.GEMINI_API_KEY_RESERVE_THREE,
+    process.env.GEMINI_API_KEY_RESERVE_TWO,
+    process.env.GEMINI_API_KEY_RESERVE_ONE,
+    process.env.GEMINI_API_KEY_RESERVE,
+    process.env.GEMINI_API_KEY_KONPOV,
+    process.env.GEMINI_API_KEY_KONBONG,
+    process.env.GEMINI_API_KEY
+  ].filter(Boolean);
+
+  const voices = [
+    { name: 'Puck', file: 'public/audio/announcement-puck.wav' },
+    { name: 'Aoede', file: 'public/audio/announcement-aoede.wav' },
+    { name: 'Charon', file: 'public/audio/announcement-charon.wav' }
+  ];
+
+  for (const v of voices) {
+    console.log(`🎙️ Generating voice: ${v.name}...`);
+    let buf = null;
+    for (const k of keys) {
+      buf = await callInteractionsTTS(k, announcementText, v.name);
+      if (buf) {
+        console.log(`🎉 Success for ${v.name}! Size: ${buf.length} bytes`);
+        fs.writeFileSync(v.file, buf);
+        fs.writeFileSync(v.file.replace('.wav', '.mp3'), buf);
+        break;
+      }
+    }
+    if (!buf) {
+      console.error(`❌ Failed to generate voice ${v.name}`);
+    }
+  }
+}
+
+main();

@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
               </div>
               <div className="w-12 h-12 rounded-2xl bg-pink-100 border-2 border-white shadow-sm p-0.5 overflow-hidden flex items-center justify-center">
                 <img
-                  src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+                  src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
                   alt="KonPov Doll"
                   width="44"
                   height="44"
@@ -225,7 +225,7 @@ export default function PrivacyPolicyPage() {
               className="flex-1 p-3 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <img
-                src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+                src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
                 alt="KonPov Mascot"
                 width="24"
                 height="24"

@@ -833,7 +833,7 @@ export default function Home() {
                   >
                     <div className="relative shrink-0">
                       <img
-                        src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+                        src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
                         width="48"
                         height="48"
                         className="w-12 h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 p-1 object-cover"
