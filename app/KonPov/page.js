@@ -2349,13 +2349,15 @@ export default function KonPovPage() {
         const isLoadedSuccessfully = await new Promise((resolve) => {
           if (typeof window === 'undefined') return resolve(false);
           const preloadImg = new Image();
-          preloadImg.crossOrigin = 'anonymous';
+          if (!data.imageUrl.startsWith('data:')) {
+            preloadImg.crossOrigin = 'anonymous';
+          }
 
           const timer = setTimeout(() => {
             preloadImg.onload = null;
             preloadImg.onerror = null;
             resolve(false);
-          }, 25000);
+          }, 30000);
 
           preloadImg.onload = async () => {
             clearTimeout(timer);
@@ -2363,13 +2365,13 @@ export default function KonPovPage() {
               if ('decode' in preloadImg) {
                 await preloadImg.decode();
               }
-              if (preloadImg.naturalWidth > 50 && preloadImg.naturalHeight > 50) {
+              if (preloadImg.naturalWidth >= 100 && preloadImg.naturalHeight >= 100) {
                 resolve(true);
               } else {
                 resolve(false);
               }
             } catch {
-              if (preloadImg.naturalWidth > 50 && preloadImg.naturalHeight > 50) {
+              if (preloadImg.naturalWidth >= 100 && preloadImg.naturalHeight >= 100) {
                 resolve(true);
               } else {
                 resolve(false);
@@ -4304,7 +4306,12 @@ export default function KonPovPage() {
                           loading="eager"
                           decoding="sync"
                           onClick={() => setViewingImage({ url: item.memeImage, caption: item.text })}
-                          onError={(e) => { try { if (e.currentTarget?.parentElement?.parentElement) e.currentTarget.parentElement.parentElement.style.display = 'none'; } catch {} }}
+                          onError={(e) => {
+                            try {
+                              const root = e.currentTarget?.closest('.max-w-sm') || e.currentTarget?.parentElement?.parentElement;
+                              if (root) root.style.display = 'none';
+                            } catch {}
+                          }}
                           className="w-full h-auto max-h-[440px] object-contain cursor-pointer hover:scale-[1.02] transition-transform duration-200"
                         />
                       </div>
