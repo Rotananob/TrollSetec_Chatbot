@@ -258,7 +258,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-black text-indigo-200">
-                ចូលរួមអភិវឌ្ឍន៍ AI ស៊ីតិច (Lore & Training)
+                ចូលរួមអភិវឌ្ឍន៍ AI ស៊ីតិច Lore និង Training
               </h3>
               <p className="text-[10.5px] text-slate-400">
                 ចែករំលែករឿងរ៉ាវក្នុងស៊ីតិច ដើម្បីឱ្យ Rotana NOB បង្រៀន AI បន្ថែម
@@ -285,7 +285,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                 <i className="fas fa-shield-halved text-amber-400 text-sm animate-pulse shrink-0"></i>
                 <div className="truncate">
                   <span className="font-bold text-white">កំពុងជាប់ Cooldown Spam៖</span>{' '}
-                  <span>នៅសល់ {cooldownRemaining} វិនាទី (ចុចមើលលម្អិត)</span>
+                  <span>នៅសល់ {cooldownRemaining} វិនាទី ចុចមើលលម្អិត</span>
                 </div>
               </div>
               <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-black text-xs shrink-0">
@@ -304,7 +304,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
               </h4>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-md mx-auto">
                 ទិន្នន័យ និងរឿងរ៉ាវរបស់អ្នកត្រូវបានបញ្ជូនទៅកាន់បង <b className="text-indigo-300">Rotana NOB</b> ដោយជោគជ័យហើយ!
-                បង Rotana នឹងយកខ្លឹមសារនេះទៅបង្រៀន (Train) AI បន្ថែមដើម្បីឱ្យវាស្គាល់ស៊ីតិចកាន់តែច្បាស់ និងឌឺកាន់តែត្រូវរឿង!
+                បង Rotana នឹងយកខ្លឹមសារនេះទៅបង្រៀន Train AI បន្ថែមដើម្បីឱ្យវាស្គាល់ស៊ីតិចកាន់តែច្បាស់ និងឌឺកាន់តែត្រូវរឿង!
               </p>
               <div className="pt-3 flex gap-2.5 justify-center">
                 <button

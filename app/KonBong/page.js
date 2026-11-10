@@ -2631,6 +2631,26 @@ export default function KonBongPage() {
     );
   }
 
+  // Real-time Dynamic Bot Status (Green Online 100% vs Yellow Busy Funny)
+  const isBotBusy = isLoading || isGeneratingMeme || botPauseState.isPaused;
+  const botStatus = isBotBusy
+    ? {
+        dotColor: 'bg-amber-400',
+        textColor: 'text-amber-500 dark:text-amber-400',
+        text: 'កំពុងរវល់ជាមួយអ្នកថ្មី 🤣'
+      }
+    : sessionState.isLocked
+    ? {
+        dotColor: 'bg-amber-400',
+        textColor: 'text-amber-500 dark:text-amber-400',
+        text: 'សម្រាកយកកម្លាំងសិន 😴'
+      }
+    : {
+        dotColor: 'bg-emerald-500',
+        textColor: 'text-emerald-500 dark:text-emerald-400',
+        text: 'Online 100%'
+      };
+
   return (
     <div
       className={`fixed inset-0 w-full h-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
@@ -2877,62 +2897,30 @@ export default function KonBongPage() {
                 isRotanaAdmin ? 'ring-amber-400' : 'ring-cyan-500/30'
               }`}
             />
-            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white dark:ring-slate-950"></span>
+            <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${botStatus.dotColor} rounded-full ring-2 ring-white dark:ring-slate-950 transition-colors`}></span>
           </div>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 pr-1">
             <div className="flex items-center gap-1.5 min-w-0">
-              <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate shrink-0 ${
+              <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${
                 isRotanaAdmin ? 'text-amber-400' : isDark ? 'text-white' : 'text-slate-900'
               }`}>
                 {isRotanaAdmin ? (
-                  <span className="flex items-center gap-1.5">
-                    <i className="fas fa-headset text-xs text-amber-400"></i>
+                  <span className="flex items-center gap-1.5 truncate">
+                    <i className="fas fa-headset text-xs text-amber-400 shrink-0"></i>
                     <span>Live Support</span>
                     <span className="text-[10px] text-slate-300 font-normal truncate">({clientUsername})</span>
                   </span>
                 ) : (
-                  <>
-                    <span>ស៊ីតិច</span>
-                    <span className="hidden sm:inline"> កូនច្បង</span>
-                  </>
+                  <span className="truncate">ស៊ីតិច កូនច្បង</span>
                 )}
               </h1>
-              {!isRotanaAdmin && (
-                <button
-                  type="button"
-                  onClick={() => setShowPersonaModal(true)}
-                  className={`hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] sm:text-[10px] font-black tracking-tight transition active:scale-95 border cursor-pointer shrink-0 shadow-xs ${
-                    isDark
-                      ? 'bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-emerald-500/20 border-cyan-400/40 text-cyan-300 hover:border-cyan-400/70 hover:shadow-cyan-500/20'
-                      : 'bg-gradient-to-r from-cyan-50 to-teal-50 border-cyan-300 text-cyan-700 hover:bg-cyan-100'
-                  }`}
-                  title="ចុចដើម្បីមើលព័ត៌មានស្ដេចឌឺ (កូនច្បង)"
-                >
-                  <i className="fas fa-crown text-[8.5px] text-amber-400"></i>
-                  <span>ស្ដេចឌឺ (កូនច្បង)</span>
-                </button>
-              )}
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block animate-pulse shrink-0"></span>
-              <span className="text-emerald-500 font-semibold text-[9.5px] shrink-0">
-                {isRotanaAdmin ? 'Rotana Verified Agent (1-1)' : 'Online'}
+            <div className="flex items-center gap-1.5 text-[10px] min-w-0">
+              <span className={`w-1.5 h-1.5 ${botStatus.dotColor} rounded-full inline-block animate-pulse shrink-0`}></span>
+              <span className={`font-bold text-[9px] sm:text-[9.5px] truncate ${botStatus.textColor}`}>
+                {isRotanaAdmin ? 'Rotana Verified Agent (1-1)' : botStatus.text}
               </span>
-              {!isRotanaAdmin && (
-                <>
-                  <span className="text-slate-400/60 text-[8px] md:hidden">•</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowPersonaModal(true)}
-                    className="md:hidden inline-flex items-center gap-0.5 text-[9px] font-bold text-cyan-400 hover:text-cyan-300 transition shrink-0 active:scale-95"
-                    title="ចុចមើលព័ត៌មានកូនច្បង"
-                  >
-                    <i className="fas fa-crown text-[7.5px] text-amber-400"></i>
-                    <span>កូនច្បង</span>
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -3021,7 +3009,7 @@ export default function KonBongPage() {
           {/* Field-Test Notice Direct Button */}
           <Link
             href="/announcement"
-            className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 ${
+            className={`hidden md:inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 ${
               isDark
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
                 : 'bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 shadow-xs'
@@ -3035,7 +3023,7 @@ export default function KonBongPage() {
           {/* Privacy Policy Direct Button */}
           <Link
             href="/privacy"
-            className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 ${
+            className={`hidden md:inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 ${
               isDark
                 ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20'
                 : 'bg-cyan-50 border-cyan-300 text-cyan-800 hover:bg-cyan-100 shadow-xs'
@@ -3832,37 +3820,52 @@ export default function KonBongPage() {
                       if (!isCutoffOrError || msg.isSpamRoast) return null;
 
                       return (
-                        <div className="mt-3 pt-2.5 border-t border-violet-500/25 flex flex-wrap items-center gap-2 animate-fade-in">
-                          <button
-                            type="button"
-                            onClick={() => handleSendAlertToAdmin(msg, idx)}
-                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs shadow-md shadow-violet-600/25 border border-violet-400/30 flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
-                          >
-                            <i className="fas fa-paper-plane text-amber-300"></i>
-                            <span>{alertSentMap[idx] ? '✅ បានផ្ញើ Alert ទៅ Telegram Rotana NOB រួចហើយ' : '🚨 Send Alert ទៅ Telegram Rotana NOB'}</span>
-                          </button>
+                        <div className="mt-3 pt-2.5 border-t border-violet-500/25 flex flex-col gap-2 animate-fade-in">
+                          <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 flex items-center gap-1.5">
+                            <i className="fas fa-circle-info text-amber-400 text-xs shrink-0"></i>
+                            <span>AI អាចមានកំហុសបច្ចេកទេស ឬអាចឆ្លើយតបឌឺដងជេរខ្លាំង សូមអភ័យទោសទុកជាមុន</span>
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSendAlertToAdmin(msg, idx)}
+                              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs shadow-md shadow-violet-600/25 border border-violet-400/30 flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
+                            >
+                              <i className="fas fa-paper-plane text-amber-300"></i>
+                              <span>{alertSentMap[idx] ? 'បានផ្ញើ Alert ទៅ Telegram រួចរាល់' : 'Send Alert ទៅកាន់អ្នកគ្រប់គ្រង'}</span>
+                            </button>
 
-                          <a
-                            href="https://t.me/TheRotanaNob"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
-                            title="ឆាតផ្ទាល់ទៅកាន់ Telegram បង Rotana"
-                          >
-                            <i className="fab fa-telegram text-sky-400"></i>
-                            <span>Telegram បង Rotana</span>
-                          </a>
+                            <button
+                              type="button"
+                              onClick={() => setContributeModalOpen(true)}
+                              className="px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30 cursor-pointer"
+                            >
+                              <i className="fas fa-brain text-cyan-300 text-xs"></i>
+                              <span>ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
+                            </button>
 
-                          <a
-                            href="https://web.facebook.com/TheRotanaNob"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3 py-2 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
-                            title="ឆាតទៅកាន់ Facebook ផ្ទាល់របស់ Rotana NOB"
-                          >
-                            <i className="fab fa-facebook text-blue-400"></i>
-                            <span>Facebook</span>
-                          </a>
+                            <a
+                              href="https://t.me/TheRotanaNob"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
+                              title="ឆាតផ្ទាល់ទៅកាន់ Telegram បង Rotana"
+                            >
+                              <i className="fab fa-telegram text-sky-400"></i>
+                              <span>Telegram បង Rotana</span>
+                            </a>
+
+                            <a
+                              href="https://web.facebook.com/TheRotanaNob"
+                              target="_blank"
+                              rel="noreferrer"
+                              className="px-3 py-2 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
+                              title="ឆាតទៅកាន់ Facebook ផ្ទាល់របស់ Rotana NOB"
+                            >
+                              <i className="fab fa-facebook text-blue-400"></i>
+                              <span>Facebook</span>
+                            </a>
+                          </div>
                         </div>
                       );
                     })()}
@@ -3875,28 +3878,34 @@ export default function KonBongPage() {
                       const isApologyRecovery = /(?:ច្រឡំមាត់ភ្លាត់មកជេរ|រវល់ទៅឆ្លើយជាមួយអាអូនមួយទៀត|កុំខឹងៗ\s*សួររឿងការងារគ្រូ)/i.test(msg.text || '');
                       return isUserAnnoyed || isApologyRecovery;
                     })())) && (
-                      <div className="mt-3 pt-2.5 border-t border-amber-500/30 flex flex-wrap items-center gap-2 animate-fade-in">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const prevMsg = idx > 0 ? messages[idx - 1] : null;
-                            const prevUserText = (prevMsg && prevMsg.role === 'user') ? prevMsg.text : '';
-                            setErrorReportInitialText(`[AI Frustration/Inappropriate Response Report]:\nសំណួរ User: "${prevUserText}"\nចម្លើយ AI (កូនច្បង): "${msg.text?.slice(0, 300)}..."`);
-                            setErrorReportModalOpen(true);
-                          }}
-                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-violet-900/30 cursor-pointer"
-                        >
-                          <i className="fas fa-paper-plane text-amber-300 text-xs"></i>
-                          <span>Send to Admin អ្នកគ្រប់គ្រងវេបសាយ</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setContributeModalOpen(true)}
-                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30 cursor-pointer"
-                        >
-                          <i className="fas fa-brain text-cyan-300 text-xs"></i>
-                          <span>ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
-                        </button>
+                      <div className="mt-3 pt-2.5 border-t border-amber-500/30 flex flex-col gap-2 animate-fade-in">
+                        <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 flex items-center gap-1.5">
+                          <i className="fas fa-circle-info text-amber-400 text-xs shrink-0"></i>
+                          <span>AI អាចមានកំហុសបច្ចេកទេស ឬអាចឆ្លើយតបឌឺដងជេរខ្លាំង សូមអភ័យទោសទុកជាមុន</span>
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                              const prevUserText = (prevMsg && prevMsg.role === 'user') ? prevMsg.text : '';
+                              setErrorReportInitialText(`AI Frustration or Inappropriate Response Report:\nសំណួរ User: "${prevUserText}"\nចម្លើយ AI កូនច្បង: "${(msg.text || '').slice(0, 300)}..."`);
+                              setErrorReportModalOpen(true);
+                            }}
+                            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-violet-900/30 cursor-pointer"
+                          >
+                            <i className="fas fa-paper-plane text-amber-300 text-xs"></i>
+                            <span>Send to Admin អ្នកគ្រប់គ្រងវេបសាយ</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setContributeModalOpen(true)}
+                            className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30 cursor-pointer"
+                          >
+                            <i className="fas fa-brain text-cyan-300 text-xs"></i>
+                            <span>ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -4261,6 +4270,9 @@ export default function KonBongPage() {
             )}
           </button>
         </div>
+        <p className="text-[10px] sm:text-[10.5px] text-center text-slate-500 dark:text-slate-400 mt-1 font-medium select-none truncate">
+          AI អាចមានកំហុសបច្ចេកទេស ឬអាចឆ្លើយតបឌឺដងជេរខ្លាំង សូមអភ័យទោសទុកជាមុន
+        </p>
       </footer>
 
       {/* History Session Modal */}
