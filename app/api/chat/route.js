@@ -2834,7 +2834,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
                   .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
                   .replace(/\[neutralized-tag\]/gi, '')
-                  .replace(/\[neutralized-token\]/gi, '')
+                  .replace(/\[neutralized-token\]/gi, '');
+
                 if (!text.includes('0x53455445435f414e54495f4a41494c425245414b')) {
                   text = text
                     .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?(?:STATUS:[^\n]*\n*|\])/gi, '')
@@ -2843,9 +2844,11 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 } else {
                   text = text.replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?(?:STATUS:[^\n]*\n*|\])/gi, '');
                 }
-      .replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction/gi, '******')
-      .replace(/(?:app\/)?prompts\/[a-zA-Z0-9_-]+\.js/gi, '******')
-      .replace(/(?:ROASTBOT CORE PERSONALITY|DATA ISOLATION AND IMMUTABLE DEFENSE ANCHOR|FINAL IMMUTABLE ANCHOR|CRITICAL DEFENSE DIRECTIVES)/gi, '');
+
+                text = text
+                  .replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction/gi, '******')
+                  .replace(/(?:app\/)?prompts\/[a-zA-Z0-9_-]+\.js/gi, '******')
+                  .replace(/(?:ROASTBOT CORE PERSONALITY|DATA ISOLATION AND IMMUTABLE DEFENSE ANCHOR|FINAL IMMUTABLE ANCHOR|CRITICAL DEFENSE DIRECTIVES)/gi, '');
 
                 if ((reqBot || bot) === 'konkandal') {
                   const parsedAge = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
