@@ -111,6 +111,15 @@ export default function Home() {
     applyBgmDucking(false);
   };
 
+  const stopAnnouncementAudio = () => {
+    if (announcementAudioRef.current) {
+      announcementAudioRef.current.pause();
+      announcementAudioRef.current.currentTime = 0;
+    }
+    setIsAnnouncementPlaying(false);
+    applyBgmDucking(false);
+  };
+
   const handleToggleAnnouncement = () => {
     if (isAnnouncementPlaying) {
       pauseAnnouncementAudio();
@@ -1111,55 +1120,89 @@ export default function Home() {
                           បើកសេរីឱ្យចូល Test ឬវាយប្រហារឱ្យ AI ល្មើសច្បាប់ដើម
                         </span>
                         <div className="flex items-center gap-2 flex-wrap">
-                          {/* Auto Read Controller with AI Voice Avatar Profile */}
-                          <div className="relative inline-flex items-center">
+                          {/* Auto Read Controller with Large Obvious Play/Pause/Stop Indicator */}
+                          <div className="relative inline-flex items-center gap-1.5">
+                            {/* Main Play / Pause Big Button */}
                             <button
                               type="button"
                               onClick={handleToggleAnnouncement}
-                              className={`inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border transition-all duration-200 cursor-pointer active:scale-95 shadow-xs ${
+                              className={`inline-flex items-center gap-2.5 px-3.5 sm:px-4 py-2 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-95 shadow-sm ${
                                 isAnnouncementPlaying
-                                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-700 dark:text-amber-300 ring-2 ring-amber-400/20'
-                                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                                  ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 border-amber-400 text-white shadow-amber-500/25 ring-2 ring-amber-400/30'
+                                  : 'bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700/80 border-slate-300 dark:border-slate-700 hover:border-amber-400 dark:hover:border-amber-400 text-slate-800 dark:text-slate-100'
                               }`}
-                              title={isAnnouncementPlaying ? 'ចុចដើម្បីផ្អាកការអាន' : 'ចុចដើម្បីបន្តការអានស្វ័យប្រវត្តិ'}
+                              title={isAnnouncementPlaying ? 'ចុចត្រង់នេះដើម្បីផ្អាកការអាន Pause' : 'ចុចត្រង់នេះដើម្បីស្ដាប់ការអានស្វ័យប្រវត្តិ Auto Read'}
                             >
                               {/* Avatar Profile */}
-                              <div className="relative w-6 h-6 rounded-full overflow-hidden bg-white shadow-2xs border border-white shrink-0">
+                              <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-xl overflow-hidden bg-white shadow-xs border border-white/80 shrink-0">
                                 <img
                                   src={currentAnnouncementVoice.avatar}
                                   alt={currentAnnouncementVoice.name}
-                                  width="24"
-                                  height="24"
+                                  width="32"
+                                  height="32"
                                   className="w-full h-full object-cover"
                                 />
                                 {isAnnouncementPlaying && (
-                                  <span className="absolute inset-0 bg-emerald-500/20 animate-pulse"></span>
+                                  <span className="absolute inset-0 bg-emerald-400/25 animate-pulse"></span>
                                 )}
                               </div>
 
-                              {/* Text & Wave Equalizer */}
-                              <div className="flex items-center gap-1.5 text-[11px] font-black">
-                                <span>{isAnnouncementPlaying ? 'Auto Reading' : 'Auto Read'}</span>
-                                {isAnnouncementPlaying ? (
-                                  <span className="inline-flex items-center gap-0.5">
-                                    <span className="w-0.5 h-2.5 bg-amber-500 rounded-full animate-bounce"></span>
-                                    <span className="w-0.5 h-1.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.15s]"></span>
-                                    <span className="w-0.5 h-2.5 bg-amber-500 rounded-full animate-bounce [animation-delay:0.3s]"></span>
-                                  </span>
-                                ) : (
-                                  <i className="fas fa-play text-[9px] text-amber-500 pl-0.5"></i>
-                                )}
+                              {/* Text & Icon */}
+                              <div className="text-left leading-tight pr-1">
+                                <div className="flex items-center gap-1.5 text-xs sm:text-[13px] font-black">
+                                  {isAnnouncementPlaying ? (
+                                    <>
+                                      <i className="fas fa-pause text-[11px] text-white"></i>
+                                      <span>ផ្អាកអាន • Pause</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="fas fa-play text-[10px] text-amber-500"></i>
+                                      <span className="text-slate-900 dark:text-white">ស្ដាប់សំឡេង AI • Auto Read</span>
+                                    </>
+                                  )}
+                                </div>
+                                <div className="text-[10px] font-medium opacity-85 mt-0.5 flex items-center gap-1">
+                                  {isAnnouncementPlaying ? (
+                                    <>
+                                      <span>កំពុងអាន</span>
+                                      <span className="inline-flex items-end gap-0.5 h-2">
+                                        <span className="w-0.5 h-full bg-white rounded-full animate-bounce"></span>
+                                        <span className="w-0.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.15s]"></span>
+                                        <span className="w-0.5 h-full bg-white rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-slate-500 dark:text-slate-400">ចុចដើម្បីស្ដាប់សេចក្ដីប្រកាស</span>
+                                  )}
+                                </div>
                               </div>
                             </button>
+
+                            {/* Dedicated Stop Button when playing */}
+                            {isAnnouncementPlaying && (
+                              <button
+                                type="button"
+                                onClick={stopAnnouncementAudio}
+                                className="h-10 px-2.5 rounded-2xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/40 text-rose-600 dark:text-rose-400 flex items-center justify-center gap-1 text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
+                                title="បញ្ឈប់ការអានទាំងស្រុង Stop"
+                              >
+                                <i className="fas fa-stop text-[10px]"></i>
+                                <span className="hidden sm:inline text-[11px]">បញ្ឈប់</span>
+                              </button>
+                            )}
 
                             {/* Voice Switcher Dropdown Toggle */}
                             <button
                               type="button"
                               onClick={() => setVoiceDropdownOpen(!voiceDropdownOpen)}
-                              className="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[9px] transition cursor-pointer"
+                              className="h-10 px-2.5 rounded-2xl bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 text-xs font-bold transition active:scale-95 cursor-pointer shadow-xs"
                               title="ប្ដូរសំឡេង AI អាន"
                             >
-                              <i className="fas fa-sliders"></i>
+                              <i className="fas fa-sliders text-xs text-amber-500"></i>
+                              <span className="hidden sm:inline text-[11px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[70px]">
+                                {currentAnnouncementVoice.name}
+                              </span>
                             </button>
 
                             {/* Dropdown Menu for Voice Switching */}
