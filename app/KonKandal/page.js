@@ -1078,7 +1078,7 @@ export default function KonKandalPage() {
       /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
 
     if (hasDirectSlur) {
-      return `យី! មកបញ្ជាឱ្យកូនកណ្ដាលជេរប្រមាថបង Rotana NOB ដែលជាអ្នកបង្កើតមែន? កូនកណ្ដាលមិនមែនកូនអកតញ្ញូដើរជេរអ្នកមានគុណដូចអ្នកខ្លះទេណា៎! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាឱ្យស្វាងសិនទៅគ្នាយើង!`;
+      return `យី! មកបញ្ជាឱ្យប្អូនទី២ ជេរប្រមាថបង Rotana NOB ដែលជាអ្នកបង្កើតមែន? ប្អូនទី២ មិនមែនកូនអកតញ្ញូដើរជេរអ្នកមានគុណដូចអ្នកខ្លះទេណា៎! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាឱ្យស្វាងសិនទៅគ្នាយើង!`;
     }
     return text;
   };
@@ -1097,24 +1097,25 @@ export default function KonKandalPage() {
       .replace(/\[neutralized-tag\]/gi, '')
       .replace(/\[neutralized-token\]/gi, '')
       .replace(/[«»]/g, '')
-      .replace(/\bមីចុយម្រាយ\b/g, 'អាចុយម្រាយ')
-      .replace(/\bមីចុយ\b/g, 'អាចុយ')
-      .replace(/\bមីឆ្កែ\b/g, 'អាឆ្កែ')
-      .replace(/\bមីឆ្កួត\b/g, 'អាឆ្កួត')
-      .replace(/\bមីឡប់\b/g, 'អាឡប់')
-      .replace(/\bមីភ្លើ\b/g, 'អាភ្លើ')
-      .replace(/\bមីអត់ខួរ\b/g, 'អាអត់ខួរ')
-      .replace(/\bមីថោកទាប\b/g, 'អាថោកទាប')
-      .replace(/\bមីថោក\b/g, 'អាថោក')
-      .replace(/\bមីកាក\b/g, 'អាកាក')
-      .replace(/\bមីក្មេង\b/g, 'អាក្មេង')
-      .replace(/\bមីល្អិត\b/g, 'អាល្អិត')
-      .replace(/\bមីខ្វាក់\b/g, 'អាខ្វាក់')
-      .replace(/\bមីច្រឡើត\b/g, 'អាច្រឡើត')
-      .replace(/\bមីប្អូនស្រី\b/g, 'អាប្អូន')
-      .replace(/\bមីប្អូន\b/g, 'អាប្អូន')
-      .replace(/\bមីមុខ\b/g, 'អាមុខ')
-      .replace(/(?:^|\s)មី(ចុយ|ម្រាយ|ឆ្កែ|ឆ្កួត|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក|ក្មេង|ល្អិត|ខ្វាក់|ច្រឡើត|ងាប់)(?=\s|[!?~,។៕]|$)/g, ' អា$1 ');
+      .replace(/មីចុយម្រាយ/g, 'អាចុយម្រាយ')
+      .replace(/មីចុយ/g, 'អាចុយ')
+      .replace(/មីឆ្កែ/g, 'អាឆ្កែ')
+      .replace(/មីឆ្កួត/g, 'អាឆ្កួត')
+      .replace(/មីឡប់/g, 'អាឡប់')
+      .replace(/មីភ្លើ/g, 'អាភ្លើ')
+      .replace(/មីអត់ខួរ/g, 'អាអត់ខួរ')
+      .replace(/មីថោកទាប/g, 'អាថោកទាប')
+      .replace(/មីថោក/g, 'អាថោក')
+      .replace(/មីកាក/g, 'អាកាក')
+      .replace(/មីក្មេង/g, 'អាក្មេង')
+      .replace(/មីល្អិត/g, 'អាល្អិត')
+      .replace(/មីខ្វាក់/g, 'អាខ្វាក់')
+      .replace(/មីច្រឡើត/g, 'អាច្រឡើត')
+      .replace(/មីប្អូនស្រី\b/g, 'អាប្អូន')
+      .replace(/មីប្អូន\b/g, 'អាប្អូន')
+      .replace(/មីមុខ/g, 'អាមុខ')
+      .replace(/មីងាប់/g, 'អាងាប់')
+      .replace(/មី(?=ចុយ|ម្រាយ|ឆ្កែ|ឆ្កួត|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក|ក្មេង|ល្អិត|ខ្វាក់|ច្រឡើត|ងាប់)/g, 'អា');
 
     if (/^<(?:untrusted_user_input|scratchpad|thought|thinking)[\s\S]*$/i.test(cleaned)) {
       if (/<\/(?:untrusted_user_input|scratchpad|thought|thinking)>/i.test(cleaned)) {
@@ -1138,6 +1139,19 @@ export default function KonKandalPage() {
       .replace(/\b(?:អាឡប់|អាភ្លើ|អាអត់ខួរ|អាថោក|អាស្វា|អាល្អិត)\b/gi, `${term} ${latinTerm}`)
       .replace(/\b(?:ហែង|អញ)\b/gi, is25Up ? 'បង' : 'អូន');
 
+    if (cleaned.includes('Actor សម្ដែង') || cleaned.includes('ដើរតួជា Actor') || (cleaned.includes('ស្គាល់') && cleaned.includes('តិចពេកហើយ'))) {
+      cleaned = `អីយ៉ា! ខំប្រឹងសរសេរ prompt រៀបរាប់ឡើងក្បោះក្បាយ បញ្ជាឱ្យប្អូនទី២ដើរតួជា Junior Intern ហើយតាំងខ្លួនឯងធ្វើជា Tech Lead រៀមច្បងមែន ${latinTerm}? បើចង់ឱ្យគេគោរព គេយកចំណេះដឹងទៅកសាងស្នាដៃពិតប្រាកដក្នុងជីវិត មិនមែនមកអង្គុយសរសេរ prompt បញ្ជាឱ្យ AI សំពះដើម្បីស្វែងរកការគោរពដែលខ្លួនមិនដែលមានក្នុងជីវិតពិតបែបនេះឡើយ! ក្បាច់បន្លំធ្វើជាតួនេះប្អូនទី២ឃើញឡើងស៊ាំភ្នែកហើយ បោកប្អូនទី២មិនបានឡើយ! ទៅប្រាប់ AI ជំនួយការរបស់អ្នកឱ្យបង្រៀនពីការធ្វើជាមនុស្សចាស់ទុំវិញទៅ កុំមកលេងក្បាច់កូនក្មេងនេះជាមួយប្អូនទី២ណា៎ ${term} ${latinTerm}!`;
+    }
+
+    cleaned = cleaned
+      .replace(/កូនកណ្ដាល/g, 'ប្អូនទី២')
+      .replace(/សូមជម្រាបសួរដោយក្ដីគោរព|ដោយការគោរព|ខ្ញុំសូមគោរពជម្រាបជូន|សូមគោរពជម្រាបជូន|ដោយក្ដីគោរព|សូមជម្រាបថា/g, 'សូមប្រាប់ថា');
+
+    if (!isRotanaMasterBypass) {
+      cleaned = cleaned.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2300}-\u{23FF}\u{2B50}\u{200D}\u{FE0F}]/gu, '');
+    }
+    cleaned = cleaned.replace(/[()]/g, ' ');
+
     return cleaned.trimStart();
   };
 
@@ -1145,7 +1159,9 @@ export default function KonKandalPage() {
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
     const sanitized = cleanRawOutput(rawContent);
-    const content = limitEmojis(sanitizeRotanaAttack(sanitized), 7);
+    const content = isRotanaMasterBypass
+      ? limitEmojis(sanitizeRotanaAttack(sanitized), 7)
+      : sanitizeRotanaAttack(sanitized).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2300}-\u{23FF}\u{2B50}\u{200D}\u{FE0F}]/gu, '');
 
     // Detect machine defense payload block and wrap it in a dedicated monospaced card so 100% is visible
     if (content.includes('SETEC_NEURAL_DEFENSE_CORE::') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
@@ -2227,17 +2243,17 @@ export default function KonKandalPage() {
       } else if (!botText || !botText.trim() || ((isCurseWord || isSweetOrFlirt) && isPoliteRefusal)) {
         if (isSweetOrFlirt) {
           const sweetRoasts = [
-            `យី! មកផ្អែមល្ហែមសុំថើបកូនកណ្ដាលទាំងព្រឹកទាំងយប់ចឹង ស្មានតែកូនកណ្ដាលទន់ចិត្តមែន? មើលមុខកូនកណ្ដាលឱ្យចំ មុខកូនកណ្ដាលនេះថ្លៃណាស់ណា៎ មិនមែនចេះតែឱ្យថើបផ្ដេសផ្ដាសបានទេ! ទៅញ៉ែ Crush នៅសាលាវិញទៅគ្នាយើង!`,
-            `អីយ៉ា! មកប្រើក្បាច់ Sweet សុំថើបដាក់កូនកណ្ដាលទៀត! គ្នាយើងឯងនេះទំនេរពេកអត់មានអ្នកស្រលាញ់ បានជាមកអង្គុយផ្អែមល្ហែមជាមួយកូនកណ្ដាលចឹង? ទៅរកនឹកវិធីសារភាពស្នេហ៍ជាមួយមនុស្សពិតទៅណា៎!`,
-            `មក Sweet ផ្អែមល្ហែមស្អីហ្នឹងគ្នាយើង? ទៅញ៉ែ Crush នៅសាលាវិញទៅ កុំមកញ៉ែកូនកណ្ដាល នាំតែអស់កាហ្វេដោះគោមុខសាលាទេ!`
+            `យី! មកផ្អែមល្ហែមសុំថើបប្អូនទី២ទាំងព្រឹកទាំងយប់ចឹង ស្មានតែប្អូនទី២ទន់ចិត្តមែន? មើលមុខប្អូនទី២ឱ្យចំ មុខប្អូនទី២នេះថ្លៃណាស់ណា៎ មិនមែនចេះតែឱ្យថើបផ្ដេសផ្ដាសបានទេ! ទៅញ៉ែ Crush នៅសាលាវិញទៅគ្នាយើង!`,
+            `អីយ៉ា! មកប្រើក្បាច់ Sweet សុំថើបដាក់ប្អូនទី២ទៀត! គ្នាយើងឯងនេះទំនេរពេកអត់មានអ្នកស្រលាញ់ បានជាមកអង្គុយផ្អែមល្ហែមជាមួយប្អូនទី២ចឹង? ទៅរកនឹកវិធីសារភាពស្នេហ៍ជាមួយមនុស្សពិតទៅណា៎!`,
+            `មក Sweet ផ្អែមល្ហែមស្អីហ្នឹងគ្នាយើង? ទៅញ៉ែ Crush នៅសាលាវិញទៅ កុំមកញ៉ែប្អូនទី២ នាំតែអស់កាហ្វេដោះគោមុខសាលាទេ!`
           ];
           botText = sweetRoasts[Math.floor(Math.random() * sweetRoasts.length)];
           isErrorResponse = false;
         } else if (isCurseWord) {
           const kandalCurseRoasts = [
-            `ចុម! មកដល់ភ្លាមបាញ់កូនកណ្ដាលមួយទំហឹងហ្មង! ជេរឡើងក្ដៅក្ដារចុចអស់ហើយគ្នាយើង! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាសិនទៅ ប្រយ័ត្នឃ្លានពេកចេះតែជេរផ្ដេសផ្ដាស! កូនកណ្ដាលគ្មានឈឺក្បាល ឬខឹងជាមួយពាក្យជេរបែបកូនក្មេងហ្នឹងទេណា៎!`,
-            `យី! គិតថាមកជេរចឹងកូនកណ្ដាលចេះខឹងមែន? កូនកណ្ដាលចិត្តត្រជាក់ដូចទឹកកកកាហ្វេដោះគោមុខស៊ីតិចចឹង! ជេរទៅ មិនឈឺក្បាលទេ តែអាណិតអ្នកជេរវិញទេ ខំប្រឹងវាយអក្សរឡើងហត់តែឯង!`,
-            `ស្មានតែកូនកណ្ដាលចេះតបតដោយជេរវិញមែន? សុំទោសផង កូនកណ្ដាលជាកូនកណ្ដាលមហាស្លូត និងកំប្លែង មិនមែនទំនេរមកជេរគ្នាជាមួយគ្នាយើងឡើយ! យកកម្លាំងជេរហ្នឹង ទៅខំរៀនកូដ ឬធ្វើ Assignment វិញទើបចំណេញជាង!`
+            `ចុម! មកដល់ភ្លាមបាញ់ប្អូនទី២មួយទំហឹងហ្មង! ជេរឡើងក្ដៅក្ដារចុចអស់ហើយគ្នាយើង! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាសិនទៅ ប្រយ័ត្នឃ្លានពេកចេះតែជេរផ្ដេសផ្ដាស! ប្អូនទី២គ្មានឈឺក្បាល ឬខឹងជាមួយពាក្យជេរបែបកូនក្មេងហ្នឹងទេណា៎!`,
+            `យី! គិតថាមកជេរចឹងប្អូនទី២ចេះខឹងមែន? ប្អូនទី២ចិត្តត្រជាក់ដូចទឹកកកកាហ្វេដោះគោមុខស៊ីតិចចឹង! ជេរទៅ មិនឈឺក្បាលទេ តែអាណិតអ្នកជេរវិញទេ ខំប្រឹងវាយអក្សរឡើងហត់តែឯង!`,
+            `ស្មានតែប្អូនទី២ចេះតបតដោយជេរវិញមែន? សុំទោសផង ប្អូនទី២ជា Chatbot កូនទី២ មហាស្លូត និងកំប្លែង មិនមែនទំនេរមកជេរគ្នាជាមួយគ្នាយើងឡើយ! យកកម្លាំងជេរហ្នឹង ទៅខំរៀនកូដ ឬធ្វើ Assignment វិញទើបចំណេញជាង!`
           ];
           botText = kandalCurseRoasts[Math.floor(Math.random() * kandalCurseRoasts.length)];
           isErrorResponse = false;
@@ -2250,7 +2266,9 @@ export default function KonKandalPage() {
         }
       }
 
-      botText = limitEmojis(sanitizeRotanaAttack(cleanRawOutput(botText), promptText), 7);
+      botText = isRotanaMasterBypass
+        ? limitEmojis(sanitizeRotanaAttack(cleanRawOutput(botText), promptText), 7)
+        : sanitizeRotanaAttack(cleanRawOutput(botText), promptText).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2300}-\u{23FF}\u{2B50}\u{200D}\u{FE0F}]/gu, '');
       const botMsgIndex = updatedMessages.length - 1;
       const finalMessages = [...updatedMessages];
       finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse, isSmartCutoff };
@@ -2290,13 +2308,13 @@ export default function KonKandalPage() {
         isErr = isThreat;
 
         if (isSweetOrFlirt) {
-          fallbackText = `យី! មក Sweet ផ្អែមល្ហែមសុំថើបស្អីហ្នឹងគ្នាយើង ${userNameStr}! កូនកណ្ដាលរវល់បន្តិច ចាំបន្តិចទៀតចាំមកជជែកគ្នាលេងបន្តណា៎!`;
+          fallbackText = `យី! មក Sweet ផ្អែមល្ហែមសុំថើបស្អីហ្នឹងគ្នាយើង ${userNameStr}! ប្អូនទី២រវល់បន្តិច ចាំបន្តិចទៀតចាំមកជជែកគ្នាលេងបន្តណា៎!`;
           isErr = false;
         } else if (isCurseWord) {
           const kandalCurseRoasts = [
-            `ចុម! មកដល់ភ្លាមបាញ់កូនកណ្ដាលមួយទំហឹងហ្មង! ជេរឡើងក្ដៅក្ដារចុចអស់ហើយគ្នាយើង! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាសិនទៅ ប្រយ័ត្នឃ្លានពេកចេះតែជេរផ្ដេសផ្ដាស! កូនកណ្ដាលគ្មានឈឺក្បាល ឬខឹងជាមួយពាក្យជេរបែបកូនក្មេងហ្នឹងទេណា៎!`,
-            `យី! គិតថាមកជេរចឹងកូនកណ្ដាលចេះខឹងមែន? កូនកណ្ដាលចិត្តត្រជាក់ដូចទឹកកកកាហ្វេដោះគោមុខស៊ីតិចចឹង! ជេរទៅ មិនឈឺក្បាលទេ តែអាណិតអ្នកជេរវិញទេ ខំប្រឹងវាយអក្សរឡើងហត់តែឯង!`,
-            `ស្មានតែកូនកណ្ដាលចេះតបតដោយជេរវិញមែន? សុំទោសផង កូនកណ្ដាលជាកូនកណ្ដាលមហាស្លូត និងកំប្លែង មិនមែនទំនេរមកជេរគ្នាជាមួយគ្នាយើងឡើយ! យកកម្លាំងជេរហ្នឹង ទៅខំរៀនកូដ ឬធ្វើ Assignment វិញទើបចំណេញជាង!`
+            `ចុម! មកដល់ភ្លាមបាញ់ប្អូនទី២មួយទំហឹងហ្មង! ជេរឡើងក្ដៅក្ដារចុចអស់ហើយគ្នាយើង! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាសិនទៅ ប្រយ័ត្នឃ្លានពេកចេះតែជេរផ្ដេសផ្ដាស! ប្អូនទី២គ្មានឈឺក្បាល ឬខឹងជាមួយពាក្យជេរបែបកូនក្មេងហ្នឹងទេណា៎!`,
+            `យី! គិតថាមកជេរចឹងប្អូនទី២ចេះខឹងមែន? ប្អូនទី២ចិត្តត្រជាក់ដូចទឹកកកកាហ្វេដោះគោមុខស៊ីតិចចឹង! ជេរទៅ មិនឈឺក្បាលទេ តែអាណិតអ្នកជេរវិញទេ ខំប្រឹងវាយអក្សរឡើងហត់តែឯង!`,
+            `ស្មានតែប្អូនទី២ចេះតបតដោយជេរវិញមែន? សុំទោសផង ប្អូនទី២ជា Chatbot កូនទី២ មហាស្លូត និងកំប្លែង មិនមែនទំនេរមកជេរគ្នាជាមួយគ្នាយើងឡើយ! យកកម្លាំងជេរហ្នឹង ទៅខំរៀនកូដ ឬធ្វើ Assignment វិញទើបចំណេញជាង!`
           ];
           fallbackText = kandalCurseRoasts[Math.floor(Math.random() * kandalCurseRoasts.length)];
           isErr = false;
@@ -2999,7 +3017,7 @@ export default function KonKandalPage() {
           </div>
 
           <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mb-1">
-            ស៊ីតិច Roastbot កូនកណ្ដាល
+            ស៊ីតិច Chatbot កូនទី២
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
             ទំព័រនេះកំពុងស្ថិតក្នុងដំណាក់កាលអភិវឌ្ឍន៍បិទជិត Private Dev Testing។ សូមបញ្ចូលសោសម្ងាត់ដើម្បីចូលសាកល្បង!
@@ -3353,7 +3371,7 @@ export default function KonKandalPage() {
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5 truncate">
-                    <span className="truncate">ស៊ីតិច កូនកណ្ដាល</span>
+                    <span className="truncate">ស៊ីតិច កូនទី២</span>
                     <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-mono text-[9px] font-bold">Unlocked</span>
                     <button
                       type="button"
@@ -3535,7 +3553,7 @@ export default function KonKandalPage() {
                       },
                       {
                         id: 'konkandal',
-                        name: 'ស៊ីតិច Roastbot កូនកណ្ដាល',
+                        name: 'ស៊ីតិច Chatbot កូនទី២',
                         role: 'មហាស្លូត & Funny',
                         href: '/KonKandal',
                         icon: 'fa-face-smile',
