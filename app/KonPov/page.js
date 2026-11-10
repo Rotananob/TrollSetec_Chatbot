@@ -19,7 +19,8 @@ import {
   touchLiveSession,
   setServerCooldownLock,
   formatCountdown,
-  isCreatorUsername
+  isCreatorUsername,
+  clearLiveSession
 } from '../utils/chatSessionLimit';
 import SessionBreakModal from '@/components/SessionBreakModal';
 import SetecSurvivalModal from '@/components/SetecSurvivalModal';
@@ -97,6 +98,7 @@ export default function KonPovPage() {
   // Upgraded Feature 1: Savage Troll Level (gentle, medium, savage)
   const [savageLevel, setSavageLevel] = useState('savage');
   const [showModeMenu, setShowModeMenu] = useState(false);
+  const [showBotMenu, setShowBotMenu] = useState(false);
   const [showPersonaModal, setShowPersonaModal] = useState(false);
 
   // Upgraded Feature 2: Audio Playback Speed (1.0x, 1.25x, 1.5x, 2.0x)
@@ -3239,13 +3241,24 @@ export default function KonPovPage() {
             )}
           </ul>
 
-          <Link
-            href="/KonBong"
-            onClick={() => stopAllGlobalAudio()}
-            className="block w-full bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs mb-2 transition border border-cyan-500/30"
-          >
-            <i className="fas fa-robot mr-1"></i> ទៅកាន់ កូនច្បង - រៀមច្បង IT
-          </Link>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <Link
+              href="/KonBong"
+              onClick={() => stopAllGlobalAudio()}
+              className="bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white font-bold py-2.5 px-2.5 rounded-xl shadow text-center text-xs transition border border-cyan-500/30 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <i className="fa-solid fa-user-tie text-cyan-400"></i>
+              <span>កូនច្បង</span>
+            </Link>
+            <Link
+              href="/KonKandal"
+              onClick={() => stopAllGlobalAudio()}
+              className="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold py-2.5 px-2.5 rounded-xl shadow text-center text-xs transition border border-emerald-500/30 flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <i className="fa-solid fa-face-smile text-emerald-400"></i>
+              <span>កូនកណ្ដាល</span>
+            </Link>
+          </div>
 
           <button
             onClick={() => {
@@ -3512,7 +3525,10 @@ export default function KonPovPage() {
           {/* AI Mode Selector: Interactive Animated Pill with clear dropdown cue */}
           <button
             type="button"
-            onClick={() => setShowModeMenu(!showModeMenu)}
+            onClick={() => {
+              setShowModeMenu(!showModeMenu);
+              setShowBotMenu(false);
+            }}
             className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
               savageLevel === 'savage'
                 ? 'bg-rose-500/15 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 ring-1 ring-rose-500/20'
@@ -3554,20 +3570,141 @@ export default function KonPovPage() {
             </span>
           </button>
 
-          {/* Switch to KonBong */}
-          <Link
-            href="/KonBong"
-            className={`px-2 sm:px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition active:scale-95 border ${
-              isDark
-                ? 'bg-cyan-500/10 border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20'
-                : 'bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100 shadow-xs'
-            }`}
-            title="ប្តូរទៅ ស៊ីតិច Roastbot កូនច្បង"
-            onClick={() => stopAllGlobalAudio()}
-          >
-            <i className="fas fa-repeat text-[9px]"></i>
-            <span className="hidden sm:inline">កូនច្បង</span>
-          </Link>
+          {/* Change to another bot button */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setShowBotMenu(!showBotMenu);
+                setShowModeMenu(false);
+              }}
+              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+                showBotMenu
+                  ? 'bg-pink-500/25 border-pink-400 text-pink-500 dark:text-pink-300 ring-1 ring-pink-400/30'
+                  : isDark
+                  ? 'bg-pink-500/15 border-pink-500/40 text-pink-300 hover:bg-pink-500/25 ring-1 ring-pink-500/20'
+                  : 'bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100 shadow-xs'
+              }`}
+              title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត (កូនច្បង ឬ កូនកណ្ដាល)"
+            >
+              <span className="flex items-center gap-0.5">
+                <i className="fa-solid fa-robot text-[10px] text-indigo-500 dark:text-indigo-400"></i>
+                <i className="fa-solid fa-arrow-right-arrow-left text-[8px] text-pink-400"></i>
+              </span>
+              <span className="font-extrabold">ដូរ Bot</span>
+              <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-pink-500/20 dark:bg-pink-400/20 flex items-center justify-center">
+                <i
+                  className={`fas fa-chevron-down text-[7px] sm:text-[8px] transition-transform duration-200 ${
+                    showBotMenu ? 'rotate-180' : ''
+                  }`}
+                ></i>
+              </span>
+            </button>
+
+            {/* Floating Bot Switcher Dropdown (NO EMOJI, NO PARENTHESES) */}
+            {showBotMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowBotMenu(false)}
+                />
+                <div className={`absolute right-0 top-9 sm:top-10 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up font-['Kantumruy_Pro',sans-serif] ${
+                  isDark ? 'bg-slate-900/98 border-slate-700 text-white shadow-black/80' : 'bg-white/98 border-slate-200 text-slate-900 shadow-xl'
+                }`}>
+                  <div className="px-2 py-1 border-b border-slate-700/30 flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-pink-400 flex items-center gap-1.5">
+                      <i className="fa-solid fa-robot text-xs text-indigo-400"></i>
+                      <i className="fa-solid fa-arrow-right-arrow-left text-[10px]"></i>
+                      <span>ប្ដូរទៅ Chatbot ផ្សេង</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowBotMenu(false)}
+                      className="text-slate-400 hover:text-white text-xs p-1 cursor-pointer"
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <div className="space-y-1">
+                    {[
+                      {
+                        id: 'konbong',
+                        name: 'ស៊ីតិច Chatbot កូនច្បង',
+                        role: 'រៀមច្បង IT ស្ដេចឌឺ',
+                        href: '/KonBong',
+                        icon: 'fa-user-tie',
+                        color: 'text-indigo-400',
+                        bg: 'bg-indigo-500/15',
+                        border: 'border-indigo-500/40',
+                        isCurrent: false
+                      },
+                      {
+                        id: 'konkandal',
+                        name: 'ស៊ីតិច Roastbot កូនកណ្ដាល',
+                        role: 'មហាស្លូត & Funny',
+                        href: '/KonKandal',
+                        icon: 'fa-face-smile',
+                        color: 'text-emerald-400',
+                        bg: 'bg-emerald-500/15',
+                        border: 'border-emerald-500/40',
+                        isCurrent: false
+                      },
+                      {
+                        id: 'konpov',
+                        name: 'ស៊ីតិច Roastbot កូនពៅ',
+                        role: 'ចែ Mommy & Daddy ស្ដេចឌឺ',
+                        href: '/KonPov',
+                        icon: 'fa-heart',
+                        color: 'text-pink-400',
+                        bg: 'bg-pink-500/15',
+                        border: 'border-pink-500/40',
+                        isCurrent: true
+                      }
+                    ].map((botItem) => (
+                      <Link
+                        key={botItem.id}
+                        href={botItem.href}
+                        onClick={() => {
+                          stopAllGlobalAudio();
+                          setShowBotMenu(false);
+                        }}
+                        className={`w-full text-left p-2 rounded-xl transition flex items-center justify-between cursor-pointer ${
+                          botItem.isCurrent
+                            ? isDark
+                              ? `${botItem.bg} border ${botItem.border} ${botItem.color}`
+                              : 'bg-pink-50 border border-pink-200 text-pink-700 font-bold'
+                            : isDark
+                            ? 'hover:bg-slate-800/70 border border-transparent text-slate-300'
+                            : 'hover:bg-slate-100 border border-transparent text-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${botItem.bg} ${botItem.color}`}>
+                            <i className={`fa-solid ${botItem.icon}`}></i>
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold leading-tight flex items-center gap-1.5">
+                              <span>{botItem.name}</span>
+                              {botItem.isCurrent && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-pink-500/20 text-pink-400 font-mono">
+                                  កំពុងជជែក
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                              {botItem.role}
+                            </div>
+                          </div>
+                        </div>
+                        <i className={`fa-solid ${botItem.isCurrent ? 'fa-check text-xs text-pink-400' : 'fa-arrow-right text-[10px] opacity-40'}`}></i>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* Field-Test Notice Direct Button */}
           <Link
@@ -5259,7 +5396,8 @@ export default function KonPovPage() {
                 href="/KonBong"
                 className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md active:scale-95 flex items-center justify-center gap-1.5"
               >
-                <span>👉 ទៅលេងជាមួយបងកូនច្បង (KonBong) វិញ</span>
+                <i className="fa-solid fa-arrow-right-arrow-left text-xs"></i>
+                <span>ទៅលេងជាមួយបងកូនច្បង KonBong វិញ</span>
               </Link>
               <Link
                 href="/"

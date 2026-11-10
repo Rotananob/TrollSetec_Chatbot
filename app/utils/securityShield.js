@@ -89,43 +89,14 @@ export function initSecurityShield() {
     { capture: true }
   );
 
-  // 4. Console Neutralizer: Hide internal logs from Developer Console completely
+  // 4. Console Neutralizer: Hide internal verbose logs from Developer Console
   try {
     const noop = () => {};
     window.console.log = noop;
     window.console.info = noop;
-    window.console.warn = noop;
-    window.console.error = noop;
     window.console.debug = noop;
     window.console.dir = noop;
     window.console.table = noop;
     window.console.trace = noop;
-    window.console.clear();
-    setInterval(() => {
-      try {
-        window.console.clear();
-      } catch {}
-    }, 1500);
-  } catch {}
-
-  // 5. Silent Anti-Debugger Trap: Freezes DevTools on constructor evaluation
-  try {
-    let devtoolsHits = 0;
-    setInterval(() => {
-      try {
-        const start = performance.now();
-        (function () {}['constructor']('debugger')());
-        const duration = performance.now() - start;
-        if (duration > 150) {
-          devtoolsHits++;
-          if (devtoolsHits >= 2) {
-            document.body.innerHTML = '';
-            window.location.replace('about:blank');
-          }
-        } else {
-          devtoolsHits = 0;
-        }
-      } catch {}
-    }, 400);
   } catch {}
 }

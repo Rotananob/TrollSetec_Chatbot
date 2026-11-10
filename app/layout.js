@@ -145,38 +145,11 @@ export default function RootLayout({ children }) {
                 try {
                   var noop = function() {};
                   window.console.log = noop;
-                  window.console.warn = noop;
-                  window.console.error = noop;
                   window.console.info = noop;
                   window.console.debug = noop;
                   window.console.dir = noop;
                   window.console.table = noop;
                   window.console.trace = noop;
-                  window.console.clear();
-                  setInterval(function() {
-                    try { window.console.clear(); } catch(err) {}
-                  }, 1500);
-                } catch(err) {}
-
-                // 5. Silent Anti-Debugger Trap: Freezes DevTools on constructor evaluation
-                try {
-                  var devtoolsHits = 0;
-                  setInterval(function() {
-                    try {
-                      var start = performance.now();
-                      (function() {}['constructor']('debugger')());
-                      var duration = performance.now() - start;
-                      if (duration > 150) {
-                        devtoolsHits++;
-                        if (devtoolsHits >= 2) {
-                          document.body.innerHTML = '';
-                          window.location.replace('about:blank');
-                        }
-                      } else {
-                        devtoolsHits = 0;
-                      }
-                    } catch(err) {}
-                  }, 400);
                 } catch(err) {}
               })();
             `,
