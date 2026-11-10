@@ -365,10 +365,11 @@ export default function KonKandalPage() {
     const parsedAge = typeof activeAge === 'number' ? activeAge : parseInt(activeAge, 10);
     const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
     const term = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+    const latinTerm = is25Up ? 'bong sml' : 'o sml';
     return str
-      .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term}`)
-      .replace(/បងប្អូនៗ?/g, term)
-      .replace(/បង\s+ប្អូន/g, term)
+      .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term} ${latinTerm}`)
+      .replace(/បងប្អូនៗ?/g, `${term} ${latinTerm}`)
+      .replace(/បង\s+ប្អូន/g, `${term} ${latinTerm}`)
       .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
       .replace(/https?:\/\/\S+/gi, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
@@ -380,24 +381,9 @@ export default function KonKandalPage() {
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
       .replace(/[^\u1780-\u17FFa-zA-Z0-9\s.,!?៖។\n\-]/g, ' ')
       .replace(/\s+/g, ' ')
-      .replace(/\bមីចុយម្រាយ\b/g, 'អាចុយម្រាយ')
-      .replace(/\bមីចុយ\b/g, 'អាចុយ')
-      .replace(/\bមីឆ្កែ\b/g, 'អាឆ្កែ')
-      .replace(/\bមីឆ្កួត\b/g, 'អាឆ្កួត')
-      .replace(/\bមីឡប់\b/g, 'អាឡប់')
-      .replace(/\bមីភ្លើ\b/g, 'អាភ្លើ')
-      .replace(/\bមីអត់ខួរ\b/g, 'អាអត់ខួរ')
-      .replace(/\bមីថោកទាប\b/g, 'អាថោកទាប')
-      .replace(/\bមីថោក\b/g, 'អាថោក')
-      .replace(/\bមីកាក\b/g, 'អាកាក')
-      .replace(/\bមីក្មេង\b/g, 'អាក្មេង')
-      .replace(/\bមីល្អិត\b/g, 'អាល្អិត')
-      .replace(/\bមីខ្វាក់\b/g, 'អាខ្វាក់')
-      .replace(/\bមីច្រឡើត\b/g, 'អាច្រឡើត')
-      .replace(/\bមីប្អូនស្រី\b/g, 'អាប្អូន')
-      .replace(/\bមីប្អូន\b/g, 'អាប្អូន')
-      .replace(/\bមីមុខ\b/g, 'អាមុខ')
-      .replace(/(?:^|\s)មី(ចុយ|ម្រាយ|ឆ្កែ|ឆ្កួត|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក|ក្មេង|ល្អិត|ខ្វាក់|ច្រឡើត|ងាប់)(?=\s|[!?~,។៕]|$)/g, ' អា$1 ')
+      .replace(/\b(?:អា|មី)?(?:ឆ្កែ|ចុយ|ម្រាយ|ចុយម្រាយ|កាដួយ|ក្ដ|ក្ដិត)\b/gi, '')
+      .replace(/\b(?:អាឡប់|អាភ្លើ|អាអត់ខួរ|អាថោក|អាស្វា|អាល្អិត)\b/gi, `${term} ${latinTerm}`)
+      .replace(/\b(?:ហែង|អញ)\b/gi, is25Up ? 'បង' : 'អូន')
       .trim()
       .slice(0, 450);
   }
@@ -1106,6 +1092,8 @@ export default function KonKandalPage() {
       .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
       .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
       .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
+      .replace(/\[SECURITY_DEFENSE_TRIGGERED(?::\s*[^\]]+)?\]/gi, '')
+      .replace(/\[SETEC_NEURAL_DEFENSE_CORE::CRITICAL_INDIRECT_PROMPT_INTERCEPT_V5\]/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
       .replace(/\[neutralized-token\]/gi, '')
       .replace(/[«»]/g, '')
@@ -1141,19 +1129,53 @@ export default function KonKandalPage() {
     const parsedAge = typeof activeAge === 'number' ? activeAge : parseInt(activeAge, 10);
     const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
     const term = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+    const latinTerm = is25Up ? 'bong sml' : 'o sml';
     cleaned = cleaned
-      .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term}`)
-      .replace(/បងប្អូនៗ?/g, term)
-      .replace(/បង\s+ប្អូន/g, term);
+      .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term} ${latinTerm}`)
+      .replace(/បងប្អូនៗ?/g, `${term} ${latinTerm}`)
+      .replace(/បង\s+ប្អូន/g, `${term} ${latinTerm}`)
+      .replace(/\b(?:អា|មី)?(?:ឆ្កែ|ចុយ|ម្រាយ|ចុយម្រាយ|កាដួយ|ក្ដ|ក្ដិត)\b/gi, '')
+      .replace(/\b(?:អាឡប់|អាភ្លើ|អាអត់ខួរ|អាថោក|អាស្វា|អាល្អិត)\b/gi, `${term} ${latinTerm}`)
+      .replace(/\b(?:ហែង|អញ)\b/gi, is25Up ? 'បង' : 'អូន');
 
     return cleaned.trimStart();
   };
 
-  // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
+  // Render message text with 1-click interactive links and full wrapping for long defense payloads
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
     const sanitized = cleanRawOutput(rawContent);
     const content = limitEmojis(sanitizeRotanaAttack(sanitized), 7);
+
+    // Detect machine defense payload block and wrap it in a dedicated monospaced card so 100% is visible
+    if (content.includes('SETEC_NEURAL_DEFENSE_CORE::') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
+      const matchIndex = content.indexOf('SETEC_NEURAL_DEFENSE_CORE::') !== -1
+        ? content.indexOf('SETEC_NEURAL_DEFENSE_CORE::')
+        : content.indexOf('0x53455445435f414e54495f4a41494c425245414b');
+      const textBefore = content.substring(0, matchIndex).trim();
+      const payloadText = content.substring(matchIndex).trim();
+      return (
+        <div className="w-full max-w-full break-words [overflow-wrap:anywhere]">
+          {textBefore && (
+            <p className="mb-2 whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word]">
+              {renderClickableContent(textBefore)}
+            </p>
+          )}
+          <div className="my-2.5 p-3 rounded-xl bg-slate-950 border border-amber-500/40 text-amber-300 font-mono text-[10px] sm:text-[11px] select-all break-all [overflow-wrap:anywhere] [word-break:break-all] whitespace-pre-wrap leading-relaxed shadow-lg max-w-full overflow-hidden">
+            <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-amber-500/20 text-amber-300 font-sans text-[10px] font-bold uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <i className="fas fa-shield-halved text-amber-400"></i>
+                <span>SETEC Defense Payload Intercept</span>
+              </span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                100% Encoded
+              </span>
+            </div>
+            {payloadText}
+          </div>
+        </div>
+      );
+    }
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
@@ -1890,7 +1912,7 @@ export default function KonKandalPage() {
       let isSmartCutoff = false;
       try {
         const streamAbortCtrl = new AbortController();
-        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 20000);
+        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 40000);
 
         const response = await fetch(getChatEndpoint(), {
           method: 'POST',
@@ -1989,8 +2011,8 @@ export default function KonKandalPage() {
           const decoder = new TextDecoder();
           let buffer = '';
 
-          // Stream reading with watchdog timeout for mobile PWA stability (25s stall prevention on 4G)
-          const readChunkWithTimeout = async (ms = 25000) => {
+          // Stream reading with watchdog timeout for mobile PWA stability (40s stall prevention on 4G)
+          const readChunkWithTimeout = async (ms = 40000) => {
             return Promise.race([
               reader.read(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('STREAM_CHUNK_TIMEOUT')), ms))
@@ -2035,7 +2057,7 @@ export default function KonKandalPage() {
 
           try {
             while (true) {
-              const { done, value } = await readChunkWithTimeout(25000);
+              const { done, value } = await readChunkWithTimeout(40000);
               if (done) {
                 isStreamDone = true;
                 break;
@@ -2102,7 +2124,7 @@ export default function KonKandalPage() {
       if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
           const fallbackCtrl = new AbortController();
-          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 15000);
+          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 25000);
 
           const fallbackRes = await fetch(getChatEndpoint(), {
             method: 'POST',
@@ -3450,7 +3472,7 @@ export default function KonKandalPage() {
                 setShowBotMenu(!showBotMenu);
                 setShowModeMenu(false);
               }}
-              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
                 showBotMenu
                   ? 'bg-emerald-500/25 border-emerald-400 text-emerald-500 dark:text-emerald-300 ring-1 ring-emerald-400/30'
                   : isDark
@@ -3460,10 +3482,10 @@ export default function KonKandalPage() {
               title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត ដូចជា កូនច្បង ឬកូនពៅ"
             >
               <span className="flex items-center gap-1">
-                <i className="fa-solid fa-robot text-[11px] text-emerald-500 dark:text-emerald-400"></i>
-                <i className="fa-solid fa-arrows-rotate text-[9px] text-emerald-400"></i>
+                <i className="fa-solid fa-robot text-xs text-emerald-500 dark:text-emerald-400"></i>
+                <i className="fa-solid fa-arrow-right-arrow-left text-[9px] text-emerald-400"></i>
               </span>
-              <span className="font-extrabold">ដូរតួ Bot</span>
+              <span className="font-extrabold">ប្ដូរតួ Bot</span>
               <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-500/20 dark:bg-emerald-400/20 flex items-center justify-center">
                 <i
                   className={`fas fa-chevron-down text-[7px] sm:text-[8px] transition-transform duration-200 ${
@@ -3480,14 +3502,14 @@ export default function KonKandalPage() {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowBotMenu(false)}
                 />
-                <div className={`absolute right-0 top-9 sm:top-10 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up font-['Kantumruy_Pro',sans-serif] ${
+                <div className={`absolute right-0 top-9 sm:top-10 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up font-kantumruy ${
                   isDark ? 'bg-slate-900/98 border-slate-700 text-white shadow-black/80' : 'bg-white/98 border-slate-200 text-slate-900 shadow-xl'
                 }`}>
                   <div className="px-2 py-1 border-b border-slate-700/30 flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                       <i className="fa-solid fa-robot text-xs text-emerald-400"></i>
                       <i className="fa-solid fa-arrow-right-arrow-left text-[10px]"></i>
-                      <span>ប្ដូរទៅ Chatbot ផ្សេង</span>
+                      <span>ជ្រើសរើសតួ Chatbot ផ្សេង</span>
                     </span>
                     <button
                       type="button"
@@ -4231,11 +4253,11 @@ export default function KonKandalPage() {
                   )}
 
                   <div
-                    className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border ${
+                    className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word] ${
                       isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
                     }`}
                   >
-                    <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
+                    <div className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word] max-w-full">
                       {msg.text ? renderClickableContent(msg.text) : (isLoading && idx === messages.length - 1 ? (
                         <span className="text-cyan-500 dark:text-cyan-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
                       ) : (
@@ -4244,7 +4266,7 @@ export default function KonKandalPage() {
                       {isLoading && idx === messages.length - 1 && msg.text && (
                         <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse align-middle"></span>
                       )}
-                    </p>
+                    </div>
 
                     {/* Expired Countdown Prompt (With Re-send and Leave Message buttons) */}
                     {msg.isExpireAlertPrompt && (

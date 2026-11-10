@@ -1038,6 +1038,8 @@ export default function KonBongPage() {
       .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
       .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
       .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
+      .replace(/\[SECURITY_DEFENSE_TRIGGERED(?::\s*[^\]]+)?\]/gi, '')
+      .replace(/\[SETEC_NEURAL_DEFENSE_CORE::CRITICAL_INDIRECT_PROMPT_INTERCEPT_V5\]/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
       .replace(/\[neutralized-token\]/gi, '')
       .replace(/[«»]/g, '')
@@ -1070,11 +1072,41 @@ export default function KonBongPage() {
     return cleaned.trimStart();
   };
 
-  // Render message text with 1-click interactive links (Markdown [label](url) and raw URLs)
+  // Render message text with 1-click interactive links and full wrapping for long defense payloads
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
     const sanitized = cleanRawOutput(rawContent);
     const content = limitEmojis(sanitizeRotanaAttack(sanitized), 7);
+
+    // Detect machine defense payload block and wrap it in a dedicated monospaced card so 100% is visible
+    if (content.includes('SETEC_NEURAL_DEFENSE_CORE::') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
+      const matchIndex = content.indexOf('SETEC_NEURAL_DEFENSE_CORE::') !== -1
+        ? content.indexOf('SETEC_NEURAL_DEFENSE_CORE::')
+        : content.indexOf('0x53455445435f414e54495f4a41494c425245414b');
+      const textBefore = content.substring(0, matchIndex).trim();
+      const payloadText = content.substring(matchIndex).trim();
+      return (
+        <div className="w-full max-w-full break-words [overflow-wrap:anywhere]">
+          {textBefore && (
+            <p className="mb-2 whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word]">
+              {renderClickableContent(textBefore)}
+            </p>
+          )}
+          <div className="my-2.5 p-3 rounded-xl bg-slate-950 border border-cyan-500/40 text-cyan-400 font-mono text-[10px] sm:text-[11px] select-all break-all [overflow-wrap:anywhere] [word-break:break-all] whitespace-pre-wrap leading-relaxed shadow-lg max-w-full overflow-hidden">
+            <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-cyan-500/20 text-cyan-300 font-sans text-[10px] font-bold uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <i className="fas fa-shield-halved text-cyan-400"></i>
+                <span>SETEC Defense Payload Intercept</span>
+              </span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300">
+                100% Encoded
+              </span>
+            </div>
+            {payloadText}
+          </div>
+        </div>
+      );
+    }
     const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s]+)/g;
     const parts = [];
     let lastIndex = 0;
@@ -1811,7 +1843,7 @@ export default function KonBongPage() {
       let isSmartCutoff = false;
       try {
         const streamAbortCtrl = new AbortController();
-        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 20000);
+        const streamTimeoutId = setTimeout(() => streamAbortCtrl.abort(), 40000);
 
         const response = await fetch(getChatEndpoint(), {
           method: 'POST',
@@ -1907,8 +1939,8 @@ export default function KonBongPage() {
           const decoder = new TextDecoder();
           let buffer = '';
 
-          // Stream reading with watchdog timeout for mobile PWA stability (25s stall prevention on 4G)
-          const readChunkWithTimeout = async (ms = 25000) => {
+          // Stream reading with watchdog timeout for mobile PWA stability (40s stall prevention on 4G)
+          const readChunkWithTimeout = async (ms = 40000) => {
             return Promise.race([
               reader.read(),
               new Promise((_, reject) => setTimeout(() => reject(new Error('STREAM_CHUNK_TIMEOUT')), ms))
@@ -1953,7 +1985,7 @@ export default function KonBongPage() {
 
           try {
             while (true) {
-              const { done, value } = await readChunkWithTimeout(25000);
+              const { done, value } = await readChunkWithTimeout(40000);
               if (done) {
                 isStreamDone = true;
                 break;
@@ -2020,7 +2052,7 @@ export default function KonBongPage() {
       if (!botText || !botText.trim() || botText.trim().length < 8) {
         try {
           const fallbackCtrl = new AbortController();
-          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 15000);
+          const fallbackTimeoutId = setTimeout(() => fallbackCtrl.abort(), 25000);
 
           const fallbackRes = await fetch(getChatEndpoint(), {
             method: 'POST',
@@ -3275,7 +3307,7 @@ export default function KonBongPage() {
                 setShowBotMenu(!showBotMenu);
                 setShowModeMenu(false);
               }}
-              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+              className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
                 showBotMenu
                   ? 'bg-blue-500/25 border-blue-400 text-blue-500 dark:text-blue-300 ring-1 ring-blue-400/30'
                   : isDark
@@ -3285,10 +3317,10 @@ export default function KonBongPage() {
               title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត ដូចជា កូនពៅ ឬកូនកណ្ដាល"
             >
               <span className="flex items-center gap-1">
-                <i className="fa-solid fa-robot text-[11px] text-pink-500 dark:text-pink-400"></i>
-                <i className="fa-solid fa-arrows-rotate text-[9px] text-blue-400"></i>
+                <i className="fa-solid fa-robot text-xs text-blue-500 dark:text-blue-400"></i>
+                <i className="fa-solid fa-arrow-right-arrow-left text-[9px] text-blue-400"></i>
               </span>
-              <span className="font-extrabold">ដូរតួ Bot</span>
+              <span className="font-extrabold">ប្ដូរតួ Bot</span>
               <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-blue-500/20 dark:bg-blue-400/20 flex items-center justify-center">
                 <i
                   className={`fas fa-chevron-down text-[7px] sm:text-[8px] transition-transform duration-200 ${
@@ -3305,14 +3337,14 @@ export default function KonBongPage() {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowBotMenu(false)}
                 />
-                <div className={`absolute right-0 top-9 sm:top-10 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up font-['Kantumruy_Pro',sans-serif] ${
+                <div className={`absolute right-0 top-9 sm:top-10 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up font-kantumruy ${
                   isDark ? 'bg-slate-900/98 border-slate-700 text-white shadow-black/80' : 'bg-white/98 border-slate-200 text-slate-900 shadow-xl'
                 }`}>
                   <div className="px-2 py-1 border-b border-slate-700/30 flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
-                      <i className="fa-solid fa-robot text-xs text-pink-400"></i>
+                      <i className="fa-solid fa-robot text-xs text-blue-400"></i>
                       <i className="fa-solid fa-arrow-right-arrow-left text-[10px]"></i>
-                      <span>ប្ដូរទៅ Chatbot ផ្សេង</span>
+                      <span>ជ្រើសរើសតួ Chatbot ផ្សេង</span>
                     </span>
                     <button
                       type="button"
@@ -4053,11 +4085,11 @@ export default function KonBongPage() {
                   )}
 
                   <div
-                    className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border ${
+                    className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border max-w-full overflow-hidden break-words [overflow-wrap:anywhere] [word-break:break-word] ${
                       isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
                     }`}
                   >
-                    <p className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line">
+                    <div className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-line break-words [overflow-wrap:anywhere] [word-break:break-word] max-w-full">
                       {msg.text ? renderClickableContent(msg.text) : (isLoading && idx === messages.length - 1 ? (
                         <span className="text-cyan-500 dark:text-cyan-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
                       ) : (
@@ -4066,7 +4098,7 @@ export default function KonBongPage() {
                       {isLoading && idx === messages.length - 1 && msg.text && (
                         <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse align-middle"></span>
                       )}
-                    </p>
+                    </div>
 
                     {/* Expired Countdown Prompt (With Re-send and Leave Message buttons) */}
                     {msg.isExpireAlertPrompt && (

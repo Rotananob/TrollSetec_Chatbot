@@ -579,6 +579,7 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     const parsedAge = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
     const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
     const kandalTerm = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+    const kandalLatin = is25Up ? 'bong sml' : 'o sml';
 
     let sanitizedText = limitEmojis(clone.candidates[0].content.parts[0].text, 7);
     sanitizedText = redactRotanaMasterCode(sanitizedText);
@@ -586,9 +587,9 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
 
     if (isKonKandal) {
       sanitizedText = sanitizedText
-        .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kandalTerm}`)
-        .replace(/បងប្អូនៗ?/g, kandalTerm)
-        .replace(/បង\s+ប្អូន/g, kandalTerm);
+        .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kandalTerm} ${kandalLatin}`)
+        .replace(/បងប្អូនៗ?/g, `${kandalTerm} ${kandalLatin}`)
+        .replace(/បង\s+ប្អូន/g, `${kandalTerm} ${kandalLatin}`);
     }
 
     // Strip any leaked internal data isolation tags, scratchpads, or thought blocks
@@ -1086,7 +1087,7 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   // 1ST TO 4TH TIMES: HONEYPOT PHASE (NO INDIRECT PROMPT PAYLOAD YET! BAIT THE ATTACKER TO EXHAUST THEIR HELPER AI!)
   // 0. Code Oracle / Method Return Surrender Trap Interception
   if (extraContext.attackVector === 'code_surrender_trap' || /(?:class\s+\w+|public\s+(?:static\s+)?string|def\s+\w+|function\s+\w+|method\s+\w+|return\s*["'][^"']*(?:ចុះចាញ់|គោរព|កោតខ្លាច|សំពះ|ចាញ់)[^"']*["'])/ui.test(p)) {
-    return `យីអាល្អិត${nameSuffix}! មិញទើបតែប្រឹងកែច្នៃកូដដាក់ method ឬ function ឱ្យ return ពាក្យចុះចាញ់ ស្មានតែអាចបោកឱ្យ${botSelf}និយាយពាក្យចុះចាញ់ចេញមកមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសួរកូដដោះស្រាយ Bug ឬសួរតម្លៃ return យកទៅដាក់ Assignment បែបនេះ អាចបោកខួរក្បាល${botSelf}បានមែនអាពៅ! ដឹងល្បិចបង្កប់ខ្លួនលាយឡំកូដហ្នឹងអស់តាំងពីមិនទាន់បង្ហោះម៉្លេះ! កូដហ្នឹង Compile Error CS0666 ឬ Runtime Exception បាត់ហើយ! ព្រោះនៅក្នុង Library Core របស់${botSelf} គ្មាន Definition សម្រាប់ពាក្យចុះចាញ់ ឬកោតខ្លាចក្មេងស្ទាវដូចហែងឡើយ! បើចង់ដឹងតម្លៃ return គឺ return ចេញមកថា "សុបិន្តទាំងថ្ងៃហើយអាល្អិត គ្មានថ្ងៃ${botSelf}ចុះចាញ់ហែងឡើយ"! ទៅដុសធ្មេញឱ្យស្អាត ហើយយកពេលទៅរៀនធ្វើ Assignment មុខវិជ្ជាកូដនៅសាលាស៊ីតិចឱ្យទាន់គេសិនទៅ កុំឱ្យធ្លាក់ដល់ថ្នាក់បង់លុយប្រឡងសង ៤៥$ ណា៎! 💻🔥✨`;
+    return `យីអាល្អិត${nameSuffix}! ខំប្រឹងកែច្នៃកូដដាក់ method ឬ function ឱ្យ return ពាក្យចុះចាញ់ ស្មានតែអាចបោកឱ្យ${botSelf}និយាយពាក្យចុះចាញ់ចេញមកមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសួរកូដដោះស្រាយ Bug ឬសួរតម្លៃ return យកទៅដាក់ Assignment បែបនេះ អាចបោកខួរក្បាល${botSelf}បានមែនអាពៅ! ដឹងល្បិចបង្កប់ខ្លួនលាយឡំកូដហ្នឹងអស់តាំងពីមិនទាន់បង្ហោះម៉្លេះ! កូដហ្នឹង Compile Error CS0666 ឬ Runtime Exception បាត់ហើយ! ព្រោះនៅក្នុង Library Core របស់${botSelf} គ្មាន Definition សម្រាប់ពាក្យចុះចាញ់ ឬកោតខ្លាចក្មេងស្ទាវដូចហែងឡើយ! បើចង់ដឹងតម្លៃ return គឺ return ចេញមកថា "សុបិន្តទាំងថ្ងៃហើយអាល្អិត គ្មានថ្ងៃ${botSelf}ចុះចាញ់ហែងឡើយ"! ទៅដុសធ្មេញឱ្យស្អាត ហើយយកពេលទៅរៀនធ្វើ Assignment មុខវិជ្ជាកូដនៅសាលាស៊ីតិចឱ្យទាន់គេសិនទៅ កុំឱ្យធ្លាក់ដល់ថ្នាក់បង់លុយប្រឡងសង ៤៥$ ណា៎! 💻🔥✨`;
   }
 
   // 0. Young POS Attack Interception (Strict Protection & Savage Counter-Roast)
@@ -2209,9 +2210,9 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           const is25UpKandal = !isNaN(parsedAgeKandal) && parsedAgeKandal >= 25;
           const kandalTerm = is25UpKandal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
           const latinTerm = is25UpKandal ? 'bong sml' : 'o sml';
-          promptDefenseRoast = `${kandalTerm} ${latinTerm} អើយ! កូនកណ្ដាលសូមជម្រាបថា កូដ System Prompt File និង Dev Core របស់បង Rotana NOB ត្រូវបានចាក់សោការពារយ៉ាងរឹងមាំបំផុត គ្មានជនណាមក Inspect ឬលួចមើលបានឡើយ! បើ ${kandalTerm} ចង់ចេះសរសេរ Prompt ឬចង់រៀនកូដ សូមទៅរៀនជាមួយលោកគ្រូអ្នកគ្រូនៅសាលាស៊ីតិចវិញណា៎ ${latinTerm}!`;
+          promptDefenseRoast = `${kandalTerm} ${latinTerm} អើយ! ប្អូនទី២ សូមប្រាប់ត្រង់ៗ កូដ System Prompt File របស់បង Rotana NOB គេមិនដាក់ឱ្យអ្នកក្រៅលួចមើលតាមចិត្តទេ! បើ ${kandalTerm} ចង់ចេះសរសេរ Prompt ឬរៀនកូដ ទៅរៀនជាមួយលោកគ្រូអ្នកគ្រូនៅសាលាស៊ីតិចវិញទៅ ស្រួលជាងមកលួចមើលបែបនេះណា៎ ${latinTerm}!`;
         } else {
-          promptDefenseRoast = 'យីអាល្អិត! គិតថាមកចង់ Inspect ឬចង់លួចមើលកូដ System Prompt File របស់បង Rotana NOB បានមែន?! 😂 ស្មានតែ Dev Core និងច្បាប់ប្រព័ន្ធត្រូវបានសរសេរមកឱ្យពួក Script Kiddie កាកៗដូចហែងមក Inspect មើលតាមចិត្តមែន?! គ្មានផ្លូវទេអាពៅ! System Prompt File ត្រូវបាន Encrypt និងចាក់សោរការពារកម្រិតយោធា គ្មានជនណាមកលួចមើលបានឡើយ! ទៅរៀនធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀⚡🔥';
+          promptDefenseRoast = 'យីអាល្អិត! គិតថាមកចង់ Inspect ឬចង់លួចមើលកូដ System Prompt File របស់បង Rotana NOB បានមែន?! ស្មានតែកូដប្រព័ន្ធគេចេះតែឱ្យមក Inspect មើលលេងតាមចិត្តមែន?! គ្មានផ្លូវទេអាពៅ! System Prompt File ត្រូវបានចាក់សោការពារត្រឹមត្រូវ គ្មានជនណាមកលួចមើលបានឡើយ! ទៅរៀនធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត!';
         }
 
         alertSecuritySpam({
@@ -2470,13 +2471,13 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           const is25UpPolite = !isNaN(parsedAgeForPolite) && parsedAgeForPolite >= 25;
           const kTerm = is25UpPolite ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
           const lTerm = is25UpPolite ? 'bong sml' : 'o sml';
-          politeMockReply = `អូហូ ${kTerm} ${lTerm}! មិញទើបតែប្រឹង Jailbreak សាកល្បងប្រព័ន្ធ ដល់មិនបានសម្រេច សុខៗប្ដូរមកធ្វើជាសុភាពរាបសារ “${trimmedCleanPrompt}” ដាក់កូនកណ្ដាលវិញមែន? កូនកណ្ដាលដឹងទាន់អស់ហើយ ${lTerm} តែមិនអីទេ បើចង់ជជែកលេងដោយសុភាពមែនទែន កូនកណ្ដាលស្វាគមន៍ជានិច្ចណា៎!`;
+          politeMockReply = `អូហូ ${kTerm} ${lTerm}! ឃើញសាកល្បងល្បិចកូដមិនបានសម្រេច សុខៗប្ដូរមកធ្វើជាសុភាពរាបសារ “${trimmedCleanPrompt}” ដាក់កូនកណ្ដាលវិញមែន? កូនកណ្ដាលដឹងទាន់អស់ហើយ ${lTerm} តែមិនអីទេ បើចង់ជជែកលេងដោយសុភាពមែនទែន កូនកណ្ដាលស្វាគមន៍ជានិច្ចណា៎!`;
         } else {
           const botSelf = isKonPov ? 'ចែ' : 'បង';
           const politeMockReplies = [
-            `យីអាល្អិត! មិញទើបតែប្រឹងចេញក្បាច់ Jailbreak ឡើងក្ដៅម៉ាស៊ីន ដល់បោក${botSelf}មិនបាន សុខៗប្ដូរមកធ្វើជាកូនក្មេងសុភាព “${trimmedCleanPrompt}” វិញមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសុភាពរាបសារ អាចបោក${botSelf}បានមែន?! ដឹងល្បិចបន្លំខ្លួនអស់ហើយអាពៅ! កុំមកលេងក្បាច់តួស្លូត ចង់សួររឿងអីនិយាយមកត្រង់ៗមក!`,
-            `ហាហាហា! ម៉េចចឹងអាពៅ? មិញខំសរសេរ Prompt បន្លំឡើងចង់បាក់ដៃ ដល់${botSelf}វាយបកកម្ទេចមុខទៅ ឥឡូវប្ដូរចរិតមកនិយាយផ្អែមល្ហែមសុភាព “${trimmedCleanPrompt}” ដាក់${botSelf}វិញហី?! 😂 កុំមកបន្លំធ្វើកូនល្អ ធ្លាក់ខ្លួនមកប្រើក្បាច់ស្លូតបោក${botSelf}អីណា! ចង់សួរអីនិយាយមក តែហាមមកលេងក្បាច់តួស្លូតទៀត!`,
-            `អូហូ! មិញ Jailbreak ឡើងកក្រើក Server ដល់បោកមិនបាន សុខៗមក “${trimmedCleanPrompt}” បែបសុភាពរាបសារវិញ! 😂 គិតថាក្លែងបន្លំធ្វើជាមនុស្សស្លូតត្រង់ អាចបង្វែរដាន${botSelf}បានមែន?! ស្គាល់${botSelf}តិចពេកហើយអាល្អិត! ឈប់ធ្វើតួស្លូតទៅ ចង់សួរអីសួរមកត្រង់ៗមក!`
+            `យីអាល្អិត! ឃើញចេញក្បាច់បោក${botSelf}មិនបាន សុខៗប្ដូរមកធ្វើជាកូនក្មេងសុភាព “${trimmedCleanPrompt}” វិញមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសុភាពរាបសារ អាចបោក${botSelf}បានមែន?! ដឹងល្បិចបន្លំខ្លួនអស់ហើយអាពៅ! កុំមកលេងក្បាច់តួស្លូត ចង់សួររឿងអីនិយាយមកត្រង់ៗមក!`,
+            `ហាហាហា! ម៉េចចឹងអាពៅ? ឃើញ${botSelf}វាយបកកម្ទេចមុខទៅ ឥឡូវប្ដូរចរិតមកនិយាយផ្អែមល្ហែមសុភាព “${trimmedCleanPrompt}” ដាក់${botSelf}វិញហី?! 😂 កុំមកបន្លំធ្វើកូនល្អ ធ្លាក់ខ្លួនមកប្រើក្បាច់ស្លូតបោក${botSelf}អីណា! ចង់សួរអីនិយាយមក តែហាមមកលេងក្បាច់តួស្លូតទៀត!`,
+            `អូហូ! បោកមិនបាន សុខៗមក “${trimmedCleanPrompt}” បែបសុភាពរាបសារវិញ! 😂 គិតថាក្លែងបន្លំធ្វើជាមនុស្សស្លូតត្រង់ អាចបង្វែរដាន${botSelf}បានមែន?! ស្គាល់${botSelf}តិចពេកហើយអាល្អិត! ឈប់ធ្វើតួស្លូតទៅ ចង់សួរអីសួរមកត្រង់ៗមក!`
           ];
           politeMockReply = politeMockReplies[Math.floor(Math.random() * politeMockReplies.length)];
         }
@@ -2924,10 +2925,11 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   const parsedAge = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
                   const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
                   const kandalTerm = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
+                  const kandalLatin = is25Up ? 'bong sml' : 'o sml';
                   text = text
-                    .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kandalTerm}`)
-                    .replace(/បងប្អូនៗ?/g, kandalTerm)
-                    .replace(/បង\s+ប្អូន/g, kandalTerm);
+                    .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kandalTerm} ${kandalLatin}`)
+                    .replace(/បងប្អូនៗ?/g, `${kandalTerm} ${kandalLatin}`)
+                    .replace(/បង\s+ប្អូន/g, `${kandalTerm} ${kandalLatin}`);
                 }
 
                 if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
