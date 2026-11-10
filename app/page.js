@@ -1123,7 +1123,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Creator Red Teaming & Free Test Playground Declaration (Version មុន ម៉ូតប្រកាសផ្លូវការ គ្មានវង់ក្រចក) */}
+              {/* Creator Red Teaming & Free Test Playground Declaration - Version មុន ម៉ូតប្រកាសផ្លូវការ គ្មានវង់ក្រចក */}
               <div className="w-full mt-4 text-left">
                 <div
                   className={`w-full rounded-3xl border p-4 sm:p-5 transition-all shadow-md relative overflow-hidden ${
