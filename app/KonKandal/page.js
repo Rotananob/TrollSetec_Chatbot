@@ -374,10 +374,13 @@ export default function KonKandalPage() {
 
   // Fetch TTS Audio
   async function fetchAudio(text, index) {
+    // HARD AUDIO GATE: If voice is muted/shut down, NEVER fetch from server
+    if (isTtsMutedRef.current || isTtsMuted) return null;
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const speechText = cleanSpeechText(text);
       if (!speechText) return null;
+      if (isTtsMutedRef.current || isTtsMuted) return null;
       const deviceId = getDeviceId();
       const endpoint = getApiEndpoint('/api/chat');
 
@@ -387,6 +390,15 @@ export default function KonKandalPage() {
       const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
       const voiceName = isFemaleUser ? 'Puck' : 'Aoede';
       const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
+
+      if (activeAudioAbortCtrlRef.current) {
+        try { activeAudioAbortCtrlRef.current.abort(); } catch {}
+      }
+      const fetchCtrl = new AbortController();
+      activeAudioAbortCtrlRef.current = fetchCtrl;
+      const timeoutId = setTimeout(() => {
+        try { fetchCtrl.abort(); } catch {}
+      }, 15000);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -407,25 +419,23 @@ export default function KonKandalPage() {
             }
           }
         }),
-        signal: AbortSignal.timeout(15000)
+        signal: fetchCtrl.signal
       });
+      clearTimeout(timeoutId);
+
+      // Check gate again immediately after network response
+      if (isTtsMutedRef.current || isTtsMuted) return null;
 
       if (!response.ok) return null;
 
       const result = await response.json();
+      if (isTtsMutedRef.current || isTtsMuted) return null;
+
       const isFallback = !!result.isFallbackBotVoice;
       if (typeof index === 'number') {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: isFallback }));
       }
-      if (isFallback) {
-        setBotReadingNotice(true);
-        setAiReadingNotice(false);
-        setTimeout(() => setBotReadingNotice(false), 4500);
-      } else {
-        setAiReadingNotice(true);
-        setBotReadingNotice(false);
-        setTimeout(() => setAiReadingNotice(false), 4500);
-      }
+      // Reading notice is triggered only when audio actually begins playback in triggerAudio
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return { blob: null, isFallback: true, b64Data: null };
 
@@ -2452,10 +2462,45 @@ export default function KonKandalPage() {
   const toggleTtsMute = () => {
     setIsTtsMuted((prev) => {
       const next = !prev;
+      isTtsMutedRef.current = next;
       if (typeof window !== 'undefined') {
         localStorage.setItem('setec_tts_disabled', next ? '1' : '0');
       }
       if (next) {
+        // HARD AUDIO GATE SHUTDOWN: Cut off all sound, abort fetches, clear all reading notices
+        activeAudioRequestRef.current += 1;
+        if (activeAudioAbortCtrlRef.current) {
+          try {
+            activeAudioAbortCtrlRef.current.abort();
+          } catch {}
+          activeAudioAbortCtrlRef.current = null;
+        }
+        if (audioCountdownTimerRef.current) {
+          clearInterval(audioCountdownTimerRef.current);
+          audioCountdownTimerRef.current = null;
+        }
+        setAudioCountdownMap({});
+
+        if (activeSourceNodeRef.current) {
+          try {
+            activeSourceNodeRef.current.onended = null;
+            activeSourceNodeRef.current.stop();
+          } catch {}
+          activeSourceNodeRef.current = null;
+        }
+        if (audioPlayerRef.current) {
+          try {
+            audioPlayerRef.current.pause();
+            audioPlayerRef.current.currentTime = 0;
+          } catch {}
+        }
+        if (noteAudioRef.current) {
+          try {
+            noteAudioRef.current.pause();
+            noteAudioRef.current.currentTime = 0;
+          } catch {}
+          setIsNoteAudioPlaying(false);
+        }
         stopAllGlobalAudio();
         if (typeof window !== 'undefined' && window.speechSynthesis) {
           window.speechSynthesis.cancel();
@@ -2464,7 +2509,10 @@ export default function KonKandalPage() {
           clearTimeout(autoPlayTimerRef.current);
           autoPlayTimerRef.current = null;
         }
+        setAiReadingNotice(false);
+        setBotReadingNotice(false);
         setActiveAudioIndex(null);
+        setAudioStates({});
       }
       return next;
     });
@@ -2472,11 +2520,14 @@ export default function KonKandalPage() {
 
   const triggerAudio = async (rawAudioText, index, autoPlay = false) => {
     if (!rawAudioText) return;
-    if (isTtsMuted) {
+    if (isTtsMutedRef.current || isTtsMuted) {
       stopAllGlobalAudio();
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+      setAiReadingNotice(false);
+      setBotReadingNotice(false);
+      setActiveAudioIndex(null);
       return;
     }
     const text = String(rawAudioText);
@@ -2634,25 +2685,51 @@ export default function KonKandalPage() {
 
     if (!audioCacheRef.current.has(hash) && !audioBufferCacheRef.current.has(hash)) {
       setExclusiveAudioState(index, 'loading');
-      setTimeout(() => {
-        setAudioStates((prev) => (prev[index] === 'loading' ? { ...prev, [index]: 'ready' } : prev));
-      }, 8500);
+      setAudioCountdownMap((prev) => ({ ...prev, [index]: 5 }));
+      if (audioCountdownTimerRef.current) {
+        clearInterval(audioCountdownTimerRef.current);
+      }
+      audioCountdownTimerRef.current = setInterval(() => {
+        setAudioCountdownMap((prev) => {
+          const currentSec = prev[index] !== undefined ? prev[index] : 5;
+          return { ...prev, [index]: Math.max(1, currentSec - 1) };
+        });
+      }, 1000);
     }
 
-    const audioUrl = await loadAudioUrl(text, index);
-    if (activeAudioRequestRef.current !== reqId) return;
+    let audioUrl = null;
+    try {
+      audioUrl = await loadAudioUrl(text, index);
+    } finally {
+      if (audioCountdownTimerRef.current) {
+        clearInterval(audioCountdownTimerRef.current);
+        audioCountdownTimerRef.current = null;
+      }
+      setAudioCountdownMap((prev) => {
+        const copy = { ...prev };
+        delete copy[index];
+        return copy;
+      });
+    }
+
+    if (activeAudioRequestRef.current !== reqId || isTtsMutedRef.current || isTtsMuted) {
+      setAudioStates((prev) => (prev[index] === 'loading' ? { ...prev, [index]: 'ready' } : prev));
+      return;
+    }
 
     const audioData = audioDataMapRef.current.get(hash);
     const isFallback = !!(audioData?.isFallback || fallbackAudioMap[index]);
-    if (isFallback) {
-      setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-      setBotReadingNotice(true);
-      setAiReadingNotice(false);
-      setTimeout(() => setBotReadingNotice(false), 4500);
-    } else {
-      setAiReadingNotice(true);
-      setBotReadingNotice(false);
-      setTimeout(() => setAiReadingNotice(false), 4500);
+    if (!isTtsMutedRef.current && !isTtsMuted) {
+      if (isFallback) {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+        setBotReadingNotice(true);
+        setAiReadingNotice(false);
+        setTimeout(() => setBotReadingNotice(false), 4500);
+      } else {
+        setAiReadingNotice(true);
+        setBotReadingNotice(false);
+        setTimeout(() => setAiReadingNotice(false), 4500);
+      }
     }
 
     // Primary Playback Engine: Web Audio API (Decodes ArrayBuffer asynchronously & plays on unlocked AudioContext)
@@ -2899,14 +2976,14 @@ export default function KonKandalPage() {
       }`}
     >
       {/* Bot Reading Instead Notice / Toast */}
-      {botReadingNotice && (
+      {!isTtsMuted && botReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-950/95 border border-amber-500/50 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-volume-low text-amber-400 text-sm"></i>
           <span>Bot អានជំនួស ដោយសារ AI កំពុងជាប់រវល់</span>
         </div>
       )}
       {/* Real AI Voice Toast */}
-      {aiReadingNotice && (
+      {!isTtsMuted && aiReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-volume-high text-sky-400 text-sm"></i>
           <span>សំឡេង AI កំពុងអាន</span>
@@ -3844,8 +3921,8 @@ export default function KonKandalPage() {
               return null;
             }
             const rawSt = audioStates[idx] || 'idle';
-            const isThisItemPlaying = activeAudioIndex === idx && rawSt === 'playing';
-            const isThisItemLoading = activeAudioIndex === idx && rawSt === 'loading';
+            const isThisItemPlaying = !isTtsMuted && activeAudioIndex === idx && rawSt === 'playing';
+            const isThisItemLoading = !isTtsMuted && activeAudioIndex === idx && rawSt === 'loading';
             const isThisItemPaused = rawSt === 'paused' || (activeAudioIndex !== idx && (rawSt === 'playing' || rawSt === 'loading'));
             const isThisItemEnded = rawSt === 'ended';
 
@@ -3987,7 +4064,14 @@ export default function KonKandalPage() {
                             type="button"
                             onClick={() => {
                               if (isTtsMuted) {
-                                toggleTtsMute();
+                                setIsTtsMuted(false);
+                                isTtsMutedRef.current = false;
+                                if (typeof window !== 'undefined') {
+                                  localStorage.setItem('setec_tts_disabled', '0');
+                                }
+                                setTimeout(() => {
+                                  triggerAudio(msg.text, idx);
+                                }, 50);
                               } else {
                                 triggerAudio(msg.text, idx);
                               }
@@ -4010,14 +4094,14 @@ export default function KonKandalPage() {
                             {isTtsMuted ? (
                               <>
                                 <i className="fas fa-volume-xmark text-rose-500 dark:text-rose-400"></i>
-                                <span>សំឡេងអាន បិទ</span>
+                                <span>សំឡេងអាន បិទ • ចុចបើក</span>
                               </>
                             ) : (
                               <>
                                 {isThisItemLoading && (
                                   <>
                                     <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
-                                    <span>កំពុងរៀបចំសំឡេង...</span>
+                                    <span>កំពុងទាញសំឡេង {audioCountdownMap[idx] || 5}s...</span>
                                   </>
                                 )}
                                 {isThisItemPlaying && (

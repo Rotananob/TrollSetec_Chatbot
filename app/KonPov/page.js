@@ -399,17 +399,7 @@ export default function KonPovPage() {
       if (typeof index === 'number') {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: isFallback }));
       }
-      if (!isTtsMutedRef.current && !isTtsMuted) {
-        if (isFallback) {
-          setBotReadingNotice(true);
-          setAiReadingNotice(false);
-          setTimeout(() => setBotReadingNotice(false), 4500);
-        } else {
-          setAiReadingNotice(true);
-          setBotReadingNotice(false);
-          setTimeout(() => setAiReadingNotice(false), 4500);
-        }
-      }
+      // Reading notice is triggered only when audio actually begins playback in triggerAudio
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return { blob: null, isFallback: true, b64Data: null };
 
@@ -3097,14 +3087,14 @@ export default function KonPovPage() {
       }`}
     >
       {/* Bot Reading Instead Notice / Toast */}
-      {botReadingNotice && (
+      {!isTtsMuted && botReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-950/95 border border-amber-500/50 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-volume-low text-amber-400 text-sm"></i>
           <span>Bot អានជំនួស ដោយសារ AI កំពុងជាប់រវល់</span>
         </div>
       )}
       {/* Real AI Voice Toast */}
-      {aiReadingNotice && (
+      {!isTtsMuted && aiReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-volume-high text-sky-400 text-sm"></i>
           <span>សំឡេង AI កំពុងអាន</span>
@@ -4241,8 +4231,8 @@ export default function KonPovPage() {
               return null;
             }
             const rawSt = audioStatuses[idx] || 'ready';
-            const isThisItemPlaying = activeVoiceIndex === idx && rawSt === 'playing';
-            const isThisItemLoading = activeVoiceIndex === idx && rawSt === 'loading';
+            const isThisItemPlaying = !isTtsMuted && activeVoiceIndex === idx && rawSt === 'playing';
+            const isThisItemLoading = !isTtsMuted && activeVoiceIndex === idx && rawSt === 'loading';
             const isThisItemPaused = rawSt === 'paused' || (activeVoiceIndex !== idx && (rawSt === 'playing' || rawSt === 'loading'));
             const isThisItemEnded = rawSt === 'ended';
 
