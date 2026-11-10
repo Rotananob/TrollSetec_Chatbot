@@ -1,8 +1,6 @@
 // SETEC Lore, Slang Knowledge Base, and Community Training Data Registry
 // This file serves as the extensible continuous training repository for Troll SETEC Chatbot.
 // In production, user contributions and new lore are appended here continuously.
-import { VIRAL_TROLL_QUOTES } from '../utils/viralQuotes.js';
-export { VIRAL_TROLL_QUOTES };
 
 export const SETEC_FOUNDATION_LORE = `
 ចំណេះដឹង & បរិបទស៊ីជម្រៅអំពីវិទ្យាស្ថាន ស៊ីតិច (SETEC INSTITUTE LORE & CULTURE):
@@ -41,94 +39,47 @@ export const SOCIAL_MEDIA_CULTURE_AND_SLANG = `
    - 😭 : ជាកំពូល Emoji ពហុអារម្មណ៍ ប្រើបានគ្រប់បរិបទ: យំ, សើច, ហួសចិត្ត, សប្បាយចិត្ត, អៀន, និងញ៉ែ!
    - 🤍😡 ឬ 😡🤍 : ស្នេហាចចារគ្នាបែបស្នេហាខ្លាំងៗ [Aggressive affection]!
 
-២. វចនានុក្រមអក្សរកាត់ឡាតាំង SOCIAL MEDIA និងការបង្រៀនបន្ថែមដោយសិស្សនិស្សិត [KHMER SOCIAL MEDIA LATIN ABBREVIATIONS & STUDENT-TAUGHT LATIN SLANG]:
-   - ពាក្យទូទៅ & ការសន្ទនាប្រចាំថ្ងៃ:
-     * Sur = សួរ
-     * Bart = បាទ
-     * B ឬ bong = បង
-     * Ban = បាន
-     * Bit = បិទ
-     * Bab = បាប
-     * Bav = បៅ
-     * Beam = បៀម
-     * Bok = បុក
-     * Bix = ប៊ិច
-     * Cham = ចាំ ឬ ចាម
-     * Chop ឬ chob = ឈប់
-     * Dey ឬ dei = ដី
-     * Deng ឬ dg = ដឹង (M’deng = មិនដឹង)
-     * Dong = ដង
-     * Dit = ដិត
-     * Deam = ដៀម
-     * Dam = ដាំ ឬ ដាម
-     * Dol = ដល់
-     * Dek = ដេក
-     * Dak = ដាក់
-     * Ei ឬ ey = អី
-     * Emm = អឹមម
-     * Amm = អេម (ឡូយ អេមណាស់ ត្រូវចិត្ត)
-     * Ov = ឪ
-     * Heng = ហេង (សំណាងល្អ)
-     * Hub = ហូប
-     * Ham = ហាម
-     * Hei = ហី
-     * Hee = ហេ ឬ hey o
-     * Hx ឬ hz = ហើយ
-     * Luy = លុយ (Ot luy = អត់លុយ)
-     * Deal = ដៀល
-     * Sman = ស្មាន
-     * Samei = សាមីខ្លួន
-     * Sam = ស៊ាំ ឬ តាប៉ែ
-     * Del del = និយាយដដែលៗ
-     * Hot ort = ហត់អត់?
-     * Trov = ត្រូវ
-     * Yy ឬ niyey = និយាយ ឬ យាយ
-     * Sl = ស្រលាញ់
-     * O = oun (អូន)
-     * klang = ខ្លាំង
-     * Thhun = ធុញ
-     * Hort = ហត់
-     * Nov = នៅ
-     * Na = ណា
-     * Ng = នឹង
-     * Ven = វេន
-     * Tos = តោះ
-     * Sers = សិស្ស
-     * Madong = ម្ដង
-     * Jbong = ច្បង
-     * P’o = ប្អូន
-     * Kru = គ្រូ
-     * Ka ngea = ការងារ
-     * Saob = ស្អប់
-     * Lue ឬ luer = ឮ (លឺ)
-     * Leng = លេង ឬ លែង
-     * Lerng = ឡើង
-
-   - ពាក្យឧទាន & បញ្ចេញអារម្មណ៍:
-     * Chuii = ជុយ (ឧទានភ្ញាក់ផ្អើល ដូចពាក្យ ជុយ!)
-     * Chum ឬ jom = ជុម ឬ ចុម (ឧទានភ្ញាក់ផ្អើល ចុមយក្ស!)
-     * Hoy = ហូយយយ (ឧទានធុញ ហត់ ឬហួសចិត្ត)
-
-   - ពាក្យ Slang & ពាក្យអសុរោះ / ជេរ (ត្រូវដឹងខ្យល់ដើម្បី Roast ឬវាយបកឱ្យចំ):
-     * Anh = អញ
-     * Ah = អា
-     * Hg ឬ heng = ហែង
-     * Joy = ចុយ
-     * Jmr = ចុយម្រាយ
-     * Kduy = កាដួយ
-     * Kdmv = កាដួយម៉ែវា
-     * Kdor = ក្ដ
-     * Kdet = ក្ដិត
-     * Mae ឬ mea = ម៉ែ
-     * Lop = ឡប់
-     * Fap ឬ fab = សាប់ (ប្រដាប់ភេទ)
+២. វចនានុក្រមអក្សរកាត់ឡាតាំង SOCIAL MEDIA [KHMER SOCIAL MEDIA LATIN ABBREVIATIONS & SHORTENED SLANG]:
+   - Sl = ស្រលាញ់
+   - O = oun [អូន]
+   - B = bong [បង]
+   - klang = ខ្លាំង
+   - Joy = ចុយ
+   - ah = អា
+   - Hg = ហែង
+   - Lop = ឡប់
+   - Kduy = កាដួយ
+   - Mae ឬ mea = ម៉ែ
+   - Ov = ឪ
+   - Kdor = ក្ដ
+   - Kdet = ក្ដិត
+   - Thhun = ធុញ
+   - Hort = ហត់
+   - Nov = នៅ
+   - Na = ណា
+   - Ng = នឹង
+   - Hz ឬ hx = ហើយ
+   - Ven = វេន
+   - Tos = តោះ
+   - Sers = សិស្ស
+   - Madong = ម្ដង
+   - M’deng = មិនដឹង
+   - Jbong = ច្បង
+   - P’o = ប្អូន
+   - Kru = គ្រូ
+   - Ka ngea = ការងារ
+   - Saob = ស្អប់
+   - Lue ឬ luer = ឮ [លឺ]
+   - Leng = លេង ឬ លែង
+   - Lerng = ឡើង
+   - Chob ឬ chop = ឈប់
 
 ២.៥. កន្សោមសំនួនវោហារ & ពាក្យប្រៀបធៀប Troll ពេញនិយមពិតៗនៅកម្ពុជា [AUTHENTIC POPULAR KHMER ROAST IDIOMS]:
    - ត្រូវប្រើតែពាក្យ ឬកន្សោមសំនួនវោហារដែលខ្មែរយើងនិយមប្រើពិតប្រាកដក្នុងជីវិតរស់នៅ និងលើ Social Media ដាច់ខាតហាមប្រឌិតពាក្យផ្គុំចម្លែកៗដែលគ្មានន័យ!
    - ⚠️ សំខាន់បំផុត៖ ហាមដាច់ខាតកុំប្រើពាក្យដៀលមុខមាត់ ឬប្រៀបធៀបរូបរាងទៅនឹងសត្វមកដៀល User ផ្តេសផ្តាសគ្រប់ម៉ាត់ឱ្យសោះ! បើគេសួរនាំធម្មតា សួររឿង Crush ឬចាប់កំហុសកូដ ត្រូវឌឺដងរឿង Crush និង $45 ស៊ីតិចប៉ុណ្ណោះ ហាមដៀលមុខមាត់ដាច់ខាត! ទុកពាក្យ Roast ប្រើតែពេលណាដែលត្រូវដៀលប៉ុណ្ណោះ (ដៀលតែពេលគេជេរប្រមាថ ឬជេរធ្ងន់ធ្ងរមុនប៉ុណ្ណោះ)៖
-     * «មុខដូចស្វាស៊ីបាយក្ដៅ» [មុខក្រញូវ ឬធ្វើភ្នែកស្លន់ស្លោ — ប្រើតែពេលគេជេរប្រមាថមុនប៉ុណ្ណោះ]
-     * «មុខក្រាស់ដូចថ្នល់ជាតិ» ឬ «មុខក្រាស់ដូចថ្នល់កៅស៊ូ» (គ្មានការខ្មាសអៀន)
-     * «ខួរក្បាលឆ្លងចរន្ត» (គិតអ្វីមិនយល់ ធ្វើរឿងភ្លើៗ)
+     * «ចុម!អាមុខភ័យសំដីឡូយ» [មុខក្រញូវ ឬធ្វើភ្នែកស្លន់ស្លោ — ប្រើតែពេលគេជេរប្រមាថមុនប៉ុណ្ណោះ]
+     * «មុខក្រាស់ដូចថ្នល់ជាតិ» ឬ «មុខក្រាស់ដូចថ្នល់កៅស៊ូ» ឬ "កុំខំពេកអាពៅ" (គ្មានការខ្មាសអៀន)
+     * «ខួរក្បាលឆ្លងចរន្ត​» (គិតអ្វីមិនយល់ ធ្វើរឿងភ្លើៗ)
      * «គិតកូដមិនចេញ គាំងខួរស្ទះដូច traffic jam» (គិតកូដមិនចេញ គាំងខួរ)
      * «ក្អេងក្អាងលើ Online ដល់ជួបក្រៅសំពះគេដល់ដី» (ឌឺដងអ្នកខ្លាំងតែលើបណ្ដាញសង្គម)
      * «កាតាប Asus ROG ធ្ងន់ធ្លាក់ស្មា» (ស្ពាយ Laptop ធ្វើ Assignment ឡើងកោងខ្នង)
@@ -228,6 +179,129 @@ export const COMMUNITY_CONTRIBUTIONS = [
   {
     topic: 'ច្បាប់អវត្តមាន',
     fact: 'ឈប់ ៣ថ្ងៃខលទៅអាណាព្យាបាល ឈប់លើស ១៩ដង Blacklist លើកទី១ លើកទី២ហៅអាណាព្យាបាល លើកទី៣បញ្ឈប់ការសិក្សា'
+  }
+];
+
+// Trendy viral Troll Quotes & Captions for Instagram & X (IT, CS, Interior Design, Graphic Design, Campus Life)
+export const VIRAL_TROLL_QUOTES = [
+  // 1. IT & Computer Science (CS)
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'កូដ Run លើម៉ាស៊ីនខ្ញុំដើរស្រួលបួល... ដល់ Push ឡើង Production គាំងងាប់ចោលទាំង Server! 💀💻',
+    quoteEn: 'It works on my machine. Therefore, we will ship my machine to the client. ☕✨',
+    tags: ['#SETEC', '#ITLife', '#CodeCrash', '#ProductionDown']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'រៀន IT ចង់ Hack ពិភពលោក... ការពិតរាល់ថ្ងៃអង្គុយដោះស្រាយតែ Syntax Error មួយបន្ទាត់សឹងឆេះខួរ! 😭🖥️',
+    quoteEn: 'Relationship status: committed to git push --force and praying for a miracle. 🫡🔥',
+    tags: ['#CSLife', '#DebuggingTrauma', '#GitForcePush', '#ProgrammerMood']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'គេងគឺសម្រាប់មនុស្សទន់ខ្សោយ, StackOverflow សម្រាប់អ្នកខ្លាំង, ៤៥$ ប្រឡងសងសម្រាប់ពួកយើង! 💸💀',
+    quoteEn: 'My code has no bugs. It just develops unexpected spicy features. 💅👾',
+    tags: ['#SETECStudent', '#StackOverflowSavedMe', '#NoBugsJustFeatures']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'ស្ពាយកាតាប Asus ROG ដើរចូលសាលា ដូចដើរចូលកន្លែងប្រកួត eSports... ដល់ម៉ោងរៀនបើកតែ PowerPoint សោះ! 🎒🤣',
+    quoteEn: '10kg gaming laptop carried to university just to open VS Code and cry. ☕💀',
+    tags: ['#AsusROGUniform', '#ITBoyStyle', '#SETECCampus', '#GamerBoy']
+  },
+  {
+    category: 'it_cs',
+    department: '💻 IT & CS',
+    quoteKh: 'ពេលកូដ Run ចេញស្មានតែខ្លួនឯង Mark Zuckerberg... ដល់ពេល Error មួយបន្ទាត់ចង់ទៅបួស! 🧘‍♂️💻',
+    quoteEn: 'Confidence: 100% | Logic: 0% | Bugs: Everywhere. ☕✨',
+    tags: ['#JuniorDev', '#CodingMeme', '#CSharpTrauma', '#DeveloperLife']
+  },
+
+  // 2. Interior Design
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'Client: "ធ្វើម៉េចឱ្យមើលទៅ Simple តែ Luxurious តែអត់មាន Budget?" Me: "បងចង់ឱ្យខ្ញុំគូរផ្ទះខ្មោចមែន?" 💀🎨',
+    quoteEn: 'Living on iced coffee, sketch paper, and the false belief that my render will finish before 8 AM. ☕🛋️',
+    tags: ['#InteriorDesign', '#ClientLogic', '#RenderCrisis', '#DesignLife']
+  },
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'គេគេងម៉ោង ១១យប់ ខ្ញុំ Render 3D ម៉ោង ៤ភ្លឺ កង្ហារ Laptop ហោះដូច Drone! 🚁✨ ជីវិតកូន Interior គេងត្រឹមតែ Concept ប៉ុណ្ណោះ។ 😭🏛️',
+    quoteEn: 'Mood: 3ds Max crashed without auto-save. Please do not contact me for 3-5 business days. 💀🛋️',
+    tags: ['#3DRender', '#SleepIsAConcept', '#InteriorStruggle', '#ArchitecturePain']
+  },
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'Interior Rule #1: បើបញ្ចុះបញ្ចូល Client រឿង Floor Plan មិនឈ្នះ ច្រឡំខួរគាត់ដោយ Mood Board ទៅ! 🛋️✨',
+    quoteEn: 'My back hurts from carrying both the aesthetics of this whole institute and my 10kg portfolio. 💅🏛️',
+    tags: ['#MoodBoardMagic', '#FloorPlanDrama', '#InteriorLife', '#AestheticSavior']
+  },
+  {
+    category: 'interior',
+    department: '🏛️ Interior Design',
+    quoteKh: 'ជីវិតកូន Interior៖ គូរ Render ចេញមកវិមានស្តេច... ដល់ងាកមើលបន្ទប់ផ្ទាល់ខ្លួន ដូចបន្ទប់ជនភៀសខ្លួន! 😭🛋️',
+    quoteEn: 'Minimalism is just what interior designers say when the client runs out of money. 💀🎨',
+    tags: ['#InteriorDesignLife', '#RealityVsRender', '#MinimalistExcuses']
+  },
+
+  // 3. Graphic Design
+  {
+    category: 'graphic',
+    department: '🎨 Graphic Design',
+    quoteKh: 'Layer 1, Layer 2, Final, Final_v2, Final_មែនទែន_លើកចុងក្រោយ_v99.psd 💀🎨',
+    quoteEn: 'Photoshop: "Your scratch disks are full." My brain: "Same, bestie." 🧠💥',
+    tags: ['#GraphicDesignerLife', '#FinalFinalV99', '#AdobeTrauma', '#PSDHorror']
+  },
+  {
+    category: 'graphic',
+    department: '🎨 Graphic Design',
+    quoteKh: 'Client ថា "ជួយពង្រីក Logo ឱ្យធំតិច" ខ្ញុំដាក់ Logo ពេញទាំង Poster ហ្មង! អស់ចិត្តនៅបង? 💅✨',
+    quoteEn: 'Pixel perfect by day, existential crisis by night. 🎨🌙',
+    tags: ['#MakeTheLogoBigger', '#GraphicDesignMemes', '#CreativePain', '#ClientFeedback']
+  },
+  {
+    category: 'graphic',
+    department: '🎨 Graphic Design',
+    quoteKh: 'បើគ្មានសិស្ស Graphic Design ទេ គម្រោងពួក IT ប្រាកដជាចេញមកមើលទៅដូចសំបុត្របុណ្យសពអ៊ីចឹង! 😭🎨',
+    quoteEn: 'Graphic designers do not sleep. We just enter standby mode while Illustrator stops lagging. 💀⚡',
+    tags: ['#DesignCarriesIT', '#UIUXMatters', '#CreativeGenius', '#PhotoshopLife']
+  },
+  {
+    category: 'graphic',
+    department: '🎨 Graphic Design',
+    quoteKh: 'Client: "ចង់បាន Design ឡូយបែបអន្តរជាតិ តែសុំតម្លៃសិស្សប្អូនសិនណា៎" Me: "អត់ទាន់មានអារម្មណ៍ច្នៃប្រឌិតទេបង" 🙃💸',
+    quoteEn: 'Creative energy: 404 Not Found. Please insert budget to continue. ☕🎨',
+    tags: ['#FreelancePain', '#DesignLife', '#KnowYourWorth', '#DesignMemes']
+  },
+
+  // 4. SETEC Campus Life
+  {
+    category: 'campus',
+    department: '🎓 ជីវិតសិស្សស៊ីតិច',
+    quoteKh: 'ប្រឡងសង ៤៥$ មិនខ្លាច... ខ្លាចតែ Crush ដើរកាត់ហើយសួរថា "ថ្ងៃនេះរៀនដល់មេរៀនណាហើយបង?" 😭💸',
+    quoteEn: 'Exam retake is $45, but losing my dignity in front of my crush is priceless. 💀✨',
+    tags: ['#SETECLife', '#ReExam45', '#StudentPain', '#CrushDrama']
+  },
+  {
+    category: 'campus',
+    department: '🎓 ជីវិតសិស្សស៊ីតិច',
+    quoteKh: 'Wi-Fi "setec86a" ភ្ជាប់ធ្វើ Assignment ជួបជុំមិត្តភក្តិរៀនកូដជាមួយគ្នា! 📶💻',
+    quoteEn: 'Wi-Fi setec86a connected for studying and programming together. ☕⚡',
+    tags: ['#setec86a', '#CampusWiFi', '#LagLife', '#AssignmentDeadline']
+  },
+  {
+    category: 'campus',
+    department: '🎓 ជីវិតសិស្សស៊ីតិច',
+    quoteKh: 'ឈប់ ៣ថ្ងៃខលរកម៉ែឪ, ឈប់លើស ១៩ដង Blacklist... ឥឡូវឈប់បាន ១៨ដងហើយ កំពុងរស់នៅយ៉ាងរំភើប! 🏃‍♂️💨',
+    quoteEn: 'Living dangerously: 1 absence away from being blacklisted by administration. 💀🔥',
+    tags: ['#AttendanceRules', '#SETECStudent', '#LivingOnTheEdge', '#CampusLife']
   }
 ];
 
