@@ -37,6 +37,32 @@ const nextConfig = {
         destination: '/KonPov',
         permanent: true,
       },
+      {
+        source: '/KonKandal.html',
+        destination: '/KonKandal',
+        permanent: true,
+      },
+      {
+        source: '/konkandal.html',
+        destination: '/KonKandal',
+        permanent: true,
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/konbong',
+        destination: '/KonBong',
+      },
+      {
+        source: '/konpov',
+        destination: '/KonPov',
+      },
+      {
+        source: '/konkandal',
+        destination: '/KonKandal',
+      },
     ];
   },
 };

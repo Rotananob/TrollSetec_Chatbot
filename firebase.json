@@ -67,6 +67,24 @@
         ]
       },
       {
+        "source": "/KonKandal",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/konkandal",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/",
         "headers": [
           {
@@ -182,6 +200,22 @@
       {
         "source": "/konpov/**",
         "destination": "/KonPov.html"
+      },
+      {
+        "source": "/KonKandal",
+        "destination": "/KonKandal.html"
+      },
+      {
+        "source": "/konkandal",
+        "destination": "/KonKandal.html"
+      },
+      {
+        "source": "/KonKandal/**",
+        "destination": "/KonKandal.html"
+      },
+      {
+        "source": "/konkandal/**",
+        "destination": "/KonKandal.html"
       },
       {
         "source": "**",

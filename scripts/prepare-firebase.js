@@ -73,6 +73,18 @@ if (fs.existsSync(path.join(serverAppDir, 'KonPov.html'))) {
   fs.copyFileSync(path.join(serverAppDir, 'KonPov.html'), path.join(konPovLowerDir, 'index.html'));
 }
 
+// KonKandal route (Both PascalCase and lowercase support)
+if (fs.existsSync(path.join(serverAppDir, 'KonKandal.html'))) {
+  fs.copyFileSync(path.join(serverAppDir, 'KonKandal.html'), path.join(outDir, 'KonKandal.html'));
+  fs.copyFileSync(path.join(serverAppDir, 'KonKandal.html'), path.join(outDir, 'konkandal.html'));
+  const konKandalDir = path.join(outDir, 'KonKandal');
+  if (!fs.existsSync(konKandalDir)) fs.mkdirSync(konKandalDir, { recursive: true });
+  fs.copyFileSync(path.join(serverAppDir, 'KonKandal.html'), path.join(konKandalDir, 'index.html'));
+  const konKandalLowerDir = path.join(outDir, 'konkandal');
+  if (!fs.existsSync(konKandalLowerDir)) fs.mkdirSync(konKandalLowerDir, { recursive: true });
+  fs.copyFileSync(path.join(serverAppDir, 'KonKandal.html'), path.join(konKandalLowerDir, 'index.html'));
+}
+
 // jam-tic-kapea-1-sin route (Admin Control Panel)
 if (fs.existsSync(path.join(serverAppDir, 'jam-tic-kapea-1-sin.html'))) {
   fs.copyFileSync(path.join(serverAppDir, 'jam-tic-kapea-1-sin.html'), path.join(outDir, 'jam-tic-kapea-1-sin.html'));

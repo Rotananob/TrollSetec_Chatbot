@@ -44,7 +44,30 @@ export default function Home() {
   const [spinKey, setSpinKey] = useState(0);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [kandalModalOpen, setKandalModalOpen] = useState(false);
+  const [kandalKeyInput, setKandalKeyInput] = useState('');
+  const [kandalKeyError, setKandalKeyError] = useState('');
   const bgmRef = useRef(null);
+
+  const handleUnlockKandalModal = (e) => {
+    if (e) e.preventDefault();
+    const candidate = (kandalKeyInput || '').trim().toLowerCase();
+    if (!candidate) {
+      setKandalKeyError('សូមបញ្ចូលលេខកូដសោសម្ងាត់');
+      return;
+    }
+    if (candidate === '11112026' || candidate === 'rotana2026' || candidate === 'rotana') {
+      try {
+        sessionStorage.setItem('konkandal_access_key', '11112026');
+        localStorage.setItem('konkandal_access_key', '11112026');
+      } catch {}
+      setKandalKeyError('');
+      setKandalModalOpen(false);
+      stopAllGlobalAudio();
+      router.push('/KonKandal');
+    } else {
+      setKandalKeyError('លេខកូដសោមិនត្រឹមត្រូវទេ! សូមពិនិត្យសោសម្ងាត់ឡើងវិញ');
+    }
+  };
 
   // Auto-Read Announcement Audio State
   const announcementAudioRef = useRef(null);
@@ -1350,23 +1373,64 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="space-y-2 pt-2">
-              <Link
-                href="/KonKandal"
-                onClick={() => setKandalModalOpen(false)}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-xs shadow-md shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <i className="fas fa-key text-xs"></i>
-                <span>បញ្ចូលសោសម្ងាត់ដើម្បីចូល Test Chat</span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => setKandalModalOpen(false)}
-                className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition active:scale-95 cursor-pointer"
-              >
-                បិទផ្ទាំងនេះ
-              </button>
-            </div>
+            <form onSubmit={handleUnlockKandalModal} className="space-y-2.5 pt-1 text-left">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  បញ្ចូលសោសម្ងាត់ Lock Key ៖
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={kandalKeyInput}
+                    onChange={(e) => {
+                      setKandalKeyInput(e.target.value);
+                      setKandalKeyError('');
+                    }}
+                    placeholder="បញ្ចូលកូដសោ 11112026..."
+                    className="w-full px-3.5 py-2 pl-9 rounded-xl border bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-mono tracking-wider focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                    <i className="fas fa-key"></i>
+                  </span>
+                </div>
+                {kandalKeyError && (
+                  <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold mt-1">
+                    {kandalKeyError}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={!kandalKeyInput.trim()}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-xs shadow-md shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <i className="fas fa-unlock text-xs"></i>
+                  <span>ដោះសោ &amp; ចូល Test Chat</span>
+                </button>
+
+                <Link
+                  href="/KonKandal"
+                  onClick={() => {
+                    setKandalModalOpen(false);
+                    stopAllGlobalAudio();
+                  }}
+                  className="w-full py-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 font-bold text-xs border border-amber-300 dark:border-amber-700/60 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                >
+                  <i className="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                  <span>ទៅកាន់ទំព័រ KonKandal ផ្ទាល់</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={() => setKandalModalOpen(false)}
+                  className="w-full py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition active:scale-95 cursor-pointer"
+                >
+                  បិទផ្ទាំងនេះ
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

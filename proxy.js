@@ -37,6 +37,17 @@ export function proxy(request) {
     return NextResponse.next();
   }
 
+  // Support lowercase bot route URLs directly
+  if (pathname === '/konkandal') {
+    return NextResponse.rewrite(new URL('/KonKandal', request.url));
+  }
+  if (pathname === '/konbong') {
+    return NextResponse.rewrite(new URL('/KonBong', request.url));
+  }
+  if (pathname === '/konpov') {
+    return NextResponse.rewrite(new URL('/KonPov', request.url));
+  }
+
   // 3. Creator Rotana Exemption Check
   const authHeader = request.headers.get('authorization') || '';
   const isRotanaPasscode =
