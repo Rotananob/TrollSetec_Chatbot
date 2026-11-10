@@ -664,13 +664,13 @@ export default function Home() {
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm shrink-0">
-                      <i className="fas fa-brain"></i>
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm shrink-0">
+                      <i className="fas fa-layer-group"></i>
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-white">
-                          ចូលរួមអភិវឌ្ឍន៍ AI SETEC Lore
+                          ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-normal mt-0.5 line-clamp-1 sm:line-clamp-none">
@@ -682,10 +682,10 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setContributeModalOpen(true)}
-                    className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white border border-slate-300 dark:border-slate-700 font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
+                    className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/40 font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
                   >
-                    <i className="fas fa-lightbulb text-amber-400 text-xs"></i>
-                    <span>ចូលរួមសរសេរ</span>
+                    <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
+                    <span>ចូលរួមចែករំលែក</span>
                   </button>
                 </div>
               </div>
