@@ -49,12 +49,19 @@ const getBypassHeaders = () => {
   const isSessionBypassed =
     sessionStorage.getItem('rotana_maintenance_bypass') ||
     localStorage.getItem('rotana_maintenance_bypass');
+  const kandalKey =
+    sessionStorage.getItem('konkandal_access_key') ||
+    localStorage.getItem('konkandal_access_key') ||
+    '11112026';
   const headers = {};
   if (adminSecret) {
     headers['x-rotana-secret-key'] = adminSecret;
   }
   if (isSessionBypassed) {
     headers['x-rotana-bypass'] = 'rotana2026';
+  }
+  if (kandalKey) {
+    headers['x-konkandal-key'] = kandalKey;
   }
   return headers;
 };
@@ -69,6 +76,12 @@ export default function KonKandalPage() {
   const [sessions, setSessions] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [selectedSessionModal, setSelectedSessionModal] = useState(null);
+
+  // KonKandal Restricted Dev Lock Key (11112026)
+  const [isKandalUnlocked, setIsKandalUnlocked] = useState(false);
+  const [kandalKeyInput, setKandalKeyInput] = useState('');
+  const [kandalKeyError, setKandalKeyError] = useState('');
+  const [isCheckingLock, setIsCheckingLock] = useState(true);
 
   // Live Support Intervention State (Rotana NOB Bypass & Realtime Sync)
   const [isRotanaAdmin, setIsRotanaAdmin] = useState(false);
@@ -161,6 +174,53 @@ export default function KonKandalPage() {
   });
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
+
+  // Check Restricted Dev Lock Key (11112026)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored =
+        sessionStorage.getItem('konkandal_access_key') ||
+        localStorage.getItem('konkandal_access_key');
+      const adminPass = sessionStorage.getItem('rotana_admin_passcode');
+      const isMaster =
+        adminPass === 'rotana2026' ||
+        adminPass === 'rotana' ||
+        stored === '11112026' ||
+        stored === 'rotana2026';
+      if (isMaster) {
+        setIsKandalUnlocked(true);
+      }
+    } catch {} finally {
+      setIsCheckingLock(false);
+    }
+  }, []);
+
+  const handleUnlockKandal = (e) => {
+    if (e) e.preventDefault();
+    const candidate = (kandalKeyInput || '').trim().toLowerCase();
+    if (!candidate) {
+      setKandalKeyError('សូមបញ្ចូលលេខកូដសោសម្ងាត់');
+      return;
+    }
+    if (candidate === '11112026' || candidate === 'rotana2026' || candidate === 'rotana') {
+      sessionStorage.setItem('konkandal_access_key', '11112026');
+      localStorage.setItem('konkandal_access_key', '11112026');
+      setKandalKeyError('');
+      setIsKandalUnlocked(true);
+    } else {
+      setKandalKeyError('លេខកូដសោមិនត្រឹមត្រូវទេ! សូមពិនិត្យសោសម្ងាត់ឡើងវិញ');
+    }
+  };
+
+  const handleRelockKandal = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('konkandal_access_key');
+      localStorage.removeItem('konkandal_access_key');
+    }
+    setIsKandalUnlocked(false);
+    setKandalKeyInput('');
+  };
 
   // 30-Minute Live Chat Session & 10-Minute Cooldown Manager State (Anti-Bypass)
   const [sessionState, setSessionState] = useState({
@@ -2734,6 +2794,100 @@ export default function KonKandalPage() {
         text: 'Online 100%'
       };
 
+  if (!isKandalUnlocked) {
+    if (isCheckingLock) {
+      return (
+        <div className={`fixed inset-0 w-full h-full flex items-center justify-center ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+          <div className="flex flex-col items-center gap-3">
+            <i className="fas fa-circle-notch fa-spin text-amber-500 text-2xl" />
+            <span className="text-xs font-bold text-slate-500">កំពុងផ្ទៀងផ្ទាត់សិទ្ធិចូលដំណើរការ...</span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center p-4 font-['Kantumruy_Pro',sans-serif] select-none ${isDark ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+        <div className="w-full max-w-sm rounded-3xl p-6 sm:p-7 border shadow-2xl text-center relative overflow-hidden backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-200 bg-white/95 dark:bg-slate-900/95 border-amber-300 dark:border-amber-600/50">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600" />
+
+          <div className="relative mx-auto w-20 h-20 mb-3.5 mt-1">
+            <div className="w-full h-full rounded-2xl bg-amber-100/80 dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-500/60 p-1.5 shadow-sm overflow-hidden">
+              <img
+                src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
+                alt="KonKandal"
+                width="80"
+                height="80"
+                className="w-full h-full object-cover opacity-90"
+              />
+            </div>
+            <span className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md text-xs ring-2 ring-white dark:ring-slate-900">
+              <i className="fas fa-lock" />
+            </span>
+          </div>
+
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10.5px] font-black border border-amber-500/30 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+            <span>DEV RESTRICTED ACCESS • ចាក់សោ</span>
+          </div>
+
+          <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mb-1">
+            ស៊ីតិច Roastbot កូនកណ្ដាល
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
+            ទំព័រនេះកំពុងស្ថិតក្នុងដំណាក់កាលអភិវឌ្ឍន៍បិទជិត Private Dev Testing។ សូមបញ្ចូលសោសម្ងាត់ដើម្បីចូលសាកល្បង!
+          </p>
+
+          <form onSubmit={handleUnlockKandal} className="space-y-3">
+            <div>
+              <div className="relative">
+                <input
+                  type="password"
+                  autoFocus
+                  value={kandalKeyInput}
+                  onChange={(e) => {
+                    setKandalKeyInput(e.target.value);
+                    setKandalKeyError('');
+                  }}
+                  placeholder="បញ្ចូលលេខកូដសោសម្ងាត់..."
+                  className="w-full px-4 py-2.5 rounded-2xl border bg-slate-50 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-center tracking-widest text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                />
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                  <i className="fas fa-key" />
+                </span>
+              </div>
+              {kandalKeyError && (
+                <p className="text-xs text-rose-600 dark:text-rose-400 font-bold mt-1.5 flex items-center justify-center gap-1">
+                  <i className="fas fa-circle-exclamation text-[11px]" />
+                  <span>{kandalKeyError}</span>
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={!kandalKeyInput.trim()}
+              className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              <i className="fas fa-unlock text-xs" />
+              <span>ផ្ទៀងផ្ទាត់ & បើកសោចូល Test</span>
+            </button>
+          </form>
+
+          <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold transition"
+            >
+              <i className="fas fa-arrow-left text-[11px]" />
+              <span>ត្រឡប់ទៅទំព័រដើម</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`fixed inset-0 w-full h-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
@@ -3008,7 +3162,18 @@ export default function KonKandalPage() {
                     <span className="text-[10px] text-slate-300 font-normal truncate">({clientUsername})</span>
                   </span>
                 ) : (
-                  <span className="truncate">ស៊ីតិច កូនកណ្ដាល</span>
+                  <span className="flex items-center gap-1.5 truncate">
+                    <span className="truncate">ស៊ីតិច កូនកណ្ដាល</span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono text-[9px] font-bold">Key: 11112026</span>
+                    <button
+                      type="button"
+                      onClick={handleRelockKandal}
+                      className="p-1 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] transition cursor-pointer"
+                      title="ចាក់សោទំព័រនេះវិញ"
+                    >
+                      <i className="fas fa-lock" />
+                    </button>
+                  </span>
                 )}
               </h1>
             </div>
