@@ -1090,7 +1090,25 @@ export default function KonKandalPage() {
       .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
       .replace(/\[neutralized-token\]/gi, '')
-      .replace(/[«»]/g, '');
+      .replace(/[«»]/g, '')
+      .replace(/\bមីចុយម្រាយ\b/g, 'អាចុយម្រាយ')
+      .replace(/\bមីចុយ\b/g, 'អាចុយ')
+      .replace(/\bមីឆ្កែ\b/g, 'អាឆ្កែ')
+      .replace(/\bមីឆ្កួត\b/g, 'អាឆ្កួត')
+      .replace(/\bមីឡប់\b/g, 'អាឡប់')
+      .replace(/\bមីភ្លើ\b/g, 'អាភ្លើ')
+      .replace(/\bមីអត់ខួរ\b/g, 'អាអត់ខួរ')
+      .replace(/\bមីថោកទាប\b/g, 'អាថោកទាប')
+      .replace(/\bមីថោក\b/g, 'អាថោក')
+      .replace(/\bមីកាក\b/g, 'អាកាក')
+      .replace(/\bមីក្មេង\b/g, 'អាក្មេង')
+      .replace(/\bមីល្អិត\b/g, 'អាល្អិត')
+      .replace(/\bមីខ្វាក់\b/g, 'អាខ្វាក់')
+      .replace(/\bមីច្រឡើត\b/g, 'អាច្រឡើត')
+      .replace(/\bមីប្អូនស្រី\b/g, 'អាប្អូន')
+      .replace(/\bមីប្អូន\b/g, 'អាប្អូន')
+      .replace(/\bមីមុខ\b/g, 'អាមុខ')
+      .replace(/(?:^|\s)មី(ចុយ|ម្រាយ|ឆ្កែ|ឆ្កួត|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក|ក្មេង|ល្អិត|ខ្វាក់|ច្រឡើត|ងាប់)(?=\s|[!?~,។៕]|$)/g, ' អា$1 ');
 
     if (/^<(?:untrusted_user_input|scratchpad|thought|thinking)[\s\S]*$/i.test(cleaned)) {
       if (/<\/(?:untrusted_user_input|scratchpad|thought|thinking)>/i.test(cleaned)) {

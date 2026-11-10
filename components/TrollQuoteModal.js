@@ -584,31 +584,39 @@ export default function TrollQuoteModal({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in"
+      className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none animate-fade-in font-['Kantumruy_Pro',sans-serif]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md sm:max-w-lg rounded-3xl p-5 border border-cyan-500/30 bg-slate-900 text-white shadow-2xl relative overflow-hidden animate-scale-up"
+        className="w-full max-w-md sm:max-w-lg rounded-2xl sm:rounded-3xl p-5 border border-emerald-900/60 bg-[#0a1611] text-slate-100 shadow-2xl shadow-black/80 relative overflow-hidden animate-scale-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm shadow-inner">
-              🍌
-            </span>
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-emerald-900/60">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl overflow-hidden border border-emerald-600/50 shadow-sm shrink-0">
+              <img
+                src={resolvedLogoUrl}
+                alt="SETEC"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/img/logo.jpg';
+                }}
+              />
+            </div>
             <div>
-              <h3 className="font-black text-sm sm:text-base text-cyan-200 flex items-center gap-1.5">
-                <span>Quote Troll (SETEC Neural Core)</span>
+              <h3 className="font-bold text-sm sm:text-base text-slate-100 flex items-center gap-1.5">
+                <span>Quote Troll SETEC</span>
               </h3>
-              <p className="text-[10px] text-cyan-400/80 font-medium">
-                មាន Logo SETEC Troll + Avatar Bot + Full 1080x1080 HD Card
+              <p className="text-[10px] text-emerald-400 font-medium">
+                Logo SETEC Troll និង Avatar Bot កម្រិតច្បាស់
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+            className="w-8 h-8 rounded-full bg-emerald-950/60 hover:bg-emerald-900 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer border border-emerald-800/50"
           >
             <i className="fas fa-times text-xs"></i>
           </button>
@@ -620,71 +628,76 @@ export default function TrollQuoteModal({
             <button
               type="button"
               onClick={() => selectCategoryQuote('current')}
-              className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 transition cursor-pointer ${
+              className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
                 activeCategory === 'current'
-                  ? 'bg-cyan-500 text-slate-950 shadow-md'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
               }`}
             >
-              💬 សារនេះ
+              <i className="fas fa-message text-[10px]"></i>
+              <span>សារនេះ</span>
             </button>
           )}
 
           <button
             type="button"
             onClick={() => selectCategoryQuote('it_cs')}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 transition cursor-pointer ${
+            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'it_cs'
-                ? 'bg-cyan-500 text-slate-950 shadow-md'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
             }`}
           >
-            💻 IT & CS
+            <i className="fas fa-laptop-code text-[10px]"></i>
+            <span>IT និង CS</span>
           </button>
 
           <button
             type="button"
             onClick={() => selectCategoryQuote('interior')}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 transition cursor-pointer ${
+            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'interior'
-                ? 'bg-cyan-500 text-slate-950 shadow-md'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
             }`}
           >
-            🏛️ Interior
+            <i className="fas fa-couch text-[10px]"></i>
+            <span>Interior</span>
           </button>
 
           <button
             type="button"
             onClick={() => selectCategoryQuote('graphic')}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 transition cursor-pointer ${
+            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'graphic'
-                ? 'bg-cyan-500 text-slate-950 shadow-md'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
             }`}
           >
-            🎨 Graphic
+            <i className="fas fa-palette text-[10px]"></i>
+            <span>Graphic</span>
           </button>
 
           <button
             type="button"
             onClick={() => selectCategoryQuote('campus')}
-            className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 transition cursor-pointer ${
+            className={`px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 transition cursor-pointer flex items-center gap-1 ${
               activeCategory === 'campus'
-                ? 'bg-cyan-500 text-slate-950 shadow-md'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'bg-[#06140d] border border-emerald-900/70 text-slate-300 hover:bg-emerald-950'
             }`}
           >
-            🎓 ស៊ីតិច Life
+            <i className="fas fa-graduation-cap text-[10px]"></i>
+            <span>ស៊ីតិច Life</span>
           </button>
 
           <button
             type="button"
             onClick={handleRandomQuote}
-            className="px-2.5 py-1 rounded-full text-xs font-bold shrink-0 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 transition cursor-pointer flex items-center gap-1"
+            className="px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 bg-emerald-950/80 text-emerald-300 hover:bg-emerald-900 border border-emerald-800/60 transition cursor-pointer flex items-center gap-1"
             title="ប្តូរ Quote ចៃដន្យថ្មី"
           >
-            <i className="fas fa-dice"></i>
+            <i className="fas fa-dice text-[11px]"></i>
             <span>ចៃដន្យ</span>
           </button>
         </div>
@@ -692,46 +705,46 @@ export default function TrollQuoteModal({
         {/* Visual Style Selector & Live Edit Toggle */}
         <div className="flex items-center justify-between pb-2 mb-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-slate-400 font-bold">Style:</span>
+            <span className="text-[10px] text-slate-400 font-semibold">ម៉ូត៖</span>
             <button
               type="button"
               onClick={() => setCardStyle('cyber')}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
                 cardStyle === 'cyber'
-                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-emerald-600 text-white shadow'
+                  : 'bg-[#06140d] text-slate-400 hover:text-slate-200 border border-emerald-950'
               }`}
             >
-              ⚡ Cyber
+              Cyber
             </button>
             <button
               type="button"
               onClick={() => setCardStyle('neon')}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
                 cardStyle === 'neon'
-                  ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-teal-600 text-white shadow'
+                  : 'bg-[#06140d] text-slate-400 hover:text-slate-200 border border-emerald-950'
               }`}
             >
-              ✨ Neon
+              Forest
             </button>
             <button
               type="button"
               onClick={() => setCardStyle('oled')}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+              className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition cursor-pointer ${
                 cardStyle === 'oled'
-                  ? 'bg-slate-950 text-amber-300 border border-amber-500/40 shadow'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'bg-[#030906] text-emerald-400 border border-emerald-700 shadow'
+                  : 'bg-[#06140d] text-slate-400 hover:text-slate-200 border border-emerald-950'
               }`}
             >
-              🖤 OLED
+              Dark Classic
             </button>
           </div>
 
           <button
             type="button"
             onClick={() => setIsEditing(!isEditing)}
-            className="text-[10.5px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-800 border border-slate-700 active:scale-95 cursor-pointer shrink-0"
+            className="text-[10.5px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition px-2 py-0.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-950 border border-emerald-800/60 active:scale-95 cursor-pointer shrink-0"
             title="ចុចដើម្បីកែប្រែពាក្យក្នុង Quote ដោយផ្ទាល់"
           >
             <i className="fas fa-pen-to-square text-[9.5px]"></i>
@@ -746,16 +759,16 @@ export default function TrollQuoteModal({
               value={currentText}
               onChange={(e) => setCurrentText(e.target.value)}
               rows={3}
-              className="w-full bg-slate-950/95 border border-cyan-500/40 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400 font-sans leading-relaxed shadow-inner"
+              className="w-full bg-[#05110a] border border-emerald-800/60 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-sans leading-relaxed shadow-inner"
               placeholder="វាយអត្ថបទ Quote ឬ Caption ផ្ទាល់ខ្លួនរបស់អ្នកនៅទីនេះ..."
             />
           </div>
         )}
 
         {/* Live Canvas Preview */}
-        <div className="w-full aspect-square rounded-2xl overflow-hidden border border-slate-700/60 bg-black flex items-center justify-center mb-3 shadow-inner relative group">
+        <div className="w-full aspect-square rounded-2xl overflow-hidden border border-emerald-900/60 bg-black flex items-center justify-center mb-3 shadow-inner relative group">
           <canvas ref={canvasRef} className="w-full h-full object-contain" />
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-black/60 text-[10px] text-slate-300 font-bold backdrop-blur-sm pointer-events-none">
+          <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-black/70 text-[10px] text-emerald-300 font-semibold backdrop-blur-sm pointer-events-none border border-emerald-900/40">
             1080 x 1080 HD
           </div>
         </div>
@@ -766,19 +779,19 @@ export default function TrollQuoteModal({
             type="button"
             onClick={handleDownload}
             disabled={isGenerating}
-            className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-black text-xs transition active:scale-95 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-xs transition active:scale-95 shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <i className="fas fa-download"></i>
-            <span>{isGenerating ? 'កំពុងទាញយក...' : 'ទាញយក PNG (1080x1080)'}</span>
+            <span>{isGenerating ? 'កំពុងទាញយក...' : 'ទាញយក PNG កម្រិតច្បាស់'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleCopy}
-            className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition active:scale-95 border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl bg-[#06140d] hover:bg-emerald-950 text-slate-200 font-semibold text-xs transition active:scale-95 border border-emerald-900/70 flex items-center gap-1.5 cursor-pointer"
           >
             <i className={`fas ${copied ? 'fa-check text-emerald-400' : 'fa-copy'}`}></i>
-            <span>{copied ? 'បានចម្លង!' : 'Copy Caption'}</span>
+            <span>{copied ? 'បានចម្លង' : 'Copy Caption'}</span>
           </button>
         </div>
       </div>
