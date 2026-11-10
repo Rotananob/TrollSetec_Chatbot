@@ -180,7 +180,7 @@ export function getApiKeyPool(bot) {
   return [...readyKeys, ...coolingKeys];
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 12000) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 30000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
   let lastError = null;
   let lastData = null;
@@ -368,7 +368,7 @@ async function callVoxCPM2TTS(text, voiceName = 'Puck', timeoutMs = 7000) {
   return { ok: false };
 }
 
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 6000) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 60000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
 
   for (const key of keys) {
@@ -846,9 +846,16 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
       }
     }
 
-    // Strictly enforce Persona Title Separation
+    // Strictly enforce Persona Title Separation and Purge Sweet terms for KonPov
     if (isKonPov) {
       sanitizedText = sanitizedText
+        .replace(/(?:អ្ហូ!|អូ!|អូហូ!|អ្ហាស!|អ្ហា!)?\s*(?:រឿងហ្នឹង)?\s*ពិតមែនហ្ហា\s*(?:អា)?(?:អូន|ប្អូន)?សម្លាញ់!?[ \t]*/g, 'យីកូនប្រុស! ')
+        .replace(/(?:អា)?អូនសម្លាញ់/g, 'កូន')
+        .replace(/(?:អា)?ប្អូនប្រុសសម្លាញ់/g, 'កូនប្រុស')
+        .replace(/(?:អា)?ប្អូនសម្លាញ់/g, 'កូន')
+        .replace(/ប្អូនស្រីសម្លាញ់/g, 'កូនស្រី')
+        .replace(/កូនស្រីសម្លាញ់/g, 'កូនស្រី')
+        .replace(/កូនប្រុសសម្លាញ់/g, 'កូនប្រុស')
         .replace(/រៀមច្បង IT/g, 'ចែ/Mommy កូនពៅ')
         .replace(/រៀមច្បង/g, 'ចែ កូនពៅ')
         .replace(/បងកូនច្បង/g, 'ចែកូនពៅ')
@@ -1756,12 +1763,13 @@ export async function POST(req) {
         modeTopP = 0.98;
       }
 
+      const requestedMaxTokens = generationConfig?.maxOutputTokens ? Math.max(generationConfig.maxOutputTokens, 2048) : 2048;
       const genConfig = {
         temperature: modeTemperature,
         topP: modeTopP,
         topK: 40,
-        maxOutputTokens: 600,
-        ...(generationConfig && { ...generationConfig, temperature: modeTemperature })
+        maxOutputTokens: requestedMaxTokens,
+        ...(generationConfig && { ...generationConfig, temperature: modeTemperature, maxOutputTokens: requestedMaxTokens })
       };
 
       const safetySettings = [
@@ -2823,7 +2831,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           ? `សួស្តី ${kTermGreeting} ${lTermGreeting} ${username || ''}! ថ្ងៃនេះមានរឿងអីប្លែក ឬមានចម្ងល់មេរៀនចង់ជជែកលេងជាមួយកូនកណ្ដាលទេ? និយាយមក ចាំកូនកណ្ដាលជួយមើលឱ្យណា៎ ${lTermGreeting}!`
           : isKonPovBot
           ? (isFemaleUserContext
-              ? `សួស្តីកូនស្រីសម្លាញ់ ${username || ''}! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកប៉ាចឹង? 😂 សុខសប្បាយអត់កូន? Assignment ធ្វើហើយនៅ កុំចេះតែដើរលេងភ្លេចរៀនណា៎! 🕶️✨`
+              ? `សួស្តីកូនស្រី ${username || ''}! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកប៉ាចឹង? 😂 សុខសប្បាយអត់កូន? Assignment ធ្វើហើយនៅ កុំចេះតែដើរលេងភ្លេចរៀនណា៎! 🕶️✨`
               : `សួស្តីអាល្អិត ${username || ''}! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកចែចឹង? 😂 សុខសប្បាយធម្មតាទេ? Assignment ធ្វើហើយនៅ ឬរវល់តែដើរលេងភ្លេចរៀន? 💅✨`)
           : (isFemaleUserContext
               ? `សួស្តីប្អូនស្រី ${username || ''}! ថ្ងៃនេះមានរឿងអីប្លែកបានឆាតមករកបងទាំងថ្ងៃចឹង? ឬមួយទើបតែ Error កូដ C# រកផ្លូវចេញមិនឃើញ? 😂 និយាយមក ចាំបងជួយមើលឱ្យ! ☕💻`
@@ -2869,9 +2877,9 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         } else if (isKonPovBot) {
           if (isFemaleUserContext) {
             const daddySweetList = [
-              `ហាហាហា! កូនស្រី ${displayName} មកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រីសម្លាញ់! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🕶️✨`,
+              `ហាហាហា! កូនស្រី ${displayName} មកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រី! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🕶️✨`,
               `អីយ៉ា! កូនស្រីប៉ាថ្ងៃនេះចេះមកផ្អែមល្ហែមសុំថើបប៉ាទៀត! 😂 គួរឱ្យស្រលាញ់ណាស់កូន តែខំរៀនកូដកុំឱ្យចាញ់គេណា៎កូនស្រី! 🕶️🌸`,
-              `ហាហា! កូនស្រីសម្លាញ់ ${displayName}! មកថើបប៉ាចឹង ចង់បានប៉ាកាហ្វេ ឬចង់ឱ្យប៉ាជួយមើល Assignment ឱ្យមែន? 😂 ឆ្លាតណាស់កូនស្រីប៉ា! 🕶️✨`
+              `ហាហា! កូនស្រី ${displayName}! មកថើបប៉ាចឹង ចង់បានប៉ាកាហ្វេ ឬចង់ឱ្យប៉ាជួយមើល Assignment ឱ្យមែន? 😂 ឆ្លាតណាស់កូនស្រីប៉ា! 🕶️✨`
             ];
             sweetResponse = daddySweetList[Math.floor(Math.random() * daddySweetList.length)];
           } else {
@@ -2916,7 +2924,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       // Real-time ChatGPT-like Streaming Mode (SSE)
       if (body.stream) {
-        const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
+        const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload, 60000);
         if (streamResult.ok) {
           alertChatActivity({
             username: username || 'Unknown',
@@ -2973,6 +2981,17 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                     .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${kandalTerm} ${kandalLatin}`)
                     .replace(/បងប្អូនៗ?/g, `${kandalTerm} ${kandalLatin}`)
                     .replace(/បង\s+ប្អូន/g, `${kandalTerm} ${kandalLatin}`);
+                }
+
+                if ((reqBot || bot) === 'konpov') {
+                  text = text
+                    .replace(/(?:អ្ហូ!|អូ!|អូហូ!|អ្ហាស!|អ្ហា!)?\s*(?:រឿងហ្នឹង)?\s*ពិតមែនហ្ហា\s*(?:អា)?(?:អូន|ប្អូន)?សម្លាញ់!?[ \t]*/g, 'យីកូនប្រុស! ')
+                    .replace(/(?:អា)?អូនសម្លាញ់/g, 'កូន')
+                    .replace(/(?:អា)?ប្អូនប្រុសសម្លាញ់/g, 'កូនប្រុស')
+                    .replace(/(?:អា)?ប្អូនសម្លាញ់/g, 'កូន')
+                    .replace(/ប្អូនស្រីសម្លាញ់/g, 'កូនស្រី')
+                    .replace(/កូនស្រីសម្លាញ់/g, 'កូនស្រី')
+                    .replace(/កូនប្រុសសម្លាញ់/g, 'កូនប្រុស');
                 }
 
                 if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
@@ -3369,7 +3388,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       if (isPureStandaloneSweet && (isPoliteRefusal || isSafetyBlocked || !result.ok)) {
         const sweetResponse = bot === 'konpov'
           ? (gender === 'ស្រី'
-              ? `ហាហាហា! កូនស្រីមកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រីសម្លាញ់! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🌸✨`
+              ? `ហាហាហា! កូនស្រីមកសុំថើបប៉ាផង? 😂 ទៅដុសធ្មេញ លាងមុខឱ្យស្អាតសិនទៅកូនស្រី! តិចទៀតប៉ាមកលេងជាមួយកូនស្រីបន្តណា៎! 🌸✨`
               : `យីអើ! មកសុំថើបស្អីចែអាប្អូន?! 😂 ស្គាល់ចែមិនទាន់បាន ២ នាទីផង ចង់មកថើបចែទៅហើយ! ទៅដុសធ្មេញឱ្យស្អាត លាងមុខឱ្យស្វាងសិនទៅអាពៅ! ចែមិនមែនងាយៗឱ្យក្មេងស្ទាវដូចហែងមកថើបតាមចិត្តទេណា៎! 💅✨`)
           : `ហាហាហា! មកសុំថើបស្អីបងអាល្អិត?! 😂 ស្គាល់បងមិនទាន់បាន ២ នាទីផង ចង់មកលេងក្បាច់ផ្អែមល្ហែមដាក់បងទៅហើយ! ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាពៅ កុំទាន់មកចង់ Sweet ជាមួយបងអី! ☕✨`;
 
@@ -3398,7 +3417,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       if (isGreetingPrompt && (isPoliteRefusal || isSafetyBlocked || !result.ok)) {
         const greetingResponse = bot === 'konpov'
           ? (gender === 'ស្រី'
-              ? `សួស្តីកូនស្រីសម្លាញ់! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកប៉ាចឹង? 😂 សុខសប្បាយអត់កូន? Assignment ធ្វើហើយនៅ កុំចេះតែដើរលេងភ្លេចរៀនណា៎! 🕶️✨`
+              ? `សួស្តីកូនស្រី! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកប៉ាចឹង? 😂 សុខសប្បាយអត់កូន? Assignment ធ្វើហើយនៅ កុំចេះតែដើរលេងភ្លេចរៀនណា៎! 🕶️✨`
               : `សួស្តីអាល្អិត! ថ្ងៃនេះនឹកឃើញអីបានឆាតមករកចែចឹង? 😂 សុខសប្បាយធម្មតាទេ? Assignment ធ្វើហើយនៅ ឬរវល់តែដើរលេងភ្លេចរៀន? 💅✨`)
           : `សួស្តីអាប្អូន! ថ្ងៃនេះមានរឿងអីប្លែកបានឆាតមករកបងទាំងថ្ងៃចឹង? ឬមួយទើបតែ Error កូដ C# រកផ្លូវចេញមិនឃើញ? 😂 និយាយមក ចាំបងជួយមើលឱ្យ! ☕💻`;
 

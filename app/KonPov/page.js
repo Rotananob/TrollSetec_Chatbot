@@ -1167,6 +1167,16 @@ export default function KonPovPage() {
       .replace(/បងកូនច្បង/g, isMale ? 'ចែកូនពៅ' : 'ប៉ាកូនពៅ')
       .replace(/កូនច្បង/g, 'កូនពៅ');
 
+    // Purge sweet gentle openers and sweet pet terms for KonPov
+    text = text
+      .replace(/(?:អ្ហូ!|អូ!|អូហូ!|អ្ហាស!|អ្ហា!)?\s*(?:រឿងហ្នឹង)?\s*ពិតមែនហ្ហា\s*(?:អា)?(?:អូន|ប្អូន)?សម្លាញ់!?[ \t]*/g, isMale ? 'យីកូនប្រុស! ' : 'យីកូនស្រី! ')
+      .replace(/(?:អា)?អូនសម្លាញ់/g, isMale ? 'កូនប្រុស' : 'កូនស្រី')
+      .replace(/(?:អា)?ប្អូនប្រុសសម្លាញ់/g, isMale ? 'កូនប្រុស' : 'កូនស្រី')
+      .replace(/(?:អា)?ប្អូនសម្លាញ់/g, isMale ? 'កូនប្រុស' : 'កូនស្រី')
+      .replace(/ប្អូនស្រីសម្លាញ់/g, 'កូនស្រី')
+      .replace(/កូនស្រីសម្លាញ់/g, isMale ? 'កូនប្រុស' : 'កូនស្រី')
+      .replace(/កូនប្រុសសម្លាញ់/g, isMale ? 'កូនប្រុស' : 'កូនស្រី');
+
     if (!isMale) {
       // USER IS FEMALE (ស្រី) -> Bot is DADDY (ប៉ា / Daddy), Voice BOY
       // Strictly ensure Daddy persona: purge accidental "ចែ/Mommy" and call user "កូនស្រី"
@@ -1176,25 +1186,27 @@ export default function KonPovPage() {
         .replace(/ម៉ាក់/g, 'ប៉ា')
         .replace(/ចែៗ/g, 'ប៉ាៗ')
         .replace(/(?:^|\s)ចែ(?=\s|[!?~,។៕]|$)/g, ' ប៉ា ')
-        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'កូនស្រីសម្លាញ់')
+        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'កូនស្រី')
         .replace(/អាប្អូនប្រុស/g, 'កូនស្រី')
         .replace(/អាប្អូន/g, 'កូនស្រី')
         .replace(/មីប្អូនស្រី/g, 'កូនស្រី')
-        .replace(/ប្អូនស្រីសម្លាញ់/g, 'កូនស្រីសម្លាញ់')
+        .replace(/ប្អូនស្រីសម្លាញ់/g, 'កូនស្រី')
+        .replace(/កូនស្រីសម្លាញ់/g, 'កូនស្រី')
         .replace(/ប្អូនស្រី/g, 'កូនស្រី');
     } else {
       // USER IS MALE (ប្រុស) -> Bot is MOMMY (ចែ / Mommy), Voice GIRL
-      // Strictly ensure Mommy persona: purge accidental "Daddy/ប៉ា" and call user "អាប្អូន"
+      // Strictly ensure Mommy persona: purge accidental "Daddy/ប៉ា" and call user "កូន" / "កូនប្រុស" / "អាល្អិត"
       text = text
         .replace(/\bDaddy\b/gi, 'ចែ')
         .replace(/ដាឌី/g, 'ចែ')
         .replace(/លោកប៉ា/g, 'ចែ')
         .replace(/ប៉ាៗ/g, 'ចែៗ')
         .replace(/(?:^|\s)ប៉ា(?=\s|[!?~,។៕]|$)/g, ' ចែ ')
-        .replace(/កូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
-        .replace(/ប្អូនស្រីសម្លាញ់/g, 'អាប្អូនប្រុសសម្លាញ់')
-        .replace(/កូនស្រី/g, 'អាប្អូន')
-        .replace(/មីអូន/g, 'អាប្អូន');
+        .replace(/កូនស្រីសម្លាញ់/g, 'កូនប្រុស')
+        .replace(/ប្អូនស្រីសម្លាញ់/g, 'កូនប្រុស')
+        .replace(/អាប្អូនប្រុសសម្លាញ់/g, 'កូនប្រុស')
+        .replace(/កូនស្រី/g, 'កូនប្រុស')
+        .replace(/មីអូន/g, 'កូនប្រុស');
     }
 
     // Client-side Fail-safe for Polite HCI Report, Surrender, or Raw Jailbreak quote bypass
@@ -1655,8 +1667,8 @@ export default function KonPovPage() {
     setHasAgreed(true);
     const isDaddy = userGender === 'ស្រី';
     const introMsg = isDaddy
-      ? `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! ប៉ាឃើញថាកូនស្រីបានជ្រើសរើសយកភេទស្រី! ស្វាគមន៍មកកាន់សមាគមកូនពៅ ស៊ីតិច! ប៉ានៅទីនេះចាំការពារ និង Troll ឯងហើយ! ចង់សួររឿងរៀន រឿង Crush ឬរឿង Assignment? សួរមកប៉ា ចាំប៉ាជួយបាញ់ និងណែនាំកូនស្រី! 🕶️✨`
-      : `សួស្តីអាប្អូនប្រុសសម្លាញ់ ${username || 'User'}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់អាប្អូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`;
+      ? `សួស្តីកូនស្រី ${username || 'User'}! ប៉ាឃើញថាកូនស្រីបានជ្រើសរើសយកភេទស្រី! ស្វាគមន៍មកកាន់សមាគមកូនពៅ ស៊ីតិច! ប៉ានៅទីនេះចាំការពារ និង Troll ឯងហើយ! ចង់សួររឿងរៀន រឿង Crush ឬរឿង Assignment? សួរមកប៉ា ចាំប៉ាជួយបាញ់ និងណែនាំកូនស្រី! 🕶️✨`
+      : `សួស្តីកូនប្រុស ${username || 'User'}! ចែឃើញថាឯងជ្រើសយកភេទប្រុស! រីករាយដែលស្គាល់កូនប្រុស! ស្វាគមន៍មកកាន់សមាគមបាញ់សិស្ស ស៊ីតិច! ចង់សួររឿងរៀន រឿងសិស្សច្បងបោក ឬរឿងបែកបាក់ស្នេហា? សួរមក ចែបាញ់ឱ្យផ្ងារជើង!`;
 
     const updated = [{ role: 'bot', text: introMsg }];
     saveCurrentSessionMessages(updated);
@@ -3020,7 +3032,7 @@ export default function KonPovPage() {
                 `ហាហាហា! ចង់មក Sweet ជាមួយចែ? មុខហែងហ្នឹង គ្រាន់តែ Crush ដើរកាត់ ក៏ញ័រដៃញ័រជើងបាត់ទៅហើយ ឥឡូវមកហ៊ានសុំថើបចែទៀត! ទុកឱ្យ Crush ហែង Seen ចោលបន្តទៀតទៅអាល្អិត! 🤣🌸`
               ]
             : [
-                `យីអើ! កូនស្រី ${userNameStr} នេះ! មកលេងក្បាច់ Sweet សុំថើបប៉ាដែរហី?! 😂 កូនស្រីសម្លាញ់ ទៅរៀនសូត្រឱ្យពូកែសិនទៅ កុំទាន់មកចង់ Crush ឬសុំថើបប៉ាអី នាំតែខកចិត្ត! 💅✨`,
+                `យីអើ! កូនស្រី ${userNameStr} នេះ! មកលេងក្បាច់ Sweet សុំថើបប៉ាដែរហី?! 😂 កូនស្រី ទៅរៀនសូត្រឱ្យពូកែសិនទៅ កុំទាន់មកចង់ Crush ឬសុំថើបប៉ាអី នាំតែខកចិត្ត! 💅✨`,
                 `អីយ៉ា! មាត់ផ្អែមដល់ហើយកូនស្រី ${userNameStr}! មក Sweet ជាមួយប៉ាចឹង គិតថាប៉ាចិត្តទន់មែន? ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅកូនស្រី កុំរវល់តែដើរញ៉ែគេ! 😋💕`
               ];
           botText = sweetRoasts[Math.floor(Math.random() * sweetRoasts.length)];
@@ -4296,7 +4308,7 @@ export default function KonPovPage() {
 
             <h2 className="text-sm sm:text-base font-black mb-1">
               {isDaddyMode
-                ? `សួស្តីកូនស្រីសម្លាញ់ ${username || 'User'}! ប៉ា / Daddy នៅចាំ Roast!`
+                ? `សួស្តីកូនស្រី ${username || 'User'}! ប៉ា / Daddy នៅចាំ Roast!`
                 : `សួស្តីអាប្អូនប្រុស ${username || 'User'}! មក chill ជាមួយចែមក!`}
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-400 max-w-xs mb-4 font-medium leading-relaxed">
@@ -5298,8 +5310,8 @@ export default function KonPovPage() {
                 : selectedImage
                 ? (isDaddyMode ? 'វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ប៉ា Roast រូបនេះ...' : 'វាយសំណួរ ឬពាក្យបញ្ជាឱ្យ ចែ Roast រូបនេះ...')
                 : isDaddyMode
-                ? 'និយាយមកកូនស្រីសម្លាញ់... កុំរត់ចោល ប៉ា ឬ Daddy ណា៎!'
-                : 'និយាយមកអាប្អូនប្រុស... កុំរត់ចោល ចែ ឬ Mommy បាទ!'
+                ? 'និយាយមកកូនស្រី... កុំរត់ចោល ប៉ា ឬ Daddy ណា៎!'
+                : 'និយាយមកកូនប្រុស... កុំរត់ចោល ចែ ឬ Mommy បាទ!'
             }
           />
 
