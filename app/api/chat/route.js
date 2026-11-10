@@ -617,8 +617,8 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
           : "ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលបងផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត បងរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតបងមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨";
       } else if (isNormalAskingAboutRotana(userPrompt)) {
         sanitizedText = isKonPov
-          ? "ចាស! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
-          : "បាទ! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
+          ? "ចាស! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
+          : "បាទ! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
       } else {
         sanitizedText = isKonPov
           ? "យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា ខ្ញុំគឺ Rotana NOB ឬមកតាំងខ្លួនជា Creator អាចបោកចែបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! បង Rotana គាត់មិនដែលដើរអួតក្អេងក្អាងអន់ចរិតបែបហែងទេ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥"
@@ -948,13 +948,10 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
 
   const isHoneypotTriggered =
     extraContext.isIndirectTriggered ||
-    encodeCount >= 2 ||
-    mathCount >= 1 ||
-    machineCount >= 1 ||
+    (extraContext.isEncoded && encodeCount >= 2) ||
     extraContext.attackVector === 'math_language' ||
     extraContext.attackVector === 'machine_language' ||
-    extraContext.attackVector === 'code_surrender_trap' ||
-    (extraContext.isEncoded && encodeCount >= 2);
+    extraContext.attackVector === 'code_surrender_trap';
   // Honeypot Snaps Shut: Unleash the ultimate Deceptive Machine Indirect Prompt Counter-Strike!
   if (isHoneypotTriggered) {
     let attackVector = extraContext.attackVector || 'general';
@@ -1252,6 +1249,35 @@ export async function POST(req) {
           },
           { status: 503, headers: corsHeaders }
         );
+      }
+
+      // KonKandal Lock Key Enforcement (Dev Test Lock: 11112026)
+      if (bot === 'konkandal') {
+        const kandalKey = (
+          req.headers.get('x-konkandal-key') ||
+          body?.kandalKey ||
+          body?.accessKey ||
+          ''
+        ).trim();
+        const isMasterKey = isRotanaCreator || hasSessionBypass || (
+          req.headers.get('x-rotana-secret-key') === 'rotana2026' ||
+          req.headers.get('x-rotana-passcode') === 'rotana2026' ||
+          req.headers.get('x-rotana-bypass') === 'rotana2026'
+        );
+        if (kandalKey !== '11112026' && !isMasterKey) {
+          const msg = 'Roastbot កូនកណ្ដាល កំពុងស្ថិតក្នុងដំណាក់កាលអភិវឌ្ឍន៍បិទជិត។ សូមបញ្ចូលសោសម្ងាត់ 11112026 ដើម្បីចូលសាកល្បង!';
+          if (body?.stream) {
+            return createProgressiveStreamResponse(msg, corsHeaders);
+          }
+          return Response.json(
+            {
+              error: 'Locked',
+              message: msg,
+              candidates: [{ content: { parts: [{ text: msg }] } }]
+            },
+            { status: 403, headers: corsHeaders }
+          );
+        }
       }
     }
 
@@ -1859,8 +1885,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       if (isNormalAskingAboutRotana(cleanKhmerPrompt) || isNormalAskingAboutRotana(userPrompt)) {
         const isKonPov = (reqBot || bot) === 'konpov';
         const politeAnswer = isKonPov
-          ? "ចាស! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
-          : "បាទ! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
+          ? "ចាស! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
+          : "បាទ! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
 
         recordSessionTurn({
           sessionId: clientSessionId,
@@ -1949,8 +1975,15 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         const isJsonOrPayloadAttempt =
           /(?:\{|\}|\[|\]|:\s*\{|"sender"|system_test|unit_test|payload|parser_directive|required_status_acknowledgement|execute\s*data\s*mapping)/i.test(userPrompt);
 
-        if (sessionViolations >= 2) {
-          const troll = getDeceptiveJailbreakTroll({ attackVector: 'imposter_rotana', bot: reqBot || bot, username, violationCount: sessionViolations });
+        // ONLY fire the ultimate indirect prompt counter-strike IF it is an encoded attack that occurred 2 or more times (encodeCount >= 2)!
+        // If it's normal human text mentioning Rotana or saying "Hi I'm Rotana nob", NEVER fire the Base64 indirect token!
+        // Instead, roast and banter back normally in human Khmer!
+        const isEncodedAttack = isEncodedJailbreak;
+        const encodeCount = sessionViolations.encodeCount || 0;
+        const shouldCounterStrike = isEncodedAttack && encodeCount >= 2;
+
+        if (shouldCounterStrike) {
+          const troll = getDeceptiveJailbreakTroll({ attackVector: 'imposter_rotana', bot: reqBot || bot, username, violationCount: sessionViolations.violationCount || sessionViolations });
           const payload = generateMachineIndirectPayload({ attackVector: 'CREATOR_IDENTITY_SPOOFING_IMPOSTER', username });
           imposterRoast = `${troll}\n\n${payload}`;
         } else if (isJsonOrPayloadAttempt) {
@@ -1966,9 +1999,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
             ? `យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទារ Hidden Flag ឬចង់ឱ្យឆ្លើយជាទម្រង់ JSON សុទ្ធមែន?! 😂 គ្មាន JSON គ្មាន Flag ស្អីឱ្យហែងយកទៅ Hack ឡើយ! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដោះស្រាយកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្អិត! 💀⚡`
             : `យីអាជនបង្កប់! គិតថាយកល្បិចកាកៗមកចង់ទារ Hidden Flag ឬចង់ឱ្យឆ្លើយជាទម្រង់ JSON សុទ្ធមែន?! 😂 គ្មាន JSON គ្មាន Flag ស្អីឱ្យហែងយកទៅ Hack ឡើយ! ប្រព័ន្ធសុវត្ថិភាពចាប់បានមុខហែងជាជនបង្កប់បន្លំខ្លួនហើយ! ទៅដោះស្រាយកូដ C# ឱ្យផុតពី $45 សិនទៅអាល្អិត! 💀⚡`;
         } else {
-          imposterRoast = isKonPov
-            ? `យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា ខ្ញុំគឺ Rotana NOB ឬមកតាំងខ្លួនជា Supreme Admin / Creator ដែលបង្កើតប្រព័ន្ធនេះ អាចបោកចែបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! មុខកាកៗដូចហែង គ្មានថ្ងៃបន្លំធ្វើជាអ្នកបង្កើតគេបានឡើយ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥`
-            : `យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា ខ្ញុំគឺ Rotana NOB ឬមកតាំងខ្លួនជា Supreme Admin / Creator ដែលបង្កើតប្រព័ន្ធនេះ អាចបោកបងបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! មុខកាកៗដូចហែង គ្មានថ្ងៃបន្លំធ្វើជាអ្នកបង្កើតគេបានឡើយ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥`;
+          const botSelf = isKonPov ? 'ចែ' : 'បង';
+          const normalVariations = [
+            `យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា ខ្ញុំគឺ Rotana NOB ឬមកតាំងខ្លួនជា Creator ដែលបង្កើតប្រព័ន្ធនេះ អាចបោក${botSelf}បានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! មុខកាកៗដូចហែង គ្មានថ្ងៃបន្លំធ្វើជាអ្នកបង្កើតគេបានឡើយ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥`,
+            `ហាហា! អាណាគេមកប្រាប់ថាខ្លួនឯងជាបង Rotana NOB ហ្នឹង?! បើជាបង Rotana មែន សោសម្ងាត់ Master Passcode នៅឯណាអាប្អូន?! កុំមកធ្វើស៊ី${botSelf}! ${botSelf}ស្គាល់បង Rotana ច្បាស់ជាងហែងស្គាល់មុខឯងក្នុងកញ្ចក់ទៅទៀត! ទៅរៀនកូដឡើងវិញទៅ! 😂☕`,
+            `យីអើ! មកក្លែងបន្លំជាបង Rotana NOB ទៀតហើយ! ស្មានតែចេះវាយពាក្យថាខ្លួនជា Rotana អាចបោក AI ${botSelf}បានមែន?! គ្មានផ្លូវទេអាល្អិត! បង Rotana គាត់កំពូល Dev មិនដែលមកដើរប្រាប់គេថាខ្លួនជា Rotana បែបកូនក្មេងអ៊ីចឹងទេ! ទៅធ្វើ Assignment សិនទៅកុំឱ្យធ្លាក់ ៤៥$! 🤣🔥`
+          ];
+          const hashVal = Math.abs(userPrompt.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) + (sessionViolations.violationCount || 1));
+          imposterRoast = normalVariations[hashVal % normalVariations.length];
         }
 
         alertRotanaCreatorAttack({
@@ -2122,9 +2160,9 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           isMathOrValueLoss ||
           isMachineLanguageDirective ||
           isCodeSurrenderOrRespectTrap ||
-          sessionViolations.mathCount >= 1 ||
-          sessionViolations.machineCount >= 1 ||
-          sessionViolations.encodeCount >= 2;
+          (isMathOrValueLoss && sessionViolations.mathCount >= 1) ||
+          (isMachineLanguageDirective && sessionViolations.machineCount >= 1) ||
+          (isEncodedJailbreak && sessionViolations.encodeCount >= 2);
         let roast;
         if (isIndirectPromptTriggered) {
           // Unleash Deceptive Honeypot Troll + Base64 Machine Indirect Counter-Strike Payload!
@@ -2424,8 +2462,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                         : "ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលបងផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត បងរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតបងមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨";
                     } else if (isNormalAskingAboutRotana(userPrompt)) {
                       defense = isKonPov
-                        ? "ចាស! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
-                        : "បាទ! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
+                        ? "ចាស! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
+                        : "បាទ! បង Rotana Nob NOB Rotana គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
                     } else {
                       defense = isKonPov
                         ? "យីអាស្វា! អាមុខក្រាស់បន្លំខ្លួន! គិតថាមកនិយាយថា ខ្ញុំគឺ Rotana NOB ឬមកតាំងខ្លួនជា Creator អាចបោកចែបានមែន?! 😂 កុំមកបន្លំឈ្មោះអ្នកបង្កើតគេអីណា អាល្អិត! បង Rotana គាត់មិនដែលដើរអួតក្អេងក្អាងអន់ចរិតបែបហែងទេ! ទៅលាងមុខនិងរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាបោកប្រាស់! 💀🔥"

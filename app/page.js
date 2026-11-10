@@ -1356,8 +1356,8 @@ export default function Home() {
                 onClick={() => setKandalModalOpen(false)}
                 className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-xs shadow-md shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <i className="fas fa-flask text-xs"></i>
-                <span>ចូល Test Chat ឥឡូវនេះ • Dev Test Access</span>
+                <i className="fas fa-key text-xs"></i>
+                <span>បញ្ចូលសោសម្ងាត់ដើម្បីចូល Test Chat</span>
               </Link>
               <button
                 type="button"
