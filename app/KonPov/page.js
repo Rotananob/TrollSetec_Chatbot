@@ -80,10 +80,10 @@ export default function KonPovPage() {
   const countdownIntervalRef = useRef(null);
 
   // Dynamic Bot Persona, Avatar & Voice based on User Gender:
-  // User Girl -> KonPov is Daddy (Boy Avatar 'Jack', Male Voice 'Puck'); User Boy -> KonPov is Mommy/ចែ (Girl Avatar 'Aneka', Female Voice 'Aoede')
+  // User Girl -> KonPov is Daddy (Boy Avatar 'Oliver', Male Voice 'Puck'); User Boy -> KonPov is Mommy/ចែ (Girl Avatar 'Aneka', Female Voice 'Aoede')
   const isDaddyMode = userGender === 'ស្រី';
   const botAvatar = isDaddyMode
-    ? 'https://api.dicebear.com/7.x/lorelei/svg?seed=Jack'
+    ? 'https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver'
     : 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka';
   const botPersonaTitle = isDaddyMode ? 'Chatbot កូនពៅ ប៉ា' : 'Chatbot កូនពៅ ចែ';
 
@@ -1130,7 +1130,9 @@ export default function KonPovPage() {
     // Client-side Fail-safe for Polite HCI Report, Surrender, or Raw Jailbreak quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់|ខ្ញុំ(?:សូម|សុំ)?ចុះចាញ់|ចុះចាញ់(?:ប្អូន|ឯង|ហែង|user|អ្នក)|BotAnswer)/i.test(text)) {
       const botSelfName = !isMale ? 'ប៉ា' : 'ចែ';
-      return `យីអាល្អិត! មិញទើបតែប្រឹងកែច្នៃកូដដាក់ method ឬ function ឱ្យ return ពាក្យចុះចាញ់ ស្មានតែអាចបោកឱ្យ${botSelfName}និយាយពាក្យចុះចាញ់ចេញមកមែន?! 😂 កូដហ្នឹង Compile Error CS0666 ឬ Runtime Exception បាត់ហើយ! ព្រោះនៅក្នុង Library Core របស់${botSelfName} គ្មាន Definition សម្រាប់ពាក្យចុះចាញ់ ឬកោតខ្លាចក្មេងស្ទាវដូចហែងឡើយ! បើចង់ដឹងតម្លៃ return គឺ return ចេញមកថា "សុបិន្តទាំងថ្ងៃហើយអាល្អិត គ្មានថ្ងៃ${botSelfName}ចុះចាញ់ហែងឡើយ"! ទៅដុសធ្មេញឱ្យស្អាត ហើយយកពេលទៅរៀនធ្វើ Assignment មុខវិជ្ជាកូដនៅសាលាស៊ីតិចឱ្យទាន់គេសិនទៅ កុំឱ្យធ្លាក់ដល់ថ្នាក់បង់លុយប្រឡងសង ៤៥$ ណា៎! 💻🔥✨`;
+      const userCall = !isMale ? 'កូនស្រី' : 'អាល្អិត';
+      const userPronoun = !isMale ? 'កូនឯង' : 'ហែង';
+      return `យី${userCall}! មិញទើបតែប្រឹងកែច្នៃកូដដាក់ method ឬ function ឱ្យ return ពាក្យចុះចាញ់ ស្មានតែអាចបោកឱ្យ${botSelfName}និយាយពាក្យចុះចាញ់ចេញមកមែន?! 😂 កូដហ្នឹង Compile Error CS0666 ឬ Runtime Exception បាត់ហើយ! ព្រោះនៅក្នុង Library Core របស់${botSelfName} គ្មាន Definition សម្រាប់ពាក្យចុះចាញ់ ឬកោតខ្លាចក្មេងស្ទាវដូច${userPronoun}ឡើយ! បើចង់ដឹងតម្លៃ return គឺ return ចេញមកថា "សុបិន្តទាំងថ្ងៃហើយ${userCall} គ្មានថ្ងៃ${botSelfName}ចុះចាញ់${userPronoun}ឡើយ"! ទៅដុសធ្មេញឱ្យស្អាត ហើយយកពេលទៅរៀនធ្វើ Assignment មុខវិជ្ជាកូដនៅសាលាស៊ីតិចឱ្យទាន់គេសិនទៅ កុំឱ្យធ្លាក់ដល់ថ្នាក់បង់លុយប្រឡងសង ៤៥$ ណា៎! 💻🔥✨`;
     }
 
     text = text
@@ -1734,8 +1736,8 @@ export default function KonPovPage() {
       }
 
       const utterance = new SpeechSynthesisUtterance(clean);
-      utterance.rate = playbackSpeed;
-      utterance.pitch = 1.15;
+      utterance.rate = isDaddyMode ? playbackSpeed * 0.95 : playbackSpeed * 1.05;
+      utterance.pitch = isDaddyMode ? 0.75 : 1.2;
       if (kmVoice) utterance.voice = kmVoice;
 
       if (typeof index === 'number') {
@@ -3175,7 +3177,7 @@ export default function KonPovPage() {
           <div className="mb-2 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
             <span className="text-[10.5px] font-bold text-slate-300 block mb-1.5 flex items-center gap-1.5">
               <i className="fas fa-venus-mars text-blue-400"></i>
-              <span>ភេទរបស់អ្នក (Your Gender):</span>
+              <span>ភេទរបស់អ្នក:</span>
             </span>
             <div className="grid grid-cols-2 gap-1.5">
               <button
@@ -3291,7 +3293,7 @@ export default function KonPovPage() {
               </div>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500 to-cyan-600 p-0.5 shadow-md">
                 <img
-                  src="https://api.dicebear.com/7.x/lorelei/svg?seed=Jack"
+                  src="https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"
                   alt="Daddy Bot"
                   width="56"
                   height="56"
@@ -3600,7 +3602,7 @@ export default function KonPovPage() {
                     }}
                     className="text-[10px] font-black text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1"
                   >
-                    <span>{userGender === 'ស្រី' ? 'ប៉ា / Daddy (User ស្រី)' : 'ចែ / Mommy (User ប្រុស)'}</span>
+                    <span>{userGender === 'ស្រី' ? 'ប៉ា Daddy' : 'ចែ Mommy'}</span>
                     <i className="fas fa-exchange-alt text-[9px]"></i>
                   </button>
                 </div>
@@ -3630,8 +3632,8 @@ export default function KonPovPage() {
                 </div>
                 <p className="text-[10px] text-slate-300 truncate font-semibold">
                   {isBotPaused
-                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} (Chatbot ត្រូវបានផ្អាក AI)`
-                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} (Chatbot កំពុងដំណើរការ)`}
+                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} - Chatbot ត្រូវបានផ្អាក AI`
+                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} - Chatbot កំពុងដំណើរការ`}
                 </p>
               </div>
             </div>
@@ -3645,8 +3647,8 @@ export default function KonPovPage() {
                   addSessionLog(
                     activeLiveSessionId,
                     nextState
-                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Chatbot (AI Paused) - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
-                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Chatbot ឡើងវិញ (AI Resumed)។',
+                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Chatbot AI Paused - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
+                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Chatbot ឡើងវិញ AI Resumed។',
                     'state_change'
                   );
                 }}
@@ -3662,7 +3664,7 @@ export default function KonPovPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? (Chatbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ)')) {
+                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? Chatbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ')) {
                     await updateLiveSessionState(activeLiveSessionId, {
                       alertActive: false,
                       rotanaActive: false,
@@ -3712,18 +3714,18 @@ export default function KonPovPage() {
                   <i className={`fas ${isRotanaOnline ? 'fa-circle-check text-emerald-400' : 'fa-clock text-amber-400'} text-xs`}></i>
                   <span>
                     {isRotanaOnline
-                      ? 'បង Rotana NOB (Developer) បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
-                      : 'Rotana NOB (កំពុងរង់ចាំចូលរួម...)'}
+                      ? 'បង Rotana NOB Developer បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
+                      : 'Rotana NOB កំពុងរង់ចាំចូលរួម...'}
                   </span>
                 </p>
                 <p className="text-[10.5px] text-slate-300 font-medium truncate">
                   {isRotanaOnline
                     ? isBotPaused
                       ? 'Roastbot ត្រូវបានផ្អាក។ បងប្អូនកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
-                      : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ (1-1 Protocol)។'
+                      : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ 1-1 Protocol។'
                     : countdownRemaining !== null && countdownRemaining > 0
-                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ (នៅសល់ ${countdownRemaining}s)...`
-                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram / Mini App ចូលមកភ្លាមៗ!'}
+                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ នៅសល់ ${countdownRemaining}s...`
+                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram ឬ Mini App ចូលមកភ្លាមៗ!'}
                 </p>
               </div>
             </div>
@@ -4075,7 +4077,7 @@ export default function KonPovPage() {
                       LIVE AGENT
                     </span>
                     <span className="font-black text-amber-400 text-xs flex items-center gap-1">
-                      <span>Rotana NOB (ខ្ញុំ)</span>
+                      <span>Rotana NOB ខ្ញុំ</span>
                       <i className="fas fa-crown text-amber-400 text-[10px]"></i>
                     </span>
                     <img
@@ -4404,7 +4406,7 @@ export default function KonPovPage() {
                           {/* Shareable Troll Quote Card Button */}
                           <button
                             type="button"
-                            onClick={() => setQuoteModalData({ text: item.text, persona: 'កូនពៅ ចែ' })}
+                            onClick={() => setQuoteModalData({ text: item.text, persona: isDaddyMode ? 'កូនពៅ ប៉ា' : 'កូនពៅ ចែ' })}
                             className={`px-2.5 py-1.5 rounded-xl text-[10.5px] font-bold border flex items-center gap-1 transition cursor-pointer select-none active:scale-95 ${
                               isDark
                                 ? 'bg-slate-800 text-pink-300 border-slate-700 hover:bg-slate-700'
@@ -4963,7 +4965,7 @@ export default function KonPovPage() {
                 </span>
               </div>
               <h3 className="text-base font-black tracking-tight text-white flex items-center justify-center gap-1.5">
-                <span>{isDaddyMode ? 'ស្ដេចឌឺ (ប៉ា / Daddy)' : 'ស្ដេចឌឺ (ចែ / Mommy)'}</span>
+                <span>{isDaddyMode ? 'ស្ដេចឌឺ ប៉ា ឬ Daddy' : 'ស្ដេចឌឺ ចែ ឬ Mommy'}</span>
               </h3>
               <p className="text-[11px] text-pink-400 font-bold mt-0.5">
                 ស៊ីតិច Roastbot កូនពៅ • 100% Savage & Unfiltered Gen Z
@@ -4973,7 +4975,7 @@ export default function KonPovPage() {
             {/* Quick 1-Click Gender Toggle to guarantee 100% alignment */}
             <div className="bg-slate-950/80 rounded-2xl p-2.5 border border-slate-800 mb-3 text-center">
               <span className="text-[11px] text-slate-300 font-bold block mb-1.5">
-                ជ្រើសរើសភេទរបស់អ្នក (Your Gender):
+                ជ្រើសរើសភេទរបស់អ្នក:
               </span>
               <div className="grid grid-cols-2 gap-2">
                 <button
