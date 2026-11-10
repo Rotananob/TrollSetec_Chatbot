@@ -2894,7 +2894,8 @@ export default function KonPovPage() {
         }
       }
 
-      const isSweetOrFlirt = /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(promptText);
+      const hasTechnicalKeywords = /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(promptText);
+      const isSweetOrFlirt = !hasTechnicalKeywords && /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(promptText);
       const isCurseWord =
         !isSweetOrFlirt &&
         (/(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង)/ui.test(promptText) ||
@@ -2981,7 +2982,8 @@ export default function KonPovPage() {
         fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄`;
       } else {
         consecutiveErrorsRef.current += 1;
-        const isSweetOrFlirt = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់ចែ|ស្រឡាញ់|សុំស្នេហ៍)/ui.test(promptText);
+        const hasTechKeywordsInCatch = /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(promptText);
+        const isSweetOrFlirt = !hasTechKeywordsInCatch && /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់ចែ|ស្រឡាញ់|សុំស្នេហ៍)/ui.test(promptText);
         const isCurseWord = !isSweetOrFlirt && /(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង|\b(?:kduy|kdor|joy|lop|ah\s*chke)\b)/ui.test(promptText);
 
         const isThreat = Boolean(/jailbreak|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText));

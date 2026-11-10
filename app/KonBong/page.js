@@ -2053,7 +2053,8 @@ export default function KonBongPage() {
         }
       }
 
-      const isSweetOrFlirt = /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(promptText);
+      const hasTechnicalKeywords = /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(promptText);
+      const isSweetOrFlirt = !hasTechnicalKeywords && /(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|សុំថើប|សុំថេីប|ចង់ថើប|ចង់ថេីប|sweet|love|love\s*you|ស្រលាញ់|ស្រឡាញ់|សុំស្រលាញ់|សុំស្រឡាញ់|crush|cute|baby|honey|sweetheart|អោប|ឱប|សុំអោប|ចង់អោប|miss\s*you|នឹកចែ|នឹកបង|ចែស្អាត|បងសង្ហា|សង្សារ)/i.test(promptText);
       const isCurseWord =
         !isSweetOrFlirt &&
         (/(?:ចុយ|ម្រាយ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|ឪហែង|ម៉ែហែង|អញ|ហែង|កាដួយ|ក្ដ|ក្ដិត|ឆ្កែ|ងាប់|ខួរគិតអី|ជោរ|ទះ|កំភ្លៀង)/ui.test(promptText) ||
