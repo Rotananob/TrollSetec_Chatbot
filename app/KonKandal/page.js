@@ -52,7 +52,7 @@ const getBypassHeaders = () => {
   const kandalKey =
     sessionStorage.getItem('konkandal_access_key') ||
     localStorage.getItem('konkandal_access_key') ||
-    '11112026';
+    '11112003';
   const headers = {};
   if (adminSecret) {
     headers['x-rotana-secret-key'] = adminSecret;
@@ -77,7 +77,7 @@ export default function KonKandalPage() {
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [selectedSessionModal, setSelectedSessionModal] = useState(null);
 
-  // KonKandal Restricted Dev Lock Key (11112026)
+  // KonKandal Restricted Dev Lock Key (11112003)
   const [isKandalUnlocked, setIsKandalUnlocked] = useState(false);
   const [kandalKeyInput, setKandalKeyInput] = useState('');
   const [kandalKeyError, setKandalKeyError] = useState('');
@@ -175,7 +175,7 @@ export default function KonKandalPage() {
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
 
-  // Check Restricted Dev Lock Key (11112026)
+  // Check Restricted Dev Lock Key (11112003)
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -186,7 +186,7 @@ export default function KonKandalPage() {
       const isMaster =
         adminPass === 'rotana2026' ||
         adminPass === 'rotana' ||
-        stored === '11112026' ||
+        stored === '11112003' ||
         stored === 'rotana2026';
       if (isMaster) {
         setIsKandalUnlocked(true);
@@ -203,9 +203,9 @@ export default function KonKandalPage() {
       setKandalKeyError('សូមបញ្ចូលលេខកូដសោសម្ងាត់');
       return;
     }
-    if (candidate === '11112026' || candidate === 'rotana2026' || candidate === 'rotana') {
-      sessionStorage.setItem('konkandal_access_key', '11112026');
-      localStorage.setItem('konkandal_access_key', '11112026');
+    if (candidate === '11112003' || candidate === 'rotana2026' || candidate === 'rotana') {
+      sessionStorage.setItem('konkandal_access_key', '11112003');
+      localStorage.setItem('konkandal_access_key', '11112003');
       setKandalKeyError('');
       setIsKandalUnlocked(true);
     } else {
@@ -3245,7 +3245,7 @@ export default function KonKandalPage() {
                 ) : (
                   <span className="flex items-center gap-1.5 truncate">
                     <span className="truncate">ស៊ីតិច កូនកណ្ដាល</span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-mono text-[9px] font-bold">Key: 11112026</span>
+                    <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-mono text-[9px] font-bold">Unlocked</span>
                     <button
                       type="button"
                       onClick={handleRelockKandal}

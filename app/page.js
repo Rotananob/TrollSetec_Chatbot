@@ -55,10 +55,10 @@ export default function Home() {
       setKandalKeyError('សូមបញ្ចូលលេខកូដសោសម្ងាត់');
       return;
     }
-    if (candidate === '11112026' || candidate === 'rotana2026' || candidate === 'rotana') {
+    if (candidate === '11112003' || candidate === 'rotana2026' || candidate === 'rotana') {
       try {
-        sessionStorage.setItem('konkandal_access_key', '11112026');
-        localStorage.setItem('konkandal_access_key', '11112026');
+        sessionStorage.setItem('konkandal_access_key', '11112003');
+        localStorage.setItem('konkandal_access_key', '11112003');
       } catch {}
       setKandalKeyError('');
       setKandalModalOpen(false);
@@ -1429,7 +1429,7 @@ export default function Home() {
                       setKandalKeyInput(e.target.value);
                       setKandalKeyError('');
                     }}
-                    placeholder="បញ្ចូលកូដសោ 11112026..."
+                    placeholder="បញ្ចូលលេខកូដសោសម្ងាត់..."
                     className="w-full px-3.5 py-2 pl-9 rounded-xl border bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-mono tracking-wider focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                   />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">

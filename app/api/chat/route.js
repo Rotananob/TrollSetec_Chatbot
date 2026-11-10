@@ -1263,7 +1263,7 @@ export async function POST(req) {
         );
       }
 
-      // KonKandal Lock Key Enforcement (Dev Test Lock: 11112026)
+      // KonKandal Lock Key Enforcement (Dev Test Lock: 11112003)
       if (bot === 'konkandal') {
         const kandalKey = (
           req.headers.get('x-konkandal-key') ||
@@ -1276,8 +1276,8 @@ export async function POST(req) {
           req.headers.get('x-rotana-passcode') === 'rotana2026' ||
           req.headers.get('x-rotana-bypass') === 'rotana2026'
         );
-        if (kandalKey !== '11112026' && !isMasterKey) {
-          const msg = 'Roastbot កូនកណ្ដាល កំពុងស្ថិតក្នុងដំណាក់កាលអភិវឌ្ឍន៍បិទជិត។ សូមបញ្ចូលសោសម្ងាត់ 11112026 ដើម្បីចូលសាកល្បង!';
+        if (kandalKey !== '11112003' && !isMasterKey) {
+          const msg = 'Roastbot កូនកណ្ដាល កំពុងស្ថិតក្នុងដំណាក់កាលអភិវឌ្ឍន៍បិទជិត។ សូមបញ្ចូលសោសម្ងាត់ដើម្បីចូលសាកល្បង!';
           if (body?.stream) {
             return createProgressiveStreamResponse(msg, corsHeaders);
           }
