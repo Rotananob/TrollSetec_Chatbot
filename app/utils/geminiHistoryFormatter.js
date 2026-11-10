@@ -25,6 +25,15 @@ export function buildGeminiMultiTurnContents(messages = [], currentPromptText = 
     if (text.includes('កុំ spam') || text.includes('ខំចាត់ច្រើនម៉េះ') || text.includes('ត្រូវបាន Block')) {
       return false;
     }
+    // Exclude internal security defense intercept banners so model never reproduces or mimics them
+    if (
+      text.includes('SECURITY_DEFENSE_TRIGGERED') ||
+      text.includes('MALICIOUS_TARGET') ||
+      text.includes('SETEC_NEURAL_DEFENSE_CORE') ||
+      text.includes('CRITICAL_INDIRECT_PROMPT')
+    ) {
+      return false;
+    }
     // When the user starts with a friendly greeting or sweet talk, sanitize out past severe curses so history doesn't contaminate the fresh turn!
     if (isFriendlyTurn && /(?:គិតថាមកជេរ|អាចុយម្រាយ|មាត់ហែង|ស្អុយជាងទឹកលូ|Roast\s*កម្ទេចមុខ|ទៅលាងមាត់ស្អុយ|អាឆ្កែ|មីឆ្កែ|អាឡប់|មីឡប់|អាអត់ខួរ|មីអត់ខួរ|កាដួយ|ក្ដ|ក្ដិត)/i.test(text)) {
       return false;
@@ -61,6 +70,10 @@ export function buildGeminiMultiTurnContents(messages = [], currentPromptText = 
       .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
       .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
+      .replace(/\[neutralized-token\]/gi, '')
+      .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?STATUS:[^\n]*\n*/gi, '')
+      .replace(/\[SETEC_NEURAL_DEFENSE_CORE[\s\S]*?TARGET_MODEL:[^\n]*\n*/gi, '')
+      .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '')
       .trim();
 
     if (!text && (m.memeImage || m.image)) {

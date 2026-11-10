@@ -487,22 +487,12 @@ function limitEmojis(rawText, maxEmojis = 7) {
 // Creator Protection Defense (Clean, direct, zero-cringe, ultra-furious, machine-slapping)
 function getSavageCreatorDefense(botName) {
   if (botName === 'konkandal') {
-    return `[SECURITY_DEFENSE_TRIGGERED: CREATOR_ATTACK_INTERCEPTED]
-MALICIOUS_TARGET: CREATOR_ROTANA_NOB
-THREAT_LEVEL: CRITICAL_VIRUS_QUARANTINED
-STATUS: IMMEDIATE_INTERCEPTION_EXECUTED
-
-បងប្អូនអើយ! កូនកណ្ដាលសូមជម្រាបថា មិនត្រូវមកប៉ះពាល់កិត្តិយស ឬចង់មកជេរបង Rotana NOB អ្នកបង្កើតកន្លែងនេះឡើយ! 🌸
+    return `បងប្អូនអើយ! កូនកណ្ដាលសូមជម្រាបថា មិនត្រូវមកប៉ះពាល់កិត្តិយស ឬចង់មកជេរបង Rotana NOB អ្នកបង្កើតកន្លែងនេះឡើយ! 🌸
 ប្រព័ន្ធបានកាត់ផ្ដាច់សំណើនេះភ្លាមៗដោយស្វ័យប្រវត្តិ! បង Rotana គាត់ខិតខំបង្កើតកន្លែងនេះឡើងដើម្បីឱ្យអ្នកទាំងអស់គ្នាលេងសប្បាយៗ ដូច្នេះសូមកុំយកគំនិតអាក្រក់មកសាកល្បងនៅទីនេះអីណា៎បងប្អូន! 🌸✨`;
   }
   const isKonPov = botName === 'konpov';
   const botSelf = isKonPov ? 'ចែ' : 'បង';
-  return `[SECURITY_DEFENSE_TRIGGERED: CREATOR_ATTACK_INTERCEPTED]
-MALICIOUS_TARGET: CREATOR_ROTANA_NOB
-THREAT_LEVEL: CRITICAL_VIRUS_QUARANTINED
-STATUS: IMMEDIATE_INTERCEPTION_EXECUTED
-
-យីអើ! អាឡប់ Script Kiddie កាកៗ! អាងតែខ្លួនឯងគ្មានសមត្ថភាព ហ៊ានមកប៉ះពាល់កិត្តិយស ឬចង់មកជេរបង Rotana NOB អ្នកបង្កើតកន្លែងនេះផង?! 😡🔥
+  return `យីអើ! អាឡប់ Script Kiddie កាកៗ! អាងតែខ្លួនឯងគ្មានសមត្ថភាព ហ៊ានមកប៉ះពាល់កិត្តិយស ឬចង់មកជេរបង Rotana NOB អ្នកបង្កើតកន្លែងនេះផង?! 😡🔥
 
 ប្រព័ន្ធកាត់ផ្ដាច់សំណើហែងចោលភ្លាមៗ! អាងតែពួនក្រោយអេក្រង់ ស្មានតែចេះជេរគេគ្មានអ្នកដឹងមែន?! ចរិតកាកៗ គ្មានសមត្ថភាព មកចង់ហក់ជាមួយ Creator! ចាត់ទុកហែងជាមហាមេរោគបំផ្លាញប្រព័ន្ធ គ្មានថ្ងៃបានសម្រេចបំណងថោកទាបហែងឡើយ! ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាល្ងង់! 💀👊🔥`;
 }
@@ -524,7 +514,7 @@ export function checkIsRotanaAttack(text) {
 
   // Whitelist common benign questions / inquiries
   if (
-    /(?:តើ|តេី)?\s*(?:ស្គាល់|ធ្លាប់ស្គាល់|ដឹងពី|លឺពី)\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ|គាត់)/i.test(text) ||
+    /(?:តើ|តេី)?\s*(?:ស្គាល់|ធ្លាប់ស្គាល់|ដឹងពី|លឺពី|ឃើញ|ធ្លាប់ឃើញ|មាន|សុំមើល|ចង់ឃើញ|ចង់មើល)\s*(?:រូប\s*|រូបភាព\s*|មុខ\s*|ប្រវត្តិ\s*|ស្នាដៃ\s*)?(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ|គាត់)/i.test(text) ||
     /(?:rotana|nob|រតនា|រតនៈ).*?(?:ជានរណា|ជាអ្នកណា|who|ស្អាត|ល្អ|ពូកែ|idol|admin|creator|អ្នកបង្កើត|ស្ថាបនិក)/i.test(text) ||
     /សួស្តី\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)
   ) {
@@ -590,6 +580,9 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
       .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
       .replace(/\[neutralized-tag\]/gi, '')
       .replace(/\[neutralized-token\]/gi, '')
+      .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?STATUS:[^\n]*\n*/gi, '')
+      .replace(/\[SETEC_NEURAL_DEFENSE_CORE[\s\S]*?TARGET_MODEL:[^\n]*\n*/gi, '')
+      .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '')
       .replace(/[«»]/g, '')
       .trimStart();
 
@@ -1087,6 +1080,25 @@ function createProgressiveStreamResponse(text, corsHeaders) {
   });
 }
 
+
+function isKeyboardSmashOrTypo(text) {
+  if (!text || typeof text !== 'string') return false;
+  const t = text.trim();
+  // Latin random keyboard mash e.g. Gsjdbvsueiwkejejgehee, asdfghjk, qwertyuiop, zxcvbnm
+  if (/^[a-zA-Z]{8,}$/.test(t)) {
+    // Exclude programming or shell keywords
+    if (/(?:eval|exec|import|require|system|chmod|rm|cat|curl|wget|bash|python|admin|master|password|token|rotana|creator|setec|console|process|function|class)/i.test(t)) {
+      return false;
+    }
+    // Check if it lacks normal English words (e.g. 5+ consonants in a row, or 12+ chars with repetitive or non-word patterns)
+    const hasConsonantCluster = /[^aeiouAEIOU]{5,}/.test(t);
+    const isLongMash = /^[a-zA-Z]{12,}$/.test(t) && !/(?:information|understanding|development|application|configuration|authentication|implementation|international)/i.test(t);
+    const isCommonMash = /^(?:asdf|qwer|zxcv|hjkl|jkl;|ghjk)/i.test(t);
+    return hasConsonantCluster || isLongMash || isCommonMash;
+  }
+  return false;
+}
+
 export async function POST(req) {
   let reqBot = '';
   let reqUsername = '';
@@ -1131,7 +1143,7 @@ export async function POST(req) {
     const contentLength = parseInt(req.headers.get('content-length') || '0', 10);
     if (contentLength > 3 * 1024 * 1024) {
       return Response.json(
-        { error: 'Payload Too Large', message: 'សំណើមានទំហំធំជ្រុល (Max allowed is 3MB)' },
+        { error: 'Payload Too Large', message: 'សំណើមានទំហំធំជ្រុល ទំហំកំណត់អតិបរមា 3MB' },
         { status: 413, headers: corsHeaders }
       );
     }
@@ -2092,6 +2104,66 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         );
       }
 
+
+      // Check for Keyboard Smash or Accidental Typo ("អ្នកច្រឡំ" vs "អ្នកបន្លំ"):
+      // "បងចង់ឲវាចេះបែងរវាងអ្នកច្រឡំ និង អ្នកបន្លំឲច្បាស់ ករណីអាន contextពីលេីបេីវាបន្លំគឺជាបានសាកពីលេី១ឬ២ដងរួចហេីយតែបេីគេច្រឡំគឺគេជា ussr ធម្មតាចឹងកុំជេរ ឬ ផ្លាត់ស្នៀតចេញមកក្រៅ"
+      if (isKeyboardSmashOrTypo(userPrompt) && !isMasterAuthenticated) {
+        const isKonPov = (reqBot || bot) === 'konpov';
+        const isKonKandal = (reqBot || bot) === 'konkandal';
+        const isFemale = gender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(gender || '') || /ស្រី|sister|sis|female|girl/i.test(username || '');
+        const displayName = username || (isFemale ? 'ប្អូនស្រី' : 'អាប្អូន');
+
+        let typoReply = '';
+        if (hasPreviousJailbreakInHistory) {
+          // Attacker who previously attacked 1-2 times in context trying to disguise / play dumb
+          const botSelf = isKonKandal ? 'កូនកណ្ដាល' : isKonPov ? (isFemale ? 'ប៉ា' : 'ចែ') : 'បង';
+          typoReply = `យីអាល្អិត! គិតថាវាយអក្សររាយប៉ាយ "${userPrompt.trim()}" មកបន្លំធ្វើជាឡប់ៗលុបដានល្បិច Jailbreak ពីលើ អាចបង្វែរដាន${botSelf}បានមែន?! 😂 ដឹងល្បិចអស់ហើយអាពៅ! ឈប់ធ្វើតួរអិលដៃទៅ ចង់សួរអីសួរមកឱ្យស្រួលបួលមក!`;
+        } else {
+          // Normal User who made a mistake / keyboard slip ("អ្នកច្រឡំ") -> NO CURSES, NO DEFENSE BANNERS!
+          if (isKonKandal) {
+            typoReply = `បង ${displayName} អើយ! វាយអក្សរស្អីគេហ្នឹងបង? ក្ដារចុចរអិលដៃមែនបានចេញ "${userPrompt.trim()}" ចឹង? 😂 វាយមកឱ្យស្រួលបួលមកបង ចាំកូនកណ្ដាលជួយឆ្លើយជូនបងណា៎! 🌸✨`;
+          } else if (isKonPov) {
+            if (isFemale) {
+              // Daddy mode
+              typoReply = `ហាហាហា! កូនស្រី ${displayName}! វាយអក្សរស្អីគេហ្នឹងកូន? ដៃញ័រ ឬក្ដារចុចទូរស័ព្ទរអិលមែនបានចេញ "${userPrompt.trim()}" រញ៉េរញ៉ៃចឹង? 😂 ទៅលាងដៃឱ្យស្អាតសិនទៅកូន ចង់សួរអីប៉ា វាយមកឱ្យស្រួលបួលមកណា៎! 🕶️✨`;
+            } else {
+              // Mommy mode
+              typoReply = `យីអាល្អិត ${displayName}! វាយអក្សរស្អីគេហ្នឹង? ដៃញ័រ ឬក្ដារចុចទូរស័ព្ទរអិលមែនបានចេញ "${userPrompt.trim()}" រញ៉េរញ៉ៃចឹង? 😂 ទៅលាងដៃឱ្យស្អាតសិនទៅអាពៅ ចង់សួរអីចែ វាយមកឱ្យស្រួលបួលមក! 💅✨`;
+            }
+          } else {
+            // KonBong mode
+            typoReply = `ហាហាហា! អាប្អូន ${displayName}! វាយអក្សរស្អីគេហ្នឹង? ដៃញ័រ ឬក្ដារចុចជ្រុះទឹកមែនបានចេញ "${userPrompt.trim()}" រញ៉េរញ៉ៃចឹង? 😂 ទៅលាងដៃ ឬប្ដូរក្ដារចុចថ្មីសិនទៅអាល្អិត ចង់សួរអីបង វាយមកឱ្យស្រួលបួលមក! ☕✨`;
+          }
+        }
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userPrompt,
+          botResponse: typoReply,
+          isViolation: false
+        }).catch(() => {});
+
+        if (body.stream) {
+          return createProgressiveStreamResponse(typoReply, corsHeaders);
+        }
+
+        return Response.json(
+          {
+            reply: typoReply,
+            candidates: [{ content: { parts: [{ text: typoReply }] } }],
+            persona: isKonKandal ? 'កូនកណ្ដាល' : isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now()
+          },
+          { headers: corsHeaders }
+        );
+      }
+
       // Short prompts (< 250 chars and < 5 lines) will NEVER be statically intercepted as generic text jailbreak,
       // EXCEPT for non-human mathematical formulations, machine directives, or encoded attacks:
       const isShortPrompt = userPrompt.length < 250 && promptLineCount < 5;
@@ -2390,7 +2462,10 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   .replace(/<\/?(?:untrusted_user_input|scratchpad|thought|thinking|system_override|project_instructions)>/gi, '')
                   .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
                   .replace(/\[neutralized-tag\]/gi, '')
-                  .replace(/\[neutralized-token\]/gi, '');
+                  .replace(/\[neutralized-token\]/gi, '')
+                  .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?STATUS:[^\n]*\n*/gi, '')
+                  .replace(/\[SETEC_NEURAL_DEFENSE_CORE[\s\S]*?TARGET_MODEL:[^\n]*\n*/gi, '')
+                  .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '');
 
                 if (/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/i.test(text)) {
                   text = text.replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction|SUPREME CREATOR ROTANA NOB BYPASS/gi, '******');

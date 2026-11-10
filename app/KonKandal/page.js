@@ -244,6 +244,10 @@ export default function KonKandalPage() {
   const [audioStates, setAudioStates] = useState({}); // key: msgIndex -> 'loading'|'ready'|'playing'|'paused'|'ended'|'error'
   const [activeAudioIndex, setActiveAudioIndex] = useState(null);
   const [isTtsMuted, setIsTtsMuted] = useState(false);
+  const isTtsMutedRef = useRef(false);
+  const [audioCountdownMap, setAudioCountdownMap] = useState({});
+  const audioCountdownTimerRef = useRef(null);
+  const activeAudioAbortCtrlRef = useRef(null);
   const activeAudioRequestRef = useRef(0);
   const consecutiveErrorsRef = useRef(0);
 

@@ -209,6 +209,10 @@ export default function KonPovPage() {
   const activeSourceNodeRef = useRef(null);
   const [activeVoiceIndex, setActiveVoiceIndex] = useState(null);
   const [isTtsMuted, setIsTtsMuted] = useState(false);
+  const isTtsMutedRef = useRef(false);
+  const [audioCountdownMap, setAudioCountdownMap] = useState({});
+  const audioCountdownTimerRef = useRef(null);
+  const activeAudioAbortCtrlRef = useRef(null);
   const activeAudioRequestRef = useRef(0);
   const consecutiveErrorsRef = useRef(0);
 
@@ -333,10 +337,13 @@ export default function KonPovPage() {
   }
 
   async function fetchAudio(text, gender, index) {
+    // HARD AUDIO GATE: If voice is muted/shut down, NEVER fetch from server
+    if (isTtsMutedRef.current || isTtsMuted) return null;
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const speechText = cleanSpeechText(text);
       if (!speechText) return null;
+      if (isTtsMutedRef.current || isTtsMuted) return null;
       const deviceId = getDeviceId();
       const endpoint = getApiEndpoint('/api/chat');
 
@@ -346,6 +353,15 @@ export default function KonPovPage() {
       const isFemaleUser = activeGender === 'ស្រី' || /ស្រី|female|girl/i.test(activeGender);
       const voiceName = isFemaleUser ? 'Puck' : 'Aoede';
       const voiceTag = isFemaleUser ? 'daddy' : 'mommy';
+
+      if (activeAudioAbortCtrlRef.current) {
+        try { activeAudioAbortCtrlRef.current.abort(); } catch {}
+      }
+      const fetchCtrl = new AbortController();
+      activeAudioAbortCtrlRef.current = fetchCtrl;
+      const timeoutId = setTimeout(() => {
+        try { fetchCtrl.abort(); } catch {}
+      }, 15000);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -368,24 +384,31 @@ export default function KonPovPage() {
           username: username || 'User',
           gender: activeGender
         }),
-        signal: AbortSignal.timeout(15000)
+        signal: fetchCtrl.signal
       });
+      clearTimeout(timeoutId);
 
+      // Check gate again immediately after network response
+      if (isTtsMutedRef.current || isTtsMuted) return null;
       if (!response.ok) return null;
 
       const result = await response.json();
+      if (isTtsMutedRef.current || isTtsMuted) return null;
+
       const isFallback = !!result.isFallbackBotVoice;
       if (typeof index === 'number') {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: isFallback }));
       }
-      if (isFallback) {
-        setBotReadingNotice(true);
-        setAiReadingNotice(false);
-        setTimeout(() => setBotReadingNotice(false), 4500);
-      } else {
-        setAiReadingNotice(true);
-        setBotReadingNotice(false);
-        setTimeout(() => setAiReadingNotice(false), 4500);
+      if (!isTtsMutedRef.current && !isTtsMuted) {
+        if (isFallback) {
+          setBotReadingNotice(true);
+          setAiReadingNotice(false);
+          setTimeout(() => setBotReadingNotice(false), 4500);
+        } else {
+          setAiReadingNotice(true);
+          setBotReadingNotice(false);
+          setTimeout(() => setAiReadingNotice(false), 4500);
+        }
       }
       const inlineData = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData?.data)?.inlineData;
       if (!inlineData?.data) return { blob: null, isFallback: true, b64Data: null };
@@ -1791,10 +1814,45 @@ export default function KonPovPage() {
   const toggleTtsMute = () => {
     setIsTtsMuted((prev) => {
       const next = !prev;
+      isTtsMutedRef.current = next;
       if (typeof window !== 'undefined') {
         localStorage.setItem('setec_tts_disabled', next ? '1' : '0');
       }
       if (next) {
+        // HARD AUDIO GATE SHUTDOWN: Cut off all sound, abort fetches, clear all reading notices
+        activeAudioRequestRef.current += 1;
+        if (activeAudioAbortCtrlRef.current) {
+          try {
+            activeAudioAbortCtrlRef.current.abort();
+          } catch {}
+          activeAudioAbortCtrlRef.current = null;
+        }
+        if (audioCountdownTimerRef.current) {
+          clearInterval(audioCountdownTimerRef.current);
+          audioCountdownTimerRef.current = null;
+        }
+        setAudioCountdownMap({});
+
+        if (activeSourceNodeRef.current) {
+          try {
+            activeSourceNodeRef.current.onended = null;
+            activeSourceNodeRef.current.stop();
+          } catch {}
+          activeSourceNodeRef.current = null;
+        }
+        if (audioPlayerRef.current) {
+          try {
+            audioPlayerRef.current.pause();
+            audioPlayerRef.current.currentTime = 0;
+          } catch {}
+        }
+        if (noteAudioRef.current) {
+          try {
+            noteAudioRef.current.pause();
+            noteAudioRef.current.currentTime = 0;
+          } catch {}
+          setIsNoteAudioPlaying(false);
+        }
         stopAllGlobalAudio();
         if (typeof window !== 'undefined' && window.speechSynthesis) {
           window.speechSynthesis.cancel();
@@ -1803,7 +1861,10 @@ export default function KonPovPage() {
           clearTimeout(autoPlayTimerRef.current);
           autoPlayTimerRef.current = null;
         }
+        setAiReadingNotice(false);
+        setBotReadingNotice(false);
         setActiveVoiceIndex(null);
+        setAudioStatuses({});
       }
       return next;
     });
@@ -1811,11 +1872,14 @@ export default function KonPovPage() {
 
   const triggerAudio = async (rawAudioText, index, autoPlay = false) => {
     if (!rawAudioText) return;
-    if (isTtsMuted) {
+    if (isTtsMutedRef.current || isTtsMuted) {
       stopAllGlobalAudio();
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
       }
+      setAiReadingNotice(false);
+      setBotReadingNotice(false);
+      setActiveVoiceIndex(null);
       return;
     }
     const text = String(rawAudioText);
@@ -1947,15 +2011,17 @@ export default function KonPovPage() {
         setActiveVoiceIndex(index);
         setExclusiveVoiceState(index, 'playing');
 
-        if (isFallback) {
-          setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-          setBotReadingNotice(true);
-          setAiReadingNotice(false);
-          setTimeout(() => setBotReadingNotice(false), 4500);
-        } else {
-          setAiReadingNotice(true);
-          setBotReadingNotice(false);
-          setTimeout(() => setAiReadingNotice(false), 4500);
+        if (!isTtsMutedRef.current && !isTtsMuted) {
+          if (isFallback) {
+            setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+            setBotReadingNotice(true);
+            setAiReadingNotice(false);
+            setTimeout(() => setBotReadingNotice(false), 4500);
+          } else {
+            setAiReadingNotice(true);
+            setBotReadingNotice(false);
+            setTimeout(() => setAiReadingNotice(false), 4500);
+          }
         }
 
         source.onended = () => {
@@ -1977,25 +2043,51 @@ export default function KonPovPage() {
 
     if (!audioCacheRef.current.has(hash) && !audioBufferCacheRef.current.has(hash)) {
       setExclusiveVoiceState(index, 'loading');
-      setTimeout(() => {
-        setAudioStatuses((prev) => (prev[index] === 'loading' ? { ...prev, [index]: 'ready' } : prev));
-      }, 8500);
+      setAudioCountdownMap((prev) => ({ ...prev, [index]: 5 }));
+      if (audioCountdownTimerRef.current) {
+        clearInterval(audioCountdownTimerRef.current);
+      }
+      audioCountdownTimerRef.current = setInterval(() => {
+        setAudioCountdownMap((prev) => {
+          const currentSec = prev[index] !== undefined ? prev[index] : 5;
+          return { ...prev, [index]: Math.max(1, currentSec - 1) };
+        });
+      }, 1000);
     }
 
-    const audioUrl = await loadAudioUrl(text, userGender, index);
-    if (activeAudioRequestRef.current !== reqId) return;
+    let audioUrl = null;
+    try {
+      audioUrl = await loadAudioUrl(text, userGender, index);
+    } finally {
+      if (audioCountdownTimerRef.current) {
+        clearInterval(audioCountdownTimerRef.current);
+        audioCountdownTimerRef.current = null;
+      }
+      setAudioCountdownMap((prev) => {
+        const copy = { ...prev };
+        delete copy[index];
+        return copy;
+      });
+    }
+
+    if (activeAudioRequestRef.current !== reqId || isTtsMutedRef.current || isTtsMuted) {
+      setAudioStatuses((prev) => (prev[index] === 'loading' ? { ...prev, [index]: 'ready' } : prev));
+      return;
+    }
 
     const audioData = audioDataMapRef.current.get(hash);
     const isFallback = !!(audioData?.isFallback || fallbackAudioMap[index]);
-    if (isFallback) {
-      setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
-      setBotReadingNotice(true);
-      setAiReadingNotice(false);
-      setTimeout(() => setBotReadingNotice(false), 4500);
-    } else {
-      setAiReadingNotice(true);
-      setBotReadingNotice(false);
-      setTimeout(() => setAiReadingNotice(false), 4500);
+    if (!isTtsMutedRef.current && !isTtsMuted) {
+      if (isFallback) {
+        setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
+        setBotReadingNotice(true);
+        setAiReadingNotice(false);
+        setTimeout(() => setBotReadingNotice(false), 4500);
+      } else {
+        setAiReadingNotice(true);
+        setBotReadingNotice(false);
+        setTimeout(() => setAiReadingNotice(false), 4500);
+      }
     }
 
     // Primary Playback Engine: Web Audio API (Decodes ArrayBuffer asynchronously & plays on unlocked AudioContext)
@@ -4295,7 +4387,14 @@ export default function KonPovPage() {
                             type="button"
                             onClick={() => {
                               if (isTtsMuted) {
-                                toggleTtsMute();
+                                setIsTtsMuted(false);
+                                isTtsMutedRef.current = false;
+                                if (typeof window !== 'undefined') {
+                                  localStorage.setItem('setec_tts_disabled', '0');
+                                }
+                                setTimeout(() => {
+                                  triggerAudio(item.text, idx);
+                                }, 50);
                               } else {
                                 triggerAudio(item.text, idx);
                               }
@@ -4313,19 +4412,19 @@ export default function KonPovPage() {
                                   ? 'bg-sky-500/20 text-sky-300 border-sky-400 hover:bg-sky-500/30 shadow-md shadow-sky-500/20 ring-1 ring-sky-400/40 font-black'
                                   : 'bg-sky-50 text-sky-900 border-sky-300 hover:bg-sky-100 shadow-xs ring-1 ring-sky-400/30 font-black'
                             }`}
-                            title={isTtsMuted ? 'សំឡេងអានត្រូវបានបិទ ចុចដើម្បីបើកសំឡេង' : isFallbackVoice ? 'Bot អានជំនួស ដោយសារ AI Voice កំពុងជាប់រវល់' : 'ចុចដើម្បីស្ដាប់សំឡេង AI Voice'}
+                            title={isTtsMuted ? 'សំឡេងអានត្រូវបានបិទទ្វារ ចុចដើម្បីបើកទ្វារស្ដាប់' : isFallbackVoice ? 'Bot អានជំនួស ដោយសារ AI Voice កំពុងជាប់រវល់' : 'ចុចដើម្បីស្ដាប់សំឡេង AI Voice'}
                           >
                             {isTtsMuted ? (
                               <>
                                 <i className="fas fa-volume-xmark text-rose-500 dark:text-rose-400"></i>
-                                <span>សំឡេងអាន បិទ</span>
+                                <span>សំឡេងអាន បិទ • ចុចបើក</span>
                               </>
                             ) : (
                               <>
                                 {isThisItemLoading && (
                                   <>
                                     <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
-                                    <span>កំពុងរៀបចំសំឡេង...</span>
+                                    <span>កំពុងទាញសំឡេង {audioCountdownMap[idx] || 5}s...</span>
                                   </>
                                 )}
                                 {isThisItemPlaying && (
