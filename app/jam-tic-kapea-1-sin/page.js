@@ -27,7 +27,7 @@ export default function JamTicKapeaAdminPage() {
     serverOnline: true,
     maintenanceMode: false,
     maintenanceReason: 'ប្រព័ន្ធដំណើរការប្រក្រតី 100%',
-    nightScheduleEnabled: true,
+    nightScheduleEnabled: false,
     nightStartHour: 2,
     nightEndHour: 6,
     nightRestMessage: 'ពេលយប់ជ្រៅហើយ! ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញ!',
