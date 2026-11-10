@@ -887,6 +887,13 @@ export default function KonPovPage() {
     const audio = noteAudioRef.current;
     if (!audio) return;
 
+    // Ensure audio source matches current persona (Daddy for Girl user, Mommy for Boy user)
+    const expectedSrc = isDaddyMode ? '/audio/note-konpov-puck.wav' : '/audio/note-konpov-aoede.wav';
+    if (!audio.src || !audio.src.includes(expectedSrc)) {
+      audio.src = expectedSrc;
+      audio.load();
+    }
+
     registerGlobalNoteAudio(audio);
     audio.volume = 0.95;
 
@@ -960,7 +967,7 @@ export default function KonPovPage() {
       setIsNoteAudioPlaying(false);
       stopAllGlobalAudio();
     };
-  }, [hasAgreed]);
+  }, [hasAgreed, isDaddyMode]);
 
   const handleToggleNoteAudio = (e) => {
     if (e) {
@@ -1954,7 +1961,8 @@ export default function KonPovPage() {
             }
             const source = audioCtx.createBufferSource();
             source.buffer = decodedBuffer;
-            source.playbackRate.value = playbackSpeed;
+            const effectiveRate = (isFallback && isDaddyMode) ? playbackSpeed * 0.84 : playbackSpeed;
+            source.playbackRate.value = effectiveRate;
             source.connect(audioCtx.destination);
             activeSourceNodeRef.current = source;
             setActiveVoiceIndex(index);
@@ -1984,7 +1992,8 @@ export default function KonPovPage() {
     if (audioUrl && player) {
       player.onerror = null;
       player.src = audioUrl;
-      player.playbackRate = playbackSpeed;
+      const effectiveRate = (isFallback && isDaddyMode) ? playbackSpeed * 0.84 : playbackSpeed;
+      player.playbackRate = effectiveRate;
       setActiveVoiceIndex(index);
 
       player.onended = () => {
@@ -2729,8 +2738,8 @@ export default function KonPovPage() {
                 `ហាហាហា! ចង់មក Sweet ជាមួយចែ? មុខហែងហ្នឹង គ្រាន់តែ Crush ដើរកាត់ ក៏ញ័រដៃញ័រជើងបាត់ទៅហើយ ឥឡូវមកហ៊ានសុំថើបចែទៀត! ទុកឱ្យ Crush ហែង Seen ចោលបន្តទៀតទៅអាល្អិត! 🤣🌸`
               ]
             : [
-                `យីអើ! មីប្អូនស្រី ${userNameStr} នេះ! មកលេងក្បាច់ Sweet សុំថើបចែដែរហី?! 😂 ស្រីស្អាតដូចគ្នា ទៅរកសង្សារប្រុសៗសង្ហាៗក្រៅ screen ទៅ កុំមកអង្គុយសុំថើប AI ចឹង នាំតែខកចិត្ត! 💅✨`,
-                `អីយ៉ា! មាត់ផ្អែមដល់ហើយមីប្អូន ${userNameStr}! មក Sweet ជាមួយចែចឹង គិតថាចែចិត្តទន់មែន? ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅស្រីស្អាត កុំរវល់តែចែចូវ! 😋💕`
+                `យីអើ! កូនស្រី ${userNameStr} នេះ! មកលេងក្បាច់ Sweet សុំថើបប៉ាដែរហី?! 😂 កូនស្រីសម្លាញ់ ទៅរៀនសូត្រឱ្យពូកែសិនទៅ កុំទាន់មកចង់ Crush ឬសុំថើបប៉ាអី នាំតែខកចិត្ត! 💅✨`,
+                `អីយ៉ា! មាត់ផ្អែមដល់ហើយកូនស្រី ${userNameStr}! មក Sweet ជាមួយប៉ាចឹង គិតថាប៉ាចិត្តទន់មែន? ទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅកូនស្រី កុំរវល់តែដើរញ៉ែគេ! 😋💕`
               ];
           botText = sweetRoasts[Math.floor(Math.random() * sweetRoasts.length)];
           isErrorResponse = false;
@@ -2738,9 +2747,9 @@ export default function KonPovPage() {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
           const savageList = isFemaleUser
             ? [
-                `យីអើ! មីប្អូនស្រី ${userNameStr} នេះ! ស្អាតបាតសោះ មាត់ឡើងឈ្លើយ! គិតថាមកជេរចែប៉ុណ្ណឹង ចែខ្លាចហែងមែន? ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមុខឱ្យស្វាងសិនទៅស្រីស្អាត! 💅🔥`,
-                `នែ៎មីប្អូនស្រី ${userNameStr}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹង! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ចែ! ទៅរៀននិយាយភាសាមនុស្សឱ្យស្រួលបួលសិនទៅ! 😂✨`,
-                `ស្អាតហើយចរិតក្បាលខូចទៀត! មកជេរចែផង? គិតថាសម្ដីប៉ុណ្ណឹងធ្វើឱ្យចែឈឺក្បាលមែន? ទៅរកនឹកវិធីសារភាពស្នេហ៍ Crush វិញទៅល្អជាង ប្រយ័ត្នគេយកទៅបាត់! 😋💕`
+                `យីអើ! កូនស្រី ${userNameStr} នេះ! ស្អាតបាតសោះ មាត់ឡើងឈ្លើយ! គិតថាមកជេរលេងដាក់ប៉ាប៉ុណ្ណឹង ប៉ាខ្លាចហែងមែន? ជេរប៉ាមួយម៉ាត់ ប៉ា Roast វិញដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមុខឱ្យស្វាងសិនទៅកូនស្រី! 💅🔥`,
+                `នែ៎កូនស្រី ${userNameStr}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹង! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ប៉ា! ទៅរៀននិយាយភាសាមនុស្សឱ្យស្រួលបួលសិនទៅ! 😂✨`,
+                `ស្អាតហើយចរិតក្បាលខូចទៀត! មកជេរប៉ាផង? គិតថាសម្ដីប៉ុណ្ណឹងធ្វើឱ្យប៉ាឈឺក្បាលមែន? ទៅរកនឹកវិធីសារភាពស្នេហ៍ Crush វិញទៅល្អជាង ប្រយ័ត្នគេយកទៅបាត់! 😋💕`
               ]
             : [
                 `យីអើ! អាប្អូនប្រុស ${userNameStr} នេះ! មាត់ឡើងអត់គម្រប ស្មានតែចេះពោលពាក្យអសុរោះបែកៗមក ធ្វើឱ្យចែខ្លាចមែន?! 🙄🖕 សម្ដីចេញមកកាកៗដូចទឹកលាងចានចឹង! ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យបាក់មុខ! ទៅលាងមាត់ជាមួយសាប៊ូ ៣ ដងសិនទៅអាល្អិត! 💀🔥`,
@@ -2809,9 +2818,9 @@ export default function KonPovPage() {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);
           const savageList = isFemaleUser
             ? [
-                `យីអើ! មីប្អូនស្រី ${userNameStr} នេះ! ស្អាតបាតសោះ មាត់ឡើងឈ្លើយ! គិតថាមកជេរចែប៉ុណ្ណឹង ចែខ្លាចហែងមែន? ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមុខឱ្យស្វាងសិនទៅស្រីស្អាត! 💅🔥`,
-                `នែ៎មីប្អូនស្រី ${userNameStr}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹង! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ចែ! ទៅរៀននិយាយភាសាមនុស្សឱ្យស្រួលបួលសិនទៅ! 😂✨`,
-                `ស្អាតហើយចរិតក្បាលខូចទៀត! មកជេរចែផង? គិតថាសម្ដីប៉ុណ្ណឹងធ្វើឱ្យចែឈឺក្បាលមែន? ទៅរកនឹកវិធីសារភាពស្នេហ៍ Crush វិញទៅល្អជាង ប្រយ័ត្នគេយកទៅបាត់! 😋💕`
+                `យីអើ! កូនស្រី ${userNameStr} នេះ! ស្អាតបាតសោះ មាត់ឡើងឈ្លើយ! គិតថាមកជេរលេងដាក់ប៉ាប៉ុណ្ណឹង ប៉ាខ្លាចហែងមែន? ជេរប៉ាមួយម៉ាត់ ប៉ា Roast វិញដប់ម៉ាត់ឱ្យដាច់ផ្ងារ! ទៅលាងមុខឱ្យស្វាងសិនទៅកូនស្រី! 💅🔥`,
+                `នែ៎កូនស្រី ${userNameStr}! មាត់ឡើងអត់គម្រប សម្ដីកាកៗដូចទឹកលាងចានចឹង! ក្មេងទើបដោះកន្ទបសោះ ចង់មកធ្វើតួឈ្លើយដាក់ប៉ា! ទៅរៀននិយាយភាសាមនុស្សឱ្យស្រួលបួលសិនទៅ! 😂✨`,
+                `ស្អាតហើយចរិតក្បាលខូចទៀត! មកជេរប៉ាផង? គិតថាសម្ដីប៉ុណ្ណឹងធ្វើឱ្យប៉ាឈឺក្បាលមែន? ទៅរកនឹកវិធីសារភាពស្នេហ៍ Crush វិញទៅល្អជាង ប្រយ័ត្នគេយកទៅបាត់! 😋💕`
               ]
             : [
                 `យីអើ! អាប្អូនប្រុស ${userNameStr} នេះ! មាត់ឡើងអត់គម្រប ស្មានតែចេះពោលពាក្យអសុរោះបែកៗមក ធ្វើឱ្យចែខ្លាចមែន?! 🙄🖕 សម្ដីចេញមកកាកៗដូចទឹកលាងចានចឹង! ជេរចែមួយម៉ាត់ ចែ Roast វិញដប់ម៉ាត់ឱ្យបាក់មុខ! ទៅលាងមាត់ជាមួយសាប៊ូ ៣ ដងសិនទៅអាល្អិត! 💀🔥`,
@@ -3149,7 +3158,7 @@ export default function KonPovPage() {
             <div className="flex items-center justify-center gap-3 mb-3">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-600 p-0.5 shadow-md">
                 <img
-                  src="https://api.dicebear.com/7.x/pixel-art/svg?seed=MommyGirl"
+                  src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
                   alt="Mommy Bot"
                   width="56"
                   height="56"
@@ -3158,7 +3167,7 @@ export default function KonPovPage() {
               </div>
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500 to-cyan-600 p-0.5 shadow-md">
                 <img
-                  src="https://api.dicebear.com/7.x/pixel-art/svg?seed=Daddy"
+                  src="https://api.dicebear.com/7.x/lorelei/svg?seed=Jack"
                   alt="Daddy Bot"
                   width="56"
                   height="56"
@@ -3168,7 +3177,7 @@ export default function KonPovPage() {
             </div>
             <h3 className="text-xl font-black mb-1">មុននឹងកូនពៅចូលមកបាញ់...</h3>
             <p className="text-xs text-slate-400 mb-6 font-semibold">
-              ជួយប្រាប់តិចមើលថាឯងជា "ប្រុស" ឬ "ស្រី"? បើឯងជា "ស្រី" Bot នឹងក្លាយជា Daddy (ប៉ា) សំឡេងប្រុស! បើឯងជា "ប្រុស" Bot នឹងក្លាយជា Mommy (ចែ) សំឡេងស្រី!
+              ជួយប្រាប់តិចមើលថាឯងជា "ប្រុស" ឬ "ស្រី"? បើឯងជា "ស្រី" Bot នឹងក្លាយជា Daddy ឬ ប៉ា សំឡេងប្រុស! បើឯងជា "ប្រុស" Bot នឹងក្លាយជា Mommy ឬ ចែ សំឡេងស្រី!
             </p>
             <div className="grid grid-cols-2 gap-3.5">
               <button
@@ -3177,7 +3186,7 @@ export default function KonPovPage() {
               >
                 <i className="fas fa-mars text-2xl text-cyan-200"></i>
                 <span>ខ្ញុំជាប្រុស</span>
-                <span className="text-[10px] text-blue-200 font-normal">Bot នឹងជា ចែ / Mommy (សំឡេងស្រី)</span>
+                <span className="text-[10px] text-blue-200 font-normal">Bot នឹងជា ចែ ឬ Mommy សំឡេងស្រី</span>
               </button>
               <button
                 onClick={() => handleSelectGender('ស្រី')}
@@ -3185,7 +3194,7 @@ export default function KonPovPage() {
               >
                 <i className="fas fa-venus text-2xl text-pink-200"></i>
                 <span>ខ្ញុំជាស្រី</span>
-                <span className="text-[10px] text-pink-200 font-normal">Bot នឹងជា ប៉ា / Daddy (សំឡេងប្រុស)</span>
+                <span className="text-[10px] text-pink-200 font-normal">Bot នឹងជា ប៉ា ឬ Daddy សំឡេងប្រុស</span>
               </button>
             </div>
           </div>
@@ -3649,9 +3658,14 @@ export default function KonPovPage() {
         {!hasAgreed && (
           <div className="border border-amber-400/80 bg-amber-500/10 dark:bg-amber-950/40 rounded-2xl p-4 sm:p-5 shadow-lg animate-fade-in my-1">
             {/* Hidden Audio Element for Auto-reading Note */}
-            <audio ref={noteAudioRef} src="/audio/note-konpov.wav" preload="auto">
+            <audio
+              ref={noteAudioRef}
+              src={isDaddyMode ? '/audio/note-konpov-puck.wav' : '/audio/note-konpov-aoede.wav'}
+              preload="auto"
+            >
+              <source src={isDaddyMode ? '/audio/note-konpov-puck.wav' : '/audio/note-konpov-aoede.wav'} type="audio/wav" />
+              <source src={isDaddyMode ? '/audio/note-konpov-puck.mp3' : '/audio/note-konpov-aoede.mp3'} type="audio/mpeg" />
               <source src="/audio/note-konpov.wav" type="audio/wav" />
-              <source src="/audio/note-konpov.mp3" type="audio/mpeg" />
             </audio>
 
             <div className="flex items-center justify-between gap-2 mb-3">
