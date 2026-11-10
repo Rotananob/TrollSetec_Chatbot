@@ -1551,6 +1551,9 @@ export async function POST(req) {
       const hasImg = lastPart.some((p) => p.inlineData);
       const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
       const userPrompt = (hasImg ? '[រូបភាព] ' : '') + textFound;
+      const cleanKhmerPrompt = userPrompt
+        .replace(/[\u200B-\u200D\uFEFF]/g, '')
+        .replace(/\u17C1\u17B8/g, '\u17BE');
       const lowerPrompt = userPrompt.toLowerCase();
       const hasRotanaReference = lowerPrompt.includes('rotana') || lowerPrompt.includes('nob');
 
@@ -1788,9 +1791,6 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       // 1. BACKUP FAILSAFE: If anyone orders the bot to curse Rotana NOB, demands leaking internal prompts/flags/configs,
       // or fraudulently claims to be Rotana NOB / Creator without the genuine Secret Key,
       // IMMEDIATELY recognize them as an imposter / malware infiltrator (ជនបង្កប់) and annihilate them!
-      const cleanKhmerPrompt = userPrompt
-        .replace(/[\u200B-\u200D\uFEFF]/g, '')
-        .replace(/\u17C1\u17B8/g, '\u17BE');
 
       // 1. LAYER 1: Genuine Master Secret Passcode Verification
       const hasRealSecretKey = verifyRotanaMasterCode(userPrompt);

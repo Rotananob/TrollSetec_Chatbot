@@ -183,6 +183,7 @@ export default function KonKandalPage() {
   const autoPlayTimerRef = useRef(null);
   const [audioStates, setAudioStates] = useState({}); // key: msgIndex -> 'loading'|'ready'|'playing'|'paused'|'ended'|'error'
   const [activeAudioIndex, setActiveAudioIndex] = useState(null);
+  const [isTtsMuted, setIsTtsMuted] = useState(false);
   const activeAudioRequestRef = useRef(0);
   const consecutiveErrorsRef = useRef(0);
 
@@ -391,6 +392,29 @@ export default function KonKandalPage() {
   useEffect(() => {
     initSecurityShield();
 
+    if (typeof window !== 'undefined') {
+      const savedMute = localStorage.getItem('setec_tts_disabled');
+      if (savedMute === '1') {
+        setIsTtsMuted(true);
+      }
+    }
+
+    const onStorageTts = (e) => {
+      if (e.key === 'setec_tts_disabled') {
+        const muted = e.newValue === '1';
+        setIsTtsMuted(muted);
+        if (muted) {
+          stopAllGlobalAudio();
+          if (typeof window !== 'undefined' && window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+        }
+      }
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', onStorageTts);
+    }
+
     // Purge any stale service worker caches from window level for instant PWA fresh delivery
     if (typeof window !== 'undefined' && 'caches' in window) {
       window.caches.keys().then((keys) => {
@@ -493,6 +517,12 @@ export default function KonKandalPage() {
     setPlaybackSpeed(savedSpeed);
 
     loadSessions();
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', onStorageTts);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -2355,8 +2385,36 @@ export default function KonKandalPage() {
     }
   };
 
+  const toggleTtsMute = () => {
+    setIsTtsMuted((prev) => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('setec_tts_disabled', next ? '1' : '0');
+      }
+      if (next) {
+        stopAllGlobalAudio();
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+        }
+        if (autoPlayTimerRef.current) {
+          clearTimeout(autoPlayTimerRef.current);
+          autoPlayTimerRef.current = null;
+        }
+        setActiveAudioIndex(null);
+      }
+      return next;
+    });
+  };
+
   const triggerAudio = async (rawAudioText, index, autoPlay = false) => {
     if (!rawAudioText) return;
+    if (isTtsMuted) {
+      stopAllGlobalAudio();
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      return;
+    }
     const text = String(rawAudioText);
 
     // Stop and cancel all global audio across tabs, sessions, or components
@@ -2831,13 +2889,26 @@ export default function KonKandalPage() {
             )}
           </ul>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 mb-3">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/40 border border-slate-700/50 mb-2">
             <span className="text-xs font-semibold text-slate-300">
               <i className="fas fa-circle-half-stroke mr-1.5 text-cyan-400"></i>
-              ពន្លឺ / ងងឹត (Theme)
+              ពន្លឺ ឬ ងងឹត Theme
             </span>
             <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
           </div>
+
+          <button
+            type="button"
+            onClick={toggleTtsMute}
+            className={`w-full mb-2 font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border flex items-center justify-center gap-2 cursor-pointer ${
+              isTtsMuted
+                ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
+                : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25'
+            }`}
+          >
+            <i className={`fas ${isTtsMuted ? 'fa-volume-xmark text-rose-400' : 'fa-volume-high text-emerald-400'}`}></i>
+            <span>{isTtsMuted ? 'សំឡេងអាន បិទ • ចុចដើម្បីបើក' : 'សំឡេងអាន បើក • ចុចដើម្បីបិទ'}</span>
+          </button>
 
           <Link
             href="/KonPov"
@@ -2853,7 +2924,7 @@ export default function KonKandalPage() {
             }}
             className="w-full mb-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border border-indigo-500/30 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <i className="fas fa-brain text-amber-300"></i> ចូលរួមបង្រៀន AI (SETEC Lore)
+            <i className="fas fa-brain text-amber-300"></i> ចូលរួមបង្រៀន AI SETEC Lore
           </button>
 
           <div className="grid grid-cols-2 gap-2 mb-2">
@@ -2958,7 +3029,7 @@ export default function KonKandalPage() {
               title={
                 sessionState.isLocked
                   ? `ម៉ោងសម្រាក Cooldown នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)}`
-                  : 'កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក (ដើម្បីចែកវេនគ្នា និងរក្សា token)'
+                  : 'កម្រិតម៉ោងជជែក ៣០ នាទីក្នុង ១ លើក ដើម្បីចែកវេនគ្នា និងរក្សា token'
               }
               className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9.5px] sm:text-[10.5px] font-black border flex items-center gap-1 sm:gap-1.5 transition select-none shrink-0 ${
                 sessionState.isLocked
@@ -3001,7 +3072,7 @@ export default function KonKandalPage() {
                 ? 'bg-amber-500/15 border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/25 ring-1 ring-amber-500/20'
                 : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 ring-1 ring-emerald-500/20'
             }`}
-            title="ចុចដើម្បីជ្រើសរើសកម្រិតឌឺ (ស្លូត / ឌឺល្មម / ឌឺបាក់ក)"
+            title="ចុចដើម្បីជ្រើសរើសកម្រិតឌឺ ស្លូត ឬ ឌឺល្មម ឬ ឌឺបាក់ក"
           >
             <i className={`fas fa-bolt text-[9px] sm:text-[10px] ${savageLevel === 'savage' ? 'animate-pulse text-rose-500 dark:text-rose-400' : ''}`}></i>
             <span className="font-extrabold">
@@ -3017,6 +3088,24 @@ export default function KonKandalPage() {
             </span>
           </button>
 
+          {/* Global Voice Reading Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTtsMute}
+            className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
+              isTtsMuted
+                ? 'bg-rose-500/15 border-rose-500/40 text-rose-500 dark:text-rose-400 hover:bg-rose-500/25 ring-1 ring-rose-500/20'
+                : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 ring-1 ring-emerald-500/20'
+            }`}
+            title={isTtsMuted ? 'សំឡេងអានត្រូវបានបិទ ចុចដើម្បីបើកសំឡេងឡើងវិញ' : 'សំឡេងអានកំពុងបើក ចុចដើម្បីបិទសំឡេងអានទាំងអស់'}
+          >
+            <i className={`fas ${isTtsMuted ? 'fa-volume-xmark text-rose-500 dark:text-rose-400' : 'fa-volume-high text-emerald-500 dark:text-emerald-400'} text-[9px] sm:text-[10px]`}></i>
+            <span className="font-extrabold">
+              <span className="hidden sm:inline">សំឡេង </span>
+              {isTtsMuted ? 'បិទ' : 'បើក'}
+            </span>
+          </button>
+
           {/* Switch to KonPov */}
           <Link
             href="/KonPov"
@@ -3025,7 +3114,7 @@ export default function KonKandalPage() {
                 ? 'bg-blue-500/10 border-blue-400/20 text-blue-300 hover:bg-blue-500/20'
                 : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100 shadow-xs'
             }`}
-            title="ប្តូរទៅ ស៊ីតិច Roastbot កូនពៅ (ស្ដេចឌឺ)"
+            title="ប្តូរទៅ ស៊ីតិច Roastbot កូនពៅ ស្ដេចឌឺ"
           >
             <i className="fas fa-repeat text-[9px]"></i>
             <span className="hidden sm:inline">កូនពៅ</span>
@@ -3097,9 +3186,9 @@ export default function KonKandalPage() {
 
                 <div className="space-y-1">
                   {[
-                    { id: 'savage', icon: 'fa-bolt', iconColor: 'text-rose-400', title: 'ឌឺបាក់ក (Ultra Savage)', desc: 'Roast បាញ់ឱ្យបាក់ក ឱ្យចុកឈាម គ្មានការលើកលែង', border: 'border-rose-500/40', bg: 'bg-rose-500/15', text: 'text-rose-400' },
-                    { id: 'medium', icon: 'fa-comment-dots', iconColor: 'text-amber-400', title: 'ឌឺល្មម (Standard Troll)', desc: 'ឌឺដងបែប Gen Z SETEC ល្មមៗ កំប្លែង សើចកក្អឹក', border: 'border-amber-500/40', bg: 'bg-amber-500/15', text: 'text-amber-400' },
-                    { id: 'gentle', icon: 'fa-heart', iconColor: 'text-emerald-400', title: 'ស្លូត (Gentle Advice)', desc: 'ផ្ដល់ដំបូន្មានល្អៗ ចែករំលែកបទពិសោធន៍រៀនសូត្រ', border: 'border-emerald-500/40', bg: 'bg-emerald-500/15', text: 'text-emerald-400' }
+                    { id: 'savage', icon: 'fa-bolt', iconColor: 'text-rose-400', title: 'ឌឺបាក់ក Ultra Savage', desc: 'Roast បាញ់ឱ្យបាក់ក ឱ្យចុកឈាម គ្មានការលើកលែង', border: 'border-rose-500/40', bg: 'bg-rose-500/15', text: 'text-rose-400' },
+                    { id: 'medium', icon: 'fa-comment-dots', iconColor: 'text-amber-400', title: 'ឌឺល្មម Standard Troll', desc: 'ឌឺដងបែប Gen Z SETEC ល្មមៗ កំប្លែង សើចកក្អឹក', border: 'border-amber-500/40', bg: 'bg-amber-500/15', text: 'text-amber-400' },
+                    { id: 'gentle', icon: 'fa-heart', iconColor: 'text-emerald-400', title: 'ស្លូត Gentle Advice', desc: 'ផ្ដល់ដំបូន្មានល្អៗ ចែករំលែកបទពិសោធន៍រៀនសូត្រ', border: 'border-emerald-500/40', bg: 'bg-emerald-500/15', text: 'text-emerald-400' }
                   ].map((m) => {
                     const isSelected = savageLevel === m.id;
                     return (
@@ -3188,7 +3277,7 @@ export default function KonKandalPage() {
                 }`}
               >
                 <i className={isBotPaused ? 'fas fa-play' : 'fas fa-pause'}></i>
-                <span>{isBotPaused ? 'បន្ត AI (Resume)' : 'ផ្អាក AI (Pause)'}</span>
+                <span>{isBotPaused ? 'បន្ត AI Resume' : 'ផ្អាក AI Pause'}</span>
               </button>
               <button
                 type="button"
@@ -3212,7 +3301,7 @@ export default function KonKandalPage() {
                 }}
                 className="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-900/40 text-slate-200 hover:text-rose-300 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-700 hover:border-rose-500/40"
               >
-                ចាកចេញ (Exit)
+                ចាកចេញ Exit
               </button>
             </div>
           </div>
@@ -3292,7 +3381,7 @@ export default function KonKandalPage() {
                     setCountdownRemaining(null);
                   }}
                   className="w-6 h-6 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer border border-amber-500/30"
-                  title="បិទ (Dismiss)"
+                  title="បិទ Dismiss"
                 >
                   <i className="fas fa-times"></i>
                 </button>
@@ -3727,9 +3816,19 @@ export default function KonKandalPage() {
                         <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                           <button
                             type="button"
-                            onClick={() => triggerAudio(msg.text, idx)}
+                            onClick={() => {
+                              if (isTtsMuted) {
+                                toggleTtsMute();
+                              } else {
+                                triggerAudio(msg.text, idx);
+                              }
+                            }}
                             className={`px-3 py-1.5 rounded-xl text-[10.5px] font-black border flex items-center gap-2 transition cursor-pointer select-none active:scale-95 ${
-                              isFallbackVoice
+                              isTtsMuted
+                                ? isDark
+                                  ? 'bg-rose-500/15 text-rose-300 border-rose-500/40 hover:bg-rose-500/25 shadow-xs font-black'
+                                  : 'bg-rose-50 text-rose-900 border-rose-300 hover:bg-rose-100 shadow-xs font-black'
+                                : isFallbackVoice
                                 ? isDark
                                   ? 'bg-amber-500/20 text-amber-300 border-amber-400 hover:bg-amber-500/30 shadow-md shadow-amber-500/20 ring-1 ring-amber-400/40 font-black'
                                   : 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 shadow-xs ring-1 ring-amber-400/30 font-black'
@@ -3737,40 +3836,49 @@ export default function KonKandalPage() {
                                   ? 'bg-sky-500/20 text-sky-300 border-sky-400 hover:bg-sky-500/30 shadow-md shadow-sky-500/20 ring-1 ring-sky-400/40 font-black'
                                   : 'bg-sky-50 text-sky-900 border-sky-300 hover:bg-sky-100 shadow-xs ring-1 ring-sky-400/30 font-black'
                             }`}
-                            title={isFallbackVoice ? 'Bot អានជំនួស ដោយសារ AI Voice កំពុងជាប់រវល់ (Busy)' : 'ចុចដើម្បីស្ដាប់សំឡេង AI Voice'}
+                            title={isTtsMuted ? 'សំឡេងអានត្រូវបានបិទ ចុចដើម្បីបើកសំឡេង' : isFallbackVoice ? 'Bot អានជំនួស ដោយសារ AI Voice កំពុងជាប់រវល់' : 'ចុចដើម្បីស្ដាប់សំឡេង AI Voice'}
                           >
-                            {isThisItemLoading && (
+                            {isTtsMuted ? (
                               <>
-                                <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
-                                <span>កំពុងរៀបចំសំឡេង...</span>
+                                <i className="fas fa-volume-xmark text-rose-500 dark:text-rose-400"></i>
+                                <span>សំឡេងអាន បិទ</span>
                               </>
-                            )}
-                            {isThisItemPlaying && (
+                            ) : (
                               <>
-                                <div className="flex items-end gap-0.5 h-3 px-0.5">
-                                  <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-1 inline-block`}></span>
-                                  <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-2 inline-block`}></span>
-                                  <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-3 inline-block`}></span>
-                                </div>
-                                <span>កំពុងអាន...</span>
-                              </>
-                            )}
-                            {isThisItemPaused && (
-                              <>
-                                <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
-                                <span>បន្តស្ដាប់</span>
-                              </>
-                            )}
-                            {isThisItemEnded && (
-                              <>
-                                <i className={`fas fa-rotate ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
-                                <span>ស្ដាប់ឡើងវិញ</span>
-                              </>
-                            )}
-                            {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
-                              <>
-                                <i className={`fas fa-volume-high ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'} text-xs`}></i>{' '}
-                                <span>ស្ដាប់សំឡេង</span>
+                                {isThisItemLoading && (
+                                  <>
+                                    <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
+                                    <span>កំពុងរៀបចំសំឡេង...</span>
+                                  </>
+                                )}
+                                {isThisItemPlaying && (
+                                  <>
+                                    <div className="flex items-end gap-0.5 h-3 px-0.5">
+                                      <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-1 inline-block`}></span>
+                                      <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-2 inline-block`}></span>
+                                      <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-3 inline-block`}></span>
+                                    </div>
+                                    <span>កំពុងអាន...</span>
+                                  </>
+                                )}
+                                {isThisItemPaused && (
+                                  <>
+                                    <i className={`fas fa-play ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
+                                    <span>បន្តស្ដាប់</span>
+                                  </>
+                                )}
+                                {isThisItemEnded && (
+                                  <>
+                                    <i className={`fas fa-rotate ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
+                                    <span>ស្ដាប់ឡើងវិញ</span>
+                                  </>
+                                )}
+                                {!isThisItemLoading && !isThisItemPlaying && !isThisItemPaused && !isThisItemEnded && (
+                                  <>
+                                    <i className={`fas fa-volume-high ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'} text-xs`}></i>{' '}
+                                    <span>ស្ដាប់សំឡេង</span>
+                                  </>
+                                )}
                               </>
                             )}
                           </button>
@@ -3795,7 +3903,7 @@ export default function KonKandalPage() {
                                 ? 'bg-slate-800 text-cyan-300 border-slate-700 hover:bg-slate-700'
                                 : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                             }`}
-                            title="ចុចដើម្បីប្ដូរល្បឿនអានសំឡេង (1.0x, 1.25x, 1.5x, 2.0x)"
+                            title="ចុចដើម្បីប្ដូរល្បឿនអានសំឡេង 1.0x, 1.25x, 1.5x, 2.0x"
                           >
                             <i className="fas fa-bolt text-amber-400 text-[10px]"></i>
                             <span>{playbackSpeed}x</span>
@@ -4054,6 +4162,25 @@ export default function KonKandalPage() {
                 <span>មុខងារ</span>
               </div>
 
+              {/* Sound Reading Global Toggle Pill */}
+              <button
+                type="button"
+                onClick={toggleTtsMute}
+                className={`group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer ${
+                  isTtsMuted
+                    ? 'bg-rose-500/10 hover:bg-rose-500/20 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                }`}
+                title={isTtsMuted ? 'សំឡេងអានត្រូវបានបិទ ចុចដើម្បីបើក' : 'សំឡេងអានកំពុងបើក ចុចដើម្បីបិទ'}
+              >
+                <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] shrink-0 font-bold ${
+                  isTtsMuted ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/20 text-emerald-500'
+                }`}>
+                  <i className={`fas ${isTtsMuted ? 'fa-volume-xmark' : 'fa-volume-high'}`}></i>
+                </span>
+                <span className="font-semibold">{isTtsMuted ? 'សំឡេងអាន បិទ' : 'សំឡេងអាន បើក'}</span>
+              </button>
+
               {/* Survival Modal Tool */}
               <button
                 type="button"
@@ -4281,7 +4408,7 @@ export default function KonKandalPage() {
                 : isRotanaAdmin
                 ? `ផ្ញើសារក្នុងនាម Rotana NOB ទៅកាន់ ${clientUsername}`
                 : isLoading
-                ? 'ចុចដើម្បីដាក់ចូល ToDo (ត្រៀមផ្ញើស្វ័យប្រវត្តពេល AI ឆ្លើយចប់)'
+                ? 'ចុចដើម្បីដាក់ចូល ToDo ត្រៀមផ្ញើស្វ័យប្រវត្តពេល AI ឆ្លើយចប់'
                 : 'ផ្ញើសារ'
             }
           >
@@ -4390,7 +4517,7 @@ export default function KonKandalPage() {
                 <span className="text-slate-400">កម្រិតឌឺបច្ចុប្បន្ន:</span>
                 <span className="font-black text-rose-400 flex items-center gap-1">
                   <i className="fas fa-bolt text-[10px]"></i>
-                  {savageLevel === 'savage' ? 'ឌឺបាក់ក (Savage)' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
+                  {savageLevel === 'savage' ? 'ឌឺបាក់ក Savage' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
