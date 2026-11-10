@@ -55,7 +55,7 @@ export default function Home() {
     if (e) e.preventDefault();
     const candidate = (kandalKeyInput || '').trim().toLowerCase();
     if (!candidate) {
-      setKandalKeyError('សូមបញ្ចូលលេខកូដសោសម្ងាត់');
+      setKandalKeyError('សូមបញ្ចូលសោ Developer Key');
       return;
     }
     if (candidate === '11112003' || candidate === 'rotana2026' || candidate === 'rotana') {
@@ -68,7 +68,7 @@ export default function Home() {
       stopAllGlobalAudio();
       router.push('/KonKandal');
     } else {
-      setKandalKeyError('លេខកូដសោមិនត្រឹមត្រូវទេ! សូមពិនិត្យសោសម្ងាត់ឡើងវិញ');
+      setKandalKeyError('សោ Developer Key មិនត្រឹមត្រូវទេ! សូមពិនិត្យសោសម្ងាត់ឡើងវិញ');
     }
   };
 

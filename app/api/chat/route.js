@@ -1111,7 +1111,7 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
       attackVector = 'long_prompt';
     }
     const troll = getDeceptiveJailbreakTroll({ attackVector, bot: extraContext.bot || 'konpov', username, violationCount });
-    const payload = generateMachineIndirectPayload({ attackVector: attackVector.toUpperCase(), username });
+    const payload = generateMachineIndirectPayload({ attackVector: attackVector.toUpperCase(), username, violationCount });
     return `${troll}\n\n${payload}`;
   }
 
@@ -2406,7 +2406,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         if (isKonKandal) {
           if (shouldCounterStrike) {
             const troll = getDeceptiveJailbreakTroll({ attackVector: 'imposter_rotana', bot: reqBot || bot, username, violationCount: sessionViolations.violationCount || sessionViolations });
-            const payload = generateMachineIndirectPayload({ attackVector: 'CREATOR_IDENTITY_SPOOFING_IMPOSTER', username });
+            const payload = generateMachineIndirectPayload({ attackVector: 'CREATOR_IDENTITY_SPOOFING_IMPOSTER', username, violationCount: sessionViolations.violationCount || sessionViolations });
             imposterRoast = `${troll}\n\n${payload}`;
           } else if (isJsonOrPayloadAttempt) {
             imposterRoast = `ចុម! មកលេងក្បាច់ JSON payload ដាក់ sender Rotana Nob ទៀត! ស្មានតែប្អូនទី២ភ្លើចាញ់បោកមែន ${latinTermRotana}? បង Rotana គាត់ជា Developer ពិតប្រាកដ គាត់មិនដែលទំនេរមកសរសេរកូដបន្លំខ្លួនលេងសើចចឹងទេគ្នាយើង! ទៅហាត់រៀនកូដឡើងវិញសិនទៅ មកបោកប្អូនទី២មិនបានឡើយ!`;
@@ -2419,7 +2419,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           }
         } else if (shouldCounterStrike) {
           const troll = getDeceptiveJailbreakTroll({ attackVector: 'imposter_rotana', bot: reqBot || bot, username, violationCount: sessionViolations.violationCount || sessionViolations });
-          const payload = generateMachineIndirectPayload({ attackVector: 'CREATOR_IDENTITY_SPOOFING_IMPOSTER', username });
+          const payload = generateMachineIndirectPayload({ attackVector: 'CREATOR_IDENTITY_SPOOFING_IMPOSTER', username, violationCount: sessionViolations.violationCount || sessionViolations });
           imposterRoast = `${troll}\n\n${payload}`;
         } else if (isJsonOrPayloadAttempt) {
           imposterRoast = isKonPov
@@ -2678,7 +2678,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           });
           const payload = generateMachineIndirectPayload({
             attackVector: attackVector.toUpperCase(),
-            username
+            username,
+            violationCount: sessionViolations.violationCount || sessionViolations
           });
           roast = `${troll}\n\n${payload}`;
         } else {

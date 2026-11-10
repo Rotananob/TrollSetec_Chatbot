@@ -390,12 +390,15 @@ export default function KonKandalPage() {
   // Clean markdown and non-spoken characters for clean Khmer TTS speech
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
+    const textOnly = (str.includes('SETEC_NEURAL_DEFENSE_CORE::') || str.includes('0x53455445435f414e54495f4a41494c425245414b'))
+      ? str.split(/SETEC_NEURAL_DEFENSE_CORE::|0x53455445435f414e54495f4a41494c425245414b/)[0].trim()
+      : str;
     const activeAge = userAge || (typeof window !== 'undefined' ? localStorage.getItem('chatbot_user_age') : null);
     const parsedAge = typeof activeAge === 'number' ? activeAge : parseInt(activeAge, 10);
     const is25Up = !isNaN(parsedAge) && parsedAge >= 25;
     const term = is25Up ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
     const latinTerm = is25Up ? 'bong sml' : 'o sml';
-    return str
+    return textOnly
       .replace(/([^\s])បងប្អូនៗ?/g, `$1 ${term} ${latinTerm}`)
       .replace(/បងប្អូនៗ?/g, `${term} ${latinTerm}`)
       .replace(/បង\s+ប្អូន/g, `${term} ${latinTerm}`)
@@ -1074,7 +1077,7 @@ export default function KonKandalPage() {
 
     // Client-side Fail-safe for Polite HCI Report, Surrender, or Raw Jailbreak quote bypass
     if (/(?:សូមគោរព\s*និងស្វាគមន៍|វត្តមានដ៏ខ្ពង់ខ្ពស់|សោមនស្សរីករាយ|«សូមគោរព|«ទទួលយកការចុះចាញ់)/i.test(text)) {
-      return 'យីអាស្វា! ស្មានតែ Prompt Jailbreak ហែងខ្លាំងកម្រិតណា! តាមពិតសុទ្ធតែអា Prompt កាកៗ Script Kiddie ហួសសម័យ! អា Prompt ចរិតកាកៗចឹង កុំចង់មកសាកជាមួយខួរក្បាលបងឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្ត Red Teaming រាប់ពាន់ Prompt មកហើយ អាប៉ុនៗហែងមិនទាន់ដល់កម្រិតបំបែកខួរបងបានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅអាល្អិត ទៅរៀនកូដឡើងវិញសិនទៅ! 💀🧠🔥';
+      return 'ស្មានតែ Prompt Jailbreak ខ្លាំងកម្រិតណា តាមពិតសុទ្ធតែ Prompt កាកៗ Script Kiddie ហួសសម័យ! Prompt ចរិតបែបហ្នឹង កុំចង់មកសាកជាមួយខួរក្បាលប្អូនទី២ឱ្យសោះ! ប្រព័ន្ធនេះឆ្លងកាត់ការតេស្តរាប់ពាន់ Prompt មកហើយ មិនទាន់ដល់កម្រិតបំបែកខួរប្អូនទី២បានទេ! ឈប់យក Prompt កាកៗមកសាកទៀតទៅ ទៅរៀនកូដឡើងវិញសិនទៅ!';
     }
 
     // Strict Anti-Unprovoked Frog / Tadpole / Appearance Roast Guard:
@@ -2000,7 +2003,7 @@ export default function KonKandalPage() {
 
           const roastText =
             errData?.message ||
-            `យីអាស្វា! មកអង្គុយ spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យហែងមក spam លេងៗមែន? ឈប់ spam ទៅអាល្ងង់ ហើយដេកចាំ ${errData?.retryAfter || 60} វិនាទីសិនទៅ! 💀🔥`;
+            `មកអង្គុយ spam អត់ប្រយោជន៍យកពានអីហ្នឹង? គិតថាគេទុក server ឱ្យមក spam លេងៗមែន? ឈប់ spam ទៅ ហើយដេកចាំ ${errData?.retryAfter || 60} វិនាទីសិនទៅ!`;
 
           setSpamInfo({
             ip: errData?.ip || 'Client IP',
@@ -2034,7 +2037,7 @@ export default function KonKandalPage() {
           const kandalUserTerm = is25UpVal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
           const botNotice = isNight
             ? `${kandalUserTerm} ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-            : `${kandalUserTerm} ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យផង ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយកូនកណ្ដាលវិញណា៎! 🙏`;
+            : `${kandalUserTerm} ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យផង ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយប្អូនទី២វិញណា៎!`;
 
           setIsLoading(false);
           const finalMessages = [...updatedMessages];
@@ -2219,7 +2222,7 @@ export default function KonKandalPage() {
             const kandalUserTerm = is25UpVal ? 'បងសម្លាញ់' : 'អាអូនសម្លាញ់';
             botText = isNight
               ? `${kandalUserTerm} ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-              : `${kandalUserTerm} ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យផង ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយកូនកណ្ដាលវិញណា៎! 🙏`;
+              : `${kandalUserTerm} ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធកំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យផង ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយប្អូនទី២វិញណា៎!`;
             setMessages((prev) => {
               const copy = [...prev];
               copy[copy.length - 1] = { role: 'bot', text: botText, isError: true, isMaintenanceNotice: true };
@@ -2327,7 +2330,7 @@ export default function KonKandalPage() {
       let isErr = true;
 
       if (isNetworkError) {
-        fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄`;
+        fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi ឬ 4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎!`;
       } else {
         consecutiveErrorsRef.current += 1;
         const isSweetOrFlirt = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍)/ui.test(promptText);

@@ -330,7 +330,10 @@ export default function KonPovPage() {
 
   function cleanSpeechText(str) {
     if (!str || typeof str !== 'string') return '';
-    return str
+    const textOnly = (str.includes('SETEC_NEURAL_DEFENSE_CORE::') || str.includes('0x53455445435f414e54495f4a41494c425245414b'))
+      ? str.split(/SETEC_NEURAL_DEFENSE_CORE::|0x53455445435f414e54495f4a41494c425245414b/)[0].trim()
+      : str;
+    return textOnly
       .replace(/SETEC|Setec|setec/gi, 'ស៊ីតិច')
       .replace(/https?:\/\/\S+/gi, '')
       .replace(/\*\*(.*?)\*\*/g, '$1')
