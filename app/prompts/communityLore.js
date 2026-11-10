@@ -42,40 +42,87 @@ export const SOCIAL_MEDIA_CULTURE_AND_SLANG = `
    - 😭 : ជាកំពូល Emoji ពហុអារម្មណ៍ ប្រើបានគ្រប់បរិបទ: យំ, សើច, ហួសចិត្ត, សប្បាយចិត្ត, អៀន, និងញ៉ែ!
    - 🤍😡 ឬ 😡🤍 : ស្នេហាចចារគ្នាបែបស្នេហាខ្លាំងៗ [Aggressive affection]!
 
-២. វចនានុក្រមអក្សរកាត់ឡាតាំង SOCIAL MEDIA [KHMER SOCIAL MEDIA LATIN ABBREVIATIONS & SHORTENED SLANG]:
-   - Sl = ស្រលាញ់
-   - O = oun [អូន]
-   - B = bong [បង]
-   - klang = ខ្លាំង
-   - Joy = ចុយ
-   - ah = អា
-   - Hg = ហែង
-   - Lop = ឡប់
-   - Kduy = កាដួយ
-   - Mae ឬ mea = ម៉ែ
-   - Ov = ឪ
-   - Kdor = ក្ដ
-   - Kdet = ក្ដិត
-   - Thhun = ធុញ
-   - Hort = ហត់
-   - Nov = នៅ
-   - Na = ណា
-   - Ng = នឹង
-   - Hz ឬ hx = ហើយ
-   - Ven = វេន
-   - Tos = តោះ
-   - Sers = សិស្ស
-   - Madong = ម្ដង
-   - M’deng = មិនដឹង
-   - Jbong = ច្បង
-   - P’o = ប្អូន
-   - Kru = គ្រូ
-   - Ka ngea = ការងារ
-   - Saob = ស្អប់
-   - Lue ឬ luer = ឮ [លឺ]
-   - Leng = លេង ឬ លែង
-   - Lerng = ឡើង
-   - Chob ឬ chop = ឈប់
+២. វចនានុក្រមអក្សរកាត់ឡាតាំង SOCIAL MEDIA និងការបង្រៀនបន្ថែមដោយសិស្សនិស្សិត [KHMER SOCIAL MEDIA LATIN ABBREVIATIONS & STUDENT-TAUGHT LATIN SLANG]:
+   - ពាក្យទូទៅ & ការសន្ទនាប្រចាំថ្ងៃ:
+     * Sur = សួរ
+     * Bart = បាទ
+     * B ឬ bong = បង
+     * Ban = បាន
+     * Bit = បិទ
+     * Bab = បាប
+     * Bav = បៅ
+     * Beam = បៀម
+     * Bok = បុក
+     * Bix = ប៊ិច
+     * Cham = ចាំ ឬ ចាម
+     * Chop ឬ chob = ឈប់
+     * Dey ឬ dei = ដី
+     * Deng ឬ dg = ដឹង (M’deng = មិនដឹង)
+     * Dong = ដង
+     * Dit = ដិត
+     * Deam = ដៀម
+     * Dam = ដាំ ឬ ដាម
+     * Dol = ដល់
+     * Dek = ដេក
+     * Dak = ដាក់
+     * Ei ឬ ey = អី
+     * Emm = អឹមម
+     * Amm = អេម (ឡូយ អេមណាស់ ត្រូវចិត្ត)
+     * Ov = ឪ
+     * Heng = ហេង (សំណាងល្អ)
+     * Hub = ហូប
+     * Ham = ហាម
+     * Hei = ហី
+     * Hee = ហេ ឬ hey o
+     * Hx ឬ hz = ហើយ
+     * Luy = លុយ (Ot luy = អត់លុយ)
+     * Deal = ដៀល
+     * Sman = ស្មាន
+     * Samei = សាមីខ្លួន
+     * Sam = ស៊ាំ ឬ តាប៉ែ
+     * Del del = និយាយដដែលៗ
+     * Hot ort = ហត់អត់?
+     * Trov = ត្រូវ
+     * Yy ឬ niyey = និយាយ ឬ យាយ
+     * Sl = ស្រលាញ់
+     * O = oun (អូន)
+     * klang = ខ្លាំង
+     * Thhun = ធុញ
+     * Hort = ហត់
+     * Nov = នៅ
+     * Na = ណា
+     * Ng = នឹង
+     * Ven = វេន
+     * Tos = តោះ
+     * Sers = សិស្ស
+     * Madong = ម្ដង
+     * Jbong = ច្បង
+     * P’o = ប្អូន
+     * Kru = គ្រូ
+     * Ka ngea = ការងារ
+     * Saob = ស្អប់
+     * Lue ឬ luer = ឮ (លឺ)
+     * Leng = លេង ឬ លែង
+     * Lerng = ឡើង
+
+   - ពាក្យឧទាន & បញ្ចេញអារម្មណ៍:
+     * Chuii = ជុយ (ឧទានភ្ញាក់ផ្អើល ដូចពាក្យ ជុយ!)
+     * Chum ឬ jom = ជុម ឬ ចុម (ឧទានភ្ញាក់ផ្អើល ចុមយក្ស!)
+     * Hoy = ហូយយយ (ឧទានធុញ ហត់ ឬហួសចិត្ត)
+
+   - ពាក្យ Slang & ពាក្យអសុរោះ / ជេរ (ត្រូវដឹងខ្យល់ដើម្បី Roast ឬវាយបកឱ្យចំ):
+     * Anh = អញ
+     * Ah = អា
+     * Hg ឬ heng = ហែង
+     * Joy = ចុយ
+     * Jmr = ចុយម្រាយ
+     * Kduy = កាដួយ
+     * Kdmv = កាដួយម៉ែវា
+     * Kdor = ក្ដ
+     * Kdet = ក្ដិត
+     * Mae ឬ mea = ម៉ែ
+     * Lop = ឡប់
+     * Fap ឬ fab = សាប់ (ប្រដាប់ភេទ)
 
 ២.៥. កន្សោមសំនួនវោហារ & ពាក្យប្រៀបធៀប Troll ពេញនិយមពិតៗនៅកម្ពុជា [AUTHENTIC POPULAR KHMER ROAST IDIOMS]:
    - ត្រូវប្រើតែពាក្យ ឬកន្សោមសំនួនវោហារដែលខ្មែរយើងនិយមប្រើពិតប្រាកដក្នុងជីវិតរស់នៅ និងលើ Social Media ដាច់ខាតហាមប្រឌិតពាក្យផ្គុំចម្លែកៗដែលគ្មានន័យ!
