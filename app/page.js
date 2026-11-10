@@ -43,6 +43,7 @@ export default function Home() {
   const [isLogoSpinning, setIsLogoSpinning] = useState(false);
   const [spinKey, setSpinKey] = useState(0);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
+  const [kandalModalOpen, setKandalModalOpen] = useState(false);
   const bgmRef = useRef(null);
 
   // Auto-Read Announcement Audio State
@@ -924,6 +925,64 @@ export default function Home() {
                   ជ្រើសរើស Roastbot ដែលអ្នកចង់សាកល្បង៖
                 </p>
                 <div className="grid grid-cols-1 gap-3.5">
+                  {/* KonKandal Card (Spoiler / Locked / Coming Soon - Placed on Top) */}
+                  <div
+                    onClick={() => setKandalModalOpen(true)}
+                    className={`relative overflow-hidden flex items-center gap-3.5 p-4 rounded-xl border-2 border-dashed transition-all duration-200 shadow-xs hover:shadow-md group cursor-pointer text-left select-none ${
+                      isDark
+                        ? 'bg-gradient-to-r from-slate-900/90 via-amber-950/20 to-slate-900/90 border-amber-500/40 hover:border-amber-400/60'
+                        : 'bg-gradient-to-r from-amber-50/70 via-white to-orange-50/50 border-amber-300 hover:border-amber-400'
+                    }`}
+                  >
+                    {/* Top ambient spoiler tag */}
+                    <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-orange-500 text-white text-[8.5px] font-black px-2 py-0.5 rounded-bl-lg shadow-2xs tracking-wider flex items-center gap-1">
+                      <i className="fas fa-lock text-[8px]"></i>
+                      <span>SPOILER • ឆាប់ៗនេះ</span>
+                    </div>
+
+                    {/* Avatar Profile with Shadow & Lock Overlay */}
+                    <div className="relative shrink-0">
+                      <div className="w-12 h-12 rounded-xl border border-amber-300 dark:border-amber-600/50 bg-amber-100/80 dark:bg-slate-800 p-1 object-cover overflow-hidden shadow-xs relative">
+                        <img
+                          src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
+                          width="48"
+                          height="48"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform opacity-80"
+                          alt="KonKandal Bot"
+                        />
+                        {/* Soft shadowy lock overlay on avatar */}
+                        <div className="absolute inset-0 bg-slate-950/25 dark:bg-slate-950/40 flex items-center justify-center backdrop-blur-[0.5px]">
+                          <i className="fas fa-lock text-amber-300 text-xs drop-shadow-md"></i>
+                        </div>
+                      </div>
+                      <span className="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-[9px] font-bold px-1.5 py-0.5 rounded-md text-white shadow-xs">
+                        កូនកណ្ដាល
+                      </span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 pr-12 sm:pr-0">
+                      <div className="font-bold text-sm text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors flex items-center gap-1.5 flex-wrap">
+                        <span>ស៊ីតិច Roastbot កូនកណ្ដាល</span>
+                        <span className="text-[10px] bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
+                          <span>មហាស្លូត &amp; Funny</span>
+                          <i className="fas fa-face-laugh-squint text-amber-500 text-[10px]"></i>
+                        </span>
+                      </div>
+                      <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
+                        ចរិកមហាស្លូតបូត ចេះ Respect User មិនជេរមិនដៀលទេ តែ Funny និងកំប្លែងចុកពោះ ជជែកបែប Chill ៗ
+                      </div>
+                    </div>
+
+                    {/* Lock / In-Dev Status Badge */}
+                    <div className="hidden sm:flex flex-col items-end shrink-0">
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10.5px] font-black flex items-center gap-1.5 shadow-2xs">
+                        <i className="fas fa-wrench text-[10px]"></i>
+                        <span>កំពុង Dev</span>
+                      </span>
+                    </div>
+                  </div>
+
                   {/* KonBong Card */}
                   <Link
                     href="/KonBong"
@@ -1254,6 +1313,53 @@ export default function Home() {
         onClose={() => setContributeModalOpen(false)}
         defaultBot="Home"
       />
+
+      {/* KonKandal Spoiler / Coming Soon Modal */}
+      {kandalModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl text-center space-y-4 relative overflow-hidden">
+            {/* Ambient top strip */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-400"></div>
+
+            {/* Avatar Profile */}
+            <div className="relative w-20 h-20 mx-auto rounded-3xl bg-amber-100 dark:bg-slate-800 p-2 border-2 border-amber-400 shadow-lg shadow-amber-500/20">
+              <img
+                src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
+                alt="KonKandal Mascot"
+                width="80"
+                height="80"
+                className="w-full h-full object-cover"
+              />
+              <span className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-md text-xs">
+                <i className="fas fa-lock"></i>
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-black border border-amber-500/25">
+                <span>Spoiler Alert • ឆាប់ៗនេះ</span>
+              </div>
+              <h3 className="text-base font-black text-slate-900 dark:text-white">
+                ស៊ីតិច Roastbot កូនកណ្ដាល
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                កំពុងស្ថិតក្នុងបន្ទប់ Lab ហ្វឹកហាត់ចរិកមហាស្លូតបូត និង Respect User ១០០% មិនចេះជេរមិនចេះដៀលទេ តែ Funny និងកំប្លែងសើចចុកពោះ!
+              </p>
+              <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-900 dark:text-amber-200 font-medium">
+                បង Rotana NOB កំពុងតែសម្រិតសម្រាំង និង Develop មុខងារនេះបន្ថែម ដើម្បីឱ្យបងប្អូនបានសាកល្បងក្នុងពេលឆាប់ៗនេះ!
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setKandalModalOpen(false)}
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs shadow-md shadow-amber-500/25 transition active:scale-95 cursor-pointer"
+            >
+              យល់ហើយ ចាំលេងពេលចេញផ្លូវការ!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
