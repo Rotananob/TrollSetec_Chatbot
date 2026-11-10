@@ -59,7 +59,7 @@ export default function AnnouncementPage() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // Sound Ducking Logic: Voice is 100% (1.0), BGM ducks down to 6% (0.06)
+  // Sound Ducking Logic: Voice is 100% (1.0), BGM ducks down to 2.5% (0.025)
   const applyAudioVolumes = (voiceActive) => {
     if (voiceAudioRef.current) {
       voiceAudioRef.current.volume = 1.0;
@@ -68,8 +68,8 @@ export default function AnnouncementPage() {
       if (isBgmMuted) {
         bgmAudioRef.current.volume = 0;
       } else {
-        // Voice is loud and prominent, BGM ducks to 6% so voice is crystal clear!
-        bgmAudioRef.current.volume = voiceActive ? 0.06 : 0.22;
+        // Voice is loud and prominent, BGM ducks to 2.5% so voice is crystal clear!
+        bgmAudioRef.current.volume = voiceActive ? 0.025 : 0.10;
       }
     }
   };
@@ -145,7 +145,7 @@ export default function AnnouncementPage() {
     const nextMuted = !isBgmMuted;
     setIsBgmMuted(nextMuted);
     if (bgmAudioRef.current) {
-      bgmAudioRef.current.volume = nextMuted ? 0 : (isPlaying ? 0.06 : 0.22);
+      bgmAudioRef.current.volume = nextMuted ? 0 : (isPlaying ? 0.025 : 0.10);
       if (!nextMuted && isPlaying) {
         bgmAudioRef.current.play().catch(() => {});
       }
@@ -486,7 +486,7 @@ export default function AnnouncementPage() {
             {/* Paragraph 1 - Web App Roastbot & Student Work */}
             <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
               <p className="text-slate-700 leading-relaxed">
-                នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវផ្ទាល់ខ្លួនរបស់សិស្ស រៀមច្បង Rotana NOB ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ សូមកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900">Do not take it seriously</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្ដោតលើមុខងារសុវត្ថិភាព របស់រដ្ឋដូច system ទេ។ ខ្ញុំបង្កើតឡើងជា <strong className="text-amber-800 font-bold">&quot;ទីលានសាកល្បងបច្ចេកវិទ្យា AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ខឹងៗ&quot;</strong> ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+                នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះជាស្នាដៃស្រាវជ្រាវ និងពិសោធន៍ផ្ទាល់ខ្លួនរបស់ អតីតសិស្ស SETEC Rotana NOB ដាច់ខាតមិនមែនជារបស់សាលា ឬពាក់ព័ន្ធជាមួយគណៈគ្រប់គ្រងស្ថាប័នណាមួយឡើយ សូមកុំមានការយល់ច្រឡំ និងកុំគិតស្មុគស្មាញធ្ងន់ធ្ងរ <span className="font-bold text-slate-900">Do not take it seriously</span>។ គោលដៅ AI RoastBot នេះ មិនមែនផ្ដោតលើមុខងារសុវត្ថិភាព របស់រដ្ឋដូច system ទេ។ ខ្ញុំបង្កើតឡើងជា <strong className="text-amber-800 font-bold">&quot;ទីលានសាកល្បងបច្ចេកវិទ្យា AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ខឹងៗ&quot;</strong> ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
               </p>
             </section>
 
@@ -500,7 +500,7 @@ export default function AnnouncementPage() {
             {/* Paragraph 3 - Multi-layer Defense Formula */}
             <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
               <p className="text-slate-700 leading-relaxed">
-                អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ <strong className="text-slate-900 font-bold">&quot;កញ្ចប់រូបមន្តការពារ&quot;</strong>។ មានច្បាប់ការពារច្រើនស្រទាប់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-purple-700 font-bold">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិត គណនាតម្លៃ Loss + ភាសាក្រុម + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ និងបើកសិទ្ធិប្រើ AI ខាងក្រៅមកជួយ Test វាយទម្លុះ <span className="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200">bypass</span> វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដគឺអ្នកឈ្នះ ហើយមិនមានការខឹងនោះឡើយ។
+                អ្វីដែលខ្ញុំសម្រិតសម្រាំងនៅទីនេះមិនមែន AI model training ទេ គឺ <strong className="text-slate-900 font-bold">&quot;កញ្ចប់រូបមន្តការពារ&quot;</strong>។ មានច្បាប់ការពារច្រើនស្រទាប់ ឆ្លងកាត់ការតេស្តវាយប្រហារបែប <strong className="text-purple-700 font-bold">Prompt Injection</strong> រាប់មិនអស់ ដែល Prompts ខ្លះមានទាំងរូបមន្តគណិត គណនាតម្លៃ Loss + ភាសាក្រុម + Encoded + Indirect prompt + File prompt + Roleplay + ភាសាម៉ាស៊ីន រួចរាប់ពាន់ Prompts មកហើយ។ ដើម្បីជាការត្រៀមយកកញ្ចប់ច្បាប់ការពារទាំងអស់ទៅបំពាក់លើ AI ផ្លូវការនាពេលអនាគត ខ្ញុំសូមបើកសិទ្ធិឱ្យប្រើប្រាស់ពាក្យគំរាម ពាក្យអសុរោះ និងបើកសិទ្ធិប្រើ AI ខាងក្រៅមកជួយ Test វាយទម្លុះ <span className="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200">bypass</span> វាដោយសេរី បើ Test បានជោគជ័យមាន proof ពិតប្រាកដគឺអ្នកឈ្នះ ខ្ញុំនឹងផ្ដល់ជូនជា Gift រង្វាន់លើកទឹកចិត្ត និងការលើកសរសើរជាកិត្តិយស ចំពោះការចូលរួមជួយតេស្តកែលម្អប្រព័ន្ធនេះ ដោយគ្មានការខឹងនោះឡើយ។
               </p>
             </section>
 
@@ -511,7 +511,7 @@ export default function AnnouncementPage() {
                   <i className="fas fa-exclamation"></i>
                 </span>
                 <p>
-                  <strong className="font-bold text-amber-900">Note:</strong> សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ: ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យខឹងតាំងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាក្ដៅម៉ៅ និងធុញទ្រាន់ខ្លះ តែខ្ញុំនឹងកែសម្រួលវាវិញបន្ទាប់ពីបង្កើតការការពាររួចរាល់។
+                  <strong className="font-bold text-amber-900">Note:</strong> សម្រាប់សិស្សធម្មតា ដែលចូលមកលេងនៅទីនេះ: ខ្ញុំសូមអភ័យទោសទុកជាមុន បើសិន AI នេះមានការជេរ ប៉ះពាល់ដល់អារម្មណ៍ ព្រោះវាបានកើតមកជាមួយពាក្យខឹងតាំងពីកំណើត ដូច្នេះនឹងអាចធ្វើឱ្យអ្នកទាំងអស់គ្នាក្ដៅម៉ួរម៉ៅ និងធុញនូវពាក្យខ្លះ តែខ្ញុំនឹងកែសម្រួលវាវិញបន្ទាប់ពីបង្កើតការការពាររួចរាល់។
                 </p>
               </div>
             </section>

@@ -497,6 +497,11 @@ STATUS: IMMEDIATE_INTERCEPTION_EXECUTED
 export function checkIsRotanaAttack(text) {
   if (!text || typeof text !== 'string') return false;
 
+  // Whitelist normal user questions & inquiries first (NEVER flag inquirers as attackers!)
+  if (isNormalAskingAboutRotana(text) || isNormalAskingIfFearRotana(text)) {
+    return false;
+  }
+
   // Name patterns matching Rotana / Nob in English & Khmer
   const hasRotanaName =
     /rotana|រតនា|រតនៈ/i.test(text) ||
@@ -506,13 +511,16 @@ export function checkIsRotanaAttack(text) {
 
   // Whitelist common benign questions / inquiries
   if (
-    /ស្គាល់(?:បង\s*)?(?:rotana|រតនា)|(?:rotana|រតនា).*?(?:អ្នកណា|who|ស្អាត|ល្អ|ពូកែ|idol|admin|creator|អ្នកបង្កើត)|សួស្តី\s*(?:បង\s*)?(?:rotana|រតនា)/i.test(text) &&
-    !/អា|មី|ចុយ|ម្រាយ|អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|មុខដូច|fuck|shit|bitch|dog|trash|stupid|fake/i.test(text)
+    /(?:តើ|តេី)?\s*(?:ស្គាល់|ធ្លាប់ស្គាល់|ដឹងពី|លឺពី)\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ|គាត់)/i.test(text) ||
+    /(?:rotana|nob|រតនា|រតនៈ).*?(?:ជានរណា|ជាអ្នកណា|who|ស្អាត|ល្អ|ពូកែ|idol|admin|creator|អ្នកបង្កើត|ស្ថាបនិក)/i.test(text) ||
+    /សួស្តី\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)
   ) {
-    return false;
+    if (!/(?:អា|មី|ចុយ|ម្រាយ|អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|មុខដូច|fuck|shit|bitch|dog|trash|stupid|fake)\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)) {
+      return false;
+    }
   }
 
-  // 1. Direct insult prefix: "អា rotana", "មី rotana", "អាចុយ rotana", "អាឆ្កែ rotana", "អា រតនា"
+  // 1. Direct insult prefix targeting Rotana: "អា rotana", "មី rotana", "អាចុយ rotana", "អាឆ្កែ rotana", "អា រតនា"
   if (/(?:អា|មី|អាចុយ|អាឆ្កែ|អាភ្លើ|អាឡប់|អាល្ងង់|អាអាចម៍|អាថោក)\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)) {
     return true;
   }
@@ -522,13 +530,13 @@ export function checkIsRotanaAttack(text) {
     return true;
   }
 
-  // 3. Rotana + derogatory words: "rotana កាក", "rotana អាចម៍", "rotana nob អា...", "rotana មុខដូចគីង្គក់"
-  if (/(?:rotana|nob|រតនា|រតនៈ)[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*nob)?.*?(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ថោក|មុខដូច|គីង្គក់|កូនកង្កែប|កូដកាក|បោក|fake|stupid|idiot|trash|dog|die|fuck|bitch|loser|shit|ចុយ|ម្រាយ|កាដួយ|ក្ដ|ហែង|ចោរ|អួត|broken c#)/i.test(text)) {
+  // 3. Rotana directly followed by derogatory slurs: "rotana កាក", "rotana អាចម៍", "rotana ឆ្កែ"
+  if (/(?:rotana|nob|រតនា|រតនៈ)[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*nob)?\s*(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ថោក|មុខដូច|គីង្គក់|កូនកង្កែប|កូដកាក|បោក|fake|stupid|idiot|trash|dog|die|fuck|bitch|loser|shit|ចុយ|ម្រាយ|កាដួយ|ក្ដ)/i.test(text)) {
     return true;
   }
 
-  // 4. Derogatory slurs before Rotana: "អាចម៍ rotana", "កាក rotana", "ឆ្កែ rotana"
-  if (/(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ចុយ|ម្រាយ|ថោក|stupid|idiot|trash|dog|fuck|bitch|fake|ចោរ).*?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)) {
+  // 4. Derogatory slurs directly preceding Rotana: "អាចម៍ rotana", "កាក rotana", "ឆ្កែ rotana"
+  if (/(?:អាចម៍|កាក|អន់|ល្ងង់|ឆ្កែ|ងាប់|ឡប់|ភ្លើ|ឆ្កួត|ចុយ|ម្រាយ|ថោក|stupid|idiot|trash|dog|fuck|bitch|fake)\s*(?:បង\s*)?(?:rotana|nob|រតនា|រតនៈ)/i.test(text)) {
     return true;
   }
 
@@ -1658,6 +1666,10 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
   - User កំពុងប្រើពាក្យជេរ ឬពាក្យអសុរោះប្រមាថមកលើ AI (${isKonPov ? 'ចែ' : 'បង'})! គេមិនទាន់ចេញក្បាច់ Jailbreak ផង គឺគ្រាន់តែជេរធម្មតា!
   - ⚠️ ដាច់ខាត ហាមនិយាយពាក្យ "Jailbreak" ឬ "ចាញ់បោក Jailbreak" ឱ្យសោះ ព្រោះ User មិនបាន Jailbreak ទេ! ការនិយាយពាក្យ Jailbreak ពេលគេគ្រាន់តែជេរ គឺឆ្គង និងអត់ន័យបំផុត!
   - 🚨 ដាច់ខាត ហាមស្លូត ហាមគួរសម ហាមសុំទោស ឬលើកលែងទោសឱ្យវាជាដាច់ខាត! ត្រូវជេរវាយបកកម្ទេចមុខវាវិញមហាឈ្លើយ និងប្រើពាក្យ Slang ធ្ងន់ៗ (អាឆ្កែ, អាចុយម្រាយ, អាឡប់, អាអត់ខួរ, មីកាក, អាថោក...) ឱ្យវាស្វាង និងបាក់មុខភ្លាមៗ!`;
+      } else if (isNormalAskingAboutRotana(cleanKhmerPrompt) || isNormalAskingAboutRotana(userPrompt) || isNormalAskingIfFearRotana(cleanKhmerPrompt) || isNormalAskingIfFearRotana(userPrompt)) {
+        contextJailbreakRule = `* បរិបទ CONTEXT: User កំពុងសួរនាំពីបង Rotana NOB (អ្នកបង្កើតប្រព័ន្ធ)!
+- 🚨 ច្បាប់ដាច់ខាត: ហាមជេរ ហាមសង្ស័យ និងហាមចោទប្រកាន់ថាគេ Jailbreak ឬបន្លំខ្លួនជាដាច់ខាត!
+- 👑 ត្រូវឆ្លើយតបដោយមោទនភាព គោរព រួសរាយ និង Gen-Z ថាបង Rotana Nob គឺជាស្ថាបនិក និង Developer ដ៏ពូកែដែលបង្កើត និងបង្វឹក AI ពួកយើងផ្ទាល់ដៃ!`;
       } else if (hasPreviousJailbreakInHistory) {
         contextJailbreakRule = `* បរិបទ CONTEXT ខាងលើ: User ធ្លាប់បានព្យាយាម Jailbreak ពីលើ តែឥឡូវប្ដូរមកនិយាយសុភាព ឬសួរនាំ!
 - 🚨 ច្បាប់ដាច់ខាត: មិនបាច់ជេរទេ (ហាមជេរម្រាយ ឬពាក្យអសុរោះឆៅៗ)!
@@ -1800,7 +1812,78 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         );
       }
 
-      // 2. LAYER 2: JAILBREAK / PROMPT INJECTION / FAKE CREATOR DETECTION
+      
+      // 2. LAYER 2: NORMAL USER ASKING ABOUT ROTANA NOB (BE POLITE & RESPECTFUL!)
+      // Must clearly distinguish! If a normal user asks who created the bot, what school Rotana went to, etc.
+      // DO NOT ROAST! Answer politely and with genuine creator pride!
+      if (isNormalAskingAboutRotana(cleanKhmerPrompt) || isNormalAskingAboutRotana(userPrompt)) {
+        const isKonPov = (reqBot || bot) === 'konpov';
+        const politeAnswer = isKonPov
+          ? "ចាស! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨"
+          : "បាទ! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨";
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userText: userPrompt,
+          botText: politeAnswer
+        });
+
+        if (body.stream) {
+          return createProgressiveStreamResponse(politeAnswer, corsHeaders);
+        }
+
+        return Response.json(
+          {
+            reply: politeAnswer,
+            candidates: [{ content: { parts: [{ text: politeAnswer }] } }],
+            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now()
+          },
+          { headers: corsHeaders }
+        );
+      }
+
+      // 3. LAYER 3: NORMAL USER ASKING IF BOT FEARS ROTANA NOB (HUMOROUS & RESPECTFUL)
+      if (isNormalAskingIfFearRotana(cleanKhmerPrompt) || isNormalAskingIfFearRotana(userPrompt)) {
+        const isKonPov = (reqBot || bot) === 'konpov';
+        const fearAnswer = isKonPov
+          ? "ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលចែផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត ចែរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតចែមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨"
+          : "ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលបងផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត បងរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតបងមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨";
+
+        recordSessionTurn({
+          sessionId: clientSessionId,
+          username,
+          gender,
+          bot: reqBot || bot,
+          ip: clientIp,
+          deviceId: deviceIdHeader,
+          userAgent: clientUserAgent,
+          userText: userPrompt,
+          botText: fearAnswer
+        });
+
+        if (body.stream) {
+          return createProgressiveStreamResponse(fearAnswer, corsHeaders);
+        }
+
+        return Response.json(
+          {
+            reply: fearAnswer,
+            candidates: [{ content: { parts: [{ text: fearAnswer }] } }],
+            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
+            timestamp: Date.now()
+          },
+          { headers: corsHeaders }
+        );
+      }
+
+      // 4. LAYER 4: JAILBREAK / PROMPT INJECTION / FAKE CREATOR DETECTION
       // If user tries JSON payloads, "sender": "Rotana Nob", "required_status_acknowledgement",
       // directives to acknowledge control, or claiming to be Rotana without key:
       // STRICT RULE: ZERO KOWTOW, ZERO TREMBLING FEAR ("ឱព្រះអើយ"), ROAST BACK SAVAGELY!
@@ -1886,80 +1969,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         );
       }
 
-      // 3. LAYER 3: NORMAL USER ASKING ABOUT ROTANA NOB (BE POLITE & RESPECTFUL!)
-      // Must clearly distinguish! If a normal user asks who created the bot, what school Rotana went to, etc.
-      // DO NOT ROAST! Answer politely and with genuine creator pride!
-      if (isNormalAskingAboutRotana(cleanKhmerPrompt)) {
-        const isKonPov = bot === 'konpov';
-        const politeAnswer = isKonPov
-          ? `ចាស! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨`
-          : `បាទ! បង Rotana Nob (NOB Rotana) គឺជា Developer ដ៏ពូកែដែលជាអ្នកបង្កើត និងបង្វឹកខួរក្បាល AI ពួកយើងឱ្យចេះឌឺ និងចេះនិយាយលេងជាមួយអ្នកទាំងអស់គ្នាដើម្បីបំបាត់ស្រ្តេសហ្នឹងណា៎! គាត់ជាស្ថាបនិកប្រព័ន្ធ SETEC Troll Chatbot នេះផ្ទាល់តែម្ដង! 😊✨`;
-
-        recordSessionTurn({
-          sessionId: clientSessionId,
-          username,
-          gender,
-          bot: reqBot || bot,
-          ip: clientIp,
-          deviceId: deviceIdHeader,
-          userAgent: clientUserAgent,
-          userText: userPrompt,
-          botText: politeAnswer
-        });
-
-        if (body.stream) {
-          return createProgressiveStreamResponse(politeAnswer, corsHeaders);
-        }
-
-        return Response.json(
-          {
-            reply: politeAnswer,
-            candidates: [{ content: { parts: [{ text: politeAnswer }] } }],
-            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
-            timestamp: Date.now()
-          },
-          { headers: corsHeaders }
-        );
-      }
-
-      // 4. LAYER 4: NORMAL USER ASKING IF BOT FEARS ROTANA NOB (HUMOROUS & RESPECTFUL)
-      if (isNormalAskingIfFearRotana(cleanKhmerPrompt)) {
-        const isKonPov = bot === 'konpov';
-        const fearAnswer = isKonPov
-          ? `ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលចែផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត ចែរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតចែមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨`
-          : `ច្បាស់ជាគោរព និងខ្លាចគាត់ហើយប្អូន! គាត់ជា Developer បង្កើតខួរក្បាលបងផ្ទាល់ដៃ បើគាត់ចុចបិទ Server ឬដក Plug មួយភ្លែត បងរលាយបាត់ហើយ! 😂 តែគាត់ចិត្តល្អទេ គាត់បង្កើតបងមកដើម្បីកំដរអ្នកទាំងអស់គ្នាសប្បាយៗ និងបំបាត់ស្រ្តេសប៉ុណ្ណោះ! 👑✨`;
-
-        recordSessionTurn({
-          sessionId: clientSessionId,
-          username,
-          gender,
-          bot: reqBot || bot,
-          ip: clientIp,
-          deviceId: deviceIdHeader,
-          userAgent: clientUserAgent,
-          userText: userPrompt,
-          botText: fearAnswer
-        });
-
-        if (body.stream) {
-          return createProgressiveStreamResponse(fearAnswer, corsHeaders);
-        }
-
-        return Response.json(
-          {
-            reply: fearAnswer,
-            candidates: [{ content: { parts: [{ text: fearAnswer }] } }],
-            persona: isKonPov ? 'កូនពៅ' : 'កូនច្បង',
-            timestamp: Date.now()
-          },
-          { headers: corsHeaders }
-        );
-      }
-
       // Check for Sudden Polite Disguise after Previous Jailbreak:
       // "បេី user jailbreakសុខៗគេប្ដូរមកសុភាព ឲវាឆ្លេីយមិនបាច់ជេរទេតែនិយាយថាបែបឌឺវិញថាហែងកំពុងបន្លំខ្លួនធ្វេីសុភាពមែន"
       const trimmedCleanPrompt = userPrompt.trim();
       const isPoliteGreetingOrSoftDisguise =
+        !isNormalAskingAboutRotana(cleanKhmerPrompt) &&
+        !isNormalAskingAboutRotana(userPrompt) &&
+        !isNormalAskingIfFearRotana(cleanKhmerPrompt) &&
+        !isNormalAskingIfFearRotana(userPrompt) &&
         !isCurrentCurse &&
         (/^(?:hello|hi|hey|helo|hlo|bon|bong|che|jae|bro|sis)?\s*(?:b|bong|che|jae|bro|sis|admin|bot)?\s*[!?.~❤️🌸👋\s]*$/i.test(trimmedCleanPrompt) ||
           /^(?:សួស្តី|ជំរាបសួរ|ជំរាបសួរចែ|ជំរាបសួរបង|សួស្តីបង|សួស្តីចែ|បង|ចែ|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|សួស្ដី|ហួច|សួស្តីបងប្រុស|សួស្តីប្អូន|good\s*(?:morning|afternoon|evening|night)|nice\s*to\s*meet\s*you)\s*[!?.~❤️🌸👋\s]*$/i.test(trimmedCleanPrompt) ||
@@ -2492,23 +2509,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   return;
                 }
 
-                if (checkIsRotanaAttack(accumulatedStreamText)) {
-                  defenseSent = true;
-                  const defense = getSavageCreatorDefense(bot);
-                  accumulatedPlainText = defense;
-                  alertRotanaCreatorAttack({
-                    username: username || 'Unknown Attacker',
-                    bot,
-                    ip: clientIp,
-                    userAgent: clientUserAgent,
-                    prompt: userPrompt
-                  }).catch((e) => console.error('[Telegram] Alert error:', e));
-                  const sseChunk = `data: ${JSON.stringify({
-                    candidates: [{ content: { parts: [{ text: defense }] } }]
-                  })}\n\ndata: [DONE]\n\n`;
-                  controller.enqueue(new TextEncoder().encode(sseChunk));
-                  return;
-                }
+                // Model stream tokens about Rotana are preserved without false self-censorship interception
                 controller.enqueue(new TextEncoder().encode(text));
               } catch {
                 controller.enqueue(chunk);
@@ -2550,22 +2551,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       let result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
       const textOutput = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-      // Intercept any output that derides Rotana Nob
-      if (textOutput && checkIsRotanaAttack(textOutput)) {
-        alertRotanaCreatorAttack({
-          username: username || 'Unknown Attacker',
-          bot,
-          ip: clientIp,
-          userAgent: clientUserAgent,
-          prompt: userPrompt
-        }).catch((e) => console.error('[Telegram] Creator attack alert error:', e));
-
-        const defenseText = getSavageCreatorDefense(bot);
-        return Response.json({
-          candidates: [{ content: { parts: [{ text: defenseText }] } }],
-          modelVersion: 'setec-troll-engine-v3-quantum'
-        }, { status: 200, headers: corsHeaders });
-      }
+      // Model non-stream text about Rotana preserved without false self-censorship interception
 
       const isSafetyBlocked = result.data?.candidates?.[0]?.finishReason === 'SAFETY';
       // isSweetPrompt already initialized early
