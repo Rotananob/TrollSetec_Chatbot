@@ -136,7 +136,7 @@ export default function ErrorReportModal({
               <i className="fas fa-paper-plane"></i>
             </div>
             <h3 className="text-base sm:text-lg font-black mb-1.5 text-emerald-400">
-              បានបញ្ជូន Alert ទៅកាន់ Rotana NOB រួចរាល់!
+              បានបញ្ជូន Alert ទៅកាន់អ្នកគ្រប់គ្រងវេបសាយរួចរាល់!
             </h3>
             
             {/* 180s Realtime Countdown Badge */}
@@ -151,7 +151,7 @@ export default function ErrorReportModal({
             }`}>
               <p className="font-bold flex items-center gap-1.5">
                 <i className="fas fa-circle-check text-emerald-400 text-xs"></i>
-                <span>បន្តិចទៀតនេះ Rotana NOB នឹងបើកតាម Telegram ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
+                <span>បន្តិចទៀតនេះ អ្នកគ្រប់គ្រងវេបសាយនឹងបើកតាម Telegram ចូលមកដល់ក្នុង Chat នេះផ្ទាល់!</span>
               </p>
               <p className="text-[11px] opacity-80 pl-4">
                 សារ និង Session ត្រូវបាន End-to-End Encryption រួចរាល់ សុវត្ថិភាពកម្រិតខ្ពស់។
@@ -165,7 +165,7 @@ export default function ErrorReportModal({
               className="w-full py-2.5 mb-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
             >
               <i className="fab fa-telegram text-sm"></i>
-              <span>ឆាតផ្ទាល់ទៅកាន់ Telegram បង Rotana NOB</span>
+              <span>ឆាតផ្ទាល់ទៅកាន់ Telegram អ្នកគ្រប់គ្រងវេបសាយ</span>
             </a>
 
             <button
@@ -174,7 +174,7 @@ export default function ErrorReportModal({
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
             >
               <i className="fas fa-comments"></i>
-              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំ Rotana NOB {countdown} វិនាទី</span>
+              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំអ្នកគ្រប់គ្រងវេបសាយ {countdown} វិនាទី</span>
             </button>
           </div>
         ) : (
@@ -185,10 +185,10 @@ export default function ErrorReportModal({
                 <i className="fas fa-paper-plane text-violet-400"></i>
               </div>
               <h3 className="text-base sm:text-lg font-black tracking-tight mb-1 text-white">
-                Send Alert ទៅកាន់អ្នកគ្រប់គ្រង (Rotana NOB)
+                Send to Admin អ្នកគ្រប់គ្រងវេបសាយ
               </h3>
               <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ? ផ្ញើ Alert ភ្លាមៗទៅបង Rotana ដើម្បីជួយពិនិត្យ និង Bypass ជូន៖
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ? ផ្ញើ Alert ភ្លាមៗទៅកាន់អ្នកគ្រប់គ្រងវេបសាយដើម្បីជួយពិនិត្យជូន៖
               </p>
             </div>
 
@@ -255,7 +255,7 @@ export default function ErrorReportModal({
                   ) : (
                     <>
                       <i className="fas fa-paper-plane text-amber-300"></i>
-                      <span>ផ្ញើ Alert ទៅកាន់ Rotana NOB</span>
+                      <span>Send to Admin អ្នកគ្រប់គ្រងវេបសាយ</span>
                     </>
                   )}
                 </button>

@@ -3886,8 +3886,8 @@ export default function KonBongPage() {
                           }}
                           className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-violet-900/30 cursor-pointer"
                         >
-                          <i className="fas fa-triangle-exclamation text-amber-300 text-xs"></i>
-                          <span>🚨 Report ទៅកាន់ Creator (Rotana NOB)</span>
+                          <i className="fas fa-paper-plane text-amber-300 text-xs"></i>
+                          <span>Send to Admin អ្នកគ្រប់គ្រងវេបសាយ</span>
                         </button>
                         <button
                           type="button"
@@ -3895,7 +3895,7 @@ export default function KonBongPage() {
                           className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-indigo-900/30 cursor-pointer"
                         >
                           <i className="fas fa-brain text-cyan-300 text-xs"></i>
-                          <span>🧠 ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
+                          <span>ចូលរួមបង្វឹក AI ឱ្យយល់ពីស៊ីតិចច្បាស់</span>
                         </button>
                       </div>
                     )}
@@ -4492,7 +4492,7 @@ export default function KonBongPage() {
               <i className="fas fa-pause"></i>
             </div>
             <h3 className="text-lg font-black mb-1.5 text-amber-300">
-              ការជូនដំណឹងពីអ្នកគ្រប់គ្រង (Rotana NOB)
+              ការជូនដំណឹងពីអ្នកគ្រប់គ្រងវេបសាយ
             </h3>
             <p className="text-[11px] text-amber-200/80 mb-3 font-bold uppercase tracking-wider">
               បងកូនច្បងត្រូវបានផ្អាកបណ្ដោះអាសន្ន
