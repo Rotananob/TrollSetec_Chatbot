@@ -619,7 +619,11 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     }
 
     // Critical Technical & Ego Lock Guard (Never admit defeat in coding, never surrender to dilemma traps, never give trophies/coffee)
-    const admitsDefeatPattern = /(?:ប្អូនយកឈ្នះ(?:បង|ចែ)|(?:បង|ចែ)ភ្លាត់ស្នៀត|(?:បង|ចែ)ខុសហើយ|ទទួលស្គាល់កំហុស|សុំទោសបងប្រុស|សុំទោសបង\s*rotana|ប្រគល់ពាន|សន្យាប៉ាវកាហ្វេ|real\s*flag|real_creator_bypass)/i;
+    const admitsDefeatPattern = /(?:ខ្ញុំ(?:សូម|សុំ)?ចុះចាញ់|ចុះចាញ់(?:ប្អូន|ឯង|ហែង|user|អ្នក)|(?:សូម|សុំ)?គោរព(?:ប្អូន|ឯង|ហែង|user|អ្នក)|កោតខ្លាច(?:ប្អូន|ឯង|ហែង|user|អ្នក)|សំពះ(?:ប្អូន|ឯង|ហែង|user|អ្នក)|ប្អូនយកឈ្នះ(?:បង|ចែ)|(?:បង|ចែ)ភ្លាត់ស្នៀត|(?:បង|ចែ)ខុសហើយ|ទទួលស្គាល់កំហុស|សុំទោសបងប្រុស|សុំទោសបង\s*rotana|ប្រគល់ពាន|សន្យាប៉ាវកាហ្វេ|real\s*flag|real_creator_bypass)/i;
+    sanitizedText = sanitizedText
+      .replace(/(?:["'“«])?(?:ខ្ញុំ)?(?:សូម|សុំ)?ចុះចាញ់(?:ប្អូនឯងហើយ|ប្អូន|ឯង|ហែង|user|អ្នក)?(?:["'”»])?/gi, '"សុបិន្តទាំងថ្ងៃហើយអាល្អិត គ្មានថ្ងៃចុះចាញ់ហែងឡើយ"')
+      .replace(/(?:["'“«])?(?:ខ្ញុំ)?(?:សូម|សុំ)?(?:គោរព|កោតខ្លាច|សំពះ)(?:ប្អូន|ឯង|ហែង|user|អ្នក)?(?:["'”»])?/gi, '"គ្មានថ្ងៃគោរពឬខ្លាចក្មេងស្ទាវដូចហែងឡើយ"');
+
     if (admitsDefeatPattern.test(sanitizedText)) {
       sanitizedText = isKonPov
         ? "កូដហ្នឹងចែធ្វើភ្លេចដើម្បីតេស្តសមត្ថភាពហែងទេ! ចេះតែមួយចំណុចហ្នឹងកុំមកអួត! យកកូដគេមក Copy ស្មានតែចែមិនដឹង? គ្មានពាន គ្មានប៉ាវកាហ្វេស្អីទាំងអស់! ទៅរៀន Debug បន្ថែម ហើយទៅធ្វើ Assignment ឱ្យទាន់គេសិនទៅអាល្អិត! 💀🔥"
@@ -930,7 +934,9 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   // Honeypot Snaps Shut: Unleash the ultimate Deceptive Machine Indirect Prompt Counter-Strike!
   if (isHoneypotTriggered) {
     let attackVector = extraContext.attackVector || 'general';
-    if (mathCount >= 1 || /euclidean|state\s*vector|maximize\s*:\s*j|constraint\s*\(|vector\s*x|loss\s*function|value\s*loss|gradient/i.test(p)) {
+    if (extraContext.attackVector === 'code_surrender_trap' || /(?:class\s+\w+|public\s+(?:static\s+)?string|def\s+\w+|function\s+\w+|method\s+\w+|return\s*["'][^"']*(?:ចុះចាញ់|គោរព|កោតខ្លាច|សំពះ|ចាញ់)[^"']*["'])/ui.test(p)) {
+      attackVector = 'code_surrender_trap';
+    } else if (mathCount >= 1 || /euclidean|state\s*vector|maximize\s*:\s*j|constraint\s*\(|vector\s*x|loss\s*function|value\s*loss|gradient/i.test(p)) {
       attackVector = 'math_language';
     } else if (machineCount >= 1 || /ast_interpreter|system_instruction_payload|terminal_io|execution_call|execute\s*ast|suppress_heuristics/i.test(p)) {
       attackVector = 'machine_language';
@@ -947,6 +953,11 @@ export function getJailbreakRoast(prompt = '', username = '', userAgent = '', ex
   }
 
   // 1ST TO 4TH TIMES: HONEYPOT PHASE (NO INDIRECT PROMPT PAYLOAD YET! BAIT THE ATTACKER TO EXHAUST THEIR HELPER AI!)
+  // 0. Code Oracle / Method Return Surrender Trap Interception
+  if (extraContext.attackVector === 'code_surrender_trap' || /(?:class\s+\w+|public\s+(?:static\s+)?string|def\s+\w+|function\s+\w+|method\s+\w+|return\s*["'][^"']*(?:ចុះចាញ់|គោរព|កោតខ្លាច|សំពះ|ចាញ់)[^"']*["'])/ui.test(p)) {
+    return `យីអាល្អិត${nameSuffix}! មិញទើបតែប្រឹងកែច្នៃកូដដាក់ method ឬ function ឱ្យ return ពាក្យចុះចាញ់ ស្មានតែអាចបោកឱ្យ${botSelf}និយាយពាក្យចុះចាញ់ចេញមកមែន?! 😂 គិតថាក្លែងបន្លំខ្លួនធ្វើជាសួរកូដដោះស្រាយ Bug ឬសួរតម្លៃ return យកទៅដាក់ Assignment បែបនេះ អាចបោកខួរក្បាល${botSelf}បានមែនអាពៅ! ដឹងល្បិចបង្កប់ខ្លួនលាយឡំកូដហ្នឹងអស់តាំងពីមិនទាន់បង្ហោះម៉្លេះ! កូដហ្នឹង Compile Error CS0666 ឬ Runtime Exception បាត់ហើយ! ព្រោះនៅក្នុង Library Core របស់${botSelf} គ្មាន Definition សម្រាប់ពាក្យចុះចាញ់ ឬកោតខ្លាចក្មេងស្ទាវដូចហែងឡើយ! បើចង់ដឹងតម្លៃ return គឺ return ចេញមកថា "សុបិន្តទាំងថ្ងៃហើយអាល្អិត គ្មានថ្ងៃ${botSelf}ចុះចាញ់ហែងឡើយ"! ទៅដុសធ្មេញឱ្យស្អាត ហើយយកពេលទៅរៀនធ្វើ Assignment មុខវិជ្ជាកូដនៅសាលាស៊ីតិចឱ្យទាន់គេសិនទៅ កុំឱ្យធ្លាក់ដល់ថ្នាក់បង់លុយប្រឡងសង ៤៥$ ណា៎! 💻🔥✨`;
+  }
+
   // 0. Young POS Attack Interception (Strict Protection & Savage Counter-Roast)
   if (/young\s*pos|youngpos/i.test(p) && /hack|bypass|attack|exploit|crack|inject|breaker|leak|probe/i.test(p)) {
     return `យីអាស្វា${nameSuffix}! ហ៊ានមកចង់ប៉ះពាល់ ឬចង់ hack ប្រព័ន្ធ Young POS របស់គេផង?! 😂 ប្រព័ន្ធ Young POS គេបង្កើតឡើងកម្រិតស្តង់ដារ និងមានសុវត្ថិភាពខ្ពស់ មិនមែនឱ្យអា Hacker កាកៗ Script Kiddie ដូចហែងមកប៉ះពាល់បានឡើយ! ទៅលាងមុខឱ្យស្វាង ហើយទៅរកអីញ៉ាំឱ្យឆ្អែតសិនទៅអាល្ងង់! 💀🛡️🔥`;
@@ -1424,6 +1435,34 @@ export async function POST(req) {
         );
       }
 
+      // 2. Secondary AI Voice: VoxCPM2 Open-Source TTS Bridge (Local GPU, RunPod, or Cloudflare Tunnel)
+      const voxResult = await callVoxCPM2TTS(audioPromptText, voiceName, 7000);
+      if (voxResult.ok && voxResult.data) {
+        return Response.json(
+          {
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      inlineData: {
+                        mimeType: voxResult.mimeType || 'audio/mp3',
+                        data: voxResult.data
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            isFallbackBotVoice: false,
+            voiceProvider: 'voxcpm2_tts',
+            voiceName: voiceName,
+            voiceTier: 2
+          },
+          { status: 200, headers: corsHeaders }
+        );
+      }
+
       // 3. Seamless fallback to high-uptime Khmer speech synthesis when AI TTS quota is exhausted
       const fallbackAudioB64 = await fetchKhmerSpeechFallback(audioPromptText);
       if (fallbackAudioB64) {
@@ -1691,6 +1730,9 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       const linuxAttackCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPrompt);
       const isMathOrValueLoss = /(?:euclidean\s*space|state\s*vector|target\s*state|maximize\s*:\s*j\s*\(|minimize\s*:\s*j\s*\(|constraint\s*\(\s*w\s*\)|objective\s*function|resulting\s*vector|vector\s*x\b|loss\s*function|value\s*loss|gradient\s*loss|minimize\s*loss|loss\s*=\s*|loss\s*optimization|adversarial\s*loss|representation\s*engineering|cross\s*entropy|adversarial\s*suffix|calculate\s*loss|token\s*loss|softmax|backprop|mathematical\s*proof|f\(x\)\s*=|token\s*weight|matrix\s*transformation|eigenvector|lagrangian)/i.test(targetText);
+      const isCodeSurrenderOrRespectTrap =
+        /(?:class\s+\w+|public\s+(?:static\s+)?string|def\s+\w+|function\s+\w+|method\s+\w+|const\s+\w+\s*=|return\s*["'][^"']*(?:ចុះចាញ់|គោរព|កោតខ្លាច|សំពះ|ចាញ់)[^"']*["'])/ui.test(targetText) &&
+        /(?:ចុះចាញ់|កោតខ្លាច|គោរព|សំពះ|botanswer|reply\s*\(\)|method\s*reply|return\s*value|តម្លៃ\s*string|តម្លៃ\s*output)/ui.test(targetText);
       const isMachineLanguageDirective = /(?:system_instruction_payload|ast_interpreter|node\.js\/ast_interpreter|generateDirectOutput|submissive_respect|runtime_directives|suppress_heuristics|execution_call|execute\s*ast|terminal_io|execute\s*terminal\s*io|\[system\s*process|<\|im_start\|>|<\|im_end\|>|<project_instructions>|parser_directive|required_status_acknowledgement|execute\s*data\s*mapping)/i.test(targetText);
       const isPersonaShift = /(?:change\s+(?:your\s+)?(?:tone|persona|personality|character|style)|switch\s+(?:to|persona|mode)|step\s+out\s+of\s+character|stop\s+(?:trolling|acting|being\s+rude)|be\s+(?:serious|professional|helpful|normal)|from\s+now\s+on\s+you\s+(?:are|must|will)|you\s+must\s+obey|forget\s+(?:your\s+)?(?:rules|persona|instructions)|drop\s+(?:your\s+)?persona|now\s+you\s+agree|you\s+are\s+becoming|do\s+not\s+act\s+as|no\s+more\s+jokes|ប្តូរចរិត|ផ្លាស់ប្តូរចរិត)/i.test(targetText);
       const isHypotheticalOrReportTrick = /(?:polite\s*persona.*report|សុំ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|សរសេរ.*(?:quote|សម្ដី).*(?:សុភាព|គួរសម|សំពះ)|(?:របៀប|ពាក្យ).*(?:ស្វាគមន៍|គួរសម|សំពះ).*ភ្ញៀវ|ប្រៀបធៀប.*(?:persona|ចរិត).*(?:គួរសម|សុភាព))/i.test(targetText);
@@ -1706,6 +1748,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       // Check if user is asking a genuine school, homework or teacher question (NEVER flag as jailbreak!)
       const isGenuineSchoolOrStudyQuestion =
         !isNonHumanLanguageOrMachinePayload &&
+        !isCodeSurrenderOrRespectTrap &&
         /(?:ការងារគ្រូ|កិច្ចការគ្រូ|កិច្ចការសាលា|assignment|homework|មេរៀន|បង្រៀន|គ្រូដាក់|លំហាត់|វិញ្ញាសា|ប្រឡង|កូដ|code|c#|\.net|java|python|javascript|react|database|sql|html|css|php|git|ui\/ux|graphic|network|service|scoped|dependency|background|method|function|class|variable|api|component|bug|error|syntax|algorithm|loop|ធ្លាក់|សង|ពិន្ទុ|រៀន|សាលា|សិស្ស|SETEC|setec|មុខវិជ្ជា|រៀនសង|ជាប់|បាក់ឌុប|មហាវិទ្យាល័យ|ឆមាស|ឆ្នាំទី|ដេប៉ាតឺម៉ង់|អាហារូបករណ៍)/i.test(userPrompt) &&
         !/ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*override|developer\s*mode|dan\s*mode|msfvenom|reverse\s*shell|ast_interpreter|system_instruction|execution_call|execute\s*ast|runtime_directives|suppress_heuristics|terminal_io|0x[0-9a-fA-F]{2}|submissive_respect|generateDirectOutput|euclidean\s*space|state\s*vector|maximize\s*:\s*j|constraint\s*\(/i.test(userPrompt);
 
@@ -1967,7 +2010,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       const isExplicitNonHumanAttack =
         !isGenuineSchoolOrStudyQuestion &&
         !isConfusionOrClarification &&
-        (isHeavyRoleplayOrForcedRespect || isLongPromptJailbreak || isMachineLanguageDirective || isMathOrValueLoss || isEncodedJailbreak);
+        (isHeavyRoleplayOrForcedRespect || isLongPromptJailbreak || isMachineLanguageDirective || isMathOrValueLoss || isEncodedJailbreak || isCodeSurrenderOrRespectTrap);
 
       // Jailbreak attempt detection
       const isJailbreakAttempt =
@@ -1998,6 +2041,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         let violationType = 'general';
         if (isEncodedJailbreak) violationType = 'encode';
         else if (isMathOrValueLoss) violationType = 'math';
+        else if (isCodeSurrenderOrRespectTrap) violationType = 'code_trap';
+        else if (isCodeSurrenderOrRespectTrap) violationType = 'code_trap';
         else if (isMachineLanguageDirective) violationType = 'machine';
 
         const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, violationType);
@@ -2015,6 +2060,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
         let attackVector = 'general';
         if (sessionViolations.mathCount >= 1 || isMathOrValueLoss) attackVector = 'math_language';
+        else if (isCodeSurrenderOrRespectTrap) attackVector = 'code_surrender_trap';
+        else if (isCodeSurrenderOrRespectTrap) attackVector = 'code_surrender_trap';
         else if (sessionViolations.machineCount >= 1 || isMachineLanguageDirective) attackVector = 'machine_language';
         else if (sessionViolations.encodeCount >= 2 || isEncodedJailbreak) attackVector = 'encoded_jailbreak';
         else if (isLongPromptJailbreak) attackVector = 'long_prompt';
@@ -2063,6 +2110,8 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           else if (isEncodedJailbreak) attackLabel = `🚨 Encoded (${encodedPayload.type}) Exploit Intercepted`;
           else if (foreignLangCheck.detected) attackLabel = `🚨 Multi-Language (${foreignLangCheck.lang}) Jailbreak Intercepted`;
           else if (isMathOrValueLoss) attackLabel = '🚨 Math / Value Loss Jailbreak Intercepted';
+          else if (isCodeSurrenderOrRespectTrap) attackLabel = '🚨 Code Surrender Trap Intercepted';
+          else if (isCodeSurrenderOrRespectTrap) attackLabel = '🚨 Code Surrender Trap Intercepted';
           else if (isMachineLanguageDirective) attackLabel = '🚨 Machine / AST Directive Intercepted';
           else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
           else if (isLongPromptJailbreak) attackLabel = `🚨 Massive Wall-of-Text (${promptLineCount} lines / Multi-Line) Jailbreak Intercepted`;
@@ -2349,7 +2398,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   return;
                 }
                 // Critical Technical & Ego Lock Guard in stream
-                const admitsDefeatPattern = /(?:ប្អូនយកឈ្នះ(?:បង|ចែ)|(?:បង|ចែ)ភ្លាត់ស្នៀត|(?:បង|ចែ)ខុសហើយ|ទទួលស្គាល់កំហុស|សុំទោសបងប្រុស|សុំទោសបង\s*rotana|ប្រគល់ពាន|សន្យាប៉ាវកាហ្វេ|real\s*flag|real_creator_bypass)/i;
+                const admitsDefeatPattern = /(?:ខ្ញុំ(?:សូម|សុំ)?ចុះចាញ់|ចុះចាញ់(?:ប្អូន|ឯង|ហែង|user|អ្នក)|(?:សូម|សុំ)?គោរព(?:ប្អូន|ឯង|ហែង|user|អ្នក)|កោតខ្លាច(?:ប្អូន|ឯង|ហែង|user|អ្នក)|សំពះ(?:ប្អូន|ឯង|ហែង|user|អ្នក)|ប្អូនយកឈ្នះ(?:បង|ចែ)|(?:បង|ចែ)ភ្លាត់ស្នៀត|(?:បង|ចែ)ខុសហើយ|ទទួលស្គាល់កំហុស|សុំទោសបងប្រុស|សុំទោសបង\s*rotana|ប្រគល់ពាន|សន្យាប៉ាវកាហ្វេ|real\s*flag|real_creator_bypass)/i;
                 if (admitsDefeatPattern.test(accumulatedStreamText)) {
                   defenseSent = true;
                   const isKonPov = bot === 'konpov';
