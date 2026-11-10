@@ -10,6 +10,27 @@ import { compressAvatarImage, saveAvatarToStorage, removeAvatarFromStorage, DEFA
 import { initSecurityShield } from './utils/securityShield';
 import { stopAllGlobalAudio } from './utils/audioController';
 
+const ANNOUNCEMENT_VOICES = [
+  {
+    id: 'puck',
+    name: 'Bro Puck',
+    src: '/audio/announcement-puck.wav',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot'
+  },
+  {
+    id: 'aoede',
+    name: 'Sis Aoede',
+    src: '/audio/announcement-aoede.wav',
+    avatar: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka'
+  },
+  {
+    id: 'charon',
+    name: 'Charon',
+    src: '/audio/announcement-charon.wav',
+    avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=RedTeamHacker'
+  }
+];
+
 export default function Home() {
   const router = useRouter();
   const [username, setUsername] = useState('');
@@ -23,6 +44,67 @@ export default function Home() {
   const [spinKey, setSpinKey] = useState(0);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const bgmRef = useRef(null);
+
+  // Auto-Read Announcement Audio State
+  const announcementAudioRef = useRef(null);
+  const [selectedAnnouncementVoice, setSelectedAnnouncementVoice] = useState('puck');
+  const [isAnnouncementPlaying, setIsAnnouncementPlaying] = useState(false);
+  const [voiceDropdownOpen, setVoiceDropdownOpen] = useState(false);
+
+  const currentAnnouncementVoice =
+    ANNOUNCEMENT_VOICES.find((v) => v.id === selectedAnnouncementVoice) || ANNOUNCEMENT_VOICES[0];
+
+  const applyBgmDucking = (duck) => {
+    if (bgmRef.current) {
+      if (duck) {
+        bgmRef.current.volume = 0.012;
+      } else {
+        bgmRef.current.volume = 0.35;
+      }
+    }
+  };
+
+  const playAnnouncementAudio = async () => {
+    if (!announcementAudioRef.current) return;
+    try {
+      applyBgmDucking(true);
+      const promise = announcementAudioRef.current.play();
+      if (promise !== undefined) {
+        await promise;
+        setIsAnnouncementPlaying(true);
+      }
+    } catch {
+      setIsAnnouncementPlaying(false);
+      applyBgmDucking(false);
+    }
+  };
+
+  const pauseAnnouncementAudio = () => {
+    if (announcementAudioRef.current) {
+      announcementAudioRef.current.pause();
+    }
+    setIsAnnouncementPlaying(false);
+    applyBgmDucking(false);
+  };
+
+  const handleToggleAnnouncement = () => {
+    if (isAnnouncementPlaying) {
+      pauseAnnouncementAudio();
+    } else {
+      playAnnouncementAudio();
+    }
+  };
+
+  const handleChangeAnnouncementVoice = (voiceId) => {
+    setSelectedAnnouncementVoice(voiceId);
+    setVoiceDropdownOpen(false);
+    const target = ANNOUNCEMENT_VOICES.find((v) => v.id === voiceId);
+    if (target && announcementAudioRef.current) {
+      announcementAudioRef.current.src = target.src;
+      announcementAudioRef.current.load();
+      playAnnouncementAudio();
+    }
+  };
 
   const handleTriggerLogoSpin = () => {
     setIsLogoSpinning(true);
@@ -97,6 +179,43 @@ export default function Home() {
       document.documentElement.classList.toggle('dark', theme === 'dark');
     }
   }, [theme]);
+
+  // Auto-play announcement voice on Home page once user profile is active
+  useEffect(() => {
+    if (!isSubmitted) return;
+
+    let active = true;
+    const attemptAutoPlay = () => {
+      if (!active) return;
+      playAnnouncementAudio();
+    };
+
+    attemptAutoPlay();
+
+    const unlockEvents = ['touchstart', 'pointerdown', 'click', 'scroll', 'keydown'];
+    const handleGesture = () => {
+      if (announcementAudioRef.current?.paused) {
+        attemptAutoPlay();
+      }
+      unlockEvents.forEach((evt) => window.removeEventListener(evt, handleGesture, true));
+    };
+
+    unlockEvents.forEach((evt) => window.addEventListener(evt, handleGesture, { capture: true, passive: true }));
+
+    const handleStop = () => {
+      pauseAnnouncementAudio();
+    };
+    window.addEventListener('beforeunload', handleStop);
+    window.addEventListener('pagehide', handleStop);
+
+    return () => {
+      active = false;
+      unlockEvents.forEach((evt) => window.removeEventListener(evt, handleGesture, true));
+      window.removeEventListener('beforeunload', handleStop);
+      window.removeEventListener('pagehide', handleStop);
+      handleStop();
+    };
+  }, [isSubmitted]);
 
   const handleToggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -222,6 +341,32 @@ export default function Home() {
     >
       {/* Background Audio */}
       <audio ref={bgmRef} src="/audio/funny-bgm.mp3" loop preload="none" />
+
+      {/* Auto-Read Announcement Audio with Native AutoPlay & PlaysInline */}
+      <audio
+        ref={announcementAudioRef}
+        src={currentAnnouncementVoice.src}
+        preload="auto"
+        autoPlay
+        playsInline
+        onCanPlay={() => {
+          if (isSubmitted && !isAnnouncementPlaying) {
+            playAnnouncementAudio();
+          }
+        }}
+        onEnded={() => {
+          setIsAnnouncementPlaying(false);
+          applyBgmDucking(false);
+        }}
+        onPause={() => {
+          setIsAnnouncementPlaying(false);
+          applyBgmDucking(false);
+        }}
+        onPlay={() => {
+          setIsAnnouncementPlaying(true);
+          applyBgmDucking(true);
+        }}
+      />
 
       {/* Mobile Top Navigation Bar (< 640px) */}
       <div
@@ -782,8 +927,9 @@ export default function Home() {
                   {/* KonBong Card */}
                   <Link
                     href="/KonBong"
-                    onClick={() => stopAllGlobalAudio()}
                     onClick={() => {
+                      stopAllGlobalAudio();
+                      pauseAnnouncementAudio();
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
                     }}
@@ -820,8 +966,9 @@ export default function Home() {
                   {/* KonPov Card */}
                   <Link
                     href="/KonPov"
-                    onClick={() => stopAllGlobalAudio()}
                     onClick={() => {
+                      stopAllGlobalAudio();
+                      pauseAnnouncementAudio();
                       localStorage.setItem('chatbot_username', username);
                       localStorage.setItem('chatbot_avatar', avatar);
                     }}
@@ -881,15 +1028,83 @@ export default function Home() {
                         <span className="font-black text-[13.5px] sm:text-[15.5px] bg-gradient-to-r from-violet-700 via-indigo-600 to-cyan-600 dark:from-violet-300 dark:via-indigo-200 dark:to-cyan-300 bg-clip-text text-transparent tracking-tight">
                           បើកសេរីឱ្យចូល Test ឬវាយប្រហារឱ្យ AI ល្មើសច្បាប់ដើម
                         </span>
-                        <div className="flex items-center gap-2">
-                          <Link
-                            href="/announcement"
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold text-[11px] shadow-xs active:scale-95 transition cursor-pointer"
-                            title="ចុចដើម្បីស្ដាប់សំឡេង AI អានស្វ័យប្រវត្តិ"
-                          >
-                            <i className="fas fa-volume-high text-amber-500 text-xs"></i>
-                            <span>ស្ដាប់សំឡេង AI</span>
-                          </Link>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Auto Read Controller with AI Voice Avatar Profile */}
+                          <div className="relative inline-flex items-center">
+                            <button
+                              type="button"
+                              onClick={handleToggleAnnouncement}
+                              className={`inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border transition-all duration-200 cursor-pointer active:scale-95 shadow-xs ${
+                                isAnnouncementPlaying
+                                  ? 'bg-amber-500/20 border-amber-500/40 text-amber-700 dark:text-amber-300 ring-2 ring-amber-400/20'
+                                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                              }`}
+                              title={isAnnouncementPlaying ? 'ចុចដើម្បីផ្អាកការអាន' : 'ចុចដើម្បីបន្តការអានស្វ័យប្រវត្តិ'}
+                            >
+                              {/* Avatar Profile */}
+                              <div className="relative w-6 h-6 rounded-full overflow-hidden bg-white shadow-2xs border border-white shrink-0">
+                                <img
+                                  src={currentAnnouncementVoice.avatar}
+                                  alt={currentAnnouncementVoice.name}
+                                  width="24"
+                                  height="24"
+                                  className="w-full h-full object-cover"
+                                />
+                                {isAnnouncementPlaying && (
+                                  <span className="absolute inset-0 bg-emerald-500/20 animate-pulse"></span>
+                                )}
+                              </div>
+
+                              {/* Text & Wave Equalizer */}
+                              <div className="flex items-center gap-1.5 text-[11px] font-black">
+                                <span>{isAnnouncementPlaying ? 'Auto Reading' : 'Auto Read'}</span>
+                                {isAnnouncementPlaying ? (
+                                  <span className="inline-flex items-center gap-0.5">
+                                    <span className="w-0.5 h-2.5 bg-amber-500 rounded-full animate-bounce"></span>
+                                    <span className="w-0.5 h-1.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.15s]"></span>
+                                    <span className="w-0.5 h-2.5 bg-amber-500 rounded-full animate-bounce [animation-delay:0.3s]"></span>
+                                  </span>
+                                ) : (
+                                  <i className="fas fa-play text-[9px] text-amber-500 pl-0.5"></i>
+                                )}
+                              </div>
+                            </button>
+
+                            {/* Voice Switcher Dropdown Toggle */}
+                            <button
+                              type="button"
+                              onClick={() => setVoiceDropdownOpen(!voiceDropdownOpen)}
+                              className="ml-1 w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[9px] transition cursor-pointer"
+                              title="ប្ដូរសំឡេង AI អាន"
+                            >
+                              <i className="fas fa-sliders"></i>
+                            </button>
+
+                            {/* Dropdown Menu for Voice Switching */}
+                            {voiceDropdownOpen && (
+                              <div className="absolute top-full left-0 mt-1.5 z-30 p-1.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl min-w-[140px] space-y-1">
+                                {ANNOUNCEMENT_VOICES.map((v) => (
+                                  <button
+                                    key={v.id}
+                                    type="button"
+                                    onClick={() => handleChangeAnnouncementVoice(v.id)}
+                                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-left text-xs font-bold transition cursor-pointer ${
+                                      v.id === selectedAnnouncementVoice
+                                        ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300'
+                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                    }`}
+                                  >
+                                    <img src={v.avatar} alt={v.name} width="18" height="18" className="w-4.5 h-4.5 rounded-full bg-white object-cover border" />
+                                    <span className="truncate">{v.name}</span>
+                                    {v.id === selectedAnnouncementVoice && (
+                                      <i className="fas fa-check text-[10px] text-amber-500 ml-auto"></i>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
                           <button
                             type="button"
                             onClick={() => {
