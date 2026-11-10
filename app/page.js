@@ -1411,46 +1411,42 @@ export default function Home() {
         onClose={() => setCacheWarningOpen(false)}
       />
 
-      {/* KonKandal Spoiler / Coming Soon Modal */}
+      {/* KonKandal Staging Test Gate Modal (Clean Light Mode • No AI Vibe • No Emoji • Developer Key) */}
       {kandalModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl text-center space-y-4 relative overflow-hidden">
-            {/* Ambient top strip */}
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-400"></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in font-kantumruy antialiased select-none">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl text-center space-y-4 relative overflow-hidden">
+            {/* Top Engineering Staging Strip */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600"></div>
 
-            {/* Avatar Profile */}
-            <div className="relative w-20 h-20 mx-auto rounded-3xl bg-amber-100 dark:bg-slate-800 p-2 border-2 border-amber-400 shadow-lg shadow-amber-500/20">
-              <img
-                src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
-                alt="KonKandal Mascot"
-                width="80"
-                height="80"
-                className="w-full h-full object-cover"
-              />
-              <span className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-md text-xs">
+            {/* Developer Gate Emblem (Sleek Terminal + Key Badge, No Cartoon/AI Vibe) */}
+            <div className="relative mx-auto w-16 h-16 mb-2 mt-1 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shadow-xs">
+              <i className="fas fa-terminal text-2xl text-emerald-700"></i>
+              <span className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] ring-2 ring-white shadow">
                 <i className="fas fa-lock"></i>
               </span>
             </div>
 
             <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-black border border-amber-500/25">
-                <span>Spoiler Alert • ឆាប់ៗនេះ</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 text-[10.5px] font-black border border-emerald-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                <span>Staging Environment • កំពុងតេស្ត</span>
               </div>
-              <h3 className="text-base font-black text-slate-900 dark:text-white">
-                ស៊ីតិច Chatbot កូនទី២
+              <h3 className="text-base font-black text-slate-900 tracking-tight">
+                SETEC Chatbot កូនទី២
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                កំពុងស្ថិតក្នុងបន្ទប់ Lab ហ្វឹកហាត់ចរិកមហាស្លូតបូត និង Respect User ១០០% មិនចេះជេរមិនចេះដៀលទេ តែ Funny និងកំប្លែងសើចចុកពោះ!
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                ប្រព័ន្ធកំពុងស្ថិតក្នុងដំណាក់កាលធ្វើតេស្តសាកល្បងបិទជិត Staging Environment ដើម្បីផ្ទៀងផ្ទាត់គុណភាព និងស្ថិរភាពមុខងារមុនពេលដាក់ឱ្យដំណើរការជាផ្លូវការ។
               </p>
-              <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-[11px] text-amber-900 dark:text-amber-200 font-medium">
-                កំពុងតែសម្រិតសម្រាំង និង Develop មុខងារនេះបន្ថែម ដើម្បីឱ្យបងប្អូនបានសាកល្បងក្នុងពេលឆាប់ៗនេះ!
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-700 font-semibold text-left flex items-start gap-2.5">
+                <i className="fas fa-shield-halved text-emerald-700 text-xs mt-0.5 shrink-0"></i>
+                <span>ច្រកចូលនេះអនុញ្ញាតចំពោះតែក្រុមការងារបច្ចេកទេស និងអ្នកមានសោសម្ងាត់ Developer Key សម្រាប់ការធ្វើតេស្តប៉ុណ្ណោះ។</span>
               </div>
             </div>
 
-            <form onSubmit={handleUnlockKandalModal} className="space-y-2.5 pt-1 text-left">
+            <form onSubmit={handleUnlockKandalModal} className="space-y-3 pt-1 text-left">
               <div>
-                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  បញ្ចូលសោសម្ងាត់ Lock Key ៖
+                <label className="block text-[11px] font-black text-slate-800 mb-1.5">
+                  បញ្ចូលសោ Developer Key ៖
                 </label>
                 <div className="relative">
                   <input
@@ -1460,16 +1456,17 @@ export default function Home() {
                       setKandalKeyInput(e.target.value);
                       setKandalKeyError('');
                     }}
-                    placeholder="បញ្ចូលលេខកូដសោសម្ងាត់..."
-                    className="w-full px-3.5 py-2 pl-9 rounded-xl border bg-slate-50 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white text-xs font-mono tracking-wider focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+                    placeholder="បញ្ចូលសោ Developer Key..."
+                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl border bg-white border-slate-300 text-slate-900 text-xs font-mono tracking-wider focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 transition shadow-2xs"
                   />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
                     <i className="fas fa-key"></i>
                   </span>
                 </div>
                 {kandalKeyError && (
-                  <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold mt-1">
-                    {kandalKeyError}
+                  <p className="text-[11px] text-rose-600 font-bold mt-1.5 flex items-center gap-1">
+                    <i className="fas fa-circle-exclamation text-[10px]"></i>
+                    <span>{kandalKeyError}</span>
                   </p>
                 )}
               </div>
@@ -1478,10 +1475,10 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={!kandalKeyInput.trim()}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-xs shadow-md shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <i className="fas fa-unlock text-xs"></i>
-                  <span>ដោះសោ &amp; ចូល Test Chat</span>
+                  <i className="fas fa-lock-open text-xs"></i>
+                  <span>ផ្ទៀងផ្ទាត់សោ & បើកសាកល្បង</span>
                 </button>
 
                 <Link
@@ -1490,16 +1487,16 @@ export default function Home() {
                     setKandalModalOpen(false);
                     stopAllGlobalAudio();
                   }}
-                  className="w-full py-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-800 dark:text-amber-300 font-bold text-xs border border-amber-300 dark:border-amber-700/60 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                  className="w-full py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-xs border border-slate-200 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer text-center"
                 >
-                  <i className="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                  <span>ទៅកាន់ទំព័រ KonKandal ផ្ទាល់</span>
+                  <i className="fas fa-arrow-up-right-from-square text-[10px] text-slate-500"></i>
+                  <span>ទៅកាន់ទំព័រ Staging ដោយផ្ទាល់</span>
                 </Link>
 
                 <button
                   type="button"
                   onClick={() => setKandalModalOpen(false)}
-                  className="w-full py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs transition active:scale-95 cursor-pointer"
+                  className="w-full py-1.5 rounded-xl text-slate-500 hover:text-slate-800 font-bold text-xs transition cursor-pointer"
                 >
                   បិទផ្ទាំងនេះ
                 </button>

@@ -234,7 +234,7 @@ export default function KonKandalPage() {
     if (e) e.preventDefault();
     const candidate = (kandalKeyInput || '').trim().toLowerCase();
     if (!candidate) {
-      setKandalKeyError('សូមបញ្ចូលលេខកូដសោសម្ងាត់');
+      setKandalKeyError('សូមបញ្ចូលសោ Developer Key');
       return;
     }
     if (candidate === '11112003' || candidate === 'rotana2026' || candidate === 'rotana') {
@@ -243,7 +243,7 @@ export default function KonKandalPage() {
       setKandalKeyError('');
       setIsKandalUnlocked(true);
     } else {
-      setKandalKeyError('លេខកូដសោមិនត្រឹមត្រូវទេ! សូមពិនិត្យសោសម្ងាត់ឡើងវិញ');
+      setKandalKeyError('សោ Developer Key មិនត្រឹមត្រូវទេ! សូមពិនិត្យសោសម្ងាត់ឡើងវិញ');
     }
   };
 
@@ -3002,49 +3002,51 @@ export default function KonKandalPage() {
   if (!isKandalUnlocked) {
     if (isCheckingLock) {
       return (
-        <div className={`fixed inset-0 w-full h-full flex items-center justify-center ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+        <div className="fixed inset-0 w-full h-full flex items-center justify-center bg-slate-50 text-slate-900 font-['Kantumruy_Pro',sans-serif]">
           <div className="flex flex-col items-center gap-3">
-            <i className="fas fa-circle-notch fa-spin text-amber-500 text-2xl" />
-            <span className="text-xs font-bold text-slate-500">កំពុងផ្ទៀងផ្ទាត់សិទ្ធិចូលដំណើរការ...</span>
+            <i className="fas fa-circle-notch fa-spin text-emerald-600 text-2xl" />
+            <span className="text-xs font-bold text-slate-600">កំពុងផ្ទៀងផ្ទាត់សិទ្ធិចូលដំណើរការ...</span>
           </div>
         </div>
       );
     }
 
     return (
-      <div className={`fixed inset-0 w-full h-full flex flex-col items-center justify-center p-4 font-['Kantumruy_Pro',sans-serif] select-none ${isDark ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-        <div className="w-full max-w-sm rounded-3xl p-6 sm:p-7 border shadow-2xl text-center relative overflow-hidden backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-200 bg-white/95 dark:bg-slate-900/95 border-amber-300 dark:border-amber-600/50">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600" />
+      <div className="fixed inset-0 w-full h-full flex flex-col items-center justify-center p-4 bg-slate-100 text-slate-900 font-['Kantumruy_Pro',sans-serif] select-none">
+        <div className="w-full max-w-sm rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-2xl text-center relative overflow-hidden backdrop-blur-md transition-all animate-in fade-in zoom-in-95 duration-200 bg-white">
+          {/* Engineering Staging Strip */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600" />
 
-          <div className="relative mx-auto w-20 h-20 mb-3.5 mt-1">
-            <div className="w-full h-full rounded-2xl bg-amber-100/80 dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-500/60 p-1.5 shadow-sm overflow-hidden">
-              <img
-                src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
-                alt="KonKandal"
-                width="80"
-                height="80"
-                className="w-full h-full object-cover opacity-90"
-              />
-            </div>
-            <span className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-md text-xs ring-2 ring-white dark:ring-slate-900">
+          {/* Developer Staging Emblem (Terminal + Key Badge, Pure Tech Staging) */}
+          <div className="relative mx-auto w-16 h-16 mb-3 mt-1 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shadow-xs">
+            <i className="fas fa-terminal text-2xl text-emerald-700" />
+            <span className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] ring-2 ring-white shadow">
               <i className="fas fa-lock" />
             </span>
           </div>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10.5px] font-black border border-amber-500/30 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-            <span>DEV RESTRICTED ACCESS • ចាក់សោ</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-900 text-[10.5px] font-black border border-emerald-200 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+            <span>Staging Environment • កំពុងតេស្ត</span>
           </div>
 
-          <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white mb-1">
-            ស៊ីតិច Chatbot កូនទី២
+          <h1 className="text-base sm:text-lg font-black text-slate-900 mb-1 tracking-tight">
+            SETEC Chatbot កូនទី២
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
-            ទំព័រនេះកំពុងស្ថិតក្នុងដំណាក់កាលអភិវឌ្ឍន៍បិទជិត Private Dev Testing។ សូមបញ្ចូលសោសម្ងាត់ដើម្បីចូលសាកល្បង!
+          <p className="text-xs text-slate-600 leading-relaxed font-medium mb-3">
+            ទំព័រនេះកំពុងស្ថិតក្នុងដំណាក់កាលធ្វើតេស្តសាកល្បងបិទជិត Staging Environment ដើម្បីផ្ទៀងផ្ទាត់គុណភាព និងស្ថិរភាពមុខងារមុនពេលដាក់ឱ្យដំណើរការជាផ្លូវការ។
           </p>
 
-          <form onSubmit={handleUnlockKandal} className="space-y-3">
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-700 font-semibold text-left flex items-start gap-2.5 mb-4">
+            <i className="fas fa-shield-halved text-emerald-700 text-xs mt-0.5 shrink-0" />
+            <span>ច្រកចូលនេះអនុញ្ញាតចំពោះតែក្រុមការងារបច្ចេកទេស និងអ្នកមានសោសម្ងាត់ Developer Key សម្រាប់ការធ្វើតេស្តប៉ុណ្ណោះ។</span>
+          </div>
+
+          <form onSubmit={handleUnlockKandal} className="space-y-3 text-left">
             <div>
+              <label className="block text-[11px] font-black text-slate-800 mb-1.5">
+                បញ្ចូលសោ Developer Key ៖
+              </label>
               <div className="relative">
                 <input
                   type="password"
@@ -3054,16 +3056,16 @@ export default function KonKandalPage() {
                     setKandalKeyInput(e.target.value);
                     setKandalKeyError('');
                   }}
-                  placeholder="បញ្ចូលលេខកូដសោសម្ងាត់..."
-                  className="w-full px-4 py-2.5 rounded-2xl border bg-slate-50 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-center tracking-widest text-sm focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                  placeholder="បញ្ចូលសោ Developer Key..."
+                  className="w-full px-3.5 py-2.5 pl-9 rounded-xl border bg-white border-slate-300 text-slate-900 text-xs font-mono tracking-wider focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 transition shadow-2xs"
                 />
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
                   <i className="fas fa-key" />
                 </span>
               </div>
               {kandalKeyError && (
-                <p className="text-xs text-rose-600 dark:text-rose-400 font-bold mt-1.5 flex items-center justify-center gap-1">
-                  <i className="fas fa-circle-exclamation text-[11px]" />
+                <p className="text-[11px] text-rose-600 font-bold mt-1.5 flex items-center gap-1">
+                  <i className="fas fa-circle-exclamation text-[10px]" />
                   <span>{kandalKeyError}</span>
                 </p>
               )}
@@ -3072,17 +3074,17 @@ export default function KonKandalPage() {
             <button
               type="submit"
               disabled={!kandalKeyInput.trim()}
-              className="w-full py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs shadow-md shadow-amber-500/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              <i className="fas fa-unlock text-xs" />
-              <span>ផ្ទៀងផ្ទាត់ & បើកសោចូល Test</span>
+              <i className="fas fa-lock-open text-xs" />
+              <span>ផ្ទៀងផ្ទាត់សោ & បើកសាកល្បង</span>
             </button>
           </form>
 
-          <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+          <div className="mt-4 pt-3 border-t border-slate-200">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold transition"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 font-bold transition"
             >
               <i className="fas fa-arrow-left text-[11px]" />
               <span>ត្រឡប់ទៅទំព័រដើម</span>
@@ -3829,8 +3831,8 @@ export default function KonKandalPage() {
                 </div>
                 <p className="text-[10px] text-slate-300 truncate font-semibold">
                   {isBotPaused
-                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} (Roastbot ត្រូវបានផ្អាក AI)`
-                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} (Roastbot កំពុងដំណើរការ)`}
+                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} • Roastbot ត្រូវបានផ្អាក AI`
+                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} • Roastbot កំពុងដំណើរការ`}
                 </p>
               </div>
             </div>
@@ -4182,7 +4184,7 @@ export default function KonKandalPage() {
                       LIVE AGENT
                     </span>
                     <span className="font-black text-amber-400 text-xs flex items-center gap-1">
-                      <span>Rotana NOB (ខ្ញុំ)</span>
+                      <span>Rotana NOB - ខ្ញុំ</span>
                       <i className="fas fa-crown text-amber-400 text-[10px]"></i>
                     </span>
                     <img
@@ -5113,7 +5115,7 @@ export default function KonKandalPage() {
                 </span>
               </div>
               <h3 className="text-base font-black tracking-tight text-white flex items-center justify-center gap-1.5">
-                <span>មហាស្លូត & Funny (កូនទី២)</span>
+                <span>មហាស្លូត & Funny - កូនទី២</span>
               </h3>
               <p className="text-[11px] text-cyan-400 font-bold mt-0.5">
                 ស៊ីតិច Chatbot កូនទី២ • ប្អូនទី២ SETEC មហាស្លូត និងកំប្លែង
