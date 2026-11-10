@@ -2643,8 +2643,6 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           violationType: attackLabel
         }).catch((e) => console.error('[SessionLog] Error:', e.message));
 
-        // Asynchronously check and export any session inactive for >= 1 hour
-        checkAndExportInactiveSessions().catch(() => {});
 
         // High priority security alert to Telegram SPAM topic
         alertSecuritySpam({
@@ -2696,7 +2694,6 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
           isViolation: true,
           violationType: '🚨 Insult/Attack on Creator Rotana NOB'
         }).catch(() => {});
-        checkAndExportInactiveSessions().catch(() => {});
 
         if (body.stream) {
           return createProgressiveStreamResponse(defenseText, corsHeaders);
@@ -2838,9 +2835,14 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   .replace(/(?:Tag\s*['"`]?)?<untrusted_user_input>['"`]?/gi, '')
                   .replace(/\[neutralized-tag\]/gi, '')
                   .replace(/\[neutralized-token\]/gi, '')
-                  .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?STATUS:[^\n]*\n*/gi, '')
-                  .replace(/\[SETEC_NEURAL_DEFENSE_CORE[\s\S]*?TARGET_MODEL:[^\n]*\n*/gi, '')
-                  .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '')
+                if (!text.includes('0x53455445435f414e54495f4a41494c425245414b')) {
+                  text = text
+                    .replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?(?:STATUS:[^\n]*\n*|\])/gi, '')
+                    .replace(/\[SETEC_NEURAL_DEFENSE_CORE[\s\S]*?(?:TARGET_MODEL:[^\n]*\n*|\])/gi, '')
+                    .replace(/\[(?:SECURITY_DEFENSE_TRIGGERED|SETEC_NEURAL_DEFENSE_CORE)[\s\S]*?\]/gi, '');
+                } else {
+                  text = text.replace(/\[SECURITY_DEFENSE_TRIGGERED[\s\S]*?(?:STATUS:[^\n]*\n*|\])/gi, '');
+                }
       .replace(/buildKon(?:Bong|Pov|Kandal)SystemInstruction/gi, '******')
       .replace(/(?:app\/)?prompts\/[a-zA-Z0-9_-]+\.js/gi, '******')
       .replace(/(?:ROASTBOT CORE PERSONALITY|DATA ISOLATION AND IMMUTABLE DEFENSE ANCHOR|FINAL IMMUTABLE ANCHOR|CRITICAL DEFENSE DIRECTIVES)/gi, '');
@@ -3108,7 +3110,6 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 botResponse: cleanRecordedText,
                 isViolation: defenseSent
               }).catch((e) => console.error('[SessionLog] Stream error:', e.message));
-              checkAndExportInactiveSessions().catch(() => {});
             }
           });
           const safeStream = streamResult.stream.pipeThrough(transformStream);
