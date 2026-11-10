@@ -1839,7 +1839,7 @@ export default function KonKandalPage() {
             savageLevel,
             sessionId: currentSessionId || '',
             generationConfig: {
-              temperature: 0.85,
+              temperature: 1.0,
               topP: 0.95
             },
             stream: true
@@ -2048,8 +2048,8 @@ export default function KonKandalPage() {
               savageLevel,
               sessionId: currentSessionId || '',
               generationConfig: {
-                temperature: 0.68,
-                topP: 0.90
+                temperature: 1.0,
+                topP: 0.95
               },
               stream: false
             })
