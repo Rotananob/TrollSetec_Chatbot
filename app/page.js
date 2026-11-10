@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ThemeToggle';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
+import SmartCacheWarningModal from '@/components/SmartCacheWarningModal';
+import { shouldShowCacheWarning } from './utils/clientCacheMonitor';
 import { resetClientRateLimit } from './utils/rateLimiter';
 import { compressAvatarImage, saveAvatarToStorage, removeAvatarFromStorage, DEFAULT_USER_AVATAR } from './utils/imageStorage';
 import { initSecurityShield } from './utils/securityShield';
@@ -43,6 +45,7 @@ export default function Home() {
   const [isLogoSpinning, setIsLogoSpinning] = useState(false);
   const [spinKey, setSpinKey] = useState(0);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
+  const [cacheWarningOpen, setCacheWarningOpen] = useState(false);
   const [kandalModalOpen, setKandalModalOpen] = useState(false);
   const [kandalKeyInput, setKandalKeyInput] = useState('');
   const [kandalKeyError, setKandalKeyError] = useState('');
@@ -212,6 +215,17 @@ export default function Home() {
       document.documentElement.classList.toggle('dark', theme === 'dark');
     }
   }, [theme]);
+
+  // Smart Client Cache Quota Monitor
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const timer = setTimeout(() => {
+      if (shouldShowCacheWarning()) {
+        setCacheWarningOpen(true);
+      }
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Auto-play announcement voice on Home page once user profile is active
   useEffect(() => {
@@ -679,14 +693,25 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setContributeModalOpen(true)}
-                    className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/40 font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95"
-                  >
-                    <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
-                    <span>ចូលរួមចែករំលែក</span>
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setCacheWarningOpen(true)}
+                      className="px-3 py-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/60 font-semibold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                      title="គ្រប់គ្រងទំហំផ្ទុក Cache"
+                    >
+                      <i className="fas fa-broom text-emerald-400 text-xs"></i>
+                      <span className="hidden sm:inline">Cache</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setContributeModalOpen(true)}
+                      className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/40 font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                    >
+                      <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
+                      <span>ចូលរួមចែករំលែក</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1378,6 +1403,12 @@ export default function Home() {
         isOpen={contributeModalOpen}
         onClose={() => setContributeModalOpen(false)}
         defaultBot="Home"
+      />
+
+      {/* Smart Client Cache & Storage Warning Modal */}
+      <SmartCacheWarningModal
+        isOpen={cacheWarningOpen}
+        onClose={() => setCacheWarningOpen(false)}
       />
 
       {/* KonKandal Spoiler / Coming Soon Modal */}

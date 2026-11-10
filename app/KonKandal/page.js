@@ -10,6 +10,8 @@ import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
 import ErrorReportModal from '@/components/ErrorReportModal';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
+import SmartCacheWarningModal from '@/components/SmartCacheWarningModal';
+import { shouldShowCacheWarning } from '../utils/clientCacheMonitor';
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal';
 import { getApiEndpoint } from '../utils/apiConfig';
 import { compressAvatarImage, saveAvatarToStorage, removeAvatarFromStorage, DEFAULT_USER_AVATAR } from '../utils/imageStorage';
@@ -124,6 +126,7 @@ export default function KonKandalPage() {
   const [errorReportInitialText, setErrorReportInitialText] = useState('');
   const [alertSentMap, setAlertSentMap] = useState({});
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
+  const [cacheWarningOpen, setCacheWarningOpen] = useState(false);
   const [isSurvivalModalOpen, setIsSurvivalModalOpen] = useState(false);
   const [quoteModalData, setQuoteModalData] = useState(null);
 
@@ -606,6 +609,17 @@ export default function KonKandalPage() {
       document.documentElement.classList.toggle('dark', theme === 'dark');
     }
   }, [theme]);
+
+  // Smart Client Cache Quota Monitor: Proactive, reassuring warning when audio/temp cache approaches full capacity
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const timer = setTimeout(() => {
+      if (shouldShowCacheWarning()) {
+        setCacheWarningOpen(true);
+      }
+    }, 2800);
+    return () => clearTimeout(timer);
+  }, [messages.length]);
 
   // 30-Minute Live Chat Session & 10-Minute Cooldown Controller (Anti-Bypass)
   useEffect(() => {
@@ -3164,6 +3178,17 @@ export default function KonKandalPage() {
             <i className="fas fa-layer-group text-emerald-400"></i> ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
           </button>
 
+          <button
+            type="button"
+            onClick={() => {
+              setCacheWarningOpen(true);
+              setDrawerOpen(false);
+            }}
+            className="w-full mb-2 bg-emerald-950/40 hover:bg-emerald-900/50 text-emerald-300 hover:text-white font-bold py-2.5 px-4 rounded-xl shadow text-center text-xs transition border border-emerald-900/60 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <i className="fas fa-broom text-emerald-400"></i> <span>គ្រប់គ្រងទំហំផ្ទុក Cache</span>
+          </button>
+
           <div className="grid grid-cols-2 gap-2 mb-2">
             <Link
               href="/announcement"
@@ -4964,6 +4989,17 @@ export default function KonKandalPage() {
         isOpen={contributeModalOpen}
         onClose={() => setContributeModalOpen(false)}
         defaultBot="Roastbot កូនកណ្ដាល"
+      />
+
+      {/* Smart Client Cache & Storage Warning Modal */}
+      <SmartCacheWarningModal
+        isOpen={cacheWarningOpen}
+        onClose={() => setCacheWarningOpen(false)}
+        onCleared={() => {
+          if (audioCacheRef?.current) {
+            audioCacheRef.current.clear();
+          }
+        }}
       />
 
       {/* Confirm Delete Chat History Modal */}
