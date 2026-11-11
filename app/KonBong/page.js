@@ -151,14 +151,7 @@ export default function KonBongPage() {
     }
     return 'User';
   });
-  const isCreatorUser = Boolean(
-    isRotanaAdmin ||
-    isCreatorUsername(username) ||
-    (typeof window !== 'undefined' && (
-      isCreatorUsername(localStorage.getItem('chatbot_username') || '') ||
-      localStorage.getItem('troll_rotana_bypass') === '1'
-    ))
-  );
+  const [isCreatorUser, setIsCreatorUser] = useState(false);
   const [userGender, setUserGender] = useState('');
   const [userAge, setUserAge] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -501,6 +494,7 @@ export default function KonBongPage() {
               } catch {}
 
               setIsRotanaAdmin(true);
+              setIsCreatorUser(true);
               setActiveLiveSessionId(liveSessionParam);
               setAlertPopupDismissed(false);
               setIsBotPaused(true); // Automatically pause AI when Rotana intervenes
@@ -580,6 +574,10 @@ export default function KonBongPage() {
     setTheme(savedTheme);
     setSavageLevel(savedSavage);
     setPlaybackSpeed(savedSpeed);
+
+    // Hydrate isCreatorUser after mount (fixes React #418 hydration mismatch)
+    const bypassFlag = localStorage.getItem('troll_rotana_bypass') === '1';
+    setIsCreatorUser(isRotanaAdmin || isCreatorUsername(savedName) || bypassFlag);
 
     loadSessions();
 

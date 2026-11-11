@@ -2505,11 +2505,29 @@ export default function JamTicKapeaAdminPage() {
                   <span className="text-slate-400">AI Model Protocol</span>
                   <span className="text-slate-200 font-medium">Gemini 3.5 / 3.8 Flash Fallback</span>
                 </div>
-                <div className="flex items-center justify-between text-xs py-1.5">
+                <div className="flex items-center justify-between text-xs py-1.5 border-b border-slate-800">
                   <span className="text-slate-400">ការធ្វើបច្ចុប្បន្នភាពចុងក្រោយ</span>
                   <span className="text-slate-200 font-medium font-mono">
                     {systemState.lastUpdated ? new Date(systemState.lastUpdated).toLocaleTimeString() : 'N/A'}
                   </span>
+                </div>
+                {/* Known Bug Registry */}
+                <div className="mt-3 pt-3 border-t border-slate-700 space-y-2">
+                  <div className="text-[11px] font-bold text-amber-400 mb-1">Bug Registry — ដែលបានជួសជុលហើយ</div>
+                  <div className="flex items-start justify-between gap-2 p-2 rounded-lg bg-green-950/40 border border-green-900/50">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold text-green-300">React Error #418 — Hydration Mismatch</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">isCreatorUser ត្រូវបាន compute inline ក្នុង render — SSR=false, Client=localStorage — ធ្វើឲ React crash ។ Fix: useState+useEffect hydration</div>
+                    </div>
+                    <span className="shrink-0 px-2 py-0.5 rounded bg-green-800/60 text-green-200 text-[9px] font-bold">FIXED</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-2 p-2 rounded-lg bg-green-950/40 border border-green-900/50">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold text-green-300">False Positive Error Guideline</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">isCutoffText regex ចាប់ Khmer roast words ជា cutoff markers — Error bar លេចឡើង ទាំងជោគជ័យ ។ Fix: removed false trigger words</div>
+                    </div>
+                    <span className="shrink-0 px-2 py-0.5 rounded bg-green-800/60 text-green-200 text-[9px] font-bold">FIXED</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3521,12 +3539,18 @@ export default function JamTicKapeaAdminPage() {
                 const hasTimeout = aiIncidents.some(inc => inc?.reason?.includes('timeout') || inc?.reason?.includes('DEADLINE') || inc?.reason?.includes('STREAM_CHUNK'));
                 const hasSessionLock = aiIncidents.some(inc => inc?.reason?.includes('session') || inc?.reason?.includes('cooldown') || inc?.type === 'rate_limit');
                 const hasFalsePositive = aiIncidents.some(inc => inc?.reason?.includes('client_empty_reply') || inc?.type === 'ai_hang_incident');
+                const hasHydrationError = aiIncidents.some(inc =>
+                  inc?.reason?.includes('418') || inc?.reason?.includes('hydration') ||
+                  inc?.errorMessage?.includes('418') || inc?.errorMessage?.includes('Hydration') ||
+                  inc?.type === 'react_hydration'
+                );
                 const patterns = [];
                 if (hasEmptyStream) patterns.push({ id: 'stream', label: 'Stream ទទេ — Gemini HTTP 200 គ្មានអក្សរ', desc: 'API Key ក្ដៅ ឬ Gemini throttle prompt។ Recovery SSE បានផ្ញើ fallback ។ Fix ដើម្បីដោះ cooldown keys', btnLabel: 'Fix All Keys' });
                 if (has429) patterns.push({ id: '429', label: 'API Key Quota 429 — Rate Limit', desc: 'Key ទាំងអស់ ឬ Key ជាក់លាក់ ជួប Rate Limit ។ ចុច Fix All Keys ដើម្បីដោះ Cooldown', btnLabel: 'Fix All Keys' });
                 if (hasTimeout) patterns.push({ id: 'timeout', label: 'Network/Stream Timeout', desc: 'Stream chunk stall លើ 4G/Mobile ឬ Vercel cold start ។ ចុច Fix AI ដើម្បី reset engine', btnLabel: 'Fix AI Engine' });
                 if (hasSessionLock) patterns.push({ id: 'session', label: 'Session Rate Lock', desc: 'User ជាប់ 10/30 min cooldown ។ ចុច Fix ដើម្បីដោះ lock ភ្លាមៗ', btnLabel: 'Clear Rate Limits' });
                 if (hasFalsePositive) patterns.push({ id: 'fp', label: 'False Positive Error Guideline', desc: 'Bot reply ជោគជ័យ ប៉ុន្តែ Error bar លេចឡើង — ដោយ regex isCutoffText ចាប់ wrong phrases ។ បានជួសជុល deploy ហើយ', btnLabel: 'Fix AI Engine' });
+                if (hasHydrationError) patterns.push({ id: 'hydration', label: 'React Hydration Error #418 — SSR vs Client Mismatch', desc: 'isCreatorUser ត្រូវបាន compute inline ក្នុង render ដែល server = false, client = localStorage value ធ្វើឲ React crash ។ បានជួសជុល deploy ហើយ ។ Reload page ដើម្បី clear cache', btnLabel: 'Fix AI Engine' });
                 if (patterns.length === 0) return null;
                 return (
                   <div className="bg-slate-900/80 border border-amber-800/40 rounded-2xl p-5 shadow-xl space-y-3 mt-2">

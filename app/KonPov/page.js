@@ -182,14 +182,7 @@ export default function KonPovPage() {
     }
     return 'User';
   });
-  const isCreatorUser = Boolean(
-    isRotanaAdmin ||
-    isCreatorUsername(username) ||
-    (typeof window !== 'undefined' && (
-      isCreatorUsername(localStorage.getItem('chatbot_username') || '') ||
-      localStorage.getItem('troll_rotana_bypass') === '1'
-    ))
-  );
+  const [isCreatorUser, setIsCreatorUser] = useState(false);
   const [userAge, setUserAge] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -531,8 +524,8 @@ export default function KonPovPage() {
               } catch {}
 
               setIsRotanaAdmin(true);
+              setIsCreatorUser(true);
               setActiveLiveSessionId(liveSessionParam);
-              setAlertPopupDismissed(false);
               setHasAgreed(true);
               setIsBotPaused(true); // Automatically pause AI when Rotana intervenes
 
@@ -611,6 +604,10 @@ export default function KonPovPage() {
     setTheme(savedTheme);
     setSavageLevel(savedSavage);
     setPlaybackSpeed(savedSpeed);
+
+    // Hydrate isCreatorUser after mount (fixes React #418 hydration mismatch)
+    const bypassFlag = localStorage.getItem('troll_rotana_bypass') === '1';
+    setIsCreatorUser(isRotanaAdmin || isCreatorUsername(savedName) || bypassFlag);
 
     if (savedGender) {
       setUserGender(savedGender);
