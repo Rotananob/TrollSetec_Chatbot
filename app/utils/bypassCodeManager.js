@@ -1,5 +1,6 @@
 // app/utils/bypassCodeManager.js
 // Firebase Realtime Database Bypass & Promo Code Management for SETEC Chatbot
+import { getApiEndpoint } from './apiConfig';
 
 const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
 const DAILY_BYPASS_LIMIT = 5; // Generous 5 bypasses per device per day (+2.5 bonus hours)
@@ -103,7 +104,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
     return {
       valid: false,
       limitReached: true,
-      message: `ឧបករណ៍ ឬទូរស័ព្ទនេះបានប្រើសិទ្ធិ Bypass ${usage.limit} ដងអស់ហើយសម្រាប់ថ្ងៃនេះ! សូមរង់ចាំម៉ោងសម្រាកបន្តិចសិនណា៎! 🙏😊`
+      message: `ឧបករណ៍ ឬទូរស័ព្ទនេះបានប្រើសិទ្ធិ Bypass ${usage.limit} ដងអស់ហើយសម្រាប់ថ្ងៃនេះ សូមរង់ចាំម៉ោងសម្រាកបន្តិចសិន។`
     };
   }
 
@@ -119,7 +120,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
     return {
       valid: true,
       code,
-      message: '🎉 កូដ Master របស់បង Rotana ត្រឹមត្រូវ! ទទួលបានម៉ោងលេងបន្ថែម ៣០ នាទីភ្លាមៗ!'
+      message: 'កូដ Master របស់បង Rotana ត្រឹមត្រូវ ទទួលបានម៉ោងលេងបន្ថែម ៣០ នាទីភ្លាមៗ'
     };
   }
 
@@ -129,7 +130,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
     return {
       valid: true,
       code,
-      message: '🎉 Promo Code ត្រឹមត្រូវ! ទទួលបានម៉ោងជជែកបន្ថែម ៣០ នាទីភ្លាមៗ!'
+      message: 'Promo Code ត្រឹមត្រូវ ទទួលបានម៉ោងជជែកបន្ថែម ៣០ នាទីភ្លាមៗ'
     };
   }
 
@@ -160,7 +161,7 @@ export async function validatePromoCode(rawCode, deviceId, username) {
         return {
           valid: true,
           code,
-          message: '🎉 ប្រើប្រាស់ Promo Code ជោគជ័យ! ទទួលបានម៉ោងលេងបន្ថែម ៣០ នាទីភ្លាមៗ!'
+          message: 'ប្រើប្រាស់ Promo Code ជោគជ័យ ទទួលបានម៉ោងលេងបន្ថែម ៣០ នាទីភ្លាមៗ'
         };
       }
     }
@@ -193,7 +194,7 @@ export async function requestBypassFromRotana({ username, deviceId, botName }) {
     });
 
     // Dispatch Telegram alert to Rotana via /api/track or direct endpoint
-    fetch('/api/track', {
+    fetch(getApiEndpoint('/api/track'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

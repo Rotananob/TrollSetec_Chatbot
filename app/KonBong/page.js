@@ -657,6 +657,12 @@ export default function KonBongPage() {
           if (data?.isSessionLocked && data?.cooldownUntil) {
             setServerCooldownLock(data.cooldownUntil, username, data.lockedAt);
             setSessionState(getLiveSessionState());
+          } else if (data?.isBypassed || data?.sessionLimitDisabled || data?.isCreator) {
+            const cur = getLiveSessionState();
+            if (cur?.isLocked) {
+              grantFreshLiveSession(username);
+              setSessionState(getLiveSessionState());
+            }
           }
         })
         .catch(() => {});
@@ -1997,7 +2003,7 @@ export default function KonBongPage() {
           const isNight = errData?.mode === 'night_rest';
           const botNotice = isNight
             ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-            : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏`;
+            : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎!`;
 
           setIsLoading(false);
           const finalMessages = [...updatedMessages];
@@ -2180,7 +2186,7 @@ export default function KonBongPage() {
             const isNight = errData?.mode === 'night_rest';
             botText = isNight
               ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-              : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎! 🙏`;
+              : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយបងវិញណា៎!`;
             setMessages((prev) => {
               const copy = [...prev];
               copy[copy.length - 1] = { role: 'bot', text: botText, isError: true, isMaintenanceNotice: true };
@@ -2307,7 +2313,7 @@ export default function KonBongPage() {
       let isErr = true;
 
       if (isNetworkError) {
-        fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄`;
+        fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎!`;
       } else {
         consecutiveErrorsRef.current += 1;
         const isSweetOrFlirt = /(?:kiss|sweet|love|crush|baby|cute|miss\s*you|ថើប|ថេីប|សុំថើប|ថើបមួយ|ថើបមួយមក|សុំស្រលាញ់|ស្រលាញ់|ស្រលាញ់បង|ស្រឡាញ់|សុំស្នេហ៍)/ui.test(promptText);
@@ -2331,7 +2337,7 @@ export default function KonBongPage() {
         }).catch(() => {});
 
         if (isSweetOrFlirt) {
-          fallbackText = `ហាហាហា! មក Sweet ផ្អែមល្ហែមស្អីហ្នឹងអាប្អូន ${userNameStr}?! បងរវល់ម៉ាភ្លែតទេ តិចទៀតមក troll ប្អូនបន្តណា៎! ចាំតិចសិនទៅ! 😉✨`;
+          fallbackText = `ហាហាហា! មក Sweet ផ្អែមល្ហែមស្អីហ្នឹងអាប្អូន ${userNameStr}?! បងរវល់ម៉ាភ្លែតទេ តិចទៀតមក troll ប្អូនបន្តណា៎! ចាំតិចសិនទៅ!`;
           isErr = false;
         } else if (isCurseWord) {
         const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);

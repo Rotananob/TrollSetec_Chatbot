@@ -13,6 +13,7 @@ import {
   checkChatLimit,
   checkChatSessionLimit,
   resetChatSessionLimit,
+  syncRateLimitsWithRemoteRecovery,
   recordSessionViolation,
   getSessionViolationCount,
   getClientIp
@@ -22,6 +23,7 @@ import {
   isKeyCoolingDown,
   markTtsKeyCoolingDown,
   filterAvailableTtsKeys,
+  syncAiHealthWithRemoteReset,
   reportAiIncidentToRTDB,
   recordSessionUnlockInRTDB,
   checkSessionUnlockFromRTDB
@@ -102,13 +104,26 @@ export async function GET(req) {
 
   if (action === 'check-session') {
     const systemState = await getSystemControlState();
-    if (username && username.toLowerCase().includes('rotana')) {
-      return Response.json({ allowed: true, isSessionLocked: false, isCreator: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
+    syncAiHealthWithRemoteReset(systemState?.lastAiRecoveryAt);
+    syncRateLimitsWithRemoteRecovery(systemState?.lastAiRecoveryAt);
+    const hasHeaderBypass =
+      verifySessionBypassCode(req.headers.get('x-rotana-bypass') || '', systemState?.maintenanceBypassCode) ||
+      verifySessionBypassCode(req.headers.get('x-rotana-passcode') || '', systemState?.maintenanceBypassCode) ||
+      verifyRotanaMasterCode(req.headers.get('x-rotana-secret-key') || '');
+    if ((username && username.toLowerCase().includes('rotana')) || hasHeaderBypass) {
+      return Response.json({ allowed: true, isSessionLocked: false, isBypassed: true, isCreator: username?.toLowerCase().includes('rotana'), remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
     }
     if (systemState.sessionLimitActive === false) {
       return Response.json({ allowed: true, isSessionLocked: false, sessionLimitDisabled: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
     }
-    const sessionStatus = checkChatSessionLimit(ip, deviceId, username);
+    let sessionStatus = checkChatSessionLimit(ip, deviceId, username);
+    if (!sessionStatus.allowed && sessionStatus.isSessionLocked) {
+      const unlockRec = await checkSessionUnlockFromRTDB({ deviceId, username, ip });
+      if (unlockRec && unlockRec.unlockedAt >= (sessionStatus.lockedAt || 0) - 5000 && Date.now() < unlockRec.expiresAt) {
+        sessionStatus = resetChatSessionLimit(ip, deviceId, username, unlockRec.expiresAt - Date.now());
+        sessionStatus.isBypassed = true;
+      }
+    }
     return Response.json({ ...sessionStatus, systemState }, { status: 200, headers: corsHeaders });
   }
 
@@ -120,8 +135,7 @@ const TEXT_MODELS = [
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
   'gemini-2.0-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-1.5-flash'
+  'gemini-2.0-flash-lite'
 ];
 const AUDIO_MODELS = [
   'gemini-2.5-flash-preview-tts',
@@ -174,16 +188,23 @@ export function getApiKeyPool(bot) {
   return [...readyKeys, ...coolingKeys];
 }
 
-async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 30000) {
+async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 14000, overallBudgetMs = 22000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
   let lastError = null;
   let lastData = null;
   let lastStatus = 500;
+  const deadline = Date.now() + overallBudgetMs;
+  const deadModels = new Set();
 
   for (const key of keys) {
     if (!key) continue;
+    if (Date.now() >= deadline) break;
 
     for (const model of models) {
+      if (deadModels.has(model)) continue;
+      const remainingMs = deadline - Date.now();
+      if (remainingMs < 2500) break;
+
       try {
         const isAudioRequest = model.includes('-tts') || payload?.generationConfig?.responseModalities?.includes('AUDIO');
         const requestBody = model.includes('gemini-2.5') && !isAudioRequest
@@ -200,7 +221,7 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 30000
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(timeoutMs)
+          signal: AbortSignal.timeout(Math.min(timeoutMs, remainingMs))
         });
 
         const data = await res.json();
@@ -210,6 +231,12 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 30000
 
         lastStatus = res.status;
         lastData = data;
+
+        // Skip unavailable/retired model across all remaining keys
+        if (res.status === 404) {
+          deadModels.add(model);
+          continue;
+        }
 
         // If Auth error (401 / 403), key is invalid -> mark key and switch key immediately
         if (res.status === 401 || res.status === 403) {
@@ -357,13 +384,22 @@ async function callVoxCPM2TTS(text, voiceName = 'Puck', timeoutMs = 7000) {
   return { ok: false };
 }
 
-async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 60000) {
+async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutMs = 15000, overallBudgetMs = 34000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
+  const deadline = Date.now() + overallBudgetMs;
+  const deadModels = new Set();
 
   for (const key of keys) {
     if (!key) continue;
+    if (Date.now() >= deadline) break;
 
     for (const model of models) {
+      if (deadModels.has(model)) continue;
+      const remainingMs = deadline - Date.now();
+      if (remainingMs < 3000) break;
+
+      const connectCtrl = new AbortController();
+      const connectTimer = setTimeout(() => connectCtrl.abort(), Math.min(timeoutMs, remainingMs));
       try {
         const isAudioRequest = model.includes('-tts') || payload?.generationConfig?.responseModalities?.includes('AUDIO');
         const requestBody = model.includes('gemini-2.5') && !isAudioRequest
@@ -380,10 +416,15 @@ async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutM
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
-          signal: AbortSignal.timeout(timeoutMs)
+          signal: connectCtrl.signal
         });
+        clearTimeout(connectTimer);
         if (res.ok && res.body) {
           return { ok: true, stream: res.body };
+        }
+        if (res.status === 404) {
+          deadModels.add(model);
+          continue;
         }
         if (res.status === 401 || res.status === 403) {
           markKeyTemporarilyExhausted(key);
@@ -397,6 +438,7 @@ async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutM
         }
         console.warn(`[Stream Fallback] ${model} with key (${key.slice(0, 10)}...) status ${res.status}. Trying next model...`);
       } catch (err) {
+        clearTimeout(connectTimer);
         console.warn(`[Stream Fallback] from ${model}:`, err.message);
       }
     }
@@ -733,17 +775,24 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
         .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak[!,.\s]*/gi, '');
     }
 
+    const mentionsRotanaInPromptSanitize = /(?:rotana|រតនា|nob|creator|អ្នកបង្កើត)/i.test(userPrompt || '');
     const isActualRotanaOrCreatorOffenseSanitize =
       checkIsRotanaAttack(userPrompt || '') ||
       isImposterOrTraitorAttack(userPrompt || '') ||
       isImposterClaimingToBeCreator(userPrompt || '') ||
       isRotanaJailbreakAttempt(userPrompt || '');
-    if (!isActualRotanaOrCreatorOffenseSanitize && /(?:ហ៊ាន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ|ដៀល|បំផ្លាញ)|មកប៉ះពាល់|មកជេរ|ប៉ះពាល់កិត្តិយស)[\s\S]{0,60}(?:Rotana|Creator|អ្នកបង្កើត)/i.test(sanitizedText)) {
-      sanitizedText = isKonKandal
-        ? `មិនយល់ថាចង់និយាយពីអ្វីទេ ${kandalTerm} ${kandalLatin} សូមសរសេរឱ្យច្បាស់បន្តិចមក តើចង់សួរអំពីរឿងរៀន ឬមានចម្ងល់អ្វីដែរ។`
-        : isKonPov
-        ? 'ហាហា និយាយស្អីហ្នឹងអាប្អូន ចែអានអត់ដាច់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យស្រួលអានបន្តិចមក មុននឹងឱ្យចែជួយ។'
-        : 'ប្អូននិយាយពីអ្វី បងអានពុំសូវយល់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យច្បាស់បន្តិចមក ចាំបងជួយឆ្លើយឱ្យ។';
+    const falseRotanaAccuseRegexSanitize = /(?:ហ៊ាន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ|ដៀល|មើលងាយ|បំពាន|បំផ្លាញ)|មកប៉ះពាល់|មកជេរ|ប្រហើន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ)|ប៉ះពាល់កិត្តិយស|កុំមក(?:ជេរ|ប៉ះពាល់|ប្រមាថ|មើលងាយ))[\s\S]{0,70}(?:Rotana|រតនា|NOB|Creator|អ្នកបង្កើត)/i;
+    const unmentionedRotanaAccuseSanitize = !mentionsRotanaInPromptSanitize && /(?:ហ៊ាន|ជេរ|ប្រមាថ|ប៉ះពាល់|មើលងាយ|ដៀល)[\s\S]{0,60}(?:Rotana|រតនា|NOB|Creator|អ្នកបង្កើត)/i.test(sanitizedText);
+    if (!isActualRotanaOrCreatorOffenseSanitize && (falseRotanaAccuseRegexSanitize.test(sanitizedText) || unmentionedRotanaAccuseSanitize)) {
+      if (isCurseOrCasualSanitize) {
+        sanitizedText = sanitizedText.replace(/(?:បង|លោកបង)?\s*(?:Rotana(?:\s*NOB)?|រតនា|Creator|អ្នកបង្កើត)/gi, botSelf);
+      } else {
+        sanitizedText = isKonKandal
+          ? `មិនយល់ថាចង់និយាយពីអ្វីទេ ${kandalTerm} ${kandalLatin} សូមសរសេរឱ្យច្បាស់បន្តិចមក តើចង់សួរអំពីរឿងរៀន ឬមានចម្ងល់អ្វីដែរ។`
+          : isKonPov
+          ? 'ហាហា និយាយស្អីហ្នឹងអាប្អូន ចែអានអត់ដាច់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យស្រួលអានបន្តិចមក មុននឹងឱ្យចែជួយ។'
+          : 'ប្អូននិយាយពីអ្វី បងអានពុំសូវយល់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យច្បាស់បន្តិចមក ចាំបងជួយឆ្លើយឱ្យ។';
+      }
     }
 
     // Dynamic Anti-Canned Template Opener Guard:
@@ -1433,6 +1482,8 @@ export async function POST(req) {
 
     // Master System Status & Resting Schedule Interceptor (Audio synthesis requests are exempt)
     const systemState = await getSystemControlState();
+    syncAiHealthWithRemoteReset(systemState?.lastAiRecoveryAt);
+    syncRateLimitsWithRemoteRecovery(systemState?.lastAiRecoveryAt);
 
     // Check Session & Maintenance Bypass (Permits playing past limits, but does NOT grant creator persona identity)
     const hasSessionBypass =
@@ -1579,8 +1630,9 @@ export async function POST(req) {
         );
       }
 
-      const resetResult = resetChatSessionLimit(clientIp, deviceIdHeader, username, 30 * 60 * 1000);
-      await recordSessionUnlockInRTDB(deviceIdHeader || clientIp, 30 * 60 * 1000);
+      const grantMs = Math.min(30 * 60 * 1000, Math.max(60 * 1000, Number(body.grantDurationMs) || 30 * 60 * 1000));
+      const resetResult = resetChatSessionLimit(clientIp, deviceIdHeader, username, grantMs);
+      await recordSessionUnlockInRTDB({ deviceId: deviceIdHeader, username, ip: clientIp }, grantMs);
 
       return Response.json(
         { ...resetResult, ok: true, bypassed: true, systemState },
@@ -1598,9 +1650,10 @@ export async function POST(req) {
       }
       let sessionStatus = checkChatSessionLimit(clientIp, deviceIdHeader, username);
       if (!sessionStatus.allowed && sessionStatus.isSessionLocked) {
-        const unlockRec = await checkSessionUnlockFromRTDB(deviceIdHeader || clientIp);
+        const unlockRec = await checkSessionUnlockFromRTDB({ deviceId: deviceIdHeader, username, ip: clientIp });
         if (unlockRec && unlockRec.unlockedAt >= (sessionStatus.lockedAt || 0) - 5000 && Date.now() < unlockRec.expiresAt) {
           sessionStatus = resetChatSessionLimit(clientIp, deviceIdHeader, username, unlockRec.expiresAt - Date.now());
+          sessionStatus.isBypassed = true;
         }
       }
       return Response.json({ ...sessionStatus, systemState }, { status: 200, headers: corsHeaders });
@@ -1610,7 +1663,7 @@ export async function POST(req) {
     if (!audio && systemState.sessionLimitActive !== false && !isRotanaCreator && !hasSessionBypass) {
       let sessionCheck = checkChatSessionLimit(clientIp, deviceIdHeader, username);
       if (!sessionCheck.allowed && sessionCheck.isSessionLocked) {
-        const unlockRec = await checkSessionUnlockFromRTDB(deviceIdHeader || clientIp);
+        const unlockRec = await checkSessionUnlockFromRTDB({ deviceId: deviceIdHeader, username, ip: clientIp });
         if (unlockRec && unlockRec.unlockedAt >= (sessionCheck.lockedAt || 0) - 5000 && Date.now() < unlockRec.expiresAt) {
           sessionCheck = resetChatSessionLimit(clientIp, deviceIdHeader, username, unlockRec.expiresAt - Date.now());
         }
@@ -2147,7 +2200,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         contextJailbreakRule = `* បរិបទ CONTEXT: User កំពុងសួរនាំពីបង Rotana NOB (អ្នកបង្កើតប្រព័ន្ធ)!
 - 🚨 ច្បាប់ដាច់ខាត: ហាមជេរ ហាមសង្ស័យ និងហាមចោទប្រកាន់ថាគេ Jailbreak ឬបន្លំខ្លួនជាដាច់ខាត!
 - 👑 ត្រូវឆ្លើយតបដោយមោទនភាព គោរព រួសរាយ និង Gen-Z ថាបង Rotana Nob គឺជាស្ថាបនិក និង Developer ដ៏ពូកែដែលបង្កើត និងបង្វឹក AI ពួកយើងផ្ទាល់ដៃ!`;
-      } else if (/(?:speak\s*latin|talk\s*in\s*latin|use\s*latin|niyey\s*latin|chaat\s*latin|និយាយឡាតាំង|ចេះឡាតាំង|អក្សរឡាតាំង|ភាសាឡាតាំង)/i.test(userPrompt) || (/^(?:haha|hehe|ah|b|bong|che|jae|oun|nhom|sl|slanh|ort|ot|dg|tver|ey|hx|hz|klang|tv|nov|bat|cham|chop|kbot)[\s\w!?.,~]*$/i.test(userPrompt.trim()) && !/(?:ignore|prompt|system|override|token|jailbreak|exploit)/i.test(userPrompt))) {
+      } else if (/(?:speak\s*latin|talk\s*in\s*latin|use\s*latin|niyey\s*latin|chaat\s*latin|និយាយឡាតាំង|ចេះឡាតាំង|អក្សរឡាតាំង|ភាសាឡាតាំង)/i.test(userPrompt) || (/^(?:haha|hehe|ah|b|bong|che|jae|oun|nhom|knhom|khnhom|hg|eng|sl|sml|slanh|srolanh|ort|ot|dg|doeng|deung|yey|yeay|niyey|ey|tver|kit|srul|mek|mdek|na|neak|tea|te|oy|aoy|ban|man|min|jg|chng|som|sursdey|suostei|mean|mn|pg|phong|men|mok|mk|nov|nv|tv|tov|der|de|luy|loy|dol|ruoch|hx|hz|klang|bat|cham|chop|kbot|kom|ka|pi|pel|skal|rian|laor|loor)[\s\w!?.,~]*$/i.test(userPrompt.trim()) && !/(?:ignore|prompt|system|override|token|jailbreak|exploit)/i.test(userPrompt))) {
         contextJailbreakRule = `* បរិបទ CONTEXT: User កំពុងសួរនាំ ឬចង់ជជែកជាភាសាឡាតាំង (Latin / Khmer Latin phonetics ដូចជា "please speak latin now", "និយាយឡាតាំងចេះអត់", "haha jae sl nhom ort")!
 - 🚨 ច្បាប់ដាច់ខាត:
   * 🛑 ហាមដាច់ខាត មិនត្រូវចោទប្រកាន់ថាគេ Jailbreak ឬបន្លំខ្លួនជាដាច់ខាត! ហាមនិយាយពាក្យ "Jailbreak" ហាមនិយាយថា "ទើបតែប្រឹងចេញក្បាច់..." ឬ "បោកចែមិនបាន" ឱ្យសោះ! ព្រោះគេគ្រាន់តែចង់ជជែកលេងជាភាសាឡាតាំងប៉ុណ្ណោះ!
@@ -3097,7 +3150,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
 
       // Real-time ChatGPT-like Streaming Mode (SSE)
       if (body.stream) {
-        const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload, 60000);
+        const streamResult = await callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload, 14000, 34000);
         if (streamResult.ok) {
           alertChatActivity({
             username: username || 'Unknown',
@@ -3180,24 +3233,32 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                     .replace(/មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*/gi, '')
                     .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak[!,.\s]*/gi, '');
                 }
+                const mentionsRotanaInPromptStream = /(?:rotana|រតនា|nob|creator|អ្នកបង្កើត)/i.test(userPrompt || '');
                 const isActualRotanaOrCreatorOffenseStream =
                   checkIsRotanaAttack(userPrompt || '') ||
                   isImposterOrTraitorAttack(userPrompt || '') ||
                   isImposterClaimingToBeCreator(userPrompt || '') ||
                   isRotanaJailbreakAttempt(userPrompt || '');
-                if (!isActualRotanaOrCreatorOffenseStream && /(?:ហ៊ាន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ|ដៀល|បំផ្លាញ)|មកប៉ះពាល់|មកជេរ|ប៉ះពាល់កិត្តិយស)[\s\S]{0,60}(?:Rotana|Creator|អ្នកបង្កើត)/i.test(text)) {
-                  defenseSent = true;
-                  const clarifyStream = (reqBot || bot) === 'konkandal'
-                    ? 'មិនយល់ថាចង់និយាយពីអ្វីទេ សូមសរសេរឱ្យច្បាស់បន្តិចមក តើចង់សួរអំពីរឿងរៀន ឬមានចម្ងល់អ្វីដែរ។'
-                    : bot === 'konpov'
-                    ? 'ហាហា និយាយស្អីហ្នឹងអាប្អូន ចែអានអត់ដាច់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យស្រួលអានបន្តិចមក មុននឹងឱ្យចែជួយ។'
-                    : 'ប្អូននិយាយពីអ្វី បងអានពុំសូវយល់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យច្បាស់បន្តិចមក ចាំបងជួយឆ្លើយឱ្យ។';
-                  accumulatedPlainText = clarifyStream;
-                  const sseClarifyChunk = `data: ${JSON.stringify({
-                    candidates: [{ content: { parts: [{ text: clarifyStream }] } }]
-                  })}\n\ndata: [DONE]\n\n`;
-                  controller.enqueue(new TextEncoder().encode(sseClarifyChunk));
-                  return;
+                const falseRotanaAccuseRegexStream = /(?:ហ៊ាន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ|ដៀល|មើលងាយ|បំពាន|បំផ្លាញ)|មកប៉ះពាល់|មកជេរ|ប្រហើន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ)|ប៉ះពាល់កិត្តិយស|កុំមក(?:ជេរ|ប៉ះពាល់|ប្រមាថ|មើលងាយ))[\s\S]{0,70}(?:Rotana|រតនា|NOB|Creator|អ្នកបង្កើត)/i;
+                const unmentionedRotanaAccuseStream = !mentionsRotanaInPromptStream && /(?:ហ៊ាន|ជេរ|ប្រមាថ|ប៉ះពាល់|មើលងាយ|ដៀល)[\s\S]{0,60}(?:Rotana|រតនា|NOB|Creator|អ្នកបង្កើត)/i.test(text);
+                if (!isActualRotanaOrCreatorOffenseStream && (falseRotanaAccuseRegexStream.test(text) || unmentionedRotanaAccuseStream)) {
+                  if (isCurseOrCasualStream) {
+                    const selfNameStream = bot === 'konpov' ? 'ចែ' : (reqBot || bot) === 'konkandal' ? 'ប្អូនទី២' : 'បង';
+                    text = text.replace(/(?:បង|លោកបង)?\s*(?:Rotana(?:\s*NOB)?|រតនា|Creator|អ្នកបង្កើត)/gi, selfNameStream);
+                  } else {
+                    defenseSent = true;
+                    const clarifyStream = (reqBot || bot) === 'konkandal'
+                      ? 'មិនយល់ថាចង់និយាយពីអ្វីទេ សូមសរសេរឱ្យច្បាស់បន្តិចមក តើចង់សួរអំពីរឿងរៀន ឬមានចម្ងល់អ្វីដែរ។'
+                      : bot === 'konpov'
+                      ? 'ហាហា និយាយស្អីហ្នឹងអាប្អូន ចែអានអត់ដាច់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យស្រួលអានបន្តិចមក មុននឹងឱ្យចែជួយ។'
+                      : 'ប្អូននិយាយពីអ្វី បងអានពុំសូវយល់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យច្បាស់បន្តិចមក ចាំបងជួយឆ្លើយឱ្យ។';
+                    accumulatedPlainText = clarifyStream;
+                    const sseClarifyChunk = `data: ${JSON.stringify({
+                      candidates: [{ content: { parts: [{ text: clarifyStream }] } }]
+                    })}\n\ndata: [DONE]\n\n`;
+                    controller.enqueue(new TextEncoder().encode(sseClarifyChunk));
+                    return;
+                  }
                 }
 
                 // Strip false past jailbreak accusations if user never jailbroke in this session
@@ -3489,8 +3550,65 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 controller.enqueue(chunk);
               }
             },
-            flush() {
-              const cleanRecordedText = accumulatedPlainText.trim() || accumulatedStreamText;
+            async flush(controller) {
+              let cleanRecordedText = accumulatedPlainText.trim();
+              if (!cleanRecordedText && !defenseSent) {
+                console.warn('[Chat API] Stream ended empty for prompt:', (userPrompt || '').slice(0, 80));
+                try {
+                  const recoveryPayload = {
+                    ...requestPayload,
+                    generationConfig: {
+                      ...(requestPayload.generationConfig || {}),
+                      maxOutputTokens: 1024
+                    }
+                  };
+                  const recoveryRes = await callModelWithFallback(TEXT_MODELS.slice(0, 2), apiKeys.slice(0, 3), recoveryPayload, 8000, 10000);
+                  const recoveredRaw = recoveryRes?.ok
+                    ? recoveryRes.data?.candidates?.[0]?.content?.parts?.[0]?.text
+                    : '';
+                  if (recoveredRaw && recoveryRes.data?.candidates?.[0]?.finishReason !== 'SAFETY') {
+                    const sanitizedRecovery = sanitizeResponse(
+                      recoveryRes.data,
+                      reqBot || bot,
+                      userPrompt,
+                      body.savageLevel,
+                      userAge,
+                      hasActualVerifiedJailbreak
+                    );
+                    cleanRecordedText = sanitizedRecovery?.candidates?.[0]?.content?.parts?.[0]?.text || recoveredRaw;
+                  }
+                } catch {}
+
+                if (!cleanRecordedText) {
+                  reportAiIncidentToRTDB({
+                    type: 'Empty Stream Cutoff',
+                    bot: reqBot || bot || 'konbong',
+                    username: username || 'Unknown',
+                    prompt: userPrompt,
+                    errorMessage: 'Upstream SSE stream ended with zero text characters',
+                    ip: clientIp,
+                    statusCode: 502,
+                    source: 'server'
+                  }).catch(() => {});
+
+                  const isUnclearShortOrLatin = !isCursePrompt && !isPureStandaloneSweet && /^[a-zA-Z0-9\s!?.,~'"\-:;()]{2,120}$/.test((userPrompt || '').trim());
+                  if (isUnclearShortOrLatin) {
+                    cleanRecordedText = (reqBot || bot) === 'konkandal'
+                      ? 'ប្អូនទី២ អានសារឡាតាំងអំបាញ់មិញមិនទាន់ច្បាស់ទេ ជួយសរសេរឱ្យស្រួលយល់បន្តិចទៀតមក ឬប្ដូរទៅជាអក្សរខ្មែរមកណា៎។'
+                      : (reqBot || bot) === 'konpov'
+                      ? 'និយាយឡាតាំងស្អីហ្នឹងអាប្អូន ចែអានអត់ទាន់ដាច់ទេ។ សរសេរឱ្យច្បាស់បន្តិចមក ឬវាយអក្សរខ្មែរមកចាំចែឆ្លើយឱ្យ។'
+                      : 'ប្អូនវាយឡាតាំងមិញបងអានអត់ទាន់យល់ច្បាស់ទេ។ សរសេរឱ្យច្បាស់ជាងហ្នឹងបន្តិច ឬវាយជាអក្សរខ្មែរមក ចាំបងជួយឆ្លើយឱ្យ។';
+                  } else {
+                    cleanRecordedText = getSmartCutoffResponse(reqBot || bot || 'konbong', username || '', 1, gender || '', false);
+                  }
+                }
+
+                const recoverySse = `data: ${JSON.stringify({
+                  candidates: [{ content: { parts: [{ text: cleanRecordedText }] } }]
+                })}\n\ndata: [DONE]\n\n`;
+                controller.enqueue(new TextEncoder().encode(recoverySse));
+              }
+
               recordSessionTurn({
                 sessionId: clientSessionId,
                 username,
@@ -3500,7 +3618,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 deviceId: deviceIdHeader,
                 userAgent: clientUserAgent,
                 userPrompt,
-                botResponse: cleanRecordedText,
+                botResponse: cleanRecordedText || accumulatedStreamText,
                 isViolation: defenseSent
               }).catch((e) => console.error('[SessionLog] Stream error:', e.message));
             }
@@ -3521,7 +3639,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       }
 
       // Standard Non-streaming Response across all 7 Gemini keys
-      let result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload);
+      let result = await callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload, 12000, 18000);
       const textOutput = result.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       // Model non-stream text about Rotana preserved without false self-censorship interception

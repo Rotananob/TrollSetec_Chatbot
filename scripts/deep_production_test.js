@@ -477,6 +477,64 @@ async function runTests() {
     'Admin Dashboard has real-time AI Error Monitor, API Key health, and 1-Click Fix AI Engine recovery'
   );
 
+  // Additional Production Hardening Assertions
+  const modalSrc = fs.readFileSync(path.join(process.cwd(), 'components/SessionBreakModal.js'), 'utf8');
+  assert(
+    modalSrc.includes('getDeviceId') && !modalSrc.includes('chatbot_device_id'),
+    'SessionBreakModal uses getDeviceId() instead of stale chatbot_device_id key'
+  );
+
+  const bypassMgrSrc = fs.readFileSync(path.join(process.cwd(), 'app/utils/bypassCodeManager.js'), 'utf8');
+  const hasBypassEmoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(bypassMgrSrc);
+  assert(
+    bypassMgrSrc.includes("getApiEndpoint('/api/track')") && !hasBypassEmoji,
+    'bypassCodeManager routes /api/track via getApiEndpoint and contains zero emojis'
+  );
+
+  const aiHealthHardeningMod = await import('../lib/aiHealth.js');
+  const adminHealthSummary = aiHealthHardeningMod.getApiKeysHealthSummary(poolKonBong);
+  assert(
+    typeof aiHealthHardeningMod.syncAiHealthWithRemoteReset === 'function' &&
+      typeof adminHealthSummary?.readyCount === 'number' &&
+      typeof adminHealthSummary?.exhaustedCount === 'number' &&
+      typeof adminHealthSummary?.ttsCoolingCount === 'number' &&
+      Array.isArray(adminHealthSummary?.keyHealth) &&
+      adminHealthSummary.keyHealth.length === poolKonBong.length,
+    'lib/aiHealth exports syncAiHealthWithRemoteReset and returns admin-compatible readyCount/exhaustedCount/ttsCoolingCount/keyHealth'
+  );
+
+  const rateLimitMod = await import('../lib/rateLimit.js');
+  assert(
+    typeof rateLimitMod.syncRateLimitsWithRemoteRecovery === 'function',
+    'lib/rateLimit exports syncRateLimitsWithRemoteRecovery for multi-instance recovery'
+  );
+
+  const chatRouteSrc = fs.readFileSync(path.join(process.cwd(), 'app/api/chat/route.js'), 'utf8');
+  assert(
+    chatRouteSrc.includes('async flush(controller)') &&
+      chatRouteSrc.includes('callStreamingModelWithFallback(TEXT_MODELS, apiKeys, requestPayload, 14000, 34000)') &&
+      chatRouteSrc.includes('callModelWithFallback(TEXT_MODELS, apiKeys, requestPayload, 12000, 18000)') &&
+      chatRouteSrc.includes('mentionsRotanaInPromptSanitize') &&
+      chatRouteSrc.includes('mentionsRotanaInPromptStream'),
+    'app/api/chat/route.js enforces empty-stream flush recovery, deadline-bounded streaming, and Rotana false-accusation guards'
+  );
+
+  let clientCheckSessionAndAudioValid = true;
+  for (const f of botPages) {
+    const c = fs.readFileSync(path.join(process.cwd(), f), 'utf8');
+    const ok =
+      c.includes('data?.isBypassed || data?.sessionLimitDisabled || data?.isCreator') &&
+      c.includes('if (!audioBufferCacheRef.current.has(hash))');
+    if (!ok) {
+      clientCheckSessionAndAudioValid = false;
+      console.error(`Client session/audio check failed in ${f}`);
+    }
+  }
+  assert(
+    clientCheckSessionAndAudioValid,
+    'All 3 client bot pages sync check-session bypasses and always show loading state before audio decoding completes'
+  );
+
   console.log('\n====================================================');
   console.log(`📊 FINAL RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100% SUCCESS)`);
   console.log('====================================================');

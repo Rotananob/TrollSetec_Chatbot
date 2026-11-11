@@ -752,6 +752,12 @@ export default function KonKandalPage() {
           if (data?.isSessionLocked && data?.cooldownUntil) {
             setServerCooldownLock(data.cooldownUntil, username, data.lockedAt);
             setSessionState(getLiveSessionState());
+          } else if (data?.isBypassed || data?.sessionLimitDisabled || data?.isCreator) {
+            const cur = getLiveSessionState();
+            if (cur?.isLocked) {
+              grantFreshLiveSession(username);
+              setSessionState(getLiveSessionState());
+            }
           }
         })
         .catch(() => {});
@@ -2918,7 +2924,7 @@ export default function KonKandalPage() {
 
     const reqId = ++activeAudioRequestRef.current;
 
-    if (!audioCacheRef.current.has(hash) && !audioBufferCacheRef.current.has(hash)) {
+    if (!audioBufferCacheRef.current.has(hash)) {
       setExclusiveAudioState(index, 'loading');
       setAudioCountdownMap((prev) => ({ ...prev, [index]: 5 }));
       if (audioCountdownTimerRef.current) {

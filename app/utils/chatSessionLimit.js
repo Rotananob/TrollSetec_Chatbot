@@ -205,15 +205,16 @@ export function getLiveSessionState() {
 
   // If user recently bypassed cooldown and a stale cooldown cookie survived, ignore stale lock within grant window
   if (activeBypass && now < activeBypass.expiresAt) {
+    const withinSafeGrace = now - activeBypass.grantedAt < 25 * 60 * 1000;
     if (!sessionStart || sessionStart < activeBypass.grantedAt) {
       sessionStart = activeBypass.grantedAt;
       lastActive = Math.max(lastActive || 0, activeBypass.grantedAt);
     }
-    if (cooldownUntil && (!stored?.lockedAt || stored.lockedAt < activeBypass.grantedAt)) {
+    if (cooldownUntil && (withinSafeGrace || !stored?.lockedAt || stored.lockedAt <= activeBypass.grantedAt + 15000)) {
       cooldownUntil = null;
       removeCookie(COOKIE_NAME);
     }
-    if (cookieCooldown && (!stored?.lockedAt || stored.lockedAt < activeBypass.grantedAt)) {
+    if (cookieCooldown && (withinSafeGrace || !stored?.lockedAt || stored.lockedAt <= activeBypass.grantedAt + 15000)) {
       cookieCooldown = null;
       removeCookie(COOKIE_NAME);
     }
@@ -379,9 +380,8 @@ export function setServerCooldownLock(cooldownUntilMs, customUsername = '', serv
   const now = Date.now();
   const activeBypass = getActiveBypassGrant(now);
   if (activeBypass && now < activeBypass.expiresAt) {
-    // Only honor a server lock if the server created that lock *after* this bypass grant was issued
-    const estimatedLockCreated = serverLockedAtMs || (cooldownUntilMs ? cooldownUntilMs - COOLDOWN_SECONDS * 1000 : now);
-    if (estimatedLockCreated <= activeBypass.grantedAt + 1500) {
+    // Only honor a server lock if the server created that lock well *after* this bypass grant was issued (or near end of 25+ min window)
+    if (!serverLockedAtMs || serverLockedAtMs <= activeBypass.grantedAt + 15000 || now - activeBypass.grantedAt < 25 * 60 * 1000) {
       return;
     }
   }

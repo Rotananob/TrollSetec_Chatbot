@@ -10,6 +10,7 @@ import {
   generateHashedVipCode
 } from '../app/utils/bypassCodeManager';
 import { getApiEndpoint } from '../app/utils/apiConfig';
+import { getDeviceId } from '../app/utils/rateLimiter';
 
 const FIREBASE_DB_URL = 'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
 const ACTIVE_BYPASS_REQ_KEY = 'setec_active_bypass_req_v2';
@@ -69,7 +70,7 @@ export default function SessionBreakModal({
   // Initialize device usage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const devId = localStorage.getItem('chatbot_device_id') || '';
+      const devId = getDeviceId();
       setDeviceUsage(getLocalDeviceBypassUsage(devId));
     }
   }, [isOpen]);
@@ -327,7 +328,7 @@ export default function SessionBreakModal({
     setIsVerifying(true);
 
     try {
-      const devId = typeof window !== 'undefined' ? localStorage.getItem('chatbot_device_id') || '' : '';
+      const devId = typeof window !== 'undefined' ? getDeviceId() : '';
       const uName = typeof window !== 'undefined' ? localStorage.getItem('chatbot_username') || 'User' : 'User';
 
       const result = await validatePromoCode(targetCode, devId, uName);
@@ -397,7 +398,7 @@ export default function SessionBreakModal({
     setIsRequestingRotana(true);
     fallbackTriggeredRef.current = false;
 
-    const devId = typeof window !== 'undefined' ? localStorage.getItem('chatbot_device_id') || '' : '';
+    const devId = typeof window !== 'undefined' ? getDeviceId() : '';
     const uName = typeof window !== 'undefined' ? localStorage.getItem('chatbot_username') || 'User' : 'User';
 
     const reqResult = await requestBypassFromRotana({

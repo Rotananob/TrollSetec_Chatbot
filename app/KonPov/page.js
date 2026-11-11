@@ -692,6 +692,12 @@ export default function KonPovPage() {
           if (data?.isSessionLocked && data?.cooldownUntil) {
             setServerCooldownLock(data.cooldownUntil, username, data.lockedAt);
             setSessionState(getLiveSessionState());
+          } else if (data?.isBypassed || data?.sessionLimitDisabled || data?.isCreator) {
+            const cur = getLiveSessionState();
+            if (cur?.isLocked) {
+              grantFreshLiveSession(username);
+              setSessionState(getLiveSessionState());
+            }
           }
         })
         .catch(() => {});
@@ -2214,7 +2220,7 @@ export default function KonPovPage() {
 
     const reqId = ++activeAudioRequestRef.current;
 
-    if (!audioCacheRef.current.has(hash) && !audioBufferCacheRef.current.has(hash)) {
+    if (!audioBufferCacheRef.current.has(hash)) {
       setExclusiveVoiceState(index, 'loading');
       setAudioCountdownMap((prev) => ({ ...prev, [index]: 5 }));
       if (audioCountdownTimerRef.current) {
@@ -2856,7 +2862,7 @@ export default function KonPovPage() {
           const isNight = errData?.mode === 'night_rest';
           const botNotice = isNight
             ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-            : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎! 🙏`;
+            : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎!`;
 
           setIsLoading(false);
           const finalMessages = [...updatedMessages];
@@ -3041,7 +3047,7 @@ export default function KonPovPage() {
             const isNight = errData?.mode === 'night_rest';
             botText = isNight
               ? `ប្អូន ${userNameStr} អើយ! ពេលយប់ជ្រៅហើយ ប្រព័ន្ធ AI សុំសម្រាកគេងសិន ដើម្បីសន្សំកម្លាំងសម្រាប់ថ្ងៃស្អែក! សូមចូលមកលេងនៅម៉ោង 06:00 ព្រឹកឡើងវិញណា៎!`
-              : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎! 🙏`;
+              : `ប្អូន ${userNameStr} អើយ! ពេលនេះប្រព័ន្ធ AI កំពុងស្ថិតក្នុងការថែទាំបណ្ដោះអាសន្នសិនណា៎! ${restReason} សូមអធ្យាស្រ័យពីបងប្អូនទាំងអស់គ្នា ចាំប្រព័ន្ធបើកដំណើរការឡើងវិញ ចាំចូលមកលេងជាមួយចែវិញណា៎!`;
             setMessages((prev) => {
               const copy = [...prev];
               copy[copy.length - 1] = { role: 'bot', text: botText, isError: true, isMaintenanceNotice: true };
@@ -3177,7 +3183,7 @@ export default function KonPovPage() {
       let isErr = true;
 
       if (isNetworkError) {
-        fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎! 📶🔄`;
+        fallbackText = `ប្អូន ${userNameStr} អើយ! ការតភ្ជាប់អ៊ីនធឺណិតទៅកាន់ម៉ាស៊ីនមេមានភាពរអាក់រអួល ឬដាច់សេវាបណ្ដោះអាសន្ន! សូមពិនិត្យមើលសេវា Wi-Fi/4G រួចសាកល្បងចុចផ្ញើម្ដងទៀតណា៎!`;
       } else {
         consecutiveErrorsRef.current += 1;
         const hasTechKeywordsInCatch = /(?:error|laptop|កុំព្យូទ័រ|ទូរស័ព្ទ|phone|កូដ|code|ទឹក|ខូច|បាក់|bug|assignment|homework|ប្រឡង|សង|សាលា|រៀន|c#|java|python|html|css|javascript|database|sql|pos|network|wifi|ហេតុអ្វី|យ៉ាងម៉េច|ជួយ|របៀប|how|why|what|help)/i.test(promptText);
@@ -3203,8 +3209,8 @@ export default function KonPovPage() {
 
         if (isSweetOrFlirt) {
           fallbackText = isMaleUser
-            ? `ហាហាហា! មក Sweet ផ្អែមល្ហែមដាក់ចែស្អីហ្នឹងអាប្អូន ${userNameStr}?! ចែរវល់ម៉ាភ្លែតទេ តិចទៀតមក troll ឯងបន្តណា៎! ចាំតិចសិនទៅ! 😉💅`
-            : `អីយ៉ា៎កូនស្រី ${userNameStr}! មក Sweet ដាក់ប៉ាស្អីហ្នឹង? ប៉ារវល់ម៉ាភ្លែត តិចទៀតប៉ាមកឆ្លើយតបវិញហើយណា៎! ចាំប៉ាតិចសិន! 🥰✨`;
+            ? `ហាហាហា! មក Sweet ផ្អែមល្ហែមដាក់ចែស្អីហ្នឹងអាប្អូន ${userNameStr}?! ចែរវល់ម៉ាភ្លែតទេ តិចទៀតមក troll ឯងបន្តណា៎! ចាំតិចសិនទៅ!`
+            : `អីយ៉ា៎កូនស្រី ${userNameStr}! មក Sweet ដាក់ប៉ាស្អីហ្នឹង? ប៉ារវល់ម៉ាភ្លែត តិចទៀតប៉ាមកឆ្លើយតបវិញហើយណា៎! ចាំប៉ាតិចសិន!`;
           isErr = false;
         } else if (isCurseWord) {
           const isFemaleUser = userGender === 'ស្រី' || /ស្រី|sister|sis|female|girl/i.test(userNameStr);

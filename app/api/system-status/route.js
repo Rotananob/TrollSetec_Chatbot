@@ -9,9 +9,10 @@ import {
   getCambodiaHour
 } from '../../../lib/systemControl.js';
 import { verifyRotanaMasterCode, verifySessionBypassCode } from '../../../lib/masterAuth.js';
-import { flushAllRateLimits, getClientIp } from '../../../lib/rateLimit.js';
+import { flushAllRateLimits, syncRateLimitsWithRemoteRecovery, getClientIp } from '../../../lib/rateLimit.js';
 import {
   resetAllAiEngineHealth,
+  syncAiHealthWithRemoteReset,
   getApiKeysHealthSummary,
   fetchAiIncidentsFromRTDB,
   resolveAllAiIncidentsInRTDB,
@@ -52,6 +53,8 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const forceFresh = searchParams.get('fresh') === 'true';
     const state = await getSystemControlState(forceFresh);
+    syncAiHealthWithRemoteReset(state?.lastAiRecoveryAt);
+    syncRateLimitsWithRemoteRecovery(state?.lastAiRecoveryAt);
     const evaluation = evaluateSystemRest(state);
     const cambodiaHour = getCambodiaHour();
 
@@ -158,7 +161,10 @@ export async function POST(req) {
 
     // Action 1b: 1-Click Fix AI Engine (Reset Key Cooldowns + Flush Locks + Resolve Incidents + Broadcast Recovery)
     if (action === 'fix-ai-engine') {
+      const recoveryTs = Date.now();
       const aiReset = resetAllAiEngineHealth();
+      syncAiHealthWithRemoteReset(recoveryTs);
+      syncRateLimitsWithRemoteRecovery(recoveryTs);
       const limitStats = flushAllRateLimits();
       const incidentResult = await resolveAllAiIncidentsInRTDB(body.incidentId || null);
       const current = await getSystemControlState(true);
@@ -170,7 +176,7 @@ export async function POST(req) {
           konbongActive: true,
           konpovActive: true,
           aiRecoveryVersion: nextRecoveryVersion,
-          lastAiRecoveryAt: Date.now()
+          lastAiRecoveryAt: recoveryTs
         },
         'Rotana NOB'
       );
