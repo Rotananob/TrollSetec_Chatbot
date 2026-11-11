@@ -74,6 +74,8 @@ export default function Home() {
 
   // Auto-Read Announcement Audio State
   const announcementAudioRef = useRef(null);
+  const isSubmittedRef = useRef(false);
+  isSubmittedRef.current = isSubmitted;
   const [selectedAnnouncementVoice, setSelectedAnnouncementVoice] = useState('puck');
   const [isAnnouncementPlaying, setIsAnnouncementPlaying] = useState(false);
   const [voiceDropdownOpen, setVoiceDropdownOpen] = useState(false);
@@ -92,12 +94,21 @@ export default function Home() {
   };
 
   const playAnnouncementAudio = async () => {
-    if (!announcementAudioRef.current) return;
+    if (!isSubmittedRef.current || !announcementAudioRef.current) return;
     try {
       applyBgmDucking(true);
       const promise = announcementAudioRef.current.play();
       if (promise !== undefined) {
         await promise;
+        if (!isSubmittedRef.current) {
+          if (announcementAudioRef.current) {
+            announcementAudioRef.current.pause();
+            announcementAudioRef.current.currentTime = 0;
+          }
+          setIsAnnouncementPlaying(false);
+          applyBgmDucking(false);
+          return;
+        }
         setIsAnnouncementPlaying(true);
       }
     } catch {
@@ -206,6 +217,10 @@ export default function Home() {
         window.removeEventListener('click', startOnInteraction);
         window.removeEventListener('touchstart', startOnInteraction);
         window.removeEventListener('keydown', startOnInteraction);
+        try {
+          bgm.pause();
+          bgm.currentTime = 0;
+        } catch {}
       };
     }
   }, []);
@@ -227,13 +242,17 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-play announcement voice on Home page once user profile is active
+  // Auto-play announcement voice on Home page strictly when Bot Selection screen (isSubmitted) is active
   useEffect(() => {
-    if (!isSubmitted) return;
+    if (!isSubmitted) {
+      stopAnnouncementAudio();
+      return;
+    }
 
+    const audioEl = announcementAudioRef.current;
     let active = true;
     const attemptAutoPlay = () => {
-      if (!active) return;
+      if (!active || !isSubmittedRef.current) return;
       playAnnouncementAudio();
     };
 
@@ -241,7 +260,7 @@ export default function Home() {
 
     const unlockEvents = ['touchstart', 'pointerdown', 'click', 'scroll', 'keydown'];
     const handleGesture = () => {
-      if (announcementAudioRef.current?.paused) {
+      if (audioEl?.paused && isSubmittedRef.current) {
         attemptAutoPlay();
       }
       unlockEvents.forEach((evt) => window.removeEventListener(evt, handleGesture, true));
@@ -250,16 +269,24 @@ export default function Home() {
     unlockEvents.forEach((evt) => window.addEventListener(evt, handleGesture, { capture: true, passive: true }));
 
     const handleStop = () => {
+      if (audioEl) {
+        try {
+          audioEl.pause();
+          audioEl.currentTime = 0;
+        } catch {}
+      }
       pauseAnnouncementAudio();
     };
     window.addEventListener('beforeunload', handleStop);
     window.addEventListener('pagehide', handleStop);
+    window.addEventListener('setec-stop-all-audio', handleStop);
 
     return () => {
       active = false;
       unlockEvents.forEach((evt) => window.removeEventListener(evt, handleGesture, true));
       window.removeEventListener('beforeunload', handleStop);
       window.removeEventListener('pagehide', handleStop);
+      window.removeEventListener('setec-stop-all-audio', handleStop);
       handleStop();
     };
   }, [isSubmitted]);
@@ -316,6 +343,7 @@ export default function Home() {
   };
 
   const handleBackToForm = () => {
+    stopAnnouncementAudio();
     resetClientRateLimit();
     setIsSubmitted(false);
   };
@@ -389,31 +417,33 @@ export default function Home() {
       {/* Background Audio */}
       <audio ref={bgmRef} src="/audio/funny-bgm.mp3" loop preload="none" />
 
-      {/* Auto-Read Announcement Audio with Native AutoPlay & PlaysInline */}
-      <audio
-        ref={announcementAudioRef}
-        src={currentAnnouncementVoice.src}
-        preload="auto"
-        autoPlay
-        playsInline
-        onCanPlay={() => {
-          if (isSubmitted && !isAnnouncementPlaying) {
-            playAnnouncementAudio();
-          }
-        }}
-        onEnded={() => {
-          setIsAnnouncementPlaying(false);
-          applyBgmDucking(false);
-        }}
-        onPause={() => {
-          setIsAnnouncementPlaying(false);
-          applyBgmDucking(false);
-        }}
-        onPlay={() => {
-          setIsAnnouncementPlaying(true);
-          applyBgmDucking(true);
-        }}
-      />
+      {/* Auto-Read Announcement Audio - only mounted and played on Bot Selection screen */}
+      {isSubmitted && (
+        <audio
+          ref={announcementAudioRef}
+          src={currentAnnouncementVoice.src}
+          preload="auto"
+          autoPlay
+          playsInline
+          onCanPlay={() => {
+            if (isSubmittedRef.current && !isAnnouncementPlaying) {
+              playAnnouncementAudio();
+            }
+          }}
+          onEnded={() => {
+            setIsAnnouncementPlaying(false);
+            applyBgmDucking(false);
+          }}
+          onPause={() => {
+            setIsAnnouncementPlaying(false);
+            applyBgmDucking(false);
+          }}
+          onPlay={() => {
+            setIsAnnouncementPlaying(true);
+            applyBgmDucking(true);
+          }}
+        />
+      )}
 
       {/* Mobile Top Navigation Bar (< 640px) */}
       <div
@@ -436,7 +466,7 @@ export default function Home() {
           )}
           <Link
             href="/"
-            onClick={() => setIsSubmitted(false)}
+            onClick={handleBackToForm}
             className="flex items-center gap-2 select-none"
             title="SETEC Roastbot"
           >
@@ -1409,6 +1439,10 @@ export default function Home() {
             <div className="flex flex-wrap gap-2 justify-center mb-2 mt-3 items-center">
               <Link
                 href="/announcement"
+                onClick={() => {
+                  stopAnnouncementAudio();
+                  stopAllGlobalAudio();
+                }}
                 className="px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 shadow-2xs"
                 title="សេចក្ដីជូនដំណឹង និងការប្រកាសអំពីទីលានតេស្ត AI"
               >
@@ -1417,6 +1451,10 @@ export default function Home() {
               </Link>
               <Link
                 href="/privacy"
+                onClick={() => {
+                  stopAnnouncementAudio();
+                  stopAllGlobalAudio();
+                }}
                 className="px-3 py-1.5 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 text-[11px] font-bold flex items-center gap-1.5 transition active:scale-95 shadow-2xs"
                 title="គោលការណ៍ឯកជនភាព និងការការពារទិន្នន័យ"
               >
