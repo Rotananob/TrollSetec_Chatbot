@@ -580,6 +580,37 @@ async function runTests() {
   }
   assert(all1ClickAdminAlerts, 'All 3 bot pages wire Frustration and Re-send buttons to 1-click handleSendAlertToAdmin');
 
+  // --- TEST GROUP 9: FALSE POSITIVE ERROR GUIDELINE FIX ---
+  console.log('\n--- TEST GROUP 9: FALSE POSITIVE ERROR GUIDELINE & CUTOFF REGEX FIX ---');
+
+  // Verify isCutoffText no longer matches normal Khmer roast words
+  for (const bf of botPages) {
+    const bSrc = fs.readFileSync(path.join(process.cwd(), bf), 'utf8');
+    const hasFalsePositive =
+      /isCutoffText\s*=\s*\/\(\?:[^/]*ស្វាងសិន/u.test(bSrc) ||
+      /isCutoffText\s*=\s*\/\(\?:[^/]*Send Alert/u.test(bSrc);
+    if (hasFalsePositive) {
+      console.error(`${bf}: isCutoffText still contains false-positive patterns!`);
+    }
+    assert(!hasFalsePositive, `${bf}: isCutoffText must NOT contain "ស្វាងសិន" or "Send Alert" (false positives)`);
+  }
+
+  // Verify UI render regex also does not have false-positive patterns
+  for (const bf of botPages) {
+    const bSrc = fs.readFileSync(path.join(process.cwd(), bf), 'utf8');
+    // The UI regex check on msg.text must NOT have ស្វាងសិន or Send Alert (they are normal)
+    const hasUiFalsePositive = /ស្វាងសិន[^"'`]*\/i\.test\((msg|item)\.text/.test(bSrc);
+    assert(!hasUiFalsePositive, `${bf}: UI cutoff render regex must NOT contain "ស្វាងសិន" false positive`);
+  }
+
+  // Verify per-key Fix+Test controls exist in admin page
+  const adminPageSrc = fs.readFileSync(path.join(process.cwd(), 'app/jam-tic-kapea-1-sin/page.js'), 'utf8');
+  assert(adminPageSrc.includes('handleFixSingleKey'), 'Admin page has per-key Fix handler');
+  assert(adminPageSrc.includes('handleTestSingleKey'), 'Admin page has per-key Test handler');
+  assert(adminPageSrc.includes('handleTestAllKeys'), 'Admin page has Test All Keys handler');
+  assert(adminPageSrc.includes('ការវិភាគស្វ័យប្រវត្តិ'), 'Admin page has Root Cause Diagnostics panel');
+  assert(adminPageSrc.includes('client_empty_reply') || adminPageSrc.includes('False Positive') || adminPageSrc.includes('hasFalsePositive'), 'Admin page diagnoses false-positive error incidents');
+
   console.log('\n====================================================');
   console.log(`📊 FINAL RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100% SUCCESS)`);
   console.log('====================================================');

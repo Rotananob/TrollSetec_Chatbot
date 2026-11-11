@@ -3516,15 +3516,17 @@ export default function JamTicKapeaAdminPage() {
 
               {/* ── Root Cause Auto-Diagnostics Panel ── */}
               {aiIncidents.length > 0 && (() => {
-                const hasEmptyStream = aiIncidents.some(inc => inc?.reason?.includes('empty') || inc?.reason?.includes('stream') || inc?.type === 'empty_stream');
+                const hasEmptyStream = aiIncidents.some(inc => inc?.reason?.includes('empty') || inc?.reason?.includes('Empty Stream') || inc?.type === 'empty_stream' || inc?.errorMessage?.includes('zero text'));
                 const has429 = aiIncidents.some(inc => inc?.reason?.includes('429') || inc?.reason?.includes('quota') || inc?.type === 'key_exhausted');
-                const hasTimeout = aiIncidents.some(inc => inc?.reason?.includes('timeout') || inc?.reason?.includes('DEADLINE'));
+                const hasTimeout = aiIncidents.some(inc => inc?.reason?.includes('timeout') || inc?.reason?.includes('DEADLINE') || inc?.reason?.includes('STREAM_CHUNK'));
                 const hasSessionLock = aiIncidents.some(inc => inc?.reason?.includes('session') || inc?.reason?.includes('cooldown') || inc?.type === 'rate_limit');
+                const hasFalsePositive = aiIncidents.some(inc => inc?.reason?.includes('client_empty_reply') || inc?.type === 'ai_hang_incident');
                 const patterns = [];
-                if (hasEmptyStream) patterns.push({ id: 'stream', label: 'Stream ទទេ (Empty Response)', desc: 'Gemini Stream ត្រឡប់ HTTP 200 ប៉ុន្តែគ្មានអក្សរ — bot ក្ដៅ ឬ Prompt ស្ទះ', btnLabel: 'Fix AI Engine' });
-                if (has429) patterns.push({ id: '429', label: 'API Key Quota 429', desc: 'Key ជួប Rate Limit ។ ចុច Fix ដើម្បីដោះ Cooldown', btnLabel: 'Fix All Keys' });
-                if (hasTimeout) patterns.push({ id: 'timeout', label: 'Network Timeout', desc: 'ការទំនាក់ទំនងជាប់ lag ។ Vercel Serverless អាចដោះដោយ Restart', btnLabel: 'Restart AI Engine' });
+                if (hasEmptyStream) patterns.push({ id: 'stream', label: 'Stream ទទេ — Gemini HTTP 200 គ្មានអក្សរ', desc: 'API Key ក្ដៅ ឬ Gemini throttle prompt។ Recovery SSE បានផ្ញើ fallback ។ Fix ដើម្បីដោះ cooldown keys', btnLabel: 'Fix All Keys' });
+                if (has429) patterns.push({ id: '429', label: 'API Key Quota 429 — Rate Limit', desc: 'Key ទាំងអស់ ឬ Key ជាក់លាក់ ជួប Rate Limit ។ ចុច Fix All Keys ដើម្បីដោះ Cooldown', btnLabel: 'Fix All Keys' });
+                if (hasTimeout) patterns.push({ id: 'timeout', label: 'Network/Stream Timeout', desc: 'Stream chunk stall លើ 4G/Mobile ឬ Vercel cold start ។ ចុច Fix AI ដើម្បី reset engine', btnLabel: 'Fix AI Engine' });
                 if (hasSessionLock) patterns.push({ id: 'session', label: 'Session Rate Lock', desc: 'User ជាប់ 10/30 min cooldown ។ ចុច Fix ដើម្បីដោះ lock ភ្លាមៗ', btnLabel: 'Clear Rate Limits' });
+                if (hasFalsePositive) patterns.push({ id: 'fp', label: 'False Positive Error Guideline', desc: 'Bot reply ជោគជ័យ ប៉ុន្តែ Error bar លេចឡើង — ដោយ regex isCutoffText ចាប់ wrong phrases ។ បានជួសជុល deploy ហើយ', btnLabel: 'Fix AI Engine' });
                 if (patterns.length === 0) return null;
                 return (
                   <div className="bg-slate-900/80 border border-amber-800/40 rounded-2xl p-5 shadow-xl space-y-3 mt-2">

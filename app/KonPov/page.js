@@ -3102,7 +3102,9 @@ export default function KonPovPage() {
         consecutiveErrorsRef.current = 0;
       }
       let isErrorResponse = false;
-      const isCutoffText = /(?:Send Alert|កាត់ផ្ដាច់ការ|Sensor សុវត្ថិភាព|កេះ Signal ទៅ Server|កេះទៅ Server|សតិបញ្ញា|ស្វាងសិន|ស្វាងចែសសិន|ទះក្បាលពួកអា|ការពារប្រព័ន្ធ)/i.test(botText || '');
+      // FIXED: Removed "ស្វាងសិន", "ស្វាងចែសសិន", "Send Alert" — normal bot Khmer roast words, NOT cutoff markers
+      // Only match truly machine-generated cutoff sentinels that never appear in normal replies
+      const isCutoffText = /(?:setec-smart-cutoff-v1|កាត់ផ្ដាច់ការ STREAM|Sensor សុវត្ថិភាព AI|កេះ Signal ទៅ Server|System Security Triggered|ទះក្បាលពួកអា Bot)/i.test(botText || '');
       if (isSmartCutoff || isCutoffText) {
         isSmartCutoff = true;
         isErrorResponse = true;
@@ -4998,7 +5000,7 @@ export default function KonPovPage() {
                       const isCutoffOrError = Boolean(
                         item.isError ||
                         item.isSmartCutoff ||
-                        /(?:Send Alert|កាត់ផ្ដាច់|Sensor សុវត្ថិភាព|កេះ Signal ទៅ Server|កេះទៅ Server|ទះក្បាលពួកអា|ស្វាងសិន|ស្វាងចែសសិន)/i.test(item.text || '')
+                        /(?:setec-smart-cutoff-v1|កាត់ផ្ដាច់ការ STREAM|System Security Triggered)/i.test(item.text || '')
                       );
                       if (!isCutoffOrError || item.isSpamRoast) return null;
 
