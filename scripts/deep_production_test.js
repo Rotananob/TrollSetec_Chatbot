@@ -535,6 +535,51 @@ async function runTests() {
     'All 3 client bot pages sync check-session bypasses and always show loading state before audio decoding completes'
   );
 
+  // Verification for Telegram NobRotana link, 1-Click Alert Dispatch, and Khmer Latin Accelerator
+  const tgFiles = [
+    'components/ErrorReportModal.js',
+    'components/SessionBreakModal.js',
+    'app/privacy/page.js',
+    'app/KonBong/page.js',
+    'app/KonKandal/page.js',
+    'app/KonPov/page.js'
+  ];
+  let allTgCorrect = true;
+  for (const tf of tgFiles) {
+    const src = fs.readFileSync(path.join(process.cwd(), tf), 'utf8');
+    if (!src.includes('https://t.me/NobRotana') || src.includes('t.me/TheRotanaNob') || src.includes('t.me/rotananob')) {
+      allTgCorrect = false;
+      console.error(`Telegram link invalid in ${tf}`);
+    }
+  }
+  assert(allTgCorrect, 'All Telegram links consistently use https://t.me/NobRotana across modals and pages');
+
+  const errModalSrc = fs.readFileSync(path.join(process.cwd(), 'components/ErrorReportModal.js'), 'utf8');
+  assert(
+    errModalSrc.includes('initLiveSessionOnDatabase') &&
+      errModalSrc.includes('user_report_issue') &&
+      errModalSrc.includes('setSentSuccess(true)'),
+    'ErrorReportModal dispatches silent alert immediately on modal open (1-click background send)'
+  );
+
+  assert(
+    chatRouteSrc.includes('KHMER_LATIN_DICTIONARY') &&
+      chatRouteSrc.includes('getKhmerLatinGloss') &&
+      chatRouteSrc.includes('ZERO-LATENCY LATIN COMPREHENSION') &&
+      chatRouteSrc.includes('thinkingConfig: { thinkingBudget: 0 }'),
+    'route.js features high-speed Khmer Latin glossary, instant zero-latency directive, and zero thinking budget'
+  );
+
+  let all1ClickAdminAlerts = true;
+  for (const bf of botPages) {
+    const bSrc = fs.readFileSync(path.join(process.cwd(), bf), 'utf8');
+    if (!bSrc.includes('handleSendAlertToAdmin(msg, idx, frIssue)') && !bSrc.includes('handleSendAlertToAdmin(item, idx, frIssue)')) {
+      all1ClickAdminAlerts = false;
+      console.error(`1-Click Admin alert missing in ${bf}`);
+    }
+  }
+  assert(all1ClickAdminAlerts, 'All 3 bot pages wire Frustration and Re-send buttons to 1-click handleSendAlertToAdmin');
+
   console.log('\n====================================================');
   console.log(`📊 FINAL RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100% SUCCESS)`);
   console.log('====================================================');

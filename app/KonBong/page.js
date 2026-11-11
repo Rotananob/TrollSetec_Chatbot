@@ -911,13 +911,15 @@ export default function KonBongPage() {
     }
   };
 
-  const handleSendAlertToAdmin = async (msgItem, idx) => {
-    setAlertSentMap((prev) => ({ ...prev, [idx]: true }));
-    const prevUserMsg = idx > 0 ? messages.slice(0, idx).reverse().find((m) => m.role === 'user') : null;
+  const handleSendAlertToAdmin = async (msgItem, idx, customIssue = '') => {
+    if (idx !== undefined && idx !== null) {
+      setAlertSentMap((prev) => ({ ...prev, [idx]: true }));
+    }
+    const prevUserMsg = (idx > 0 && messages[idx - 1]) ? messages[idx - 1] : messages.slice().reverse().find((m) => m.role === 'user');
     const userQuestion = prevUserMsg ? prevUserMsg.text : '';
-    const alertIssue = userQuestion
+    const alertIssue = customIssue || (userQuestion
       ? `សំណួរ User: "${userQuestion}"\nចម្លើយ Error: "${msgItem?.text?.slice(0, 300) || ''}"`
-      : (msgItem?.text?.slice(0, 300) || 'AI Smart Cutoff triggered');
+      : (msgItem?.text?.slice(0, 300) || 'AI Smart Cutoff triggered'));
 
     const liveSid = activeLiveSessionId || ('live_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7));
     setActiveLiveSessionId(liveSid);
@@ -946,6 +948,10 @@ export default function KonBongPage() {
         })
       }).catch(() => {});
     } catch {}
+
+    // Open popup modal immediately so user sees the 180s countdown status
+    setErrorReportInitialText(alertIssue);
+    setErrorReportModalOpen(true);
   };
 
   // Change user avatar on the fly and save safely to localStorage
@@ -3831,7 +3837,7 @@ export default function KonBongPage() {
 
             <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
               <a
-                href="https://t.me/TheRotanaNob"
+                href="https://t.me/NobRotana"
                 target="_blank"
                 rel="noreferrer"
                 className="flex-1 py-1.5 px-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/35 text-sky-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95"
@@ -4264,7 +4270,7 @@ export default function KonBongPage() {
                       <div className="mt-3 pt-2.5 border-t border-slate-700/40 flex flex-wrap gap-2 animate-fade-in">
                         <button
                           type="button"
-                          onClick={() => setErrorReportModalOpen(true)}
+                          onClick={() => handleSendAlertToAdmin(msg, idx, 'User clicked Re-send Alert')}
                           className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md cursor-pointer"
                         >
                           <i className="fas fa-repeat text-xs"></i>
@@ -4272,7 +4278,7 @@ export default function KonBongPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setErrorReportModalOpen(true)}
+                          onClick={() => handleSendAlertToAdmin(msg, idx, 'User left a report message')}
                           className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center gap-1.5 transition active:scale-95 border border-slate-700 cursor-pointer"
                         >
                           <i className="fas fa-pen-to-square text-xs text-amber-400"></i>
@@ -4476,7 +4482,7 @@ export default function KonBongPage() {
                             </button>
 
                             <a
-                              href="https://t.me/TheRotanaNob"
+                              href="https://t.me/NobRotana"
                               target="_blank"
                               rel="noreferrer"
                               className="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
@@ -4520,8 +4526,8 @@ export default function KonBongPage() {
                             onClick={() => {
                               const prevMsg = idx > 0 ? messages[idx - 1] : null;
                               const prevUserText = (prevMsg && prevMsg.role === 'user') ? prevMsg.text : '';
-                              setErrorReportInitialText(`AI Frustration or Inappropriate Response Report:\nសំណួរ User: "${prevUserText}"\nចម្លើយ AI កូនច្បង: "${(msg.text || '').slice(0, 300)}..."`);
-                              setErrorReportModalOpen(true);
+                              const frIssue = `AI Frustration or Inappropriate Response Report:\nសំណួរ User: "${prevUserText}"\nចម្លើយ AI កូនច្បង: "${(msg.text || '').slice(0, 300)}..."`;
+                              handleSendAlertToAdmin(msg, idx, frIssue);
                             }}
                             className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-violet-900/30 cursor-pointer"
                           >

@@ -661,7 +661,7 @@ export default function SessionBreakModal({
             <span>ចូលលេង SETEC Troll Meme</span>
           </a>
           <a
-            href="https://t.me/rotananob"
+            href="https://t.me/NobRotana"
             target="_blank"
             rel="noopener noreferrer"
             className="px-3.5 py-2 rounded-xl bg-[#124229] hover:bg-[#164a2f] text-[#fbf8f2] border border-[#235e3c] text-xs font-bold transition flex items-center gap-1.5 active:scale-95"

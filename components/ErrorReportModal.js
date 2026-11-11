@@ -23,13 +23,53 @@ export default function ErrorReportModal({
 
   useEffect(() => {
     if (isOpen) {
-      setName(defaultUsername || localStorage.getItem('chatbot_username') || 'User');
-      setIssue(initialIssue || '');
-      setSentSuccess(false);
+      const uname = defaultUsername || localStorage.getItem('chatbot_username') || 'User';
+      const promptIssue = initialIssue || 'User clicked Send Alert to Admin';
+      setName(uname);
+      setIssue(promptIssue);
       setIsSending(false);
       setCountdown(180);
+
+      // Instant 1-Click Silent Dispatch on modal open as requested by User:
+      // Even if user changes mind or closes the popup, Admin Telegram has ALREADY received the alert!
+      const activeSessionId = sessionId || 'session_' + Date.now();
+      const lowerBot = (bot || 'konpov').toLowerCase();
+      const botKey = lowerBot.includes('kandal')
+        ? 'konkandal'
+        : lowerBot.includes('bong')
+        ? 'konbong'
+        : 'konpov';
+
+      initLiveSessionOnDatabase(activeSessionId, {
+        username: uname,
+        bot: botKey,
+        issue: promptIssue,
+        status: 'waiting',
+        messages: recentMessages.slice(-12),
+        recentHistory: recentMessages.slice(-6)
+      }).catch(() => {});
+
+      if (typeof onLiveSessionStarted === 'function') {
+        onLiveSessionStarted(activeSessionId);
+      }
+
+      const endpoint = getApiEndpoint('/api/track');
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'user_report_issue',
+          username: uname,
+          bot: botKey,
+          issue: promptIssue,
+          sessionId: activeSessionId
+        })
+      }).catch(() => {});
+
+      // Display the 180s countdown status immediately so user sees Rotana NOB is alerted
+      setSentSuccess(true);
     }
-  }, [isOpen, defaultUsername, initialIssue]);
+  }, [isOpen, defaultUsername, initialIssue, sessionId, bot]);
 
   useEffect(() => {
     let timer = null;
@@ -163,7 +203,7 @@ export default function ErrorReportModal({
 
             <div className="flex flex-col gap-2 pt-1">
               <a
-                href="https://t.me/TheRotanaNob"
+                href="https://t.me/NobRotana"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-2.5 bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2 border border-[#e4d9c4]"

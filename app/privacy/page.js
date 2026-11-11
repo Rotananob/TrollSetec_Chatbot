@@ -180,7 +180,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <div className="flex flex-wrap gap-2.5 pl-8 pt-1">
                 <a
-                  href="https://t.me/TheRotanaNob"
+                  href="https://t.me/NobRotana"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold transition shadow-xs active:scale-95 cursor-pointer"
