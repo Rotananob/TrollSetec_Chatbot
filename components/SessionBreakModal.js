@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { formatCountdown, clearLiveSession } from '../app/utils/chatSessionLimit';
+import { formatCountdown, clearLiveSession, grantFreshLiveSession } from '../app/utils/chatSessionLimit';
 import {
   validatePromoCode,
   requestBypassFromRotana,
@@ -348,20 +348,32 @@ export default function SessionBreakModal({
           try {
             localStorage.removeItem('setec_server_cooldown_lock');
             localStorage.removeItem(ACTIVE_BYPASS_REQ_KEY);
-            clearLiveSession();
+            grantFreshLiveSession(uName);
           } catch {}
         }
 
-        // Notify server session reset asynchronously
-        fetch(getApiEndpoint('/api/chat'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'reset-session', deviceId: devId })
-        }).catch(() => {});
+        // Synchronously notify server session reset (prevents 10-min cooldown re-locking on page refresh)
+        try {
+          await fetch(getApiEndpoint('/api/chat'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-device-id': devId
+            },
+            body: JSON.stringify({
+              action: 'reset-session',
+              deviceId: devId,
+              username: uName,
+              code: targetCode,
+              requestId: requestState?.id || ''
+            }),
+            signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(3500) : undefined
+          });
+        } catch {}
 
         setTimeout(() => {
           if (onUnlock) onUnlock();
-        }, 1100);
+        }, 650);
       } else {
         setPromoError(result.message || 'កូដមិនត្រឹមត្រូវ ឬអស់សុពលភាព!');
         if (devId) setDeviceUsage(getLocalDeviceBypassUsage(devId));

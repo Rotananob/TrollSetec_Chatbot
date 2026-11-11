@@ -24,6 +24,7 @@ import {
   createServerLiveBypassToken,
   verifyServerLiveBypassToken
 } from '../../../lib/masterAuth';
+import { reportAiIncidentToRTDB } from '../../../lib/aiHealth';
 import {
   saveLoreContribution,
   sendWeeklyLoreToTelegram
@@ -214,12 +215,58 @@ export async function POST(req) {
     const body = await req.json().catch(() => ({}));
     const { deviceId, pathname, screen, referrer, username, type, action, platform, isReturnAfter5Min } = body;
 
-    // Handle User Issue Report directly to Rotana NOB (High Priority Alert - Never blocked by pageview rate limit!)
-    if (type === 'user_report_issue' || action === 'user_report_issue') {
+    // Handle Automatic Frontend AI Hang / Timeout / Cutoff Incident Reporting (Surfaces live in Admin Recovery Center)
+    if (type === 'ai_hang_incident' || action === 'ai_hang_incident') {
+      const incident = await reportAiIncidentToRTDB({
+        type: body.errorType || 'AI Hang / Response Timeout',
+        bot: body.bot || 'konbong',
+        username: username || body.username || 'User',
+        prompt: body.prompt || '',
+        errorMessage: body.errorMessage || 'AI failed to answer or hung in client chat',
+        ip,
+        statusCode: body.statusCode || 504,
+        source: 'client_hang'
+      });
+
+      return Response.json(
+        {
+          success: true,
+          recorded: true,
+          incidentId: incident?.id || null
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Handle User Issue Report / Live Help Alert directly to Rotana NOB (High Priority Alert - Never blocked by pageview rate limit!)
+    if (
+      type === 'user_report_issue' ||
+      action === 'user_report_issue' ||
+      type === 'live_help_request' ||
+      action === 'live_help_request'
+    ) {
       const activeSessionId = body.sessionId || `session_${Date.now()}`;
-      const botKey = (body.bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
+      const lowerBot = (body.bot || 'konpov').toLowerCase();
+      const botKey = lowerBot.includes('kandal')
+        ? 'konkandal'
+        : lowerBot.includes('bong')
+        ? 'konbong'
+        : 'konpov';
       // Securely generate server-signed bypass token using Server Master Passcode
       const secureBypassToken = createServerLiveBypassToken(activeSessionId, botKey);
+
+      // Persist signed bypassToken on the live session node in RTDB
+      fetch(`${FIREBASE_DB_URL}/live_sessions/${encodeURIComponent(activeSessionId)}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: activeSessionId,
+          bot: botKey,
+          bypassToken: secureBypassToken,
+          alertActive: true,
+          updatedAt: Date.now()
+        })
+      }).catch(() => {});
 
       await alertUserReportedIssue({
         username: username || body.username || 'User',
@@ -235,6 +282,7 @@ export async function POST(req) {
         {
           success: true,
           sessionId: activeSessionId,
+          bot: botKey,
           message: 'Issue reported to Rotana NOB successfully with direct bypass alert'
         },
         { status: 200, headers: corsHeaders }

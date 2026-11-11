@@ -268,10 +268,10 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                 </span>
               </div>
               <h3 className="text-sm sm:text-base font-bold text-[#fbf8f2] tracking-normal mt-0.5">
-                ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
+                ចូលរួមបង្រៀន AI ស៊ីតិច
               </h3>
               <p className="text-[11px] text-[#d7ccb7] font-normal">
-                ចែករំលែករឿងរ៉ាវ និងបទពិសោធន៍ក្នុងស៊ីតិចទៅកាន់ Rotana NOB
+                ជួយបង្រៀនរឿងរ៉ាវ បរិបទ និងពាក្យស្លែងក្នុងស៊ីតិចទៅកាន់ Rotana NOB
               </p>
             </div>
           </div>
@@ -312,10 +312,10 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                 <i className="fas fa-check"></i>
               </div>
               <h4 className="text-base sm:text-lg font-bold text-[#fbf8f2]">
-                អរគុណច្រើនសម្រាប់ការចូលរួម
+                អរគុណច្រើនសម្រាប់ការចូលរួមបង្រៀន
               </h4>
               <p className="text-xs sm:text-sm text-[#d7ccb7] leading-relaxed max-w-md mx-auto">
-                ទិន្នន័យ និងរឿងរ៉ាវរបស់អ្នកត្រូវបានបញ្ជូនទៅកាន់ <b className="text-[#fbf8f2] font-bold">Rotana NOB</b> ដោយជោគជ័យ។ គាត់នឹងយកខ្លឹមសារនេះទៅផ្ទៀងផ្ទាត់ និងបញ្ចូលក្នុងប្រព័ន្ធស៊ីតិចឱ្យកាន់តែសុក្រឹត។
+                មេរៀន និងរឿងរ៉ាវរបស់អ្នកត្រូវបានបញ្ជូនទៅកាន់ <b className="text-[#fbf8f2] font-bold">Rotana NOB</b> ដោយជោគជ័យ។ គាត់នឹងយកខ្លឹមសារនេះទៅផ្ទៀងផ្ទាត់ និងបង្ហាត់បន្ថែមឱ្យកាន់តែស្គាល់ស៊ីតិចច្បាស់។
               </p>
               <div className="pt-3 flex gap-2.5 justify-center">
                 <button
@@ -323,7 +323,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                   onClick={handleWriteAnother}
                   className="px-4 py-2.5 rounded-xl bg-transparent hover:bg-[#15462c] border border-[#2d6c46] text-xs font-bold text-[#fbf8f2] transition cursor-pointer"
                 >
-                  <i className="fas fa-pen mr-1.5 text-[#fbf8f2]"></i> ចែករំលែករឿងផ្សេងទៀត
+                  <i className="fas fa-pen mr-1.5 text-[#fbf8f2]"></i> បង្រៀនរឿងផ្សេងទៀត
                 </button>
                 <button
                   type="button"
@@ -356,7 +356,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
               <div>
                 <label className="block text-xs font-bold text-[#d7ccb7] mb-2 flex items-center gap-1.5">
                   <i className="fas fa-folder text-[#fbf8f2] text-xs"></i>
-                  <span>ជ្រើសរើសប្រធានបទរឿងរ៉ាវ</span>
+                  <span>ជ្រើសរើសប្រធានបទដែលចង់បង្រៀន</span>
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {CATEGORIES.map((cat) => {
@@ -388,7 +388,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="text-xs font-bold text-[#d7ccb7] flex items-center gap-1.5">
                     <i className="fas fa-pen-nib text-[#fbf8f2] text-xs"></i>
-                    <span>ខ្លឹមសាររឿងរ៉ាវ ឬចំណេះដឹងស៊ីតិច</span>
+                    <span>ខ្លឹមសារមេរៀន ឬរឿងរ៉ាវស៊ីតិច</span>
                   </label>
                   <span className="text-[11px] font-mono text-[#d7ccb7]">{content.length} អក្សរ</span>
                 </div>
@@ -443,7 +443,7 @@ export default function ContributeKnowledgeModal({ isOpen, onClose, defaultBot =
                   ) : (
                     <>
                       <i className="fas fa-paper-plane text-[#0d3822]"></i>
-                      <span>បញ្ជូនទិន្នន័យ</span>
+                      <span>បញ្ជូនទៅបង្រៀន</span>
                     </>
                   )}
                 </button>

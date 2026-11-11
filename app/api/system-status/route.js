@@ -8,8 +8,15 @@ import {
   evaluateSystemRest,
   getCambodiaHour
 } from '../../../lib/systemControl.js';
-import { verifyRotanaMasterCode } from '../../../lib/masterAuth.js';
+import { verifyRotanaMasterCode, verifySessionBypassCode } from '../../../lib/masterAuth.js';
 import { flushAllRateLimits, getClientIp } from '../../../lib/rateLimit.js';
+import {
+  resetAllAiEngineHealth,
+  getApiKeysHealthSummary,
+  fetchAiIncidentsFromRTDB,
+  resolveAllAiIncidentsInRTDB,
+  clearResolvedAiIncidentsInRTDB
+} from '../../../lib/aiHealth.js';
 import { alertSystemControlChange, alertSecuritySpam } from '../../../lib/telegram.js';
 
 const corsHeaders = {
@@ -48,16 +55,23 @@ export async function GET(req) {
     const evaluation = evaluateSystemRest(state);
     const cambodiaHour = getCambodiaHour();
 
-    return Response.json(
-      {
-        ok: true,
-        state,
-        evaluation,
-        cambodiaHour,
-        serverTime: Date.now()
-      },
-      { status: 200, headers: corsHeaders }
-    );
+    const adminPass = (req.headers.get('x-rotana-passcode') || '').trim();
+    const isAdminCaller = adminPass ? verifyRotanaMasterCode(adminPass) : false;
+
+    const payload = {
+      ok: true,
+      state,
+      evaluation,
+      cambodiaHour,
+      serverTime: Date.now()
+    };
+
+    if (isAdminCaller) {
+      payload.aiEngineHealth = getApiKeysHealthSummary();
+      payload.aiIncidents = await fetchAiIncidentsFromRTDB(35);
+    }
+
+    return Response.json(payload, { status: 200, headers: corsHeaders });
   } catch (error) {
     return Response.json(
       { ok: false, error: error.message },
@@ -142,6 +156,78 @@ export async function POST(req) {
       );
     }
 
+    // Action 1b: 1-Click Fix AI Engine (Reset Key Cooldowns + Flush Locks + Resolve Incidents + Broadcast Recovery)
+    if (action === 'fix-ai-engine') {
+      const aiReset = resetAllAiEngineHealth();
+      const limitStats = flushAllRateLimits();
+      const incidentResult = await resolveAllAiIncidentsInRTDB(body.incidentId || null);
+      const current = await getSystemControlState(true);
+      const nextRecoveryVersion = (Number(current?.aiRecoveryVersion) || 1) + 1;
+      const updatedState = await updateSystemControlState(
+        {
+          serverOnline: true,
+          maintenanceMode: false,
+          konbongActive: true,
+          konpovActive: true,
+          aiRecoveryVersion: nextRecoveryVersion,
+          lastAiRecoveryAt: Date.now()
+        },
+        'Rotana NOB'
+      );
+
+      const aiEngineHealth = getApiKeysHealthSummary();
+      const aiIncidents = await fetchAiIncidentsFromRTDB(35);
+
+      alertSystemControlChange({
+        action: '1-Click Fix AI Engine (Reset Keys, Flush Locks, Resume Chat)',
+        details: { aiReset, limitStats, incidentResult, aiRecoveryVersion: nextRecoveryVersion },
+        by: 'Rotana NOB',
+        ip: clientIp
+      }).catch((e) => console.error('[Telegram] Alert error:', e));
+
+      return Response.json(
+        {
+          ok: true,
+          message: 'ប្រព័ន្ធ AI Key Cooldowns និង Session Locks ត្រូវបានជួសជុល និងស្ដារឡើងវិញភ្លាមៗ!',
+          aiReset,
+          limitStats,
+          incidentResult,
+          aiEngineHealth,
+          aiIncidents,
+          state: updatedState,
+          evaluation: evaluateSystemRest(updatedState)
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    if (action === 'resolve-incident') {
+      const incidentResult = await resolveAllAiIncidentsInRTDB(body.incidentId || null);
+      const aiIncidents = await fetchAiIncidentsFromRTDB(35);
+      return Response.json(
+        {
+          ok: true,
+          incidentResult,
+          aiIncidents,
+          aiEngineHealth: getApiKeysHealthSummary()
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    if (action === 'clear-incidents') {
+      const clearResult = await clearResolvedAiIncidentsInRTDB();
+      const aiIncidents = await fetchAiIncidentsFromRTDB(35);
+      return Response.json(
+        {
+          ok: true,
+          clearResult,
+          aiIncidents
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
     // Action 2: Update System Control State (Toggles, Schedules, Broadcasts)
     const allowedKeys = [
       'serverOnline',
@@ -155,7 +241,9 @@ export async function POST(req) {
       'konbongActive',
       'konpovActive',
       'sessionLimitActive',
-      'broadcastNotice'
+      'broadcastNotice',
+      'aiRecoveryVersion',
+      'lastAiRecoveryAt'
     ];
 
     const cleanPatch = {};

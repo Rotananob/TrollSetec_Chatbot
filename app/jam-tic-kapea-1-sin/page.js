@@ -105,6 +105,12 @@ export default function JamTicKapeaAdminPage() {
   const [loreExportStatus, setLoreExportStatus] = useState(null);
   const [isLoadingLore, setIsLoadingLore] = useState(false);
 
+  // Tab 7: Live AI Error Monitor & Instant 1-Click Recovery
+  const [aiEngineHealth, setAiEngineHealth] = useState(null);
+  const [aiIncidents, setAiIncidents] = useState([]);
+  const [isFixingAi, setIsFixingAi] = useState(false);
+  const activeAiIncidents = aiIncidents.filter((inc) => inc && inc.status !== 'resolved');
+
   const eventSourceRef = useRef(null);
 
   // Clock Update Effect (UTC+7 Phnom Penh Time)
@@ -261,6 +267,8 @@ export default function JamTicKapeaAdminPage() {
           setSystemState(data.state);
           if (data.evaluation) setEvaluation(data.evaluation);
           if (data.cambodiaHour !== undefined) setCambodiaHour(data.cambodiaHour);
+          if (data.aiEngineHealth) setAiEngineHealth(data.aiEngineHealth);
+          if (Array.isArray(data.aiIncidents)) setAiIncidents(data.aiIncidents);
 
           // Populate edit fields only on initial load or when user explicitly requests a sync/revert
           // STRICT RULE: If the user is currently editing a field, NEVER overwrite it!
@@ -454,6 +462,17 @@ export default function JamTicKapeaAdminPage() {
       setRtdbConnected(false);
     }
 
+    // Real-time AI Incidents Listener so Admin immediately sees any user hang or AI error
+    let incidentsEs = null;
+    try {
+      incidentsEs = new EventSource(`${FIREBASE_DB_URL}/ai_incidents.json`);
+      const handleIncidentsSse = () => {
+        fetchState();
+      };
+      incidentsEs.addEventListener('put', handleIncidentsSse);
+      incidentsEs.addEventListener('patch', handleIncidentsSse);
+    } catch {}
+
     // Fallback background polling every 6 seconds (does NOT touch fields user is editing)
     const interval = setInterval(() => {
       fetchState();
@@ -463,6 +482,9 @@ export default function JamTicKapeaAdminPage() {
       clearInterval(interval);
       if (es) {
         try { es.close(); } catch {}
+      }
+      if (incidentsEs) {
+        try { incidentsEs.close(); } catch {}
       }
     };
   }, [isAuthenticated, fetchState]);
@@ -874,6 +896,88 @@ export default function JamTicKapeaAdminPage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // One-Click Instant AI Recovery & Key Cooldown Flush (forces active chats to resume immediately)
+  const handleFixAiEngine = async (incidentId = null) => {
+    setIsFixingAi(true);
+    setStatusMessage({
+      text: 'កំពុងបញ្ជាជួសជុល Reset API Key Cooldown និងដោះសោរ AI ឱ្យឆាតវិញភ្លាមៗ...',
+      type: 'info'
+    });
+
+    try {
+      const endpoint = getApiEndpoint('/api/system-status');
+      const activePasscode =
+        passcode ||
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('rotana_admin_passcode') || localStorage.getItem('rotana_admin_passcode')
+          : '');
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-rotana-passcode': activePasscode || ''
+        },
+        body: JSON.stringify({
+          action: 'fix-ai-engine',
+          passcode: activePasscode,
+          incidentId: incidentId || undefined
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        if (data.state) setSystemState(data.state);
+        if (data.aiEngineHealth) setAiEngineHealth(data.aiEngineHealth);
+        if (Array.isArray(data.aiIncidents)) setAiIncidents(data.aiIncidents);
+        setStatusMessage({
+          text: data.message || 'បានជួសជុល និងដោះសោរ AI Engine ឱ្យឆាតវិញភ្លាមៗរួចរាល់!',
+          type: 'success'
+        });
+        setTimeout(() => setStatusMessage({ text: '', type: '' }), 6000);
+      } else {
+        setStatusMessage({
+          text: `បរាជ័យ: ${data.message || 'មិនអាចជួសជុល AI បានទេ'}`,
+          type: 'error'
+        });
+      }
+    } catch (err) {
+      setStatusMessage({ text: `កំហុសក្នុងការតភ្ជាប់: ${err.message}`, type: 'error' });
+    } finally {
+      setIsFixingAi(false);
+    }
+  };
+
+  const handleClearResolvedIncidents = async () => {
+    try {
+      const endpoint = getApiEndpoint('/api/system-status');
+      const activePasscode =
+        passcode ||
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('rotana_admin_passcode') || localStorage.getItem('rotana_admin_passcode')
+          : '');
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-rotana-passcode': activePasscode || ''
+        },
+        body: JSON.stringify({
+          action: 'clear-incidents',
+          passcode: activePasscode
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        if (Array.isArray(data.aiIncidents)) setAiIncidents(data.aiIncidents);
+        setStatusMessage({ text: 'បានសម្អាតប្រវត្តិ Error ដែលដោះស្រាយរួច', type: 'success' });
+        setTimeout(() => setStatusMessage({ text: '', type: '' }), 4000);
+      }
+    } catch {}
   };
 
   const handleSaveScheduleConfig = (e) => {
@@ -1546,6 +1650,55 @@ export default function JamTicKapeaAdminPage() {
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
+        {/* Urgent AI Error / Stuck Chat Detection Hero Banner */}
+        {(activeAiIncidents.length > 0 || (aiEngineHealth && aiEngineHealth.exhaustedCount > 0)) && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl border border-rose-500/45 bg-gradient-to-r from-rose-950/75 via-slate-900 to-amber-950/60 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
+            <div className="flex items-start gap-3.5 min-w-0">
+              <div className="w-11 h-11 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center text-lg shrink-0 animate-pulse">
+                <i className="fa-solid fa-triangle-exclamation" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2 flex-wrap">
+                  <span>រកឃើញ AI Error ឬ User គាំងឆាត</span>
+                  {activeAiIncidents.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[11px] font-black">
+                      {activeAiIncidents.length} ករណីសកម្ម
+                    </span>
+                  )}
+                  {aiEngineHealth && aiEngineHealth.exhaustedCount > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/40 text-[11px] font-bold">
+                      {aiEngineHealth.exhaustedCount}/{aiEngineHealth.totalKeys} Keys Cooldown
+                    </span>
+                  )}
+                </h2>
+                <p className="text-xs text-slate-300 mt-1 truncate">
+                  {activeAiIncidents[0]
+                    ? `User: ${activeAiIncidents[0].username || 'User'} • Bot: ${activeAiIncidents[0].bot || 'unknown'} • ${activeAiIncidents[0].reason || 'AI Hang'}${activeAiIncidents[0].detail ? ` • ${activeAiIncidents[0].detail}` : ''}`
+                    : 'មាន API Key កំពុងស្ថិតក្នុង Cooldown សូមចុចជួសជុលភ្លាមដើម្បីដោះសោរឱ្យ User ឆាតវិញ'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleFixAiEngine()}
+                disabled={isFixingAi}
+                className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
+              >
+                <i className={`fa-solid ${isFixingAi ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`} />
+                <span>ជួសជុល &amp; ដោះសោរ AI ឱ្យឆាតវិញភ្លាមៗ</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('ai_health')}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all cursor-pointer"
+              >
+                មើលលម្អិត
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Top Status Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Card 1: Master Server Status */}
@@ -1714,6 +1867,25 @@ export default function JamTicKapeaAdminPage() {
             {loreItems.length > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black">
                 {loreItems.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ai_health')}
+            className={`px-4 py-2 rounded-xl text-xs font-medium transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer relative ${
+              activeTab === 'ai_health'
+                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30 font-semibold'
+                : activeAiIncidents.length > 0 || (aiEngineHealth && aiEngineHealth.exhaustedCount > 0)
+                ? 'bg-rose-950/70 text-rose-200 border border-rose-500/40 hover:bg-rose-900/70'
+                : 'bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <i className={`fa-solid ${activeAiIncidents.length > 0 ? 'fa-heart-pulse text-rose-400 animate-pulse' : 'fa-microchip text-cyan-400'}`} />
+            <span>AI Error &amp; Recovery</span>
+            {activeAiIncidents.length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black animate-pulse">
+                {activeAiIncidents.length}
               </span>
             )}
           </button>
@@ -2248,6 +2420,38 @@ export default function JamTicKapeaAdminPage() {
 
             {/* Right 1 Col: Quick Control & Diagnostic Panel */}
             <div className="space-y-6">
+              {/* Instant 1-Click AI Engine Recovery */}
+              <div className={`border rounded-2xl p-6 shadow-xl ${
+                activeAiIncidents.length > 0 || (aiEngineHealth && aiEngineHealth.exhaustedCount > 0)
+                  ? 'bg-rose-950/35 border-rose-500/45'
+                  : 'bg-slate-900/80 border-slate-800'
+              }`}>
+                <h3 className="text-sm font-bold text-white mb-2 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">
+                    <i className="fa-solid fa-heart-pulse text-emerald-400" />
+                    <span>បញ្ជា Fix ម៉ាស៊ីន AI ភ្លាមៗ</span>
+                  </span>
+                  {activeAiIncidents.length > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black">
+                      {activeAiIncidents.length} Errors
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs text-slate-400 mb-4">
+                  បើសិស្សជួប Error ឬ AI គាំងមិនឆ្លើយតប ចុចប៊ូតុងនេះដើម្បី Reset API Keys Cooldown និងបញ្ជាឱ្យ AI Chat របស់សិស្សដំណើរការវិញភ្លាមៗ។
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => handleFixAiEngine()}
+                  disabled={isFixingAi}
+                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <i className={`fa-solid ${isFixingAi ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}`} />
+                  <span>Fix &amp; ដោះសោរ AI ឱ្យឆាតវិញភ្លាមៗ</span>
+                </button>
+              </div>
+
               {/* Emergency Cache & Rate Limit Flush */}
               <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
                 <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
@@ -3063,6 +3267,195 @@ export default function JamTicKapeaAdminPage() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 7: LIVE AI ERROR MONITOR & 1-CLICK INSTANT RECOVERY                   */}
+        {/* ========================================================================= */}
+        {activeTab === 'ai_health' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left 2 Cols: Real-time AI Hang / Error Incidents */}
+            <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                <div>
+                  <h2 className="text-base font-bold text-white flex items-center gap-2">
+                    <i className="fa-solid fa-wave-square text-rose-400" />
+                    <span>តាមដាន AI Error និង User គាំងឆាត</span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-[11px] font-mono">
+                      Recovery v{systemState.aiRecoveryVersion || 1}
+                    </span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-1">
+                    នៅពេល User ជួប Error ឬ AI គាំងមិនឆ្លើយតប ប្រព័ន្ធនឹងលោតចូលទីនេះភ្លាម ហើយអ្នកអាចចុចបញ្ជាដោះស្រាយឱ្យឆាតវិញបានភ្លាមៗ។
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => handleFixAiEngine()}
+                    disabled={isFixingAi}
+                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <i className={`fa-solid ${isFixingAi ? 'fa-spinner fa-spin' : 'fa-bolt'}`} />
+                    <span>ជួសជុល &amp; ដោះសោរ AI ទាំងអស់ភ្លាមៗ</span>
+                  </button>
+                  {aiIncidents.some((inc) => inc.status === 'resolved') && (
+                    <button
+                      type="button"
+                      onClick={handleClearResolvedIncidents}
+                      className="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition-all cursor-pointer"
+                    >
+                      សម្អាតប្រវត្តិ Fixed
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {aiIncidents.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-400 space-y-2">
+                  <i className="fa-solid fa-circle-check text-3xl text-emerald-400 block" />
+                  <p className="text-sm font-bold text-white">ប្រព័ន្ធ AI កំពុងដំណើរការល្អ 100%</p>
+                  <p className="text-slate-400">មិនទាន់មានករណី AI គាំង ឬ User Error រាយការណ៍ចូលមកនៅឡើយទេ</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {aiIncidents.map((inc, idx) => {
+                    const isActive = inc.status !== 'resolved';
+                    return (
+                      <div
+                        key={inc.id || idx}
+                        className={`p-4 rounded-xl border transition ${
+                          isActive
+                            ? 'bg-rose-950/30 border-rose-500/40'
+                            : 'bg-slate-950/60 border-slate-800 opacity-75'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2 pb-2 border-b border-white/10">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                                isActive
+                                  ? 'bg-rose-500 text-white animate-pulse'
+                                  : 'bg-emerald-950 text-emerald-300 border border-emerald-700'
+                              }`}
+                            >
+                              {isActive ? 'ACTIVE ERROR' : 'FIXED'}
+                            </span>
+                            <span className="text-xs font-bold text-white">
+                              User: {inc.username || 'User'}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 text-[10px] font-semibold">
+                              {inc.bot || 'unknown'}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-amber-300 text-[10px] font-mono">
+                              {inc.reason || 'ai_error'}
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            {inc.createdAt ? new Date(inc.createdAt).toLocaleString() : ''}
+                          </span>
+                        </div>
+
+                        {inc.detail && (
+                          <p className="text-xs text-slate-300 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 mb-2.5 break-words">
+                            {inc.detail}
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] text-slate-500 font-mono">
+                            ID: {inc.id || 'N/A'} {inc.deviceId ? `• Device: ${inc.deviceId}` : ''}
+                          </span>
+                          {isActive && (
+                            <button
+                              type="button"
+                              onClick={() => handleFixAiEngine(inc.id)}
+                              disabled={isFixingAi}
+                              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                            >
+                              <i className="fa-solid fa-wrench text-[10px]" />
+                              <span>ដោះស្រាយ &amp; ឱ្យ AI ឆាតវិញ</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right 1 Col: Live Gemini Key Pool & TTS Health */}
+            <div className="space-y-6">
+              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <i className="fa-solid fa-key text-amber-400" />
+                    <span>សុខភាព Gemini API Keys</span>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => fetchState()}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-semibold cursor-pointer"
+                  >
+                    Refresh
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800">
+                    <div className="text-base font-black text-white">{aiEngineHealth?.totalKeys ?? 0}</div>
+                    <div className="text-[10px] text-slate-400">សរុប Keys</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-800/50">
+                    <div className="text-base font-black text-emerald-300">{aiEngineHealth?.readyCount ?? 0}</div>
+                    <div className="text-[10px] text-emerald-200/80">Ready</div>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-800/50">
+                    <div className="text-base font-black text-rose-300">{aiEngineHealth?.exhaustedCount ?? 0}</div>
+                    <div className="text-[10px] text-rose-200/80">Cooldown</div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+                  {Array.isArray(aiEngineHealth?.keyHealth) && aiEngineHealth.keyHealth.length > 0 ? (
+                    aiEngineHealth.keyHealth.map((k) => (
+                      <div
+                        key={k.index}
+                        className={`p-2.5 rounded-xl border text-xs flex items-center justify-between gap-2 ${
+                          k.coolingDown
+                            ? 'bg-rose-950/30 border-rose-800/60 text-rose-200'
+                            : 'bg-slate-950/70 border-slate-800 text-slate-200'
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="font-bold truncate">{k.label}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{k.masked}</div>
+                        </div>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                            k.coolingDown
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                              : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                          }`}
+                        >
+                          {k.coolingDown ? `${k.remainingSec}s` : 'OK'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-500">កំពុងទាញយកស្ថានភាព API Keys...</p>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                  <span>TTS Cooldown Slots</span>
+                  <span className="font-mono text-slate-200">{aiEngineHealth?.ttsCoolingCount ?? 0}</span>
+                </div>
+              </div>
             </div>
           </div>
         )}

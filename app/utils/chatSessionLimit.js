@@ -59,7 +59,70 @@ function setCookie(name, value, maxAgeSeconds) {
 // Clear cookie
 function removeCookie(name) {
   if (typeof document === 'undefined') return;
-  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+  document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+}
+
+const BYPASS_GRANT_COOKIE = 'setec_live_chat_bypass_v3';
+const BYPASS_GRANT_KEY = 'setec_live_chat_bypass_grant_v3';
+
+function getActiveBypassGrant(now = Date.now()) {
+  if (typeof window === 'undefined') return null;
+  let grant = null;
+  try {
+    const raw = localStorage.getItem(BYPASS_GRANT_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.expiresAt && now < parsed.expiresAt) {
+        grant = parsed;
+      }
+    }
+  } catch {}
+
+  if (!grant) {
+    try {
+      const rawCookie = getCookie(BYPASS_GRANT_COOKIE);
+      if (rawCookie) {
+        const [gStr, eStr] = rawCookie.split(':');
+        const grantedAt = parseInt(gStr, 10);
+        const expiresAt = parseInt(eStr, 10);
+        if (!isNaN(grantedAt) && !isNaN(expiresAt) && now < expiresAt) {
+          grant = { grantedAt, expiresAt };
+        }
+      }
+    } catch {}
+  }
+  return grant;
+}
+
+// Immediately wipe cooldown and grant a fresh persistent 30-minute session across refreshes
+export function grantFreshLiveSession(customUsername = '', durationMs = SESSION_LIMIT_SECONDS * 1000) {
+  if (typeof window === 'undefined') return freshState();
+  const now = Date.now();
+  const safeDurationMs = Math.min(SESSION_LIMIT_SECONDS * 1000, Math.max(60000, durationMs));
+  const expiresAt = now + safeDurationMs;
+
+  clearLiveSession();
+  setCookie(BYPASS_GRANT_COOKIE, `${now}:${expiresAt}`, Math.ceil(safeDurationMs / 1000) + 30);
+
+  const fresh = {
+    sessionStart: now,
+    lastActive: now,
+    cooldownUntil: null,
+    grantedAt: now,
+    bypassedUntil: expiresAt
+  };
+  try {
+    localStorage.setItem(BYPASS_GRANT_KEY, JSON.stringify({ grantedAt: now, expiresAt }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+    localStorage.removeItem('setec_server_cooldown_lock');
+  } catch {}
+
+  return {
+    ...fresh,
+    isLocked: false,
+    remainingSessionSec: Math.ceil(safeDurationMs / 1000),
+    remainingCooldownSec: 0
+  };
 }
 
 // Complete session cleanup helper
@@ -70,6 +133,7 @@ export function clearLiveSession() {
   removeCookie('setec_live_chat_cooldown_v1');
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('setec_server_cooldown_lock');
     localStorage.removeItem('setec_live_chat_session_v2');
     localStorage.removeItem('setec_live_chat_session_v1');
   } catch {}
@@ -127,16 +191,33 @@ export function getLiveSessionState() {
     }
   } catch {}
 
-  // 2. Check localStorage
+  // 2. Check localStorage & active bypass grant
   let stored = null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) stored = JSON.parse(raw);
   } catch {}
 
+  const activeBypass = getActiveBypassGrant(now);
   let sessionStart = stored?.sessionStart || null;
   let lastActive = stored?.lastActive || sessionStart || null;
   let cooldownUntil = stored?.cooldownUntil || null;
+
+  // If user recently bypassed cooldown and a stale cooldown cookie survived, ignore stale lock within grant window
+  if (activeBypass && now < activeBypass.expiresAt) {
+    if (!sessionStart || sessionStart < activeBypass.grantedAt) {
+      sessionStart = activeBypass.grantedAt;
+      lastActive = Math.max(lastActive || 0, activeBypass.grantedAt);
+    }
+    if (cooldownUntil && (!stored?.lockedAt || stored.lockedAt < activeBypass.grantedAt)) {
+      cooldownUntil = null;
+      removeCookie(COOKIE_NAME);
+    }
+    if (cookieCooldown && (!stored?.lockedAt || stored.lockedAt < activeBypass.grantedAt)) {
+      cookieCooldown = null;
+      removeCookie(COOKIE_NAME);
+    }
+  }
 
   // Sync cookie with storage if cookie has active cooldown
   if (cookieCooldown) {
@@ -291,11 +372,20 @@ export function touchLiveSession(customUsername = '') {
 }
 
 // Set cooldown lock directly from server response (Server-Enforced Lockout, clamped to 10 min max)
-export function setServerCooldownLock(cooldownUntilMs, customUsername = '') {
+export function setServerCooldownLock(cooldownUntilMs, customUsername = '', serverLockedAtMs = null) {
   if (typeof window === 'undefined') return;
   if (isCreatorUsername(customUsername)) return; // Creator is never locked
 
   const now = Date.now();
+  const activeBypass = getActiveBypassGrant(now);
+  if (activeBypass && now < activeBypass.expiresAt) {
+    // Only honor a server lock if the server created that lock *after* this bypass grant was issued
+    const estimatedLockCreated = serverLockedAtMs || (cooldownUntilMs ? cooldownUntilMs - COOLDOWN_SECONDS * 1000 : now);
+    if (estimatedLockCreated <= activeBypass.grantedAt + 1500) {
+      return;
+    }
+  }
+
   let safeUntil = cooldownUntilMs || (now + COOLDOWN_SECONDS * 1000);
   if (safeUntil - now > COOLDOWN_SECONDS * 1000) {
     safeUntil = now + COOLDOWN_SECONDS * 1000;
@@ -318,7 +408,7 @@ export function setServerCooldownLock(cooldownUntilMs, customUsername = '') {
   try {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ sessionStart: null, lastActive: now, cooldownUntil: safeUntil })
+      JSON.stringify({ sessionStart: null, lastActive: now, cooldownUntil: safeUntil, lockedAt: now })
     );
   } catch {}
 }

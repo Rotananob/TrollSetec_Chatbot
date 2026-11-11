@@ -72,14 +72,20 @@ export default function ErrorReportModal({
 
     try {
       const activeSessionId = sessionId || 'session_' + Date.now();
-      const botKey = (bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
+      const lowerBot = (bot || 'konpov').toLowerCase();
+      const botKey = lowerBot.includes('kandal')
+        ? 'konkandal'
+        : lowerBot.includes('bong')
+        ? 'konbong'
+        : 'konpov';
 
       // 1. Initialize live session in Firebase Realtime Database
       await initLiveSessionOnDatabase(activeSessionId, {
         username: trimmedName,
         bot: botKey,
         issue: trimmedIssue,
-        status: 'pending_admin',
+        status: 'waiting',
+        messages: recentMessages.slice(-12),
         recentHistory: recentMessages.slice(-6)
       });
 
@@ -88,13 +94,13 @@ export default function ErrorReportModal({
         onLiveSessionStarted(activeSessionId);
       }
 
-      // 3. Dispatch alert webhook to Admin Telegram
+      // 3. Dispatch alert webhook to Admin Telegram (Generates signed Bypass token & direct-to-chat button)
       const endpoint = getApiEndpoint('/api/track');
       await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'live_help_request',
+          type: 'user_report_issue',
           username: trimmedName,
           bot: botKey,
           issue: trimmedIssue,
@@ -132,62 +138,72 @@ export default function ErrorReportModal({
         </button>
 
         {sentSuccess ? (
-          <div className="text-center py-4 animate-fade-in space-y-3">
-            <div className="w-14 h-14 mx-auto rounded-full bg-[#fbf8f2] text-[#0d3822] flex items-center justify-center text-2xl shadow-md">
-              <i className="fas fa-paper-plane"></i>
+          <div className="text-center py-2 animate-fade-in space-y-3">
+            <div className="flex items-center justify-center gap-3">
+              <div className="relative">
+                <img
+                  src="/img/DevPic.JPG"
+                  alt="Rotana NOB"
+                  className="w-12 h-12 rounded-full object-cover border-2 border-[#fbf8f2] shadow-md"
+                />
+                <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0d3822]"></span>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-[#fbf8f2]">Rotana NOB</p>
+                <p className="text-[11px] text-[#d7ccb7]">បានបញ្ជូនទៅ Telegram បង Rotana NOB រួចរាល់</p>
+              </div>
             </div>
-            <h3 className="text-base sm:text-lg font-bold text-[#fbf8f2]">
-              បានបញ្ជូន Alert ទៅកាន់អ្នកគ្រប់គ្រងរួចរាល់
-            </h3>
-            
+
             {/* 180s Realtime Countdown Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#124229] border border-[#235e3c] text-[#fbf8f2] font-bold text-xs shadow-xs">
               <i className="fas fa-stopwatch text-[#d7ccb7]"></i>
-              <span>{formatCountdown(countdown)}</span>
-              <span className="text-[10px] text-[#d7ccb7]">នៅសល់ {countdown} វិនាទី</span>
+              <span className="font-mono">{formatCountdown(countdown)}</span>
+              <span className="text-[11px] text-[#d7ccb7]">នៅសល់ {countdown} វិនាទី រង់ចាំបង Rotana ចូលឆាត</span>
             </div>
 
-            <div className="text-xs leading-relaxed max-w-sm mx-auto p-4 rounded-2xl border text-left space-y-1.5 bg-[#faf5ea] text-[#0d3822] border-[#e4d9c4] shadow-sm">
-              <p className="font-bold flex items-center gap-2 text-[#0d3822]">
-                <i className="fas fa-circle-check text-[#0d3822] text-xs"></i>
-                <span>បន្តិចទៀតនេះ អ្នកគ្រប់គ្រងនឹងចូលមកកាន់ការជជែកនេះផ្ទាល់</span>
-              </p>
-              <p className="text-[11px] text-[#1a472d] pl-5">
-                សារ និង Session ត្រូវបានការពារយ៉ាងត្រឹមត្រូវ មានសុវត្ថិភាពខ្ពស់។
-              </p>
+            <div className="flex flex-col gap-2 pt-1">
+              <a
+                href="https://t.me/TheRotanaNob"
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-2.5 bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2 border border-[#e4d9c4]"
+              >
+                <i className="fab fa-telegram text-sm text-[#0d3822]"></i>
+                <span>ឆាត Telegram ទៅបង Rotana NOB ផ្ទាល់</span>
+              </a>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 py-2.5 bg-[#124229] hover:bg-[#15462c] text-[#fbf8f2] border border-[#2d6c46] rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-1.5"
+                >
+                  <i className="fas fa-comments"></i>
+                  <span>រង់ចាំក្នុង Chat</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2.5 bg-transparent hover:bg-[#15462c] text-[#d7ccb7] hover:text-[#fbf8f2] border border-[#2d6c46] rounded-xl text-xs font-bold cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-1"
+                >
+                  <i className="fas fa-times"></i>
+                  <span>បិទ</span>
+                </button>
+              </div>
             </div>
-
-            <a
-              href="https://t.me/TheRotanaNob"
-              target="_blank"
-              rel="noreferrer"
-              className="w-full py-3 bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2 border border-[#e4d9c4]"
-            >
-              <i className="fab fa-telegram text-sm text-[#0d3822]"></i>
-              <span>ឆាតផ្ទាល់ទៅកាន់ Telegram អ្នកគ្រប់គ្រង</span>
-            </a>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full py-3 bg-transparent hover:bg-[#15462c] text-[#fbf8f2] border border-[#2d6c46] rounded-xl text-xs font-bold shadow-xs cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2"
-            >
-              <i className="fas fa-comments"></i>
-              <span>ចូលទៅកាន់ Chat ដើម្បីរង់ចាំអ្នកគ្រប់គ្រង {countdown} វិនាទី</span>
-            </button>
           </div>
         ) : (
           <>
             {/* Header */}
             <div className="text-center mb-5">
-              <div className="w-12 h-12 mx-auto mb-2.5 rounded-2xl bg-[#fbf8f2] border border-[#e4d9c4] flex items-center justify-center text-[#0d3822] text-xl shadow-md">
-                <i className="fas fa-paper-plane"></i>
+              <div className="w-12 h-12 mx-auto mb-2.5 rounded-full overflow-hidden bg-[#fbf8f2] border-2 border-[#e4d9c4] shadow-md">
+                <img src="/img/DevPic.JPG" alt="Rotana NOB" className="w-full h-full object-cover" />
               </div>
               <h3 className="text-base sm:text-lg font-bold text-[#fbf8f2] mb-1">
-                ផ្ញើសារទៅកាន់អ្នកគ្រប់គ្រង
+                ផ្ញើ Alert ទៅ Telegram បង Rotana NOB
               </h3>
               <p className="text-xs text-[#d7ccb7]">
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ? ផ្ញើ Alert ភ្លាមៗទៅកាន់អ្នកគ្រប់គ្រងដើម្បីជួយពិនិត្យជូន
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ ផ្ញើ Alert ភ្លាមៗទៅកាន់បង Rotana NOB ដើម្បីចូលជួយដោះស្រាយផ្ទាល់
               </p>
             </div>
 

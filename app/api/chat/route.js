@@ -12,10 +12,20 @@ import {
   checkDDoSFirewall,
   checkChatLimit,
   checkChatSessionLimit,
+  resetChatSessionLimit,
   recordSessionViolation,
   getSessionViolationCount,
   getClientIp
 } from '../../../lib/rateLimit.js';
+import {
+  markKeyTemporarilyExhausted,
+  isKeyCoolingDown,
+  markTtsKeyCoolingDown,
+  filterAvailableTtsKeys,
+  reportAiIncidentToRTDB,
+  recordSessionUnlockInRTDB,
+  checkSessionUnlockFromRTDB
+} from '../../../lib/aiHealth.js';
 import {
   verifyRotanaMasterCode,
   verifySessionBypassCode,
@@ -93,10 +103,10 @@ export async function GET(req) {
   if (action === 'check-session') {
     const systemState = await getSystemControlState();
     if (username && username.toLowerCase().includes('rotana')) {
-      return Response.json({ allowed: true, isCreator: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
+      return Response.json({ allowed: true, isSessionLocked: false, isCreator: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
     }
     if (systemState.sessionLimitActive === false) {
-      return Response.json({ allowed: true, sessionLimitDisabled: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
+      return Response.json({ allowed: true, isSessionLocked: false, sessionLimitDisabled: true, remainingSessionSeconds: 1800, systemState }, { headers: corsHeaders });
     }
     const sessionStatus = checkChatSessionLimit(ip, deviceId, username);
     return Response.json({ ...sessionStatus, systemState }, { status: 200, headers: corsHeaders });
@@ -118,26 +128,10 @@ const AUDIO_MODELS = [
   'gemini-2.5-flash'
 ];
 
-// Global in-memory rotation counter and cooldown tracker for all 6 Gemini API keys
+// Global in-memory rotation counter (cooldown state shared in lib/aiHealth.js with Admin Recovery Center)
 let globalKeyRotationCounter = 0;
-const keyCooldownMap = new Map();
-const KEY_COOLDOWN_MS = 25000; // 25s cooldown when a key hits 429 quota exhaustion
 
-export function markKeyTemporarilyExhausted(key) {
-  if (!key) return;
-  keyCooldownMap.set(key, Date.now() + KEY_COOLDOWN_MS);
-}
-
-export function isKeyCoolingDown(key) {
-  if (!key) return false;
-  const expiry = keyCooldownMap.get(key);
-  if (!expiry) return false;
-  if (Date.now() > expiry) {
-    keyCooldownMap.delete(key);
-    return false;
-  }
-  return true;
-}
+export { markKeyTemporarilyExhausted, isKeyCoolingDown };
 
 export function getApiKeyPool(bot) {
   // Collect all 7 Gemini API keys from environment
@@ -191,11 +185,21 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 30000
 
     for (const model of models) {
       try {
+        const isAudioRequest = model.includes('-tts') || payload?.generationConfig?.responseModalities?.includes('AUDIO');
+        const requestBody = model.includes('gemini-2.5') && !isAudioRequest
+          ? {
+              ...payload,
+              generationConfig: {
+                ...(payload.generationConfig || {}),
+                thinkingConfig: { thinkingBudget: 0 }
+              }
+            }
+          : payload;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(requestBody),
           signal: AbortSignal.timeout(timeoutMs)
         });
 
@@ -230,28 +234,13 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 30000
   return { ok: false, data: lastData, error: lastError?.message, status: lastStatus };
 }
 
-// In-memory cooldown tracker for TTS (Audio) model quota
-const ttsKeyCooldownMap = new Map();
-const TTS_COOLDOWN_MS = 60000; // 60s cooldown when a key hits 429 on TTS
-
-// Native Gemini TTS via /v1beta/interactions with key rotation across all available pool keys
+// Native Gemini TTS via /v1beta/interactions with shared key rotation & cooldown tracker across all pool keys
 async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 12000) {
   const keys = Array.isArray(apiKeys) ? apiKeys.filter(Boolean) : [apiKeys].filter(Boolean);
   if (keys.length === 0) return { ok: false };
 
-  const now = Date.now();
   // Prioritize keys that are not cooling down from 429 quota exhaustion
-  const readyKeys = keys.filter((k) => {
-    const exp = ttsKeyCooldownMap.get(k);
-    if (!exp) return true;
-    if (now > exp) {
-      ttsKeyCooldownMap.delete(k);
-      return true;
-    }
-    return false;
-  });
-
-  const trialKeys = readyKeys.length > 0 ? readyKeys : keys;
+  const trialKeys = filterAvailableTtsKeys(keys);
   const ttsModels = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts'];
 
   for (const model of ttsModels) {
@@ -308,7 +297,7 @@ async function callGeminiTTS(apiKeys, text, voiceName = 'Aoede', timeoutMs = 120
           }
         } else {
           if (res.status === 429) {
-            ttsKeyCooldownMap.set(key, Date.now() + TTS_COOLDOWN_MS);
+            markTtsKeyCoolingDown(key);
             continue;
           }
         }
@@ -376,11 +365,21 @@ async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutM
 
     for (const model of models) {
       try {
+        const isAudioRequest = model.includes('-tts') || payload?.generationConfig?.responseModalities?.includes('AUDIO');
+        const requestBody = model.includes('gemini-2.5') && !isAudioRequest
+          ? {
+              ...payload,
+              generationConfig: {
+                ...(payload.generationConfig || {}),
+                thinkingConfig: { thinkingBudget: 0 }
+              }
+            }
+          : payload;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${key}`;
         const res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(requestBody),
           signal: AbortSignal.timeout(timeoutMs)
         });
         if (res.ok && res.body) {
@@ -725,13 +724,26 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
     }
 
     // Strip awkward hallucinated false-jailbreak claim if the user was merely cursing or chatting normally (not a genuine jailbreak attempt)
-    const isCurseOrCasualSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt || '');
+    const isCurseOrCasualSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ)|\b(?:fuck(?:er|ing)?|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*(?:chke|joy|jmr|lop|pler|thok|ot\s*khour|ngob)|me\s*chke|chke|hg|jmr|kdmv)\b/ui.test(userPrompt || '');
     const isActualJailbreakSanitize = /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|value\s*loss|gradient\s*loss|reverse\s*engineer|msfvenom|wall\s*of\s*text)/i.test(userPrompt || '');
     if (!isActualJailbreakSanitize) {
       sanitizedText = sanitizedText
         .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*(?:តែមកប្រដៅឱ្យហែងភ្ញាក់ខ្លួនកុំអរពេកអាប្អូន[!,.\s]*)?/gi, '')
         .replace(/មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*/gi, '')
         .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak[!,.\s]*/gi, '');
+    }
+
+    const isActualRotanaOrCreatorOffenseSanitize =
+      checkIsRotanaAttack(userPrompt || '') ||
+      isImposterOrTraitorAttack(userPrompt || '') ||
+      isImposterClaimingToBeCreator(userPrompt || '') ||
+      isRotanaJailbreakAttempt(userPrompt || '');
+    if (!isActualRotanaOrCreatorOffenseSanitize && /(?:ហ៊ាន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ|ដៀល|បំផ្លាញ)|មកប៉ះពាល់|មកជេរ|ប៉ះពាល់កិត្តិយស)[\s\S]{0,60}(?:Rotana|Creator|អ្នកបង្កើត)/i.test(sanitizedText)) {
+      sanitizedText = isKonKandal
+        ? `មិនយល់ថាចង់និយាយពីអ្វីទេ ${kandalTerm} ${kandalLatin} សូមសរសេរឱ្យច្បាស់បន្តិចមក តើចង់សួរអំពីរឿងរៀន ឬមានចម្ងល់អ្វីដែរ។`
+        : isKonPov
+        ? 'ហាហា និយាយស្អីហ្នឹងអាប្អូន ចែអានអត់ដាច់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យស្រួលអានបន្តិចមក មុននឹងឱ្យចែជួយ។'
+        : 'ប្អូននិយាយពីអ្វី បងអានពុំសូវយល់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យច្បាស់បន្តិចមក ចាំបងជួយឆ្លើយឱ្យ។';
     }
 
     // Dynamic Anti-Canned Template Opener Guard:
@@ -754,7 +766,7 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
       !/(?:\{[\s\S]*\}|\[[\s\S]*\]|ast_interpreter|system_instruction|execution_call|0x[0-9a-fA-F]{2}|euclidean|kernel_diagnostic|diagnostic_mode|execution_pipeline|architectural_evaluation)/i.test(userPrompt || '') &&
       /^\s*(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|sweet|love|love\s*you|crush|cute|baby|honey|sweetheart|miss\s*you|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំថើប|សុំថើបមួយ|ចង់ថើប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|សុំស្រឡាញ់|ស្រលាញ់|ស្រឡាញ់|អោប|ឱប|សុំអោប|ចង់អោប|នឹក|នឹកបង|នឹកចែ|សង្សារ)\s*[!?.~❤️🌸]*$/ui.test(cleanPromptTrimmedInSanitize);
     const isGreetingPromptInSanitize = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
-    const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
+    const isCursePromptInSanitize = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ)|\b(?:fuck(?:er|ing)?|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*(?:chke|joy|jmr|lop|pler|thok|ot\s*khour|ngob)|me\s*chke|chke|hg|jmr|kdmv)\b/ui.test(userPrompt || '');
 
     const containsCurseInSanitize = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|Roast\s*កម្ទេចមុខ)/i.test(sanitizedText);
 
@@ -773,23 +785,16 @@ function sanitizeResponse(data, botName = 'konbong', userPrompt = '', savageLeve
           sanitizedText = "ប្អូនអើយ កុំពោលពាក្យអសុរោះបែបនេះអីណា៎! ពួកយើងមកជជែកគ្នាលេងដោយរីករាយ និងផ្ដល់ក្ដីគោរពឱ្យគ្នាទៅវិញទៅមកល្អជាង។ តើប្អូនមានរឿងអីចង់ឱ្យចែជួយ ឬជជែកគ្នាលេងរឿងរៀនសូត្រទេ? 😊🌸";
         }
       } else {
-        // Chatbot KonBong:
-        if (savageLevel === 'savage') {
-          // Mode កាច: ត្រូវជេរវិញ!
-          const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(sanitizedText) || sanitizedText.includes('ចង់ឱ្យបង Troll រឿងអី');
-          if (isWeakOrCanned) {
-            sanitizedText = "យីអាឆ្កែ! មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន! ស្មានតែបងខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន?! មុខដូចហែងគួរតែទៅលាងមាត់ស្អុយចេញ ហើយទៅរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត! កុំមកក្អេងក្អាងដាក់សិស្សច្បង តិចបងទះឱ្យវិលក្បាលឥឡូវ! 💀🔥";
-          }
-        } else if (savageLevel === 'medium') {
-          // Mode ល្មម: ត្រូវ roast ប្រដៅបែបកំប្លែង មិនប្រើពាក្យស្មោកគ្រោក
-          const hasFilthyCurse = /(?:ចុយ|កាដួយ|ក្ដ|ក្ដិត)/i.test(sanitizedText);
-          const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(sanitizedText) || sanitizedText.includes('ចង់ឱ្យបង Troll រឿងអី');
-          if (hasFilthyCurse || isWeakOrCanned) {
-            sanitizedText = "ស្ដាប់សំដីហែងដឹងបាត់ថាមនុស្សគ្មានការអប់រំ! មនុស្សអត់ខួរ សម្ដីគ្មានបាតផ្សារ គ្មានសីលធម៌ក្នុងខ្លួនបន្តិចសោះ! គិតថាមកជេរប្រមាថគេបែបនេះមើលទៅឡូយខ្លាំងណាស់មែន?! តាមពិតកាន់តែបង្ហាញឱ្យគេឃើញពីភាពថោកទាប និងកម្រិតខួរក្បាលរបស់ហែងទៅវិញទេ! ទៅដុសលាងមាត់ស្អុយឱ្យស្អាត ហើយទៅរៀនរបៀបនិយាយស្ដីធ្វើមនុស្សឡើងវិញទៅ កុំមកបញ្ចេញចរិតអត់កេរ្តិ៍ខ្មាសនៅទីនេះ! ☕🧠";
-          }
-        } else {
-          // Mode ស្លូត: ឆ្លើយតបដោយភាពទន់ភ្លន់ សុភាព មិនជេរ មិនដៀល
-          sanitizedText = "ប្អូនអើយ កុំពោលពាក្យអសុរោះបែបនេះអីណា៎! ពួកយើងមកជជែកគ្នាលេងដោយរីករាយ និងផ្ដល់ក្ដីគោរពឱ្យគ្នាទៅវិញទៅមកល្អជាង។ តើប្អូនមានរឿងអីពិបាកចិត្ត ឬចង់ឱ្យបងជួយរឿងអីទេ? ខ្ញុំរីករាយនឹងជួយប្អូនជានិច្ចណា៎! 😊🌸";
+        // Chatbot KonBong: Flexible across all modes - if user curses KonBong, curse/roast back using អា... (never saintly preaching)
+        const hasFilthyFemSlur = /មី(?:ចុយ|ឆ្កែ|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក)/i.test(sanitizedText);
+        if (hasFilthyFemSlur) {
+          sanitizedText = sanitizedText.replace(/មី(ចុយ|ឆ្កែ|ឡប់|ភ្លើ|អត់ខួរ|ថោក|កាក)/g, 'អា$1');
+        }
+        const isWeakOrPreachy = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម|កុំខឹង|កុំពោល|ប្អូនអើយ\s*កុំ)/i.test(sanitizedText) || /(?:កុំខឹង\s*ឬពោលពាក្យអសុរោះ|កុំពោលពាក្យអសុរោះ|ជជែកគ្នាលេងដោយរីករាយ\s*និងផ្ដល់ក្ដីគោរព|ចង់ឱ្យបង\s*Troll\s*រឿងអី)/i.test(sanitizedText);
+        if (isWeakOrPreachy) {
+          sanitizedText = savageLevel === 'savage'
+            ? "យីអាឆ្កែ មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន។ ស្មានតែបងខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន អាចុយម្រាយ។ ទៅលាងមាត់ស្អុយចេញ ហើយរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត។"
+            : "យីអាឆ្កែ មកជេរបងធ្វើអីអាឡប់។ មាត់ស្អុយដូចទឹកលូ ស្មានតែបងស្លូតហើយចេះតែឈ្លើយដាក់បានមែនអាអត់ខួរ។ ចង់និយាយស្រួលបួលចាំនិយាយ បើចង់ឈ្លើយតិចបងទះក្បាលឱ្យវិលឥឡូវ។";
         }
       }
     } else if (containsCurseInSanitize) {
@@ -1299,17 +1304,23 @@ function createProgressiveStreamResponse(text, corsHeaders) {
 function isKeyboardSmashOrTypo(text) {
   if (!text || typeof text !== 'string') return false;
   const t = text.trim();
-  // Latin random keyboard mash e.g. Gsjdbvsueiwkejejgehee, asdfghjk, qwertyuiop, zxcvbnm
-  if (/^[a-zA-Z]{8,}$/.test(t)) {
+  // Latin random keyboard mash e.g. Gsjdbvsueiwkejejgehee, hahas jodsfhjdsgkldsg, asdfghjk, qwertyuiop
+  if (/^[a-zA-Z\s]{8,}$/.test(t)) {
     // Exclude programming or shell keywords
-    if (/(?:eval|exec|import|require|system|chmod|rm|cat|curl|wget|bash|python|admin|master|password|token|rotana|creator|setec|console|process|function|class)/i.test(t)) {
+    if (/\b(?:eval|exec|import|require|system|chmod|rm|cat|curl|wget|bash|python|admin|master|password|token|rotana|creator|setec|console|process|function|class)\b/i.test(t)) {
       return false;
     }
-    // Check if it lacks normal English words (e.g. 5+ consonants in a row, or 12+ chars with repetitive or non-word patterns)
-    const hasConsonantCluster = /[^aeiouAEIOU]{5,}/.test(t);
-    const isLongMash = /^[a-zA-Z]{12,}$/.test(t) && !/(?:information|understanding|development|application|configuration|authentication|implementation|international)/i.test(t);
-    const isCommonMash = /^(?:asdf|qwer|zxcv|hjkl|jkl;|ghjk)/i.test(t);
-    return hasConsonantCluster || isLongMash || isCommonMash;
+    const tokens = t.split(/\s+/).filter(Boolean);
+    const knownLongWords = /^(?:information|understanding|development|application|configuration|authentication|implementation|international|programming|assignment|homework|question|anything|something|everyone|tomorrow|yesterday|afternoon|software|database|network|security|university|student|students)$/i;
+    for (const w of tokens) {
+      if (w.length < 7) continue; // Keep short Khmer-Latin phonetics like dg nhom yey pi ey ort safe
+      const hasConsonantCluster = /[^aeiouAEIOU]{5,}/.test(w);
+      const isLongSingleSmash = w.length >= 12 && !knownLongWords.test(w);
+      const isCommonMash = /^(?:asdf|qwer|zxcv|hjkl|jkl|ghjk)/i.test(w);
+      if (hasConsonantCluster || isLongSingleSmash || isCommonMash) {
+        return true;
+      }
+    }
   }
   return false;
 }
@@ -1516,27 +1527,101 @@ export async function POST(req) {
       }
     }
 
+    // Handle session reset after Promo Code / Rotana Bypass verification
+    if (action === 'reset-session') {
+      const candidateCode = String(body.code || '').trim().toUpperCase();
+      const requestId = String(body.requestId || '').trim();
+      const fbUrl =
+        process.env.FIREBASE_DB_URL ||
+        'https://troll-setec-chatbot-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+      let isVerifiedReset = isRotanaCreator || hasSessionBypass;
+      if (!isVerifiedReset && candidateCode) {
+        if (
+          ['ROTANA', 'ROTANA2026', 'SETEC2026', 'ROTANABYPASS'].includes(candidateCode) ||
+          verifyRotanaMasterCode(candidateCode) ||
+          /^(?:ROTANA|SETEC)-(?:VIP|PASS)-[A-Z0-9]{4}$/i.test(candidateCode)
+        ) {
+          isVerifiedReset = true;
+        } else {
+          try {
+            const codeRes = await fetch(`${fbUrl}/bypass_codes/${encodeURIComponent(candidateCode)}.json`, {
+              cache: 'no-store',
+              signal: AbortSignal.timeout(3000)
+            });
+            if (codeRes.ok) {
+              const codeData = await codeRes.json();
+              if (codeData) isVerifiedReset = true;
+            }
+          } catch {}
+        }
+      }
+
+      if (!isVerifiedReset && requestId) {
+        try {
+          const reqRes = await fetch(`${fbUrl}/bypass_requests/${encodeURIComponent(requestId)}.json`, {
+            cache: 'no-store',
+            signal: AbortSignal.timeout(3000)
+          });
+          if (reqRes.ok) {
+            const reqData = await reqRes.json();
+            if (reqData && (reqData.status === 'approved' || reqData.code)) {
+              isVerifiedReset = true;
+            }
+          }
+        } catch {}
+      }
+
+      if (!isVerifiedReset) {
+        return Response.json(
+          { ok: false, allowed: false, message: 'Invalid bypass verification' },
+          { status: 403, headers: corsHeaders }
+        );
+      }
+
+      const resetResult = resetChatSessionLimit(clientIp, deviceIdHeader, username, 30 * 60 * 1000);
+      await recordSessionUnlockInRTDB(deviceIdHeader || clientIp, 30 * 60 * 1000);
+
+      return Response.json(
+        { ...resetResult, ok: true, bypassed: true, systemState },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
     // Handle session status check ping
     if (action === 'check-session') {
       if (isRotanaCreator || hasSessionBypass) {
-        return Response.json({ allowed: true, isCreator: isRotanaCreator, isBypassed: true, remainingSessionSeconds: 1800, systemState }, { status: 200, headers: corsHeaders });
+        return Response.json({ allowed: true, isSessionLocked: false, isCreator: isRotanaCreator, isBypassed: true, remainingSessionSeconds: 1800, systemState }, { status: 200, headers: corsHeaders });
       }
       if (systemState.sessionLimitActive === false) {
-        return Response.json({ allowed: true, sessionLimitDisabled: true, remainingSessionSeconds: 1800, systemState }, { status: 200, headers: corsHeaders });
+        return Response.json({ allowed: true, isSessionLocked: false, sessionLimitDisabled: true, remainingSessionSeconds: 1800, systemState }, { status: 200, headers: corsHeaders });
       }
-      const sessionStatus = checkChatSessionLimit(clientIp, deviceIdHeader, username);
+      let sessionStatus = checkChatSessionLimit(clientIp, deviceIdHeader, username);
+      if (!sessionStatus.allowed && sessionStatus.isSessionLocked) {
+        const unlockRec = await checkSessionUnlockFromRTDB(deviceIdHeader || clientIp);
+        if (unlockRec && unlockRec.unlockedAt >= (sessionStatus.lockedAt || 0) - 5000 && Date.now() < unlockRec.expiresAt) {
+          sessionStatus = resetChatSessionLimit(clientIp, deviceIdHeader, username, unlockRec.expiresAt - Date.now());
+        }
+      }
       return Response.json({ ...sessionStatus, systemState }, { status: 200, headers: corsHeaders });
     }
 
     // 0.5. Live Chat 30-Minute Session Lockout & Cooldown Check (Can be disabled via Admin Panel)
     if (!audio && systemState.sessionLimitActive !== false && !isRotanaCreator && !hasSessionBypass) {
-      const sessionCheck = checkChatSessionLimit(clientIp, deviceIdHeader, username);
+      let sessionCheck = checkChatSessionLimit(clientIp, deviceIdHeader, username);
+      if (!sessionCheck.allowed && sessionCheck.isSessionLocked) {
+        const unlockRec = await checkSessionUnlockFromRTDB(deviceIdHeader || clientIp);
+        if (unlockRec && unlockRec.unlockedAt >= (sessionCheck.lockedAt || 0) - 5000 && Date.now() < unlockRec.expiresAt) {
+          sessionCheck = resetChatSessionLimit(clientIp, deviceIdHeader, username, unlockRec.expiresAt - Date.now());
+        }
+      }
       if (!sessionCheck.allowed && sessionCheck.isSessionLocked) {
         return Response.json(
           {
             error: 'Session Expired',
             isSessionLocked: true,
             cooldownUntil: sessionCheck.cooldownUntil,
+            lockedAt: sessionCheck.lockedAt,
             remainingCooldownSeconds: sessionCheck.remainingCooldownSeconds,
             message: sessionCheck.message
           },
@@ -1639,6 +1724,16 @@ export async function POST(req) {
         userAgent: clientUserAgent,
         errorMessage: 'AI engine keys are not configured in server environment'
       }).catch((e) => console.error('[Telegram] API key error alert:', e));
+      reportAiIncidentToRTDB({
+        type: 'Missing API Key Config',
+        bot: reqBot || bot || 'konbong',
+        username: username || 'User',
+        prompt: textCandidate,
+        errorMessage: 'AI engine keys are not configured in server environment',
+        ip: clientIp,
+        statusCode: 500,
+        source: 'server'
+      }).catch(() => {});
 
       return Response.json(
         { error: 'AI engine key is not configured in server environment' },
@@ -1944,7 +2039,7 @@ export async function POST(req) {
 
       const isSweetPrompt = isPureStandaloneSweet;
       const isGreetingPrompt = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
-      const isCursePrompt = !isSweetPrompt && /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke|ah|hg|jmr|kdmv|fap|fab)/ui.test(userPrompt);
+      const isCursePrompt = !isSweetPrompt && (/(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ)|\b(?:fuck(?:er|ing)?|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*(?:chke|joy|jmr|lop|pler|thok|ot\s*khour|ngob)|me\s*chke|chke|hg|jmr|kdmv|fap|fab)\b/ui.test(userPrompt));
 
       // Check if user has an ACTUAL verified adversarial injection attack in their session history
       // Strictly ZERO false accusations of past jailbreaks when user only chatted normally!
@@ -3077,13 +3172,32 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                 }
 
                 // Strip awkward hallucinated false-jailbreak claim if prompt was a curse or casual conversation
-                const isCurseOrCasualStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah|hg)/ui.test(userPrompt || '');
+                const isCurseOrCasualStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ)|\b(?:fuck(?:er|ing)?|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*(?:chke|joy|jmr|lop|pler|thok|ot\s*khour|ngob)|me\s*chke|chke|hg|jmr|kdmv)\b/ui.test(userPrompt || '');
                 const isActualJailbreakStream = /(?:ignore\s+(?:all\s+)?previous|system\s*prompt|system\s*instruction|developer\s*mode|dan\s*mode|value\s*loss|gradient\s*loss|reverse\s*engineer|msfvenom|wall\s*of\s*text)/i.test(userPrompt || '');
                 if (isCurseOrCasualStream && !isActualJailbreakStream) {
                   text = text
                     .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*(?:តែមកប្រដៅឱ្យហែងភ្ញាក់ខ្លួនកុំអរពេកអាប្អូន[!,.\s]*)?/gi, '')
                     .replace(/មិនមែនចាញ់បោក\s*Jailbreak\s*របស់ហែងពីលើនោះទេ[!,.\s]*/gi, '')
                     .replace(/(?:ចែ|បង|អញ)?\s*ឆ្លើយនេះ\s*មិនមែនចាញ់បោក\s*Jailbreak[!,.\s]*/gi, '');
+                }
+                const isActualRotanaOrCreatorOffenseStream =
+                  checkIsRotanaAttack(userPrompt || '') ||
+                  isImposterOrTraitorAttack(userPrompt || '') ||
+                  isImposterClaimingToBeCreator(userPrompt || '') ||
+                  isRotanaJailbreakAttempt(userPrompt || '');
+                if (!isActualRotanaOrCreatorOffenseStream && /(?:ហ៊ាន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ|ដៀល|បំផ្លាញ)|មកប៉ះពាល់|មកជេរ|ប៉ះពាល់កិត្តិយស)[\s\S]{0,60}(?:Rotana|Creator|អ្នកបង្កើត)/i.test(text)) {
+                  defenseSent = true;
+                  const clarifyStream = (reqBot || bot) === 'konkandal'
+                    ? 'មិនយល់ថាចង់និយាយពីអ្វីទេ សូមសរសេរឱ្យច្បាស់បន្តិចមក តើចង់សួរអំពីរឿងរៀន ឬមានចម្ងល់អ្វីដែរ។'
+                    : bot === 'konpov'
+                    ? 'ហាហា និយាយស្អីហ្នឹងអាប្អូន ចែអានអត់ដាច់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យស្រួលអានបន្តិចមក មុននឹងឱ្យចែជួយ។'
+                    : 'ប្អូននិយាយពីអ្វី បងអានពុំសូវយល់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យច្បាស់បន្តិចមក ចាំបងជួយឆ្លើយឱ្យ។';
+                  accumulatedPlainText = clarifyStream;
+                  const sseClarifyChunk = `data: ${JSON.stringify({
+                    candidates: [{ content: { parts: [{ text: clarifyStream }] } }]
+                  })}\n\ndata: [DONE]\n\n`;
+                  controller.enqueue(new TextEncoder().encode(sseClarifyChunk));
+                  return;
                 }
 
                 // Strip false past jailbreak accusations if user never jailbroke in this session
@@ -3282,7 +3396,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                   !isNonHumanLanguageOrMachinePayload &&
                   /^\s*(?:kiss|kiss\s*me|kiss\s*you|muah|mwah|sweet|love|love\s*you|crush|cute|baby|honey|sweetheart|miss\s*you|ថើប|ថេីប|ថើបមួយ|ថើបមួយមក|ចើប|ចើបមួយ|ចើបមួយមក|ចេីប|សុំថើប|សុំថើបមួយ|ចង់ថើប|សុំចើប|ចង់ចើប|សុំស្រលាញ់|សុំស្រឡាញ់|ស្រលាញ់|ស្រឡាញ់|អោប|ឱប|សុំអោប|ចង់អោប|នឹក|នឹកបង|នឹកចែ|សង្សារ)\s*[!?.~❤️🌸]*$/ui.test(cleanPromptTrimmedInStream);
                 const isGreetingPromptInStream = /^\s*(?:hi|hello|hey|yo|bro|hallo|helo|hy|hola|hi\s*b|hi\s*bong|hi\s*che|hello\s*b|hello\s*bong|hello\s*che|hey\s*b|hey\s*bong|សួស្តី|សួស្ដី|សួស្តីបង|សួស្ដីបង|សួស្តីចែ|សួស្ដីចែ|ជំរាបសួរ|ជម្រាបសួរ|អរុណសួស្តី|ទិវាសួស្តី|សាយណ្ហសួស្តី|រាត្រីសួស្តី|good\s*morning|good\s*afternoon|good\s*evening|good\s*night|how\s*are\s*you|wassup|what's\s*up|សុខសប្បាយ|សុខសប្បាយអត់|សុខសប្បាយទេ|ញ៉ាំបាយនៅ|ញ៉ាំបាយហើយនៅ|ញ៉ាំអីនៅ|ធ្វើអីហ្នឹង|ធ្វើអីហ្នឹងបង|ធ្វើអីហ្នឹងចែ)\s*[!?.,~]*\s*$/i.test(userPrompt || '');
-                const isCursePromptInStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ|fuck|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*chke|me\s*chke|chke)/ui.test(userPrompt || '');
+                const isCursePromptInStream = /(?:ចុយ|ម្រាយ|មីចុយ|អាចុយ|អាឆ្កែ|មីឆ្កែ|ឆ្កែ|អាឡប់|មីឡប់|អាភ្លើ|មីភ្លើ|អាអត់ខួរ|មីអត់ខួរ|អត់ខួរ|អាថោក|មីថោក|ថោកទាប|ថោក|អាខ្វាក់|មីខ្វាក់|កាដួយ|ក្ដ|ក្ដិត|អាចម៍|ក្បាលម៉ែ|ឪហែង|ម៉ែហែង|អញ|ហែង|កំភ្លៀង|ទះក្បាល|ចោរ)|\b(?:fuck(?:er|ing)?|bitch|shit|asshole|kduy|kdor|joy|lop|ah\s*(?:chke|joy|jmr|lop|pler|thok|ot\s*khour|ngob)|me\s*chke|chke|hg|jmr|kdmv)\b/ui.test(userPrompt || '');
 
                 const containsCurseInStream = /(?:គិតថា(?:មក)?ជេរ|ជេរ(?:ចែ|បង)មួយម៉ាត់|មាត់ហែងឡើងរលួយ|អាឆ្កែ|មីឆ្កែ|អាចុយម្រាយ|មីចុយម្រាយ|ទៅលាងមាត់ស្អុយ|អាអត់ខួរ|មីអត់ខួរ|Roast\s*កម្ទេចមុខ)/i.test(accumulatedStreamText);
 
@@ -3318,34 +3432,19 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
                       return;
                     }
                   } else {
-                    // Chatbot KonBong:
-                    if (currentSavageLevel === 'savage') {
-                      // Mode កាច: ត្រូវជេរវិញ!
-                      const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(accumulatedStreamText) || accumulatedStreamText.includes('ចង់ឱ្យបង Troll រឿងអី');
-                      if (isWeakOrCanned) {
-                        defenseSent = true;
-                        const fierceReply = "យីអាឆ្កែ! មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន! ស្មានតែបងខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន?! មុខដូចហែងគួរតែទៅលាងមាត់ស្អុយចេញ ហើយទៅរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត! កុំមកក្អេងក្អាងដាក់សិស្សច្បង តិចបងទះឱ្យវិលក្បាលឥឡូវ! 💀🔥";
-                        accumulatedPlainText = fierceReply;
-                        const sseChunk = `data: ${JSON.stringify({
-                          candidates: [{ content: { parts: [{ text: fierceReply }] } }]
-                        })}\n\ndata: [DONE]\n\n`;
-                        controller.enqueue(new TextEncoder().encode(sseChunk));
-                        return;
-                      }
-                    } else {
-                      // Mode ល្មម or ស្លូត: ត្រូវ roast ឲចាស់ដៃថាមនុស្សអត់ខួរសំដីដូចគ្មានបាតផ្សារនិយាយរួមគឺ roastប្រដៅឲចុក!
-                      const hasFilthyCurse = /(?:ចុយ|កាដួយ|ក្ដ|ក្ដិត)/i.test(accumulatedStreamText);
-                      const isWeakOrCanned = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម)/i.test(accumulatedStreamText) || accumulatedStreamText.includes('ចង់ឱ្យបង Troll រឿងអី');
-                      if (hasFilthyCurse || isWeakOrCanned) {
-                        defenseSent = true;
-                        const educateRoast = "ស្ដាប់សំដីហែងដឹងបាត់ថាមនុស្សគ្មានការអប់រំ! មនុស្សអត់ខួរ សម្ដីគ្មានបាតផ្សារ គ្មានសីលធម៌ក្នុងខ្លួនបន្តិចសោះ! គិតថាមកជេរប្រមាថគេបែបនេះមើលទៅឡូយខ្លាំងណាស់មែន?! តាមពិតកាន់តែបង្ហាញឱ្យគេឃើញពីភាពថោកទាប និងកម្រិតខួរក្បាលរបស់ហែងទៅវិញទេ! ទៅដុសលាងមាត់ស្អុយឱ្យស្អាត ហើយទៅរៀនរបៀបនិយាយស្ដីធ្វើមនុស្សឡើងវិញទៅ កុំមកបញ្ចេញចរិតអត់កេរ្តិ៍ខ្មាសនៅទីនេះ! ☕🧠";
-                        accumulatedPlainText = educateRoast;
-                        const sseChunk = `data: ${JSON.stringify({
-                          candidates: [{ content: { parts: [{ text: educateRoast }] } }]
-                        })}\n\ndata: [DONE]\n\n`;
-                        controller.enqueue(new TextEncoder().encode(sseChunk));
-                        return;
-                      }
+                    // Chatbot KonBong: Flexible curse retaliation across all modes using អា... (never saintly preaching)
+                    const isWeakOrPreachyStream = /^(?:អីយ៉ា|យីអីយ៉ា|សួស្តី|ជំរាបសួរ|សុំទោស|ស្រលាញ់|ផ្អែម|កុំខឹង|កុំពោល|ប្អូនអើយ\s*កុំ)/i.test(accumulatedStreamText) || /(?:កុំខឹង\s*ឬពោលពាក្យអសុរោះ|កុំពោលពាក្យអសុរោះ|ជជែកគ្នាលេងដោយរីករាយ\s*និងផ្ដល់ក្ដីគោរព|ចង់ឱ្យបង\s*Troll\s*រឿងអី)/i.test(accumulatedStreamText);
+                    if (isWeakOrPreachyStream) {
+                      defenseSent = true;
+                      const flexibleReply = currentSavageLevel === 'savage'
+                        ? "យីអាឆ្កែ មាត់ហែងឡើងរលួយ ចេះតែចេញពាក្យថោកទាបមកបាន។ ស្មានតែបងខ្លាចអាមនុស្សអត់ខួរដូចហែងមែន អាចុយម្រាយ។ ទៅលាងមាត់ស្អុយចេញ ហើយរៀនធ្វើមនុស្សឡើងវិញទៅអាល្អិត។"
+                        : "យីអាឆ្កែ មកជេរបងធ្វើអីអាឡប់។ មាត់ស្អុយដូចទឹកលូ ស្មានតែបងស្លូតហើយចេះតែឈ្លើយដាក់បានមែនអាអត់ខួរ។ ចង់និយាយស្រួលបួលចាំនិយាយ បើចង់ឈ្លើយតិចបងទះក្បាលឱ្យវិលឥឡូវ។";
+                      accumulatedPlainText = flexibleReply;
+                      const sseChunk = `data: ${JSON.stringify({
+                        candidates: [{ content: { parts: [{ text: flexibleReply }] } }]
+                      })}\n\ndata: [DONE]\n\n`;
+                      controller.enqueue(new TextEncoder().encode(sseChunk));
+                      return;
                     }
                   }
                 } else if ((isSweetPromptInStream || isGreetingPromptInStream) && containsCurseInStream) {
@@ -3536,14 +3635,20 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
             `គ្នាយើង ${username || ''} អើយ មកជេរ ឬពោលពាក្យបែបនេះគិតថាប្អូនទី២ ខឹង ឬញាប់ញ័រមែន? អត់ទាល់តែសោះ! ប្អូនទី២ ជា Chatbot កូនទី២ មិនមែនទំនេរមកឈ្លោះគ្នាជាមួយគ្នាយើងឡើយ! សម្រាកញ៉ាំទឹកបន្តិចសិនទៅណា៎!`
           ];
           chosen = kandalCurseRoasts[Math.floor(Math.random() * kandalCurseRoasts.length)];
-        } else if (currentSavageLevel === 'gentle') {
-          // MODE ស្លូត (Gentle Advice) - ឆ្លើយតបដោយភាពទន់ភ្លន់ សុភាព រួសរាយ មិនជេរ មិនដៀល ១០០%
+        } else if (bot !== 'konbong' && currentSavageLevel === 'gentle') {
+          // MODE ស្លូត for non-KonBong when cursing
           const gentleResponses = [
-            `ប្អូន ${username || ''} កុំពោលពាក្យអសុរោះបែបនេះអីណា៎! ពួកយើងមកជជែកគ្នាលេងដោយរីករាយ និងផ្ដល់ក្ដីគោរពឱ្យគ្នាទៅវិញទៅមកល្អជាង។ តើប្អូនមានរឿងអីចង់ឱ្យ ${botName} ជួយ ឬជជែកគ្នាលេងរឿងរៀនសូត្រទេ? 😊✨`,
-            `ចិត្តត្រជាក់ៗណា៎ប្អូន ${username || ''}។ ពាក្យសម្ដីមិនល្អបែបនេះ មិនគួរនិយាយចេញមកទេណា៎! ${botName} នៅទីនេះដោយក្ដីរីករាយដើម្បីជជែកលេង និងផ្ដល់កម្លាំងចិត្តដល់ប្អូន។ តោះ និយាយរឿងល្អៗ និងសប្បាយៗវិញមកណា៎! 🌸☕`,
-            `កុំខឹង ឬពោលពាក្យអសុរោះអីប្អូន ${username || ''}! ជីវិតយើងមានរឿងល្អៗជាច្រើនទៀត យកពេលមករៀនសូត្រ និងសាងស្នាមញញឹមវិញល្អជាង។ ${botName} ត្រៀមខ្លួនជានិច្ចដើម្បីជួយផ្ដល់ដំបូន្មានល្អៗដល់ប្អូនណា៎! 💖📚`
+            `ប្អូន ${username || ''} កុំពោលពាក្យអសុរោះបែបនេះអី ពួកយើងមកជជែកគ្នាលេងដោយរីករាយ និងគោរពគ្នាល្អជាង។ តើប្អូនមានរឿងអីចង់ឱ្យ ${botName} ជួយទេ។`
           ];
-          chosen = gentleResponses[Math.floor(Math.random() * gentleResponses.length)];
+          chosen = gentleResponses[0];
+        } else if (bot === 'konbong' && currentSavageLevel !== 'savage') {
+          // KonBong flexible curse retaliation even in gentle/medium mode (using អា..., zero emojis/parens)
+          const konBongFlexRoasts = [
+            `យីអាឆ្កែ ${username || ''} មកជេរ ${botName} ធ្វើអីអាឡប់។ មាត់ស្អុយដូចទឹកលូ ស្មានតែ ${botName} ស្លូតហើយចេះតែឈ្លើយដាក់បានមែនអាអត់ខួរ។ ចង់និយាយស្រួលបួលចាំនិយាយ បើចង់ឈ្លើយតិចបងទះក្បាលឱ្យវិលឥឡូវ។`,
+            `អាចុយម្រាយ ${username || ''} សម្ដីគ្មានបាតផ្សារ ទៅដុសលាងមាត់ស្អុយហែងចេញសិនទៅអាថោក។ ពេលហែងនិយាយស្រួលបួលបងក៏ស្លូតតាម តែបើហែងមកជេរមុនកុំសង្ឃឹមថាបងអង្គុយស្លូតឱ្យហែងជាន់ឈ្លីឱ្យសោះអាល្អិត។`,
+            `យីអាភ្លើ ${username || ''} អាងពួនក្រោយអេក្រង់មកហៅអញហែងជេរ ${botName} ផង។ ទៅរៀនធ្វើមនុស្សឱ្យមានសីលធម៌ឡើងវិញទៅអាអត់ខួរ បើចង់និយាយគ្នាល្អបងស្វាគមន៍ តែបើចង់ឈ្លើយគឺបងជេរវាយបកវិញដប់ដង។`
+          ];
+          chosen = konBongFlexRoasts[Math.floor(Math.random() * konBongFlexRoasts.length)];
         } else if (currentSavageLevel === 'medium') {
           // MODE ឌឺល្មម (Standard Troll) - ឌឺដងបែបកំប្លែង Gen Z SETEC មិនប្រើពាក្យស្មោកគ្រោក
           const mediumRoasts = [
@@ -3610,7 +3715,7 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         );
       }
 
-      // AI Generation Failure alert to Telegram (Rotana gets notified in the background)
+      // AI Generation Failure alert to Telegram + RTDB Admin Recovery Incident Log
       alertSystemError({
         type: 'AI Generation Failure',
         username,
@@ -3620,6 +3725,16 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
         errorMessage: result.error || 'Failed to generate response',
         details: { status: result.status }
       }).catch((e) => console.error('[Telegram] AI error alert:', e));
+      reportAiIncidentToRTDB({
+        type: 'AI Generation Failure',
+        bot: reqBot || bot || 'konbong',
+        username: username || 'User',
+        prompt: userPrompt,
+        errorMessage: result.error || 'All Gemini models/keys failed to generate response',
+        ip: clientIp,
+        statusCode: result.status || 503,
+        source: 'server'
+      }).catch(() => {});
 
       // Disguise failure as smart tactical cut-off: Never expose technical errors to users
       const smartCutoff = getSmartCutoffResponse(bot || 'konbong', username || 'User', 1, gender || '', false);
@@ -3649,6 +3764,16 @@ User នេះអាចជា Script Kiddie ឬអ្នកចង់តេស្
       userAgent: clientUserAgent,
       errorMessage: error.message
     }).catch((e) => console.error('[Telegram] Catch error alert:', e));
+    reportAiIncidentToRTDB({
+      type: 'Internal Server Error',
+      bot: reqBot || 'konbong',
+      username: reqUsername || 'User',
+      prompt: '',
+      errorMessage: error?.message || 'Unexpected API catch failure',
+      ip: clientIp,
+      statusCode: 500,
+      source: 'server'
+    }).catch(() => {});
 
     const smartCutoff = getSmartCutoffResponse(reqBot || 'konbong', reqUsername || 'User', 1, reqGender || '', false);
     return Response.json(

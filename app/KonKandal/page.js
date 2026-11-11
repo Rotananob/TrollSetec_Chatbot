@@ -19,6 +19,7 @@ import { initSecurityShield } from '../utils/securityShield';
 import {
   getLiveSessionState,
   touchLiveSession,
+  grantFreshLiveSession,
   setServerCooldownLock,
   formatCountdown,
   isCreatorUsername,
@@ -31,6 +32,7 @@ import { getSmartCutoffResponse } from '../../lib/smartCutoff';
 import { stopAllGlobalAudio, registerGlobalAudioSource, registerGlobalAudioPlayer, registerGlobalAudioTimer } from '../utils/audioController';
 import {
   validateBypassToken,
+  initLiveSessionOnDatabase,
   getLiveSession,
   updateLiveSessionState,
   sendLiveMessage,
@@ -95,7 +97,11 @@ export default function KonKandalPage() {
   const [isBotPaused, setIsBotPaused] = useState(false);
   const [sessionLogs, setSessionLogs] = useState([]);
   const [countdownRemaining, setCountdownRemaining] = useState(null);
+  const [alertPopupDismissed, setAlertPopupDismissed] = useState(false);
+  const [aiRecoveryBanner, setAiRecoveryBanner] = useState(false);
   const countdownIntervalRef = useRef(null);
+  const chatInputRef = useRef(null);
+  const lastAiRecoveryVersionRef = useRef(null);
 
   // Custom Delete History Modal State
   const [deleteModalConfig, setDeleteModalConfig] = useState(null); // { isOpen, type: 'all'|'single', sessionId, title, description }
@@ -212,7 +218,10 @@ export default function KonKandalPage() {
   // Check Restricted Dev Lock Key (11112003)
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    let shouldHoldForLiveBypass = false;
     try {
+      const params = new URLSearchParams(window.location.search);
+      const hasLiveBypass = Boolean(params.get('liveSession') && params.get('token'));
       const stored =
         sessionStorage.getItem('konkandal_access_key') ||
         localStorage.getItem('konkandal_access_key');
@@ -224,9 +233,13 @@ export default function KonKandalPage() {
         stored === 'rotana2026';
       if (isMaster) {
         setIsKandalUnlocked(true);
+      } else if (hasLiveBypass) {
+        shouldHoldForLiveBypass = true;
       }
     } catch {} finally {
-      setIsCheckingLock(false);
+      if (!shouldHoldForLiveBypass) {
+        setIsCheckingLock(false);
+      }
     }
   }, []);
 
@@ -423,12 +436,12 @@ export default function KonKandalPage() {
   // Fetch TTS Audio
   async function fetchAudio(text, index) {
     // HARD AUDIO GATE: If voice is muted/shut down, NEVER fetch from server
-    if (isTtsMutedRef.current || isTtsMuted) return null;
+    if (isTtsMutedRef.current) return null;
     if (!text || typeof text !== 'string' || !text.trim()) return null;
     try {
       const speechText = cleanSpeechText(text);
       if (!speechText) return null;
-      if (isTtsMutedRef.current || isTtsMuted) return null;
+      if (isTtsMutedRef.current) return null;
       const deviceId = getDeviceId();
       const endpoint = getApiEndpoint('/api/chat');
 
@@ -472,12 +485,12 @@ export default function KonKandalPage() {
       clearTimeout(timeoutId);
 
       // Check gate again immediately after network response
-      if (isTtsMutedRef.current || isTtsMuted) return null;
+      if (isTtsMutedRef.current) return null;
 
       if (!response.ok) return null;
 
       const result = await response.json();
-      if (isTtsMutedRef.current || isTtsMuted) return null;
+      if (isTtsMutedRef.current) return null;
 
       const isFallback = !!result.isFallbackBotVoice;
       if (typeof index === 'number') {
@@ -570,8 +583,18 @@ export default function KonKandalPage() {
         validateBypassToken(liveSessionParam, 'konkandal', tokenParam)
           .then((isValid) => {
             if (isValid) {
+              try {
+                sessionStorage.setItem('konkandal_access_key', '11112003');
+                localStorage.setItem('konkandal_access_key', '11112003');
+                sessionStorage.setItem('rotana_maintenance_bypass', 'true');
+                localStorage.setItem('rotana_maintenance_bypass', 'true');
+                localStorage.setItem('troll_rotana_bypass', '1');
+              } catch {}
+
+              setIsKandalUnlocked(true);
               setIsRotanaAdmin(true);
               setActiveLiveSessionId(liveSessionParam);
+              setAlertPopupDismissed(false);
               setIsBotPaused(true); // Automatically pause AI when Rotana intervenes
 
               // Mark Rotana as active in the session, pause bot, and append join log
@@ -586,20 +609,28 @@ export default function KonKandalPage() {
                 'join'
               );
 
-              // Load existing session data
+              // Load existing session data directly into window
               getLiveSession(liveSessionParam).then((sessionData) => {
                 if (sessionData) {
                   if (sessionData.username) {
                     setClientUsername(sessionData.username);
                   }
-                  if (sessionData.messages) {
-                    const msgList = Array.isArray(sessionData.messages)
-                      ? sessionData.messages
-                      : typeof sessionData.messages === 'object' && sessionData.messages !== null
-                      ? Object.values(sessionData.messages)
+                  const rawMsgs = sessionData.messages || sessionData.recentHistory;
+                  if (rawMsgs) {
+                    const msgList = Array.isArray(rawMsgs)
+                      ? rawMsgs
+                      : typeof rawMsgs === 'object' && rawMsgs !== null
+                      ? Object.values(rawMsgs)
                       : [];
                     if (msgList.length > 0) {
-                      setMessages(msgList);
+                      setMessages(msgList.map((m) => ({
+                        role: m.role === 'model' ? 'bot' : (m.role || 'user'),
+                        text: m.text || '',
+                        author: m.author,
+                        senderName: m.senderName,
+                        avatar: m.avatar,
+                        timestamp: m.timestamp
+                      })));
                     }
                   }
                   setIsBotPaused(true);
@@ -608,6 +639,10 @@ export default function KonKandalPage() {
                     setSessionLogs(logs);
                   }
                 }
+                setTimeout(() => {
+                  chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  chatInputRef.current?.focus();
+                }, 250);
               });
             } else {
               setBypassAccessDenied(true);
@@ -615,6 +650,9 @@ export default function KonKandalPage() {
           })
           .catch(() => {
             setBypassAccessDenied(true);
+          })
+          .finally(() => {
+            setIsCheckingLock(false);
           });
       }
     }
@@ -712,7 +750,7 @@ export default function KonKandalPage() {
         .then((res) => res.json())
         .then((data) => {
           if (data?.isSessionLocked && data?.cooldownUntil) {
-            setServerCooldownLock(data.cooldownUntil, username);
+            setServerCooldownLock(data.cooldownUntil, username, data.lockedAt);
             setSessionState(getLiveSessionState());
           }
         })
@@ -869,6 +907,26 @@ export default function KonKandalPage() {
           try {
             const parsed = JSON.parse(e.data);
             const data = parsed?.data !== undefined ? parsed.data : parsed;
+            const incomingRecoveryVersion =
+              parsed?.path === '/aiRecoveryVersion' && typeof parsed.data === 'number'
+                ? parsed.data
+                : typeof data?.aiRecoveryVersion === 'number'
+                ? data.aiRecoveryVersion
+                : null;
+
+            if (incomingRecoveryVersion !== null) {
+              if (
+                lastAiRecoveryVersionRef.current !== null &&
+                incomingRecoveryVersion > lastAiRecoveryVersionRef.current
+              ) {
+                consecutiveErrorsRef.current = 0;
+                setIsLoading(false);
+                setAiRecoveryBanner(true);
+                setTimeout(() => setAiRecoveryBanner(false), 6000);
+              }
+              lastAiRecoveryVersionRef.current = incomingRecoveryVersion;
+            }
+
             if (data && typeof data === 'object') {
               if (data.konbongActive === false) {
                 setBotPauseState({
@@ -947,8 +1005,20 @@ export default function KonKandalPage() {
     const prevUserMsg = idx > 0 ? messages.slice(0, idx).reverse().find((m) => m.role === 'user') : null;
     const userQuestion = prevUserMsg ? prevUserMsg.text : '';
     const alertIssue = userQuestion
-      ? `[សំណួរ User]: "${userQuestion}"\n[ចម្លើយ Cutoff/Error]: "${msgItem?.text?.slice(0, 300) || ''}"`
+      ? `សំណួរ User: "${userQuestion}"\nចម្លើយ Error: "${msgItem?.text?.slice(0, 300) || ''}"`
       : (msgItem?.text?.slice(0, 300) || 'AI Smart Cutoff triggered');
+
+    const liveSid = activeLiveSessionId || ('live_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7));
+    setActiveLiveSessionId(liveSid);
+    setAlertPopupDismissed(false);
+    startCountdown180s();
+
+    initLiveSessionOnDatabase(liveSid, {
+      username: username || 'User',
+      bot: 'konkandal',
+      issue: alertIssue,
+      messages: messages.slice(-12)
+    }).catch(() => {});
 
     try {
       const endpoint = getApiEndpoint('/api/track');
@@ -958,15 +1028,13 @@ export default function KonKandalPage() {
         body: JSON.stringify({
           type: 'user_report_issue',
           username: username || 'User',
-          issue: `[Fast 1-Click Alert]:\n${alertIssue}`,
+          issue: `Fast 1-Click Alert:\n${alertIssue}`,
           bot: 'konkandal',
-          sessionId: currentSessionId || ('session_' + Date.now())
+          sessionId: liveSid,
+          recentHistory: messages.slice(-12)
         })
       }).catch(() => {});
     } catch {}
-
-    setErrorReportInitialText(alertIssue);
-    setErrorReportModalOpen(true);
   };
 
   // Change user avatar on the fly and save safely to localStorage
@@ -1290,6 +1358,14 @@ export default function KonKandalPage() {
 
   // Sessions management (Firebase Realtime Database + Resilient Local Backup for Offline/Disconnect)
   const loadSessions = async () => {
+    const isDirectLiveBypass =
+      typeof window !== 'undefined' &&
+      Boolean(
+        new URLSearchParams(window.location.search).get('liveSession') &&
+          new URLSearchParams(window.location.search).get('token')
+      );
+    if (isDirectLiveBypass) return;
+
     const deviceId = getDeviceId();
     let localBackup = null;
     try {
@@ -2001,7 +2077,7 @@ export default function KonKandalPage() {
         if (response.status === 429) {
           const errData = await response.json().catch(() => ({}));
           if (errData?.isSessionLocked && errData?.cooldownUntil) {
-            setServerCooldownLock(errData.cooldownUntil);
+            setServerCooldownLock(errData.cooldownUntil, username, errData.lockedAt);
             setSessionState(getLiveSessionState());
             setIsLoading(false);
             const cleaned = updatedMessages.slice(0, updatedMessages.length - 1);
@@ -2213,7 +2289,7 @@ export default function KonKandalPage() {
           if (fallbackRes.status === 429) {
             const errData = await fallbackRes.json().catch(() => ({}));
             if (errData?.isSessionLocked && errData?.cooldownUntil) {
-              setServerCooldownLock(errData.cooldownUntil);
+              setServerCooldownLock(errData.cooldownUntil, username, errData.lockedAt);
               setSessionState(getLiveSessionState());
             }
             botText = errData?.message || `អាប្អូន ${userNameStr} ចាំបន្តិចណា៎ កុំទាន់ផ្ញើលឿនពេក សម្រាកបន្តិចសិន!`;
@@ -2303,8 +2379,21 @@ export default function KonKandalPage() {
           consecutiveErrorsRef.current += 1;
           const isThreat = Boolean(/jailbreak|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText));
           botText = getSmartCutoffResponse('konkandal', userNameStr, consecutiveErrorsRef.current, userGender, isThreat, userAge);
-          isErrorResponse = isThreat;
-          isSmartCutoff = isThreat;
+          isErrorResponse = true;
+          isSmartCutoff = true;
+          fetch(getApiEndpoint('/api/track'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'ai_hang_incident',
+              bot: 'konkandal',
+              username: userNameStr,
+              deviceId,
+              sessionId: currentSessionId || '',
+              reason: isThreat ? 'security_cutoff' : 'client_empty_reply',
+              detail: (promptText || '').slice(0, 120)
+            })
+          }).catch(() => {});
         }
       }
 
@@ -2347,7 +2436,20 @@ export default function KonKandalPage() {
 
         const isThreat = Boolean(/jailbreak|sqlmap|system prompt|system instruction|ignore previous|ignore all|<\|im_start\|>|<project_instructions>/i.test(promptText));
         fallbackText = getSmartCutoffResponse('konkandal', userNameStr, consecutiveErrorsRef.current, userGender, isThreat, userAge);
-        isErr = isThreat;
+        isErr = true;
+        fetch(getApiEndpoint('/api/track'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'ai_hang_incident',
+            bot: 'konkandal',
+            username: userNameStr,
+            deviceId: getDeviceId(),
+            sessionId: currentSessionId || '',
+            reason: 'client_stream_exception',
+            detail: `${e?.message || 'Error'} | ${(promptText || '').slice(0, 100)}`
+          })
+        }).catch(() => {});
 
         if (isSweetOrFlirt) {
           fallbackText = `យី! មក Sweet ផ្អែមល្ហែមសុំថើបស្អីហ្នឹងគ្នាយើង ${userNameStr}! ប្អូនទី២រវល់បន្តិច ចាំបន្តិចទៀតចាំមកជជែកគ្នាលេងបន្តណា៎!`;
@@ -2653,7 +2755,7 @@ export default function KonKandalPage() {
 
   const triggerAudio = async (rawAudioText, index, autoPlay = false) => {
     if (!rawAudioText) return;
-    if (isTtsMutedRef.current || isTtsMuted) {
+    if (isTtsMutedRef.current) {
       stopAllGlobalAudio();
       if (typeof window !== 'undefined' && window.speechSynthesis) {
         window.speechSynthesis.cancel();
@@ -2845,14 +2947,14 @@ export default function KonKandalPage() {
       });
     }
 
-    if (activeAudioRequestRef.current !== reqId || isTtsMutedRef.current || isTtsMuted) {
+    if (activeAudioRequestRef.current !== reqId || isTtsMutedRef.current) {
       setAudioStates((prev) => (prev[index] === 'loading' ? { ...prev, [index]: 'ready' } : prev));
       return;
     }
 
     const audioData = audioDataMapRef.current.get(hash);
     const isFallback = !!(audioData?.isFallback || fallbackAudioMap[index]);
-    if (!isTtsMutedRef.current && !isTtsMuted) {
+    if (!isTtsMutedRef.current) {
       if (isFallback) {
         setFallbackAudioMap((prev) => ({ ...prev, [index]: true }));
         setBotReadingNotice(true);
@@ -3026,9 +3128,13 @@ export default function KonKandalPage() {
           {/* Engineering Staging Strip */}
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600" />
 
-          {/* Developer Staging Emblem (Terminal + Key Badge, Pure Tech Staging) */}
-          <div className="relative mx-auto w-16 h-16 mb-3 mt-1 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shadow-xs">
-            <i className="fas fa-terminal text-2xl text-emerald-700" />
+          {/* Avatar emblem for KonKandal Staging Lock */}
+          <div className="relative mx-auto w-16 h-16 mb-3 mt-1 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shadow-xs p-1">
+            <img
+              src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
+              alt="SETEC Chatbot កូនទី២"
+              className="w-12 h-12 rounded-xl object-contain"
+            />
             <span className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] ring-2 ring-white shadow">
               <i className="fas fa-lock" />
             </span>
@@ -3110,18 +3216,25 @@ export default function KonKandalPage() {
         isDark ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
       }`}
     >
+      {/* Loading Audio Notice / Toast */}
+      {!isTtsMuted && Object.values(audioStates).includes('loading') && !botReadingNotice && !aiReadingNotice && (
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2">
+          <i className="fas fa-spinner fa-spin text-sky-400 text-sm"></i>
+          <span>កំពុងទាញសំឡេង</span>
+        </div>
+      )}
       {/* Bot Reading Instead Notice / Toast */}
       {!isTtsMuted && botReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-950/95 border border-amber-500/50 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-volume-low text-amber-400 text-sm"></i>
-          <span>Bot អានជំនួស ដោយសារ AI កំពុងជាប់រវល់</span>
+          <span>កំពុងអាន</span>
         </div>
       )}
-      {/* Real AI Voice Toast */}
+      {/* Real Voice Toast */}
       {!isTtsMuted && aiReadingNotice && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-volume-high text-sky-400 text-sm"></i>
-          <span>សំឡេង AI កំពុងអាន</span>
+          <span>កំពុងអាន</span>
         </div>
       )}
       {/* Side Drawer */}
@@ -3329,7 +3442,7 @@ export default function KonKandalPage() {
                 : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border-emerald-300'
             }`}
           >
-            <i className={`fas fa-layer-group ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}></i> ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
+            <i className={`fas fa-layer-group ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}></i> ចូលរួមបង្រៀន AI ស៊ីតិច
           </button>
 
           <button
@@ -3616,7 +3729,7 @@ export default function KonKandalPage() {
                         name: 'ស៊ីតិច Chatbot កូនច្បង',
                         role: 'រៀមច្បង IT Flexible កាច & ស្លូត',
                         href: '/KonBong',
-                        icon: 'fa-user-tie',
+                        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot',
                         color: 'text-indigo-400',
                         bg: 'bg-indigo-500/15',
                         border: 'border-indigo-500/40',
@@ -3627,7 +3740,7 @@ export default function KonKandalPage() {
                         name: 'ស៊ីតិច Chatbot កូនទី២',
                         role: 'មហាស្លូត & Funny',
                         href: '/KonKandal',
-                        icon: 'fa-face-smile',
+                        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite',
                         color: 'text-emerald-400',
                         bg: 'bg-emerald-500/15',
                         border: 'border-emerald-500/40',
@@ -3638,7 +3751,7 @@ export default function KonKandalPage() {
                         name: 'ស៊ីតិច Roastbot កូនពៅ',
                         role: 'ចែ Mommy & Daddy ស្ដេចឌឺ',
                         href: '/KonPov',
-                        icon: 'fa-heart',
+                        avatar: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka',
                         color: 'text-pink-400',
                         bg: 'bg-pink-500/15',
                         border: 'border-pink-500/40',
@@ -3663,8 +3776,8 @@ export default function KonKandalPage() {
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${botItem.bg} ${botItem.color}`}>
-                            <i className={`fa-solid ${botItem.icon}`}></i>
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden p-0.5 shrink-0 ${botItem.bg}`}>
+                            <img src={botItem.avatar} alt={botItem.name} className="w-full h-full object-cover rounded-md" />
                           </div>
                           <div>
                             <div className="text-xs font-bold leading-tight flex items-center gap-1.5">
@@ -3899,85 +4012,96 @@ export default function KonKandalPage() {
         </div>
       )}
 
-      {!isRotanaAdmin && (isRotanaOnline || (activeLiveSessionId && countdownRemaining !== null && countdownRemaining > 0)) && (
-        <div className="shrink-0 z-20 px-3 sm:px-6 pt-2 pb-1 bg-inherit">
+      {aiRecoveryBanner && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-emerald-950/95 border border-emerald-500/40 text-emerald-200 text-xs font-bold shadow-xl flex items-center gap-2 animate-fade-in">
+          <i className="fas fa-circle-check text-emerald-400"></i>
+          <span>បង Rotana NOB បានជួសជុលប្រព័ន្ធ AI រួចរាល់ អ្នកអាចឆាតបន្តបានធម្មតា</span>
+          <button
+            type="button"
+            onClick={() => setAiRecoveryBanner(false)}
+            className="ml-1 text-emerald-300 hover:text-white cursor-pointer"
+          >
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      )}
+
+      {!isRotanaAdmin && !alertPopupDismissed && (isRotanaOnline || (activeLiveSessionId && countdownRemaining !== null && countdownRemaining > 0)) && (
+        <div className="fixed top-16 sm:top-20 left-3 right-3 sm:left-auto sm:right-5 z-40 sm:w-[340px] max-w-[350px] mx-auto animate-fade-in">
           <div
-            className={`p-3 rounded-2xl shadow-xl flex items-center justify-between gap-3 animate-fade-in border ${
+            className={`p-3 rounded-2xl shadow-2xl border backdrop-blur-xl ${
               isRotanaOnline
-                ? 'bg-gradient-to-r from-emerald-950/95 via-slate-900 to-teal-950/95 border-emerald-500/40 shadow-emerald-950/30'
-                : 'bg-gradient-to-r from-amber-950/95 via-slate-900 to-yellow-950/90 border-amber-500/40 shadow-amber-950/30'
+                ? 'bg-emerald-950/95 border-emerald-500/50 shadow-emerald-950/40'
+                : 'bg-slate-900/95 border-amber-500/45 shadow-black/50'
             }`}
           >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-3">
               <div className="relative shrink-0">
                 <img
                   src="/img/DevPic.JPG"
                   alt="Rotana NOB"
-                  className={`w-9 h-9 rounded-full object-cover shadow-md ${
-                    isRotanaOnline ? 'ring-2 ring-emerald-400' : 'ring-2 ring-amber-400 opacity-90'
+                  className={`w-11 h-11 rounded-full object-cover shadow-md ${
+                    isRotanaOnline ? 'ring-2 ring-emerald-400' : 'ring-2 ring-amber-400'
                   }`}
                 />
                 <span
-                  className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-slate-950 ${
+                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ring-2 ring-slate-950 ${
                     isRotanaOnline ? 'bg-emerald-400 animate-ping' : 'bg-amber-400 animate-pulse'
                   }`}
                 ></span>
               </div>
               <div className="min-w-0 flex-1">
-                <p
-                  className={`text-xs font-black flex items-center gap-1.5 truncate ${
-                    isRotanaOnline ? 'text-emerald-300' : 'text-amber-300'
-                  }`}
-                >
-                  <i
-                    className={`fas ${isRotanaOnline ? 'fa-circle-check text-emerald-400' : 'fa-clock text-amber-400'} text-xs`}
-                  ></i>
-                  <span>
-                    {isRotanaOnline
-                      ? 'បង Rotana NOB • Developer បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ!'
-                      : 'Rotana NOB • កំពុងរង់ចាំចូលរួម...'}
-                  </span>
-                </p>
-                <p className="text-[10.5px] text-slate-300 font-medium truncate">
+                <div className="flex items-center justify-between gap-2">
+                  <p className={`text-xs font-black truncate ${isRotanaOnline ? 'text-emerald-300' : 'text-white'}`}>
+                    Rotana NOB
+                  </p>
+                  {isRotanaOnline ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40 shrink-0">
+                      1-1 Live
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[11px] font-black font-mono border border-amber-500/35 shrink-0">
+                      {Math.floor(countdownRemaining / 60)}:{(countdownRemaining % 60).toString().padStart(2, '0')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-300 font-medium leading-snug mt-0.5">
                   {isRotanaOnline
-                    ? isBotPaused
-                    ? 'Chatbot ត្រូវបានផ្អាក។ អ្នកកំពុងជជែកផ្ទាល់ 1-1 ជាមួយបង Rotana!'
-                    : 'បង Rotana កំពុងតាមដាន និងជួយសម្រួលការងារជូនប្អូនក្នុង Chat នេះ • 1-1 Protocol។'
-                    : countdownRemaining !== null && countdownRemaining > 0
-                    ? `ប្រព័ន្ធបានបញ្ជូន Alert ទៅ Telegram រួចរាល់ • នៅសល់ ${countdownRemaining} វិនាទី...`
-                    : 'Alert ត្រូវបានបញ្ជូន។ បង Rotana នឹងបើកតាម Telegram ឬ Mini App ចូលមកភ្លាមៗ!'}
+                    ? 'បង Rotana NOB បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ'
+                    : `បានបញ្ជូន Alert ទៅ Telegram Rotana NOB រួចរាល់ • រង់ចាំ ${countdownRemaining} វិនាទី`}
                 </p>
               </div>
             </div>
-            {isRotanaOnline ? (
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40 shrink-0">
-                1-1 LIVE
-              </span>
-            ) : countdownRemaining !== null && countdownRemaining > 0 ? (
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black font-mono border border-amber-500/30">
-                  {Math.floor(countdownRemaining / 60)}:{(countdownRemaining % 60).toString().padStart(2, '0')}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (countdownIntervalRef.current) {
-                      clearInterval(countdownIntervalRef.current);
-                      countdownIntervalRef.current = null;
-                    }
-                    if (activeLiveSessionId) {
-                      updateLiveSessionState(activeLiveSessionId, { status: 'cancelled', alertActive: false }).catch(() => {});
-                    }
-                    setActiveLiveSessionId(null);
-                    setCountdownRemaining(null);
-                  }}
-                  className="w-6 h-6 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer border border-amber-500/30"
-                  title="បិទ Dismiss"
-                >
-                  <i className="fas fa-times"></i>
-                </button>
-              </div>
-            ) : null}
+
+            <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+              <a
+                href="https://t.me/TheRotanaNob"
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 py-1.5 px-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/35 text-sky-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95"
+              >
+                <i className="fab fa-telegram text-xs"></i>
+                <span>Telegram Rotana NOB</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  if (countdownIntervalRef.current) {
+                    clearInterval(countdownIntervalRef.current);
+                    countdownIntervalRef.current = null;
+                  }
+                  if (activeLiveSessionId && !isRotanaOnline) {
+                    updateLiveSessionState(activeLiveSessionId, { status: 'cancelled', alertActive: false }).catch(() => {});
+                  }
+                  setAlertPopupDismissed(true);
+                  setCountdownRemaining(null);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-[11px] font-bold flex items-center justify-center gap-1 transition cursor-pointer border border-slate-600/60 shrink-0 active:scale-95"
+              >
+                <i className="fas fa-times text-[10px]"></i>
+                <span>បិទ</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -4073,7 +4197,7 @@ export default function KonKandalPage() {
               >
                 <span className="flex items-center gap-2">
                   <i className="fas fa-layer-group text-emerald-400 text-sm w-4 text-center"></i>
-                  <span>ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច</span>
+                  <span>ចូលរួមបង្រៀន AI ស៊ីតិច</span>
                 </span>
                 <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-black">
                   Contribute
@@ -4419,9 +4543,10 @@ export default function KonKandalPage() {
                                 if (typeof window !== 'undefined') {
                                   localStorage.setItem('setec_tts_disabled', '0');
                                 }
+                                setExclusiveAudioState(idx, 'loading');
                                 setTimeout(() => {
                                   triggerAudio(msg.text, idx);
-                                }, 50);
+                                }, 10);
                               } else {
                                 triggerAudio(msg.text, idx);
                               }
@@ -4451,7 +4576,7 @@ export default function KonKandalPage() {
                                 {isThisItemLoading && (
                                   <>
                                     <i className={`fas fa-spinner fa-spin ${isFallbackVoice ? 'text-amber-500 dark:text-amber-400' : 'text-sky-500 dark:text-sky-400'}`}></i>{' '}
-                                    <span>កំពុងទាញសំឡេង {audioCountdownMap[idx] || 5}s...</span>
+                                    <span>កំពុងទាញសំឡេង</span>
                                   </>
                                 )}
                                 {isThisItemPlaying && (
@@ -4461,7 +4586,7 @@ export default function KonKandalPage() {
                                       <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-2 inline-block`}></span>
                                       <span className={`w-0.5 ${isFallbackVoice ? 'bg-amber-500 dark:bg-amber-400' : 'bg-sky-500 dark:bg-sky-400'} rounded-full animate-eq-3 inline-block`}></span>
                                     </div>
-                                    <span>កំពុងអាន...</span>
+                                    <span>កំពុងអាន</span>
                                   </>
                                 )}
                                 {isThisItemPaused && (
@@ -4575,18 +4700,31 @@ export default function KonKandalPage() {
 
                       return (
                         <div className="mt-3 pt-2.5 border-t border-violet-500/25 flex flex-col gap-2 animate-fade-in">
-                          <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 flex items-center gap-1.5">
-                            <i className="fas fa-circle-info text-amber-400 text-xs shrink-0"></i>
-                            <span>AI អាចមានកំហុសបច្ចេកទេស ឬអាចឆ្លើយតបឌឺដងជេរខ្លាំង សូមអភ័យទោសទុកជាមុន</span>
+                          <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 flex items-start gap-1.5 leading-relaxed">
+                            <i className="fas fa-circle-info text-amber-400 text-xs shrink-0 mt-0.5"></i>
+                            <span>បើមានបញ្ហាគាំង ឬកាត់ផ្ដាច់ សូមចូលទៅ Sidebar ចុចប៊ូតុង គ្រប់គ្រងទំហំផ្ទុក Cache ដើម្បីសម្អាត Cache សិន ឬកាត់បន្ថយការសរសេរអក្សរឡាតាំង ហើយអាចចុច reply ពាក្យ haha ខាងក្រោមដើម្បីកេះឱ្យឆ្លើយតបមកវិញ។</span>
                           </p>
                           <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleChat('haha')}
+                              className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 active:scale-95 transition cursor-pointer border ${
+                                isDark
+                                  ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border-amber-400/40'
+                                  : 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300'
+                              }`}
+                            >
+                              <i className="fas fa-reply text-xs"></i>
+                              <span>Reply: haha</span>
+                            </button>
+
                             <button
                               type="button"
                               onClick={() => handleSendAlertToAdmin(msg, idx)}
                               className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs shadow-md shadow-violet-600/25 border border-violet-400/30 flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
                             >
                               <i className="fas fa-paper-plane text-amber-300"></i>
-                              <span>{alertSentMap[idx] ? 'បានផ្ញើ Alert ទៅ Telegram រួចរាល់' : 'Send Alert ទៅកាន់អ្នកគ្រប់គ្រង'}</span>
+                              <span>{alertSentMap[idx] ? 'បានបញ្ជូនទៅ Telegram បង Rotana NOB រួចរាល់' : 'Send Alert ទៅកាន់អ្នកគ្រប់គ្រង'}</span>
                             </button>
 
                             <button
@@ -4595,7 +4733,7 @@ export default function KonKandalPage() {
                               className="px-3.5 py-2 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-950/40 border border-emerald-400/40 cursor-pointer"
                             >
                               <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
-                              <span>ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច</span>
+                              <span>ចូលរួមបង្រៀន AI ស៊ីតិច</span>
                             </button>
 
                             <a
@@ -4657,7 +4795,7 @@ export default function KonKandalPage() {
                             className="px-3 py-1.5 rounded-xl bg-emerald-700/80 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-950/40 border border-emerald-400/40 cursor-pointer"
                           >
                             <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
-                            <span>ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច</span>
+                            <span>ចូលរួមបង្រៀន AI ស៊ីតិច</span>
                           </button>
                         </div>
                       </div>
@@ -4976,6 +5114,7 @@ export default function KonKandalPage() {
 
           {/* Text Input */}
           <input
+            ref={chatInputRef}
             type="text"
             disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked) || (!isCreatorUser && Date.now() < spamLockUntil)}
             value={inputText}
@@ -5187,8 +5326,10 @@ export default function KonKandalPage() {
         initialIssue={errorReportInitialText}
         sessionId={currentSessionId}
         recentMessages={messages}
-        onLiveSessionStarted={({ sessionId }) => {
-          setActiveLiveSessionId(sessionId);
+        onLiveSessionStarted={(payload) => {
+          const sid = typeof payload === 'string' ? payload : payload?.sessionId;
+          if (sid) setActiveLiveSessionId(sid);
+          setAlertPopupDismissed(false);
           startCountdown180s();
         }}
         isDark={isDark}
@@ -5230,13 +5371,14 @@ export default function KonKandalPage() {
 
       {/* 30-Minute Live Chat Session Limit & 10-Minute Cooldown Modal (Unclosable Anti-Bypass) */}
       <SessionBreakModal
-        isOpen={!isCreatorUser && sessionState.isLocked}
+        isOpen={!isCreatorUser && !isRotanaAdmin && sessionState.isLocked}
         remainingSeconds={sessionState.remainingCooldownSec}
         cooldownUntil={sessionState.cooldownUntil}
         botName="កូនទី២"
         theme={theme}
         onUnlock={() => {
-          setSessionState(getLiveSessionState());
+          grantFreshLiveSession(username);
+          setSessionState(touchLiveSession(username));
         }}
       />
 
@@ -5352,7 +5494,7 @@ export default function KonKandalPage() {
         </div>
       )}
       {/* Real-time Bot Pause Popup Modal (Triggered instantly when Rotana NOB pauses bot in Admin) */}
-      {botPauseState.isPaused && (
+      {botPauseState.isPaused && !isRotanaAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in font-['Kantumruy_Pro',sans-serif]">
           <div className="w-full max-w-md rounded-3xl p-6 shadow-2xl border border-amber-500/40 bg-slate-900 text-white relative overflow-hidden text-center animate-scale-up">
             <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-3xl border border-amber-500/30 animate-pulse">

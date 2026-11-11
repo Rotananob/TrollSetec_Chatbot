@@ -684,11 +684,11 @@ export default function Home() {
                     <div className="min-w-0 flex-1 text-left">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-white">
-                          ចូលរួមចែករំលែកទិន្នន័យស៊ីតិច
+                          ចូលរួមបង្រៀន AI ស៊ីតិច
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-normal mt-0.5 line-clamp-1 sm:line-clamp-none">
-                        ចែករំលែករឿងរ៉ាវក្នុងស៊ីតិច ឆ្មា Assignment ឬ Slang ទៅ Rotana NOB
+                        ចូលរួមបង្រៀនរឿងរ៉ាវក្នុងស៊ីតិច ឆ្មា Assignment ឬ Slang ទៅ Rotana NOB
                       </p>
                     </div>
                   </div>
@@ -709,7 +709,7 @@ export default function Home() {
                       className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white border border-emerald-500/40 font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                     >
                       <i className="fas fa-layer-group text-emerald-200 text-xs"></i>
-                      <span>ចូលរួមចែករំលែក</span>
+                      <span>ចូលរួមបង្រៀន AI</span>
                     </button>
                   </div>
                 </div>
@@ -1418,9 +1418,13 @@ export default function Home() {
             {/* Top Engineering Staging Strip */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600"></div>
 
-            {/* Developer Gate Emblem (Sleek Terminal + Key Badge, No Cartoon/AI Vibe) */}
-            <div className="relative mx-auto w-16 h-16 mb-2 mt-1 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shadow-xs">
-              <i className="fas fa-terminal text-2xl text-emerald-700"></i>
+            {/* KonKandal Avatar + Lock Badge */}
+            <div className="relative mx-auto w-16 h-16 mb-2 mt-1 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shadow-xs p-1.5">
+              <img
+                src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
+                alt="SETEC Chatbot កូនទី២"
+                className="w-full h-full object-contain"
+              />
               <span className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] ring-2 ring-white shadow">
                 <i className="fas fa-lock"></i>
               </span>

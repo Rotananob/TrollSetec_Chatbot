@@ -184,8 +184,10 @@ export default function SystemBroadcast() {
     try {
       const url = new URL(window.location.href);
       const bypassParam = (url.searchParams.get('bypass') || url.searchParams.get('rotana') || url.searchParams.get('code') || '').toLowerCase().trim();
+      const hasLiveBypassLink = Boolean(url.searchParams.get('liveSession') && url.searchParams.get('token'));
       const hash = url.hash.toLowerCase().trim();
       if (
+        hasLiveBypassLink ||
         bypassParam === 'rotana' ||
         bypassParam === 'rotana2026' ||
         bypassParam === 'nob' ||
