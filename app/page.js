@@ -168,7 +168,7 @@ export default function Home() {
 
     if (savedName && savedName.trim()) {
       setUsername(savedName.trim());
-      setIsSubmitted(true);
+      setIsSubmitted(false);
     }
     if (savedAge && savedAge.trim()) {
       setUserAge(savedAge.trim());
@@ -422,20 +422,38 @@ export default function Home() {
           paddingTop: 'max(env(safe-area-inset-top, 0px), 0.625rem)'
         }}
       >
-        <Link href="/" className="flex items-center gap-2 select-none" title="SETEC Roastbot">
-          <div className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5 shadow-xs overflow-hidden flex-shrink-0">
-            <img
-              src="/img/logo.jpg"
-              alt="SETEC Logo"
-              width="32"
-              height="32"
-              className="w-full h-full object-cover rounded-[10px]"
-            />
-          </div>
-          <span className="font-extrabold text-xs tracking-tight text-slate-900 dark:text-white">
-            SETEC Roastbot
-          </span>
-        </Link>
+        <div className="flex items-center gap-2">
+          {isSubmitted && (
+            <button
+              type="button"
+              onClick={handleBackToForm}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer active:scale-95 shadow-2xs"
+              title="ថយក្រោយទៅកែឈ្មោះ និងអាយុ"
+            >
+              <i className="fas fa-arrow-left text-[11px]"></i>
+              <span>ថយក្រោយ</span>
+            </button>
+          )}
+          <Link
+            href="/"
+            onClick={() => setIsSubmitted(false)}
+            className="flex items-center gap-2 select-none"
+            title="SETEC Roastbot"
+          >
+            <div className="w-8 h-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-0.5 shadow-xs overflow-hidden flex-shrink-0">
+              <img
+                src="/img/logo.jpg"
+                alt="SETEC Logo"
+                width="32"
+                height="32"
+                className="w-full h-full object-cover rounded-[10px]"
+              />
+            </div>
+            <span className="font-extrabold text-xs tracking-tight text-slate-900 dark:text-white">
+              SETEC Roastbot
+            </span>
+          </Link>
+        </div>
         <div className="flex items-center gap-2">
           <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
           <button
@@ -464,6 +482,25 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      {/* Desktop Top Floating Back Button (>= 640px) */}
+      {isSubmitted && (
+        <div className="hidden sm:flex fixed top-4 left-4 z-50 items-center">
+          <button
+            type="button"
+            onClick={handleBackToForm}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border shadow-xs backdrop-blur-md text-xs font-bold cursor-pointer select-none transition-colors active:scale-95 ${
+              isDark
+                ? 'bg-slate-900 text-slate-300 border-slate-800 hover:text-white'
+                : 'bg-white text-slate-700 border-slate-300 hover:text-slate-900 shadow-xs'
+            }`}
+            title="ថយក្រោយទៅកែឈ្មោះ និងអាយុ"
+          >
+            <i className="fas fa-arrow-left text-xs"></i>
+            <span>ថយក្រោយទៅកែឈ្មោះ និងអាយុ</span>
+          </button>
+        </div>
+      )}
 
       {/* Desktop Top Floating Controls (>= 640px) */}
       <div className="hidden sm:flex fixed top-4 right-4 z-50 items-center gap-2">
@@ -924,6 +961,22 @@ export default function Home() {
           ) : (
             <>
               {/* Authenticated / User Profile View */}
+              {/* Top Back Action Bar inside card */}
+              <div className="flex items-center justify-between w-full mb-4 pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={handleBackToForm}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition cursor-pointer active:scale-95 shadow-2xs"
+                  title="ថយក្រោយទៅកែឈ្មោះ និងអាយុ"
+                >
+                  <i className="fas fa-arrow-left text-xs"></i>
+                  <span>ថយក្រោយទៅកែឈ្មោះ និងអាយុ</span>
+                </button>
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  ជ្រើសរើស Roastbot
+                </span>
+              </div>
+
               <div className="flex flex-col items-center mb-4">
                 <div className="relative group mb-2">
                   <img
@@ -1301,9 +1354,10 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={handleBackToForm}
-                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+                  title="ថយក្រោយទៅកែឈ្មោះ និងអាយុ"
                 >
-                  <i className="fas fa-arrow-left text-[11px]"></i> <span>ប្ដូរឈ្មោះ</span>
+                  <i className="fas fa-arrow-left text-[11px]"></i> <span>ថយក្រោយទៅកែឈ្មោះ និងអាយុ</span>
                 </button>
                 <button
                   type="button"

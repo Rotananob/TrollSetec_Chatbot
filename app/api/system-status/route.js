@@ -12,6 +12,9 @@ import { verifyRotanaMasterCode, verifySessionBypassCode } from '../../../lib/ma
 import { flushAllRateLimits, syncRateLimitsWithRemoteRecovery, getClientIp } from '../../../lib/rateLimit.js';
 import {
   resetAllAiEngineHealth,
+  resetSingleKeyCooldown,
+  testSingleGeminiKey,
+  testAllGeminiKeys,
   syncAiHealthWithRemoteReset,
   getApiKeysHealthSummary,
   fetchAiIncidentsFromRTDB,
@@ -216,6 +219,60 @@ export async function POST(req) {
           incidentResult,
           aiIncidents,
           aiEngineHealth: getApiKeysHealthSummary()
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Action 1c: Individual 1-by-1 Key Fix (Clears cooldown for a specific key slot)
+    if (action === 'fix-key') {
+      const keyIndex = Number(body.keyIndex) || 1;
+      const fixResult = resetSingleKeyCooldown(keyIndex);
+      const recoveryTs = Date.now();
+      syncAiHealthWithRemoteReset(recoveryTs);
+      const updatedState = await updateSystemControlState(
+        { lastAiRecoveryAt: recoveryTs },
+        'Rotana NOB'
+      );
+      const aiEngineHealth = getApiKeysHealthSummary();
+
+      return Response.json(
+        {
+          ok: fixResult.ok,
+          message: fixResult.ok
+            ? `បានដោះសោរ Key #${keyIndex} (${fixResult.slot || ''}) ឱ្យដំណើរការវិញរួចរាល់!`
+            : 'មិនអាចដោះសោរ Key បានទេ',
+          fixResult,
+          aiEngineHealth,
+          state: updatedState
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    // Action 1d: Live Ping Test for a single Key or All Keys
+    if (action === 'test-key') {
+      const keyIndex = Number(body.keyIndex) || 1;
+      const testResult = await testSingleGeminiKey(keyIndex, 8000);
+      const aiEngineHealth = getApiKeysHealthSummary();
+      return Response.json(
+        {
+          ok: true,
+          testResult,
+          aiEngineHealth
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
+
+    if (action === 'test-all-keys') {
+      const testResults = await testAllGeminiKeys(8000);
+      const aiEngineHealth = getApiKeysHealthSummary();
+      return Response.json(
+        {
+          ok: true,
+          testResults,
+          aiEngineHealth
         },
         { status: 200, headers: corsHeaders }
       );

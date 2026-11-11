@@ -3204,6 +3204,24 @@ export default function KonBongPage() {
             <span>{isTtsMuted ? 'សំឡេងអាន បិទ • ចុចដើម្បីបើក' : 'សំឡេងអាន បើក • ចុចដើម្បីបិទ'}</span>
           </button>
 
+          {/* Back to Home & Edit Profile Link */}
+          <Link
+            href="/"
+            onClick={() => {
+              stopAllGlobalAudio();
+              setDrawerOpen(false);
+            }}
+            className={`w-full font-black py-2.5 px-4 rounded-xl text-center text-xs mb-2 transition border shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
+              isDark
+                ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 border-slate-700'
+                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+            }`}
+            title="ថយក្រោយទៅទំព័រដើម កែឈ្មោះ និងអាយុ"
+          >
+            <i className="fas fa-arrow-left text-xs"></i>
+            <span>ថយក្រោយទៅទំព័រដើម</span>
+          </Link>
+
           <div className="grid grid-cols-2 gap-2 mb-2">
             <Link
               href="/KonKandal"

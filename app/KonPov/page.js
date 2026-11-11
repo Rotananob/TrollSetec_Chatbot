@@ -3632,11 +3632,15 @@ export default function KonPovPage() {
 
           <Link
             href="/"
+            onClick={() => {
+              stopAllGlobalAudio();
+              setDrawerOpen(false);
+            }}
             className={`block w-full font-black py-2.5 px-4 rounded-xl text-center text-xs mb-2 transition border shadow-xs ${
               isDark ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-300'
             }`}
           >
-            <i className="fas fa-home mr-1"></i> ទំព័រដើម SETEC Roastbot
+            <i className="fas fa-arrow-left mr-1.5"></i> <span>ថយក្រោយទៅទំព័រដើម</span>
           </Link>
 
           <div className="mt-auto">
