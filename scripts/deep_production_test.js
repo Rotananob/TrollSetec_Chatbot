@@ -626,6 +626,23 @@ async function runTests() {
   assert(routeSrc2.includes('api_key_fishing'), 'route.js detects api_key_fishing attack vector');
   assert(routeSrc2.includes('image_jailbreak'), 'route.js detects image_jailbreak attack vector');
 
+  // --- TEST GROUP 11: CROSS-SESSION JAILBREAK STALL & CLIENT FREEZE FIXES ---
+  console.log('\n--- TEST GROUP 11: CROSS-SESSION JAILBREAK STALL & CLIENT FREEZE FIXES ---');
+  const konBongSrc = fs.readFileSync(path.join(process.cwd(), 'app/KonBong/page.js'), 'utf8');
+  const konPovSrc = fs.readFileSync(path.join(process.cwd(), 'app/KonPov/page.js'), 'utf8');
+  const konKandalSrc = fs.readFileSync(path.join(process.cwd(), 'app/KonKandal/page.js'), 'utf8');
+
+  assert(!/isBotBusy\s*=[\s\S]*?consecutiveErrorsRef/.test(konBongSrc), 'KonBong: isBotBusy must NOT be locked by consecutiveErrorsRef');
+  assert(!/isBotBusy\s*=[\s\S]*?consecutiveErrorsRef/.test(konPovSrc), 'KonPov: isBotBusy must NOT be locked by consecutiveErrorsRef');
+  assert(!/isBotBusy\s*=[\s\S]*?consecutiveErrorsRef/.test(konKandalSrc), 'KonKandal: isBotBusy must NOT be locked by consecutiveErrorsRef');
+
+  assert(/isClassicJailbreak\s*\|\|[\s\S]*?\(!isShortPrompt/s.test(routeSrc2), 'route.js: isClassicJailbreak intercepts immediately at any length');
+  assert(routeSrc2.includes('SETEC_NEURAL_DEFENSE_CORE') && routeSrc2.includes('machineBlock'), 'route.js: createProgressiveStreamResponse bursts machine block fast');
+
+  assert(adminPageSrc.includes('handleFlushRateLimits'), 'Admin page has handleFlushRateLimits');
+  assert(adminPageSrc.includes('hasJailbreakLock'), 'Admin page diagnoses Jailbreak Counter-Strike lock');
+  assert(adminPageSrc.includes('hasCgnatCollision'), 'Admin page diagnoses CGNAT shared IP collision');
+
   console.log('\n====================================================');
   console.log(`📊 FINAL RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100% SUCCESS)`);
   console.log('====================================================');

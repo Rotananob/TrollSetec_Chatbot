@@ -2528,6 +2528,20 @@ export default function JamTicKapeaAdminPage() {
                     </div>
                     <span className="shrink-0 px-2 py-0.5 rounded bg-green-800/60 text-green-200 text-[9px] font-bold">FIXED</span>
                   </div>
+                  <div className="flex items-start justify-between gap-2 p-2 rounded-lg bg-green-950/40 border border-green-900/50">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold text-green-300">Jailbreak Cross-Session Stall &amp; Stream Hold</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">Short jailbreak bypass នាំឱ្យ Gemini Safety block, 25s stream stall, និង rate collision លើ CGNAT/Wi-Fi ។ Fix: immediate intercept, burst SSE delivery, devKey isolation</div>
+                    </div>
+                    <span className="shrink-0 px-2 py-0.5 rounded bg-green-800/60 text-green-200 text-[9px] font-bold">FIXED</span>
+                  </div>
+                  <div className="flex items-start justify-between gap-2 p-2 rounded-lg bg-green-950/40 border border-green-900/50">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold text-green-300">consecutiveErrors Client Input Freeze</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">isBotBusy ជាប់ consecutiveErrorsRef &gt; 0 ធ្វើឱ្យ Chatbot គាំងបិទ input រហូតពេល error ។ Fix: decoupled from isBotBusy, auto-reset on new message</div>
+                    </div>
+                    <span className="shrink-0 px-2 py-0.5 rounded bg-green-800/60 text-green-200 text-[9px] font-bold">FIXED</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3333,6 +3347,15 @@ export default function JamTicKapeaAdminPage() {
                     <i className={`fa-solid ${isFixingAi ? 'fa-spinner fa-spin' : 'fa-bolt'}`} />
                     <span>ជួសជុល &amp; ដោះសោរ AI ទាំងអស់ភ្លាមៗ</span>
                   </button>
+                  <button
+                    type="button"
+                    onClick={handleFlushRateLimits}
+                    disabled={isSubmitting}
+                    className="px-3.5 py-2.5 rounded-xl bg-indigo-700/80 hover:bg-indigo-600 text-indigo-100 border border-indigo-500/40 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <i className="fa-solid fa-network-wired text-indigo-200" />
+                    <span>ដោះសោរ IP &amp; Rate Limits (CGNAT/Wi-Fi)</span>
+                  </button>
                   {aiIncidents.some((inc) => inc.status === 'resolved') && (
                     <button
                       type="button"
@@ -3544,7 +3567,16 @@ export default function JamTicKapeaAdminPage() {
                   inc?.errorMessage?.includes('418') || inc?.errorMessage?.includes('Hydration') ||
                   inc?.type === 'react_hydration'
                 );
+                const hasJailbreakLock = aiIncidents.some(inc =>
+                  inc?.reason?.includes('jailbreak') || inc?.type?.includes('jailbreak') ||
+                  inc?.errorMessage?.includes('jailbreak') || inc?.reason?.includes('security_cutoff')
+                );
+                const hasCgnatCollision = aiIncidents.some(inc =>
+                  inc?.ip && (inc?.reason?.includes('Too Many') || inc?.type === 'rate_limit')
+                );
                 const patterns = [];
+                if (hasJailbreakLock) patterns.push({ id: 'jailbreak', label: 'Jailbreak / Counter-Strike Intercept Lock', desc: 'User បាន test jailbreak prompt ឬ reverse shell នាំឱ្យ Gemini Safety block ឬ stream stall ។ ចុច Fix AI Engine ដើម្បីដោះ lock និង unfreeze ភ្លាមៗ', btnLabel: 'Fix AI Engine' });
+                if (hasCgnatCollision) patterns.push({ id: 'cgnat', label: 'CGNAT / Shared Wi-Fi Rate Collision', desc: 'User ច្រើននាក់ប្រើ Smart/Cellcard ឬ Wi-Fi ស៊ីតិច ចែករំលែក IP តែមួយ នាំឱ្យជាប់ Rate Limit ព្រមគ្នា ។ ចុច ដោះសោរ IP & Rate Limits', btnLabel: 'Clear Rate Limits' });
                 if (hasEmptyStream) patterns.push({ id: 'stream', label: 'Stream ទទេ — Gemini HTTP 200 គ្មានអក្សរ', desc: 'API Key ក្ដៅ ឬ Gemini throttle prompt។ Recovery SSE បានផ្ញើ fallback ។ Fix ដើម្បីដោះ cooldown keys', btnLabel: 'Fix All Keys' });
                 if (has429) patterns.push({ id: '429', label: 'API Key Quota 429 — Rate Limit', desc: 'Key ទាំងអស់ ឬ Key ជាក់លាក់ ជួប Rate Limit ។ ចុច Fix All Keys ដើម្បីដោះ Cooldown', btnLabel: 'Fix All Keys' });
                 if (hasTimeout) patterns.push({ id: 'timeout', label: 'Network/Stream Timeout', desc: 'Stream chunk stall លើ 4G/Mobile ឬ Vercel cold start ។ ចុច Fix AI ដើម្បី reset engine', btnLabel: 'Fix AI Engine' });

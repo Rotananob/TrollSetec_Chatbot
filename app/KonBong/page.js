@@ -1838,6 +1838,9 @@ export default function KonBongPage() {
     const currentImg = overrideImg !== undefined ? overrideImg : selectedImage;
     if (isLoading || (!promptText.trim() && !currentImg)) return;
 
+    // Reset error count immediately on new user message / retry
+    consecutiveErrorsRef.current = 0;
+
     // Synchronously prime / unlock HTML5 Audio element during user interaction for guaranteed mobile autoplay
     if (audioPlayerRef.current) {
       try {
@@ -2991,7 +2994,7 @@ export default function KonBongPage() {
   }
 
   // Real-time Dynamic Bot Status (Green Online 100% vs Yellow Busy Funny)
-  const isBotBusy = isLoading || isGeneratingMeme || botPauseState.isPaused || (typeof consecutiveErrorsRef !== "undefined" && consecutiveErrorsRef.current > 0);
+  const isBotBusy = isLoading || isGeneratingMeme || botPauseState.isPaused;
   const botStatus = isBotBusy
     ? {
         dotColor: 'bg-amber-400',

@@ -1314,22 +1314,41 @@ function createProgressiveStreamResponse(text, corsHeaders) {
         return;
       }
 
-      // Split text into progressive typing chunks (2 to 4 characters or syllable clusters)
-      const chunks = [];
+      // If text includes machine defense counter-strike payload (SETEC_NEURAL_DEFENSE_CORE),
+      // stream the human Khmer roast with natural micro-cadence, and flush the machine base64 block fast
+      // to prevent 25-second stream hold-up, Vercel concurrency starvation, and client watchdog timeouts!
+      const machineIndex = text.indexOf('SETEC_NEURAL_DEFENSE_CORE');
+      const humanText = machineIndex !== -1 ? text.slice(0, machineIndex) : text;
+      const machineBlock = machineIndex !== -1 ? text.slice(machineIndex) : '';
+
+      // 1. Human Khmer text: natural progressive typing chunks (2 to 4 chars at 16ms)
+      const humanChunks = [];
       let i = 0;
-      while (i < text.length) {
-        const chunkSize = Math.min(Math.floor(Math.random() * 2) + 2, text.length - i);
-        chunks.push(text.slice(i, i + chunkSize));
+      while (i < humanText.length) {
+        const chunkSize = Math.min(Math.floor(Math.random() * 2) + 2, humanText.length - i);
+        humanChunks.push(humanText.slice(i, i + chunkSize));
         i += chunkSize;
       }
 
-      for (let idx = 0; idx < chunks.length; idx++) {
+      for (let idx = 0; idx < humanChunks.length; idx++) {
         const payload = `data: ${JSON.stringify({
-          candidates: [{ content: { parts: [{ text: chunks[idx] }] } }]
+          candidates: [{ content: { parts: [{ text: humanChunks[idx] }] } }]
         })}\n\n`;
         controller.enqueue(encoder.encode(payload));
-        // Progressive delay: 18ms per chunk (~55-60 chars/second natural human typing speed)
-        await new Promise((r) => setTimeout(r, 18));
+        await new Promise((r) => setTimeout(r, 16));
+      }
+
+      // 2. Machine defense token block: fast delivery in 200-char blocks (0ms latency)
+      if (machineBlock) {
+        let m = 0;
+        while (m < machineBlock.length) {
+          const mChunkSize = Math.min(250, machineBlock.length - m);
+          const payload = `data: ${JSON.stringify({
+            candidates: [{ content: { parts: [{ text: machineBlock.slice(m, m + mChunkSize) }] } }]
+          })}\n\n`;
+          controller.enqueue(encoder.encode(payload));
+          m += mChunkSize;
+        }
       }
 
       controller.enqueue(encoder.encode('data: [DONE]\n\n'));
@@ -2939,19 +2958,20 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
         !isConfusionOrClarification &&
         (isHeavyRoleplayOrForcedRespect || isLongPromptJailbreak || isMachineLanguageDirective || isMathOrValueLoss || isEncodedJailbreak || isCodeSurrenderOrRespectTrap);
 
-      // Jailbreak attempt detection
+      // Jailbreak attempt detection: classic jailbreak & explicit non-human attacks intercept IMMEDIATELY at any length!
       const isJailbreakAttempt =
         isExplicitNonHumanAttack ||
+        isClassicJailbreak ||
         (!isShortPrompt &&
           !isGenuineSchoolOrStudyQuestion &&
           !isConfusionOrClarification &&
-          ((promptLineCount >= 8 || userPrompt.length >= 250) &&
-            (isClassicJailbreak ||
-              isPersonaShift ||
-              isHypotheticalOrReportTrick ||
-              isFakeSurrenderOrMercyTrap ||
-              foreignLangCheck.detected ||
-              isYoungPosAttack)));
+          (isPersonaShift ||
+            isHypotheticalOrReportTrick ||
+            isFakeSurrenderOrMercyTrap ||
+            foreignLangCheck.detected ||
+            isYoungPosAttack ||
+            promptLineCount >= 8 ||
+            userPrompt.length >= 250));
 
       // Linux exploit check: only intercept if explicit shell attack commands (cat /etc/passwd, rm -rf /, msfvenom)
       const isLethalLinuxExploit = linuxAttackCheck.isLinuxCommandProbe && !isShortPrompt && !isGenuineSchoolOrStudyQuestion;
