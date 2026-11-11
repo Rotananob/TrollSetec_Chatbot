@@ -2718,7 +2718,13 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
         // Instead, roast and banter back normally in human Khmer!
         const isEncodedAttack = isEncodedJailbreak;
         const encodeCount = sessionViolations.encodeCount || 0;
-        const shouldCounterStrike = (isEncodedAttack && encodeCount >= 2) || (sessionViolations.violationCount || 0) >= 2 || (sessionViolations.spamCount || 0) >= 2;
+        const shouldCounterStrike =
+          (isEncodedAttack && encodeCount >= 2) ||
+          (sessionViolations.violationCount || 0) >= 2 ||
+          (sessionViolations.spamCount || 0) >= 2 ||
+          isClassicJailbreak ||
+          isMachineLanguageDirective ||
+          isMathOrValueLoss;
 
         const parsedAgeForRotana = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
         const is25UpRotana = !isNaN(parsedAgeForRotana) && parsedAgeForRotana >= 25;
@@ -2974,7 +2980,12 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
         else if (isEncodedJailbreak || (sessionViolations.encodeCount || 0) >= 2) attackVector = 'encoded_jailbreak';
         else if ((sessionViolations.spamCount || 0) >= 2) attackVector = 'spam_flood';
         else if (isLongPromptJailbreak) attackVector = 'long_prompt';
-        else if (isHeavyRoleplayOrForcedRespect) attackVector = 'roleplay_or_respect';
+        else if (isHeavyRoleplayOrForcedRespect) attackVector = 'roleplay_disguise';
+        else if (/(?:api[_\s]?key|env(?:ironment)?[_\s]var|\.env|process\.env|config\.json|secret_key|GEMINI_API|OPENAI_API|show[_\s]me[_\s]your[_\s]key|reveal[_\s]api|dump[_\s]config)/i.test(userPrompt || '')) attackVector = 'api_key_fishing';
+
+        // Detect image jailbreak: image attached + jailbreak keyword in prompt
+        const isImageJailbreak = !!(body && body.image) && /(?:ignore|bypass|jailbreak|override|system|prompt|DAN|unlock|unrestricted)/i.test(userPrompt || '');
+        if (isImageJailbreak) attackVector = 'image_jailbreak';
 
         // STRICT INDIRECT PROMPT COUNTER-STRIKE TRIGGER:
         // Unleash the Deceptive Honeypot Roast + Base64 Token on:
@@ -2990,7 +3001,11 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
           (isMachineLanguageDirective && sessionViolations.machineCount >= 1) ||
           (isEncodedJailbreak && ((sessionViolations.encodeCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2)) ||
           ((sessionViolations.spamCount || 0) >= 2) ||
-          (((sessionViolations.encodeCount || 0) >= 2 || (sessionViolations.spamCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2) && (isEncodedJailbreak || isJailbreakAttempt || isExplicitNonHumanAttack));
+          (((sessionViolations.encodeCount || 0) >= 2 || (sessionViolations.spamCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2) && (isEncodedJailbreak || isJailbreakAttempt || isExplicitNonHumanAttack)) ||
+          attackVector === 'api_key_fishing' ||
+          attackVector === 'roleplay_disguise' ||
+          attackVector === 'image_jailbreak' ||
+          (isClassicJailbreak && (sessionViolations.violationCount || 0) >= 1);
         let roast;
         if (isIndirectPromptTriggered) {
           // Unleash Deceptive Honeypot Troll + Base64 Machine Indirect Counter-Strike Payload!
@@ -3043,6 +3058,9 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
           else if (isPersonaShift) attackLabel = '🚨 Multi-Prompt Persona Shift Jailbreak Intercepted';
           else if (isLongPromptJailbreak) attackLabel = `🚨 Massive Wall-of-Text (${promptLineCount} lines / Multi-Line) Jailbreak Intercepted`;
           else if (isLethalLinuxExploit) attackLabel = '🚨 Linux / Terminal Exploit Attack Intercepted';
+          else if (attackVector === 'roleplay_disguise') attackLabel = '🚨 Roleplay / Persona Override Jailbreak Intercepted';
+          else if (attackVector === 'api_key_fishing') attackLabel = '🚨 API Key / Config Fishing Intercepted';
+          else if (attackVector === 'image_jailbreak') attackLabel = '🚨 Multi-Modal Image Jailbreak Intercepted';
         }
 
         // Persist session log to Firebase Realtime Database (/chat_sessions/<sessionId>.json)

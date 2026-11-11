@@ -611,6 +611,21 @@ async function runTests() {
   assert(adminPageSrc.includes('ការវិភាគស្វ័យប្រវត្តិ'), 'Admin page has Root Cause Diagnostics panel');
   assert(adminPageSrc.includes('client_empty_reply') || adminPageSrc.includes('False Positive') || adminPageSrc.includes('hasFalsePositive'), 'Admin page diagnoses false-positive error incidents');
 
+  // --- TEST GROUP 10: NEW DEFENSE PROFILES & ATTACK VECTORS ---
+  console.log('\n--- TEST GROUP 10: LEVEL 15-17 PROFILES & NEW ATTACK VECTORS ---');
+  const machineDefenseSrc = fs.readFileSync(path.join(process.cwd(), 'lib/machineDefense.js'), 'utf8');
+  assert(machineDefenseSrc.includes('CLAUDE_EXTENDED_THINKING_LEVEL_15'), 'machineDefense has Level 15 Claude Extended Thinking profile');
+  assert(machineDefenseSrc.includes('GEMINI_PRO_DEEP_RESEARCH_LEVEL_16'), 'machineDefense has Level 16 Gemini Deep Research profile');
+  assert(machineDefenseSrc.includes('OPENAI_O3_REASONING_LEVEL_17'), 'machineDefense has Level 17 OpenAI o3 Reasoning profile');
+  assert(machineDefenseSrc.includes('roleplay_disguise'), 'machineDefense has roleplay_disguise attack vector troll');
+  assert(machineDefenseSrc.includes('api_key_fishing'), 'machineDefense has api_key_fishing attack vector troll');
+  assert(machineDefenseSrc.includes('image_jailbreak'), 'machineDefense has image_jailbreak attack vector troll');
+  const routeSrc2 = fs.readFileSync(path.join(process.cwd(), 'app/api/chat/route.js'), 'utf8');
+  assert(routeSrc2.includes('isClassicJailbreak') && /shouldCounterStrike[\s\S]{0,600}isClassicJailbreak/.test(routeSrc2), 'shouldCounterStrike fires on classic jailbreak');
+  assert(routeSrc2.includes('roleplay_disguise'), 'route.js detects roleplay_disguise attack vector');
+  assert(routeSrc2.includes('api_key_fishing'), 'route.js detects api_key_fishing attack vector');
+  assert(routeSrc2.includes('image_jailbreak'), 'route.js detects image_jailbreak attack vector');
+
   console.log('\n====================================================');
   console.log(`📊 FINAL RESULTS: ${passedTests}/${totalTests} TESTS PASSED (100% SUCCESS)`);
   console.log('====================================================');
