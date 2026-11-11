@@ -2817,8 +2817,6 @@ export default function KonPovPage() {
             savageLevel,
             sessionId: currentSessionId || '',
             generationConfig: {
-              temperature: 1.0,
-              topP: 0.95,
               maxOutputTokens: 2048
             },
             stream: true
@@ -3026,8 +3024,6 @@ export default function KonPovPage() {
               savageLevel,
               sessionId: currentSessionId || '',
               generationConfig: {
-                temperature: 1.0,
-                topP: 0.95,
                 maxOutputTokens: 2048
               },
               stream: false

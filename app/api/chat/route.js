@@ -131,15 +131,16 @@ export async function GET(req) {
 }
 
 // Active ultra-fast verified Gemini models with automated fallback to guarantee 100% uptime & low latency (<1.2s)
+// Updated 2026-11: Gemini 2.x deprecated → Gemini 3.x (3.5-flash-lite confirmed ✅ all keys, ~1.5s)
 const TEXT_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-2.0-flash',
-  'gemini-2.0-flash-lite'
+  'gemini-3.5-flash-lite',  // ✅ fastest, works on all keys ~1.5s
+  'gemini-3.1-flash-lite',  // ✅ reliable fallback ~2-4s
+  'gemini-3.6-flash',       // ✅ higher quality, some keys ~2-3s
+  'gemini-3.8-flash'        // ✅ best quality, may 503 under load
 ];
 const AUDIO_MODELS = [
-  'gemini-2.5-flash-preview-tts',
-  'gemini-2.5-flash'
+  'gemini-3.8-flash-tts',      // ✅ all keys work ~2-3s
+  'gemini-3.8-flash-lite-tts'  // ✅ lightweight TTS fallback
 ];
 
 // Global in-memory rotation counter (cooldown state shared in lib/aiHealth.js with Admin Recovery Center)
@@ -207,14 +208,17 @@ async function callModelWithFallback(models, apiKeys, payload, timeoutMs = 14000
 
       try {
         const isAudioRequest = model.includes('-tts') || payload?.generationConfig?.responseModalities?.includes('AUDIO');
-        const requestBody = model.includes('gemini-2.5') && !isAudioRequest
-          ? {
-              ...payload,
-              generationConfig: {
-                ...(payload.generationConfig || {}),
-                thinkingConfig: { thinkingBudget: 0 }
-              }
-            }
+        // Gemini 3.x: use thinkingLevel instead of deprecated thinkingBudget; strip temperature/topP/topK (ignored/causes issues)
+        const isGemini3x = /^gemini-3\./.test(model);
+        const requestBody = isGemini3x && !isAudioRequest
+          ? (() => {
+              const cfg = { ...(payload.generationConfig || {}) };
+              delete cfg.temperature;
+              delete cfg.topP;
+              delete cfg.topK;
+              cfg.thinkingConfig = { thinkingLevel: 'minimal' };
+              return { ...payload, generationConfig: cfg };
+            })()
           : payload;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
         const res = await fetch(url, {
@@ -402,14 +406,17 @@ async function callStreamingModelWithFallback(models, apiKeys, payload, timeoutM
       const connectTimer = setTimeout(() => connectCtrl.abort(), Math.min(timeoutMs, remainingMs));
       try {
         const isAudioRequest = model.includes('-tts') || payload?.generationConfig?.responseModalities?.includes('AUDIO');
-        const requestBody = model.includes('gemini-2.5') && !isAudioRequest
-          ? {
-              ...payload,
-              generationConfig: {
-                ...(payload.generationConfig || {}),
-                thinkingConfig: { thinkingBudget: 0 }
-              }
-            }
+        // Gemini 3.x: use thinkingLevel instead of deprecated thinkingBudget; strip temperature/topP/topK
+        const isGemini3x = /^gemini-3\./.test(model);
+        const requestBody = isGemini3x && !isAudioRequest
+          ? (() => {
+              const cfg = { ...(payload.generationConfig || {}) };
+              delete cfg.temperature;
+              delete cfg.topP;
+              delete cfg.topK;
+              cfg.thinkingConfig = { thinkingLevel: 'minimal' };
+              return { ...payload, generationConfig: cfg };
+            })()
           : payload;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${key}`;
         const res = await fetch(url, {
@@ -2065,23 +2072,12 @@ export async function POST(req) {
         : undefined;
 
       const activeSavageLevel = body?.savageLevel || 'medium';
-      let modeTemperature = 0.85;
-      let modeTopP = 0.9;
-      if (activeSavageLevel === 'gentle') {
-        modeTemperature = 0.65;
-        modeTopP = 0.8;
-      } else if (activeSavageLevel === 'savage') {
-        modeTemperature = 1.0;
-        modeTopP = 0.98;
-      }
-
+      // Note: temperature/topP/topK are deprecated for Gemini 3.x — not sent in generationConfig.
+      // Tone & savageness is fully controlled via system instruction text.
       const requestedMaxTokens = generationConfig?.maxOutputTokens ? Math.max(generationConfig.maxOutputTokens, 2048) : 2048;
       const genConfig = {
-        temperature: modeTemperature,
-        topP: modeTopP,
-        topK: 40,
         maxOutputTokens: requestedMaxTokens,
-        ...(generationConfig && { ...generationConfig, temperature: modeTemperature, maxOutputTokens: requestedMaxTokens })
+        thinkingConfig: { thinkingLevel: 'minimal' }
       };
 
       const safetySettings = [
