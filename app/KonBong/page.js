@@ -3853,7 +3853,7 @@ export default function KonBongPage() {
                 <div className="flex items-center gap-1.5">
                   <span className="font-black text-xs text-amber-300 flex items-center gap-1.5">
                     <i className="fas fa-crown text-amber-400 text-xs"></i>
-                    <span>Rotana NOB (Live Intervention)</span>
+                    <span>បងរតនា Live Intervention</span>
                   </span>
                   <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
                     Bypass Verified
@@ -3861,8 +3861,8 @@ export default function KonBongPage() {
                 </div>
                 <p className="text-[10px] text-slate-300 truncate font-semibold">
                   {isBotPaused
-                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} (Roastbot ត្រូវបានផ្អាក AI)`
-                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} (Roastbot កំពុងដំណើរការ)`}
+                    ? `កំពុងជជែកផ្ទាល់ 1-1 ជាមួយ ${clientUsername} • Roastbot ត្រូវបានផ្អាក AI`
+                    : `កំពុងតាមដាន 1-1 ជាមួយ ${clientUsername} • Roastbot កំពុងដំណើរការ`}
                 </p>
               </div>
             </div>
@@ -3876,8 +3876,8 @@ export default function KonBongPage() {
                   addSessionLog(
                     activeLiveSessionId,
                     nextState
-                      ? '⏸️ [ប្រព័ន្ធ] បង Rotana បានផ្អាក Roastbot (AI Paused) - បង Rotana កំពុងឆ្លើយតបផ្ទាល់។'
-                      : '▶️ [ប្រព័ន្ធ] បង Rotana បានបន្តដំណើរការ Roastbot ឡើងវិញ (AI Resumed)។',
+                      ? '[ប្រព័ន្ធ] បងរតនា បានផ្អាក Roastbot • AI Paused • បងរតនា កំពុងឆ្លើយតបផ្ទាល់។'
+                      : '[ប្រព័ន្ធ] បងរតនា បានបន្តដំណើរការ Roastbot ឡើងវិញ • AI Resumed។',
                     'state_change'
                   );
                 }}
@@ -3893,7 +3893,7 @@ export default function KonBongPage() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? (Roastbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ)')) {
+                  if (confirm('តើបងពិតជាចង់ចាកចេញ និងបញ្ចប់ការ Live Support លើ Chat នេះមែនទេ? Roastbot នឹងបន្តដំណើរការឡើងវិញជាស្វ័យប្រវត្តិ។')) {
                     await updateLiveSessionState(activeLiveSessionId, {
                       alertActive: false,
                       rotanaActive: false,
@@ -3902,7 +3902,7 @@ export default function KonBongPage() {
                     });
                     await addSessionLog(
                       activeLiveSessionId,
-                      '🚪 [ប្រព័ន្ធ] បង Rotana NOB បានចាកចេញពី Chat - Roastbot បានបន្តដំណើរការឆ្លើយតបឡើងវិញជាស្វ័យប្រវត្តិ។',
+                      '[ប្រព័ន្ធ] បងរតនា បានចាកចេញពី Chat • Roastbot បានបន្តដំណើរការឆ្លើយតបឡើងវិញជាស្វ័យប្រវត្តិ។',
                       'leave'
                     );
                     setIsBotPaused(false);
@@ -3922,7 +3922,7 @@ export default function KonBongPage() {
       {aiRecoveryBanner && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-emerald-950/95 border border-emerald-500/40 text-emerald-200 text-xs font-bold shadow-xl flex items-center gap-2 animate-fade-in">
           <i className="fas fa-circle-check text-emerald-400"></i>
-          <span>បង Rotana NOB បានជួសជុលប្រព័ន្ធ AI រួចរាល់ អ្នកអាចឆាតបន្តបានធម្មតា</span>
+          <span>បងរតនា បានជួសជុលប្រព័ន្ធ AI រួចរាល់ អ្នកអាចឆាតបន្តបានធម្មតា</span>
           <button
             type="button"
             onClick={() => setAiRecoveryBanner(false)}
@@ -3946,7 +3946,7 @@ export default function KonBongPage() {
               <div className="relative shrink-0">
                 <img
                   src="/img/DevPic.JPG"
-                  alt="Rotana NOB"
+                  alt="បងរតនា"
                   className={`w-11 h-11 rounded-full object-cover shadow-md ${
                     isRotanaOnline ? 'ring-2 ring-emerald-400' : 'ring-2 ring-amber-400'
                   }`}
@@ -3960,7 +3960,7 @@ export default function KonBongPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <p className={`text-xs font-black truncate ${isRotanaOnline ? 'text-emerald-300' : 'text-white'}`}>
-                    Rotana NOB
+                    បងរតនា
                   </p>
                   {isRotanaOnline ? (
                     <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black border border-emerald-500/40 shrink-0">
@@ -3974,8 +3974,8 @@ export default function KonBongPage() {
                 </div>
                 <p className="text-[11px] text-slate-300 font-medium leading-snug mt-0.5">
                   {isRotanaOnline
-                    ? 'បង Rotana NOB បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ'
-                    : `បានបញ្ជូន Alert ទៅ Telegram Rotana NOB រួចរាល់ • រង់ចាំ ${countdownRemaining} វិនាទី`}
+                    ? 'បងរតនា បានចូលមកក្នុង Chat នេះផ្ទាល់ហើយ'
+                    : `បានបញ្ជូន Alert ទៅ Telegram បងរតនា រួចរាល់ • រង់ចាំ ${countdownRemaining} វិនាទី`}
                 </p>
               </div>
             </div>
@@ -3988,7 +3988,7 @@ export default function KonBongPage() {
                 className="flex-1 py-1.5 px-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/35 text-sky-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition active:scale-95"
               >
                 <i className="fab fa-telegram text-xs"></i>
-                <span>Telegram Rotana NOB</span>
+                <span>Telegram បងរតនា</span>
               </a>
               <button
                 type="button"
@@ -4225,12 +4225,12 @@ export default function KonBongPage() {
                       LIVE AGENT
                     </span>
                     <span className="font-black text-amber-400 text-xs flex items-center gap-1">
-                      <span>Rotana NOB (ខ្ញុំ)</span>
+                      <span>បងរតនា - ខ្ញុំ</span>
                       <i className="fas fa-crown text-amber-400 text-[10px]"></i>
                     </span>
                     <img
                       src="/img/DevPic.JPG"
-                      alt="Rotana NOB"
+                      alt="បងរតនា"
                       className="w-6 h-6 rounded-full ring-1 ring-amber-400 shadow-xs object-cover"
                     />
                   </div>
@@ -4240,7 +4240,7 @@ export default function KonBongPage() {
                       onClick={() => setViewingImage({ url: msg.image, caption: msg.text })}
                       className="cursor-pointer rounded-2xl overflow-hidden border border-amber-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
                     >
-                      <img src={msg.image} alt="Rotana upload" className="max-h-56 w-auto object-cover" />
+                      <img src={msg.image} alt="បងរតនា upload" className="max-h-56 w-auto object-cover" />
                     </div>
                   )}
 
@@ -4250,13 +4250,13 @@ export default function KonBongPage() {
                 </div>
               );
             } else {
-              // VIEWED BY STUDENT/USER: This is an INCOMING message from Rotana NOB on the LEFT!
+              // VIEWED BY STUDENT/USER: This is an INCOMING message from Bong Rotana on the LEFT!
               return (
                 <div key={idx} className="flex items-start gap-2.5 w-full min-w-0 max-w-[92%] sm:max-w-[85%] animate-fade-in my-1.5 self-start">
                   <div className="relative shrink-0 mt-0.5">
                     <img
                       src="/img/DevPic.JPG"
-                      alt="Rotana NOB"
+                      alt="បងរតនា"
                       className="w-9 h-9 rounded-full ring-2 ring-amber-400 shadow-md object-cover bg-slate-900"
                     />
                     <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[9px] shadow-xs">
@@ -4266,7 +4266,7 @@ export default function KonBongPage() {
                   <div className="flex flex-col flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-1">
                       <span className="font-black text-amber-400 text-xs flex items-center gap-1">
-                        <span>Rotana NOB</span>
+                        <span>បងរតនា</span>
                         <i className="fas fa-check-circle text-blue-400 text-[10px]" title="Verified Creator"></i>
                       </span>
                       <span className="text-[9px] bg-gradient-to-r from-amber-500 to-rose-500 text-white font-extrabold px-1.5 py-0.2 rounded-full shadow-xs">
@@ -4627,7 +4627,7 @@ export default function KonBongPage() {
                               className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-fuchsia-600 hover:from-violet-500 hover:via-indigo-500 hover:to-fuchsia-500 text-white font-bold text-xs shadow-md shadow-violet-600/25 border border-violet-400/30 flex items-center gap-1.5 active:scale-95 transition cursor-pointer"
                             >
                               <i className="fas fa-paper-plane text-amber-300"></i>
-                              <span>{alertSentMap[idx] ? 'បានបញ្ជូនទៅ Telegram បង Rotana NOB រួចរាល់' : 'Send Alert ទៅកាន់អ្នកគ្រប់គ្រង'}</span>
+                              <span>{alertSentMap[idx] ? 'បានបញ្ជូនទៅ Telegram បងរតនា រួចរាល់' : 'Send Alert ទៅកាន់អ្នកគ្រប់គ្រង'}</span>
                             </button>
 
                             <button
@@ -4644,10 +4644,10 @@ export default function KonBongPage() {
                               target="_blank"
                               rel="noreferrer"
                               className="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-sky-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
-                              title="ឆាតផ្ទាល់ទៅកាន់ Telegram បង Rotana"
+                              title="ឆាតផ្ទាល់ទៅកាន់ Telegram បងរតនា"
                             >
                               <i className="fab fa-telegram text-sky-400"></i>
-                              <span>Telegram បង Rotana</span>
+                              <span>Telegram បងរតនា</span>
                             </a>
 
                             <a
@@ -4655,7 +4655,7 @@ export default function KonBongPage() {
                               target="_blank"
                               rel="noreferrer"
                               className="px-3 py-2 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition"
-                              title="ឆាតទៅកាន់ Facebook ផ្ទាល់របស់ Rotana NOB"
+                              title="ឆាតទៅកាន់ Facebook ផ្ទាល់របស់បងរតនា"
                             >
                               <i className="fab fa-facebook text-blue-400"></i>
                               <span>Facebook</span>
@@ -5053,11 +5053,11 @@ export default function KonBongPage() {
               !isCreatorUser && Date.now() < spamLockUntil
                 ? `🔒 អ្នកជាប់ពិន័យ Spam (នៅសល់ ${Math.max(1, Math.ceil((spamLockUntil - Date.now()) / 1000))} វិនាទី)...`
                 : !isCreatorUser && sessionState.isLocked
-                ? `🔒 ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ១០ នាទី (នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)})...`
+                ? `ម៉ោងជជែកត្រូវបានផ្អាកសម្រាក ១០ នាទី នៅសល់ ${formatCountdown(sessionState.remainingCooldownSec)}...`
                 : isRotanaAdmin
-                ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម Rotana NOB (Live Agent)...`
+                ? `សរសេរសារឆ្លើយតបទៅកាន់ ${clientUsername || 'User'} ក្នុងនាម បងរតនា Live Agent...`
                 : isBotPaused
-                ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបង Rotana...'
+                ? 'Chatbot ត្រូវបានផ្អាកបណ្ដោះអាសន្ន។ វាយសារនៅទីនេះដើម្បីជជែកផ្ទាល់ជាមួយបងរតនា...'
                 : isLoading
                 ? 'AI កំពុងឆ្លើយ... អ្នកអាចវាយសំណួរបន្ទាប់ត្រៀមទុក!'
                 : selectedImage
@@ -5085,7 +5085,7 @@ export default function KonBongPage() {
               !isCreatorUser && sessionState.isLocked
                 ? 'ម៉ោងសម្រាក Cooldown កំពុងសកម្ម'
                 : isRotanaAdmin
-                ? `ផ្ញើសារក្នុងនាម Rotana NOB ទៅកាន់ ${clientUsername}`
+                ? `ផ្ញើសារក្នុងនាម បងរតនា ទៅកាន់ ${clientUsername}`
                 : isLoading
                 ? 'ចុចដើម្បីដាក់ចូល ToDo ត្រៀមផ្ញើស្វ័យប្រវត្តពេល AI ឆ្លើយចប់'
                 : 'ផ្ញើសារ'

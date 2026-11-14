@@ -317,7 +317,12 @@ export async function POST(req) {
     // Verify Live Bypass Token securely on the server (Zero Client Secret Leakage)
     if (type === 'verify_live_token' || action === 'verify_live_token') {
       const targetSessionId = body.sessionId || '';
-      const targetBot = (body.bot || 'konpov').toLowerCase().includes('bong') ? 'konbong' : 'konpov';
+      const lowerTarget = (body.bot || 'konpov').toLowerCase();
+      const targetBot = lowerTarget.includes('kandal')
+        ? 'konkandal'
+        : lowerTarget.includes('bong')
+        ? 'konbong'
+        : 'konpov';
       const targetToken = body.token || '';
       const isValid = verifyServerLiveBypassToken(targetSessionId, targetBot, targetToken);
 

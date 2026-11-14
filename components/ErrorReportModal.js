@@ -183,14 +183,14 @@ export default function ErrorReportModal({
               <div className="relative">
                 <img
                   src="/img/DevPic.JPG"
-                  alt="Rotana NOB"
+                  alt="បងរតនា"
                   className="w-12 h-12 rounded-full object-cover border-2 border-[#fbf8f2] shadow-md"
                 />
                 <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#0d3822]"></span>
               </div>
               <div className="text-left">
-                <p className="text-sm font-bold text-[#fbf8f2]">Rotana NOB</p>
-                <p className="text-[11px] text-[#d7ccb7]">បានបញ្ជូនទៅ Telegram បង Rotana NOB រួចរាល់</p>
+                <p className="text-sm font-bold text-[#fbf8f2]">បងរតនា</p>
+                <p className="text-[11px] text-[#d7ccb7]">បានបញ្ជូនទៅ Telegram បងរតនា រួចរាល់</p>
               </div>
             </div>
 
@@ -198,7 +198,7 @@ export default function ErrorReportModal({
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#124229] border border-[#235e3c] text-[#fbf8f2] font-bold text-xs shadow-xs">
               <i className="fas fa-stopwatch text-[#d7ccb7]"></i>
               <span className="font-mono">{formatCountdown(countdown)}</span>
-              <span className="text-[11px] text-[#d7ccb7]">នៅសល់ {countdown} វិនាទី រង់ចាំបង Rotana ចូលឆាត</span>
+              <span className="text-[11px] text-[#d7ccb7]">នៅសល់ {countdown} វិនាទី រង់ចាំបងរតនា ចូលឆាត</span>
             </div>
 
             <div className="flex flex-col gap-2 pt-1">
@@ -209,7 +209,7 @@ export default function ErrorReportModal({
                 className="w-full py-2.5 bg-[#fbf8f2] hover:bg-[#eee6d5] active:bg-[#e4dbca] text-[#0d3822] rounded-xl text-xs font-bold shadow-md cursor-pointer transition active:scale-95 inline-flex items-center justify-center gap-2 border border-[#e4d9c4]"
               >
                 <i className="fab fa-telegram text-sm text-[#0d3822]"></i>
-                <span>ឆាត Telegram ទៅបង Rotana NOB ផ្ទាល់</span>
+                <span>ឆាត Telegram ទៅបងរតនា ផ្ទាល់</span>
               </a>
 
               <div className="flex items-center gap-2">
@@ -237,13 +237,13 @@ export default function ErrorReportModal({
             {/* Header */}
             <div className="text-center mb-5">
               <div className="w-12 h-12 mx-auto mb-2.5 rounded-full overflow-hidden bg-[#fbf8f2] border-2 border-[#e4d9c4] shadow-md">
-                <img src="/img/DevPic.JPG" alt="Rotana NOB" className="w-full h-full object-cover" />
+                <img src="/img/DevPic.JPG" alt="បងរតនា" className="w-full h-full object-cover" />
               </div>
               <h3 className="text-base sm:text-lg font-bold text-[#fbf8f2] mb-1">
-                ផ្ញើ Alert ទៅ Telegram បង Rotana NOB
+                ផ្ញើ Alert ទៅ Telegram បងរតនា
               </h3>
               <p className="text-xs text-[#d7ccb7]">
-                ជួបបញ្ហាគាំង ឬ Error មែនទេ ផ្ញើ Alert ភ្លាមៗទៅកាន់បង Rotana NOB ដើម្បីចូលជួយដោះស្រាយផ្ទាល់
+                ជួបបញ្ហាគាំង ឬ Error មែនទេ ផ្ញើ Alert ភ្លាមៗទៅកាន់បងរតនា ដើម្បីចូលជួយដោះស្រាយផ្ទាល់
               </p>
             </div>
 

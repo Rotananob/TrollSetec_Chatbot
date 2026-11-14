@@ -1464,23 +1464,23 @@ export default function Home() {
               <div className="flex flex-col items-center">
                 <img
                   src="/img/DevPic.JPG"
-                  alt="Rotana NOB"
+                  alt="បងរតនា"
                   width="36"
                   height="36"
                   className="w-9 h-9 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs hover:scale-105 transition-transform"
                   style={{ width: '36px', height: '36px', objectFit: 'cover' }}
-                  title="Rotana NOB"
+                  title="បងរតនា"
                 />
               </div>
               <div className="flex flex-col items-center">
                 <img
                   src="/img/newPic.jpg"
-                  alt="Rotana NOB Co-Dev"
+                  alt="បងរតនា"
                   width="36"
                   height="36"
                   className="w-9 h-9 rounded-full border-2 border-slate-300 dark:border-slate-700 object-cover shadow-xs hover:scale-105 transition-transform"
                   style={{ width: '36px', height: '36px', objectFit: 'cover' }}
-                  title="Rotana NOB Co-Dev"
+                  title="បងរតនា"
                 />
               </div>
             </div>

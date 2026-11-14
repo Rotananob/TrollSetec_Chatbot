@@ -69,7 +69,7 @@ export default function MusicPromptModal({
         <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-[#14472c]">
           <div className="relative shrink-0">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-slate-950 text-xl font-black shadow-lg shadow-emerald-950">
-              🎵
+              <i className="fas fa-music text-slate-950 text-xl font-black"></i>
             </div>
             <span className="absolute -bottom-1 -right-1 text-[9px] bg-red-600 text-white font-extrabold px-1.5 py-0.2 rounded-full border border-black animate-pulse">
               ROAST
@@ -154,7 +154,7 @@ export default function MusicPromptModal({
           <div>
             <label className="block text-xs font-bold text-emerald-300 mb-2 flex items-center gap-1.5">
               <i className="fas fa-compact-disc text-emerald-400"></i>
-              <span>២. ជ្រើសរើសស្ទាយភ្លេង (Music Genre & Beat)</span>
+              <span>២. ជ្រើសរើសស្ទាយភ្លេង Music Genre និង Beat</span>
             </label>
             <div className="grid grid-cols-2 gap-2">
               {GENRES.map((g) => {
@@ -202,7 +202,7 @@ export default function MusicPromptModal({
               ) : (
                 <>
                   <i className="fas fa-play-circle text-base"></i>
-                  <span>🔥 បង្កើតភ្លេង Roast ឥឡូវនេះ (Drop The Beat)</span>
+                  <span>បង្កើតភ្លេង Roast ឥឡូវនេះ Drop The Beat</span>
                 </>
               )}
             </button>

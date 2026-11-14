@@ -109,7 +109,7 @@ export default function RoastMusicPlayer({
             <div className="absolute inset-4 rounded-full border border-zinc-700/40 pointer-events-none"></div>
             {/* Center Label */}
             <div className="w-5 h-5 rounded-full bg-[#008744] flex items-center justify-center text-[8px] font-black text-white shadow-xs">
-              🎵
+              <i className="fas fa-music text-[9px] text-white"></i>
             </div>
           </div>
           {/* Pulsing Play Badge */}
@@ -124,11 +124,13 @@ export default function RoastMusicPlayer({
         {/* Track Metadata */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${badgeColor}`}>
-              🎤 {botName}
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border flex items-center gap-1 ${badgeColor}`}>
+              <i className="fas fa-microphone-alt text-[9px]"></i>
+              <span>{botName}</span>
             </span>
-            <span className="text-[10px] font-semibold text-emerald-300/80 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-full">
-              ⚡ {bpm}
+            <span className="text-[10px] font-semibold text-emerald-300/80 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <i className="fas fa-bolt text-[9px] text-amber-400"></i>
+              <span>{bpm}</span>
             </span>
           </div>
 
@@ -191,7 +193,7 @@ export default function RoastMusicPlayer({
             className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/60 text-emerald-300 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             <i className="fas fa-scroll text-[10px]"></i>
-            <span>{showLyrics ? 'លាក់ទំនុកច្រៀង' : '📝 មើលទំនុកច្រៀង Roast'}</span>
+            <span>{showLyrics ? 'លាក់ទំនុកច្រៀង' : 'មើលទំនុកច្រៀង Roast'}</span>
           </button>
 
           <a
@@ -211,7 +213,7 @@ export default function RoastMusicPlayer({
         <div className="p-3.5 sm:p-4 bg-slate-950 border-t border-[#1c4d32] text-xs text-zinc-300 leading-relaxed max-h-60 overflow-y-auto animate-fade-in whitespace-pre-wrap font-sans selection:bg-emerald-800 selection:text-white">
           <div className="flex items-center gap-1.5 mb-2 text-emerald-400 font-bold text-[11px]">
             <i className="fas fa-microphone-alt"></i>
-            <span>ទំនុកច្រៀងពេញ (Roast Lyrics):</span>
+            <span>ទំនុកច្រៀង Roast ពេញ</span>
           </div>
           <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-zinc-200 text-[11px]">
             {lyrics}

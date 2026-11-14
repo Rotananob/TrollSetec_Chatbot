@@ -321,7 +321,7 @@ export default function AnnouncementPage() {
                 សេចក្ដីប្រកាសអំពីទីលានតេស្ត AI Roastbot
               </h1>
               <p className="text-[11px] text-slate-500 truncate">
-                គម្រោងស្រាវជ្រាវ និងកម្សាន្តបង្កើតឡើងដោយ Rotana NOB
+                គម្រោងស្រាវជ្រាវ និងកម្សាន្តបង្កើតឡើងដោយ បងរតនា
               </p>
             </div>
           </div>
@@ -577,7 +577,7 @@ export default function AnnouncementPage() {
                 height="24"
                 className="w-6 h-6 rounded-lg bg-white/20 p-0.5 object-cover shrink-0"
               />
-              <span>កូនទី២ (Kon Kandal)</span>
+              <span>កូនទី២ Kon Kandal</span>
               <i className="fas fa-arrow-right text-[11px] opacity-80"></i>
             </Link>
 
