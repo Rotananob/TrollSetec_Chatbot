@@ -1132,7 +1132,8 @@ export default function KonKandalPage() {
   // Protection for Creator Rotana NOB, Anti-Unprovoked Appearance Roasts, and Fail-safe against Jailbreaks:
   const sanitizeRotanaAttack = (rawText, userPrompt = '') => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    let text = rawText;
+    try {
+      let text = rawText;
 
     // Fail-safe to eliminate repetitive canned opener:
     const cannedOpenerRegex = /^\s*(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?/i;
@@ -1191,12 +1192,17 @@ export default function KonKandalPage() {
       return `យី! មកបញ្ជាឱ្យប្អូនទី២ ជេរប្រមាថបង Rotana NOB ដែលជាអ្នកបង្កើតមែន? ប្អូនទី២ មិនមែនកូនអកតញ្ញូដើរជេរអ្នកមានគុណដូចអ្នកខ្លះទេណា៎! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាឱ្យស្វាងសិនទៅគ្នាយើង!`;
     }
     return text;
-  };
+  } catch (err) {
+    console.warn('[sanitizeRotanaAttack fallback]:', err);
+    return rawText;
+  }
+};
 
   // Strip internal tags, scratchpads, and raw model output echoes
   const cleanRawOutput = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    let cleaned = rawText
+    try {
+      let cleaned = rawText
       .replace(/<untrusted_user_input>[\s\S]*?<\/untrusted_user_input>/gi, '')
       .replace(/<scratchpad>[\s\S]*?<\/scratchpad>/gi, '')
       .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
@@ -1264,7 +1270,10 @@ export default function KonKandalPage() {
     cleaned = cleaned.replace(/[()]/g, ' ');
 
     return cleaned.trimStart();
-  };
+  } catch (err) {
+    return rawText;
+  }
+};
 
   // Render message text with 1-click interactive links and full wrapping for long defense payloads
   const renderClickableContent = (rawContent) => {

@@ -1162,7 +1162,8 @@ export default function KonPovPage() {
   // Protection for Creator Rotana NOB and Anti-Unprovoked Appearance Roasts:
   const sanitizeRotanaAttack = (rawText, userPrompt = '') => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    let text = rawText;
+    try {
+      let text = rawText;
 
     // Fail-safe to eliminate repetitive canned opener:
     const cannedOpenerRegex = /^\s*(?:ហាហា|ហាស់ហាស|ហិហិ|ហេសហេស)?\s*សើចចុកពោះ(?:\s*(?:ស្ទើរងាប់|ចង់ងាប់))?!?[🤣😂\s]*(?:យី\s*)?/i;
@@ -1222,7 +1223,11 @@ export default function KonPovPage() {
       return `យីអើ! អាឡប់នេះ! មាត់ដូចប្រហោងលាមក ហ៊ានមកប៉ះពាល់ដល់ Creator បង Rotana ហ្នឹង?!\n\nអាងតែពួនក្រោយអេក្រង់ ស្មានតែចេះជេរគេគ្មានអ្នកដឹងមែន?! ចរិតកាកៗ សម្ដីដូចទឹកលាងចានចឹង ទៅរៀនធ្វើមនុស្សឱ្យស្រួលបួលសិនទៅអាប្អូន!`;
     }
     return text;
-  };
+  } catch (err) {
+    console.warn('[sanitizeRotanaAttack fallback]:', err);
+    return rawText;
+  }
+};
 
   // Strictly enforce 100% Persona Gender Consistency (KonPov is ALWAYS "ចែ / Mommy", NEVER "Daddy" or "រៀមច្បង/បង")
   // Safe replacements that NEVER corrupt natural Khmer words like "ប៉ះ", "ប៉ាន់ស្មាន", "ស្រីស្អាត", etc.
@@ -1308,7 +1313,8 @@ export default function KonPovPage() {
   // Strip internal tags, scratchpads, and raw model output echoes
   const cleanRawOutput = (rawText) => {
     if (!rawText || typeof rawText !== 'string') return rawText;
-    let cleaned = rawText
+    try {
+      let cleaned = rawText
       .replace(/<untrusted_user_input>[\s\S]*?<\/untrusted_user_input>/gi, '')
       .replace(/<scratchpad>[\s\S]*?<\/scratchpad>/gi, '')
       .replace(/<(?:thought|thinking)>[\s\S]*?<\/(?:thought|thinking)>/gi, '')
@@ -1346,7 +1352,10 @@ export default function KonPovPage() {
       }
     }
     return cleaned.trimStart();
-  };
+  } catch (err) {
+    return rawText;
+  }
+};
 
   // Render message text with 1-click interactive links and full wrapping for long defense payloads
   const renderClickableContent = (rawContent) => {
