@@ -2005,12 +2005,13 @@ export default function KonBongPage() {
 
           // Append server roast counter-attack message directly into chat stream
           const roastMsg = {
-            role: 'model',
-            parts: [{ text: roastText }],
+            role: 'bot',
+            text: roastText,
             timestamp: Date.now(),
             isSpamRoast: true
           };
           const withRoast = [...updatedMessages.slice(0, updatedMessages.length - 1), roastMsg];
+          setMessages(withRoast);
           saveCurrentSessionMessages(withRoast);
           return;
         }

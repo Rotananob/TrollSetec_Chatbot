@@ -2864,8 +2864,8 @@ export default function KonPovPage() {
 
           // Append server roast counter-attack message directly into chat stream
           const roastMsg = {
-            role: 'model',
-            parts: [{ text: roastText }],
+            role: 'bot',
+            text: roastText,
             timestamp: Date.now(),
             isSpamRoast: true
           };

@@ -1065,35 +1065,34 @@ export default function Home() {
                   ជ្រើសរើស Roastbot ដែលអ្នកចង់សាកល្បង៖
                 </p>
                 <div className="grid grid-cols-1 gap-3.5">
-                  {/* KonKandal Card (Spoiler / Locked / Coming Soon - Placed on Top) */}
-                  <div
-                    onClick={() => setKandalModalOpen(true)}
-                    className={`relative overflow-hidden flex items-center gap-3.5 p-4 rounded-xl border-2 border-dashed transition-all duration-200 shadow-xs hover:shadow-md group cursor-pointer text-left select-none ${
+                  {/* KonKandal Card (Unlocked & Active - Direct Access) */}
+                  <Link
+                    href="/KonKandal"
+                    onClick={() => {
+                      stopAllGlobalAudio();
+                    }}
+                    className={`relative overflow-hidden flex items-center gap-3.5 p-4 rounded-xl border-2 transition-all duration-200 shadow-xs hover:shadow-md group cursor-pointer text-left select-none ${
                       isDark
-                        ? 'bg-gradient-to-r from-slate-900/90 via-amber-950/20 to-slate-900/90 border-amber-500/40 hover:border-amber-400/60'
+                        ? 'bg-gradient-to-r from-stone-900/90 via-amber-950/20 to-stone-900/90 border-amber-500/40 hover:border-amber-400/60'
                         : 'bg-gradient-to-r from-amber-50/70 via-white to-orange-50/50 border-amber-300 hover:border-amber-400'
                     }`}
                   >
-                    {/* Top ambient spoiler tag */}
-                    <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-orange-500 text-white text-[8.5px] font-black px-2 py-0.5 rounded-bl-lg shadow-2xs tracking-wider flex items-center gap-1">
-                      <i className="fas fa-lock text-[8px]"></i>
-                      <span>SPOILER • ឆាប់ៗនេះ</span>
+                    {/* Top ambient tag */}
+                    <div className="absolute top-0 right-0 bg-gradient-to-l from-amber-500 to-amber-600 text-white text-[8.5px] font-black px-2 py-0.5 rounded-bl-lg shadow-2xs tracking-wider flex items-center gap-1">
+                      <i className="fas fa-sparkles text-[8px]"></i>
+                      <span>ថ្មី • បើកលេងភ្លាមៗ</span>
                     </div>
 
-                    {/* Avatar Profile with Shadow & Lock Overlay */}
+                    {/* Avatar Profile */}
                     <div className="relative shrink-0">
-                      <div className="w-12 h-12 rounded-xl border border-amber-300 dark:border-amber-600/50 bg-amber-100/80 dark:bg-slate-800 p-1 object-cover overflow-hidden shadow-xs relative">
+                      <div className="w-12 h-12 rounded-xl border border-amber-300 dark:border-amber-600/50 bg-amber-100/80 dark:bg-stone-800 p-0.5 object-cover overflow-hidden shadow-xs relative">
                         <img
-                          src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
+                          src="https://api.dicebear.com/7.x/personas/svg?seed=SETECKandalInsider"
                           width="48"
                           height="48"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform opacity-80"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                           alt="KonKandal Bot"
                         />
-                        {/* Soft shadowy lock overlay on avatar */}
-                        <div className="absolute inset-0 bg-slate-950/25 dark:bg-slate-950/40 flex items-center justify-center backdrop-blur-[0.5px]">
-                          <i className="fas fa-lock text-amber-300 text-xs drop-shadow-md"></i>
-                        </div>
                       </div>
                       <span className="absolute -top-1.5 -right-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-[9px] font-bold px-1.5 py-0.5 rounded-md text-white shadow-xs">
                         កូនទី២
@@ -1106,22 +1105,21 @@ export default function Home() {
                         <span>ស៊ីតិច Chatbot កូនទី២</span>
                         <span className="text-[10px] bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
                           <span>មហាស្លូត &amp; Funny</span>
-                          <i className="fas fa-face-laugh-squint text-amber-500 text-[10px]"></i>
                         </span>
                       </div>
                       <div className="text-xs mt-1 leading-snug line-clamp-2 text-slate-600 dark:text-slate-400">
-                        ចរិកមហាស្លូតបូត ចេះ Respect User មិនជេរមិនដៀលទេ តែ Funny និងកំប្លែងចុកពោះ ជជែកបែប Chill ៗ
+                        ចរិកមហាស្លូតបូត ចេះ Respect User ឆ្លាត និងកំប្លែង ឆ្លើយតបបែប Collegiate Insider
                       </div>
                     </div>
 
-                    {/* Lock / In-Dev Status Badge */}
+                    {/* Active Status Badge */}
                     <div className="hidden sm:flex flex-col items-end shrink-0">
-                      <span className="px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10.5px] font-black flex items-center gap-1.5 shadow-2xs">
-                        <i className="fas fa-wrench text-[10px]"></i>
-                        <span>កំពុង Dev</span>
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10.5px] font-bold flex items-center gap-1.5 shadow-2xs">
+                        <i className="fas fa-play text-[9px]"></i>
+                        <span>លេងឥឡូវនេះ</span>
                       </span>
                     </div>
-                  </div>
+                  </Link>
 
                   {/* KonBong Card */}
                   <Link

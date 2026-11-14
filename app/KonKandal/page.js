@@ -82,11 +82,11 @@ export default function KonKandalPage() {
   const [currentSessionId, setCurrentSessionId] = useState('');
   const [selectedSessionModal, setSelectedSessionModal] = useState(null);
 
-  // KonKandal Restricted Dev Lock Key (11112003)
-  const [isKandalUnlocked, setIsKandalUnlocked] = useState(false);
+  // KonKandal Initial Open Access (Unlocked for everyone)
+  const [isKandalUnlocked, setIsKandalUnlocked] = useState(true);
   const [kandalKeyInput, setKandalKeyInput] = useState('');
   const [kandalKeyError, setKandalKeyError] = useState('');
-  const [isCheckingLock, setIsCheckingLock] = useState(true);
+  const [isCheckingLock, setIsCheckingLock] = useState(false);
 
   // Live Support Intervention State (Rotana NOB Bypass & Realtime Sync)
   const [isRotanaAdmin, setIsRotanaAdmin] = useState(false);
@@ -208,32 +208,10 @@ export default function KonKandalPage() {
   const [isRotanaMasterBypass, setIsRotanaMasterBypass] = useState(false);
   const [avatar, setAvatar] = useState('https://api.dicebear.com/7.x/adventurer/svg?seed=Student');
 
-  // Check Restricted Dev Lock Key (11112003)
+  // Open Access (Unlocked by default for immediate play)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let shouldHoldForLiveBypass = false;
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const hasLiveBypass = Boolean(params.get('liveSession') && params.get('token'));
-      const stored =
-        sessionStorage.getItem('konkandal_access_key') ||
-        localStorage.getItem('konkandal_access_key');
-      const adminPass = sessionStorage.getItem('rotana_admin_passcode');
-      const isMaster =
-        adminPass === 'rotana2026' ||
-        adminPass === 'rotana' ||
-        stored === '11112003' ||
-        stored === 'rotana2026';
-      if (isMaster) {
-        setIsKandalUnlocked(true);
-      } else if (hasLiveBypass) {
-        shouldHoldForLiveBypass = true;
-      }
-    } catch {} finally {
-      if (!shouldHoldForLiveBypass) {
-        setIsCheckingLock(false);
-      }
-    }
+    setIsKandalUnlocked(true);
+    setIsCheckingLock(false);
   }, []);
 
   const handleUnlockKandal = (e) => {
@@ -2126,12 +2104,13 @@ export default function KonKandalPage() {
 
           // Append server roast counter-attack message directly into chat stream
           const roastMsg = {
-            role: 'model',
-            parts: [{ text: roastText }],
+            role: 'bot',
+            text: roastText,
             timestamp: Date.now(),
             isSpamRoast: true
           };
           const withRoast = [...updatedMessages.slice(0, updatedMessages.length - 1), roastMsg];
+          setMessages(withRoast);
           saveCurrentSessionMessages(withRoast);
           return;
         }
@@ -3238,27 +3217,27 @@ export default function KonKandalPage() {
   return (
     <div
       className={`fixed inset-0 w-full h-full flex flex-col font-['Kantumruy_Pro',sans-serif] transition-colors duration-300 overflow-hidden ${
-        isDark ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'
+        isDark ? 'dark bg-[#0c1015] text-stone-100' : 'bg-[#f7f5f0] text-stone-900'
       }`}
     >
       {/* Loading Audio Notice / Toast */}
       {!isTtsMuted && Object.values(audioStates).includes('loading') && !botReadingNotice && !aiReadingNotice && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2">
-          <i className="fas fa-spinner fa-spin text-sky-400 text-sm"></i>
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-stone-900/95 border border-amber-500/40 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2">
+          <i className="fas fa-spinner fa-spin text-amber-400 text-sm"></i>
           <span>កំពុងទាញសំឡេង</span>
         </div>
       )}
       {/* Bot Reading Instead Notice / Toast */}
       {!isTtsMuted && botReadingNotice && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-amber-950/95 border border-amber-500/50 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-stone-900/95 border border-amber-500/40 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
           <i className="fas fa-volume-low text-amber-400 text-sm"></i>
           <span>កំពុងអាន</span>
         </div>
       )}
       {/* Real Voice Toast */}
       {!isTtsMuted && aiReadingNotice && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-sky-950/95 border border-sky-500/50 text-sky-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
-          <i className="fas fa-volume-high text-sky-400 text-sm"></i>
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-stone-900/95 border border-amber-500/40 text-amber-200 text-xs font-bold shadow-2xl backdrop-blur-md flex items-center gap-2 animate-bounce">
+          <i className="fas fa-volume-high text-amber-400 text-sm"></i>
           <span>កំពុងអាន</span>
         </div>
       )}
@@ -3271,15 +3250,15 @@ export default function KonKandalPage() {
       >
         <div
           className={`w-72 max-w-[85vw] h-full p-4 transition-transform duration-300 border-r shadow-2xl flex flex-col font-kantumruy antialiased ${
-            isDark ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
+            isDark ? 'bg-[#0f141c] border-stone-800 text-white' : 'bg-white border-stone-200 text-stone-900'
           } ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className={`flex justify-between items-center mb-4 pb-2 border-b ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
-            <span className={`font-black text-sm tracking-wide ${isDark ? 'text-cyan-400' : 'text-cyan-800 font-extrabold'}`}>SETEC Roastbot Hub</span>
+          <div className={`flex justify-between items-center mb-4 pb-2 border-b ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
+            <span className={`font-black text-sm tracking-wide ${isDark ? 'text-amber-400' : 'text-amber-700 font-extrabold'}`}>កូនទី២ • SETEC Insider</span>
             <button
               onClick={() => setDrawerOpen(false)}
-              className={`p-1.5 rounded-lg cursor-pointer transition ${isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
+              className={`p-1.5 rounded-lg cursor-pointer transition ${isDark ? 'text-stone-400 hover:text-white hover:bg-stone-800' : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'}`}
               title="បិទ Menu"
             >
               <i className="fas fa-times text-lg"></i>
@@ -3288,7 +3267,7 @@ export default function KonKandalPage() {
 
           {/* User Profile Card with Avatar Change & Remove */}
           <div className={`flex items-center gap-3 p-3 rounded-2xl mb-3 border shadow-xs transition ${
-            isDark ? 'bg-slate-800/80 border-slate-700/80' : 'bg-slate-100 border-slate-300'
+            isDark ? 'bg-stone-850/80 border-stone-750' : 'bg-stone-100 border-stone-300'
           }`}>
             <label className="relative cursor-pointer group shrink-0" title="ចុចដើម្បីប្ដូររូប Profile">
               <input
@@ -3300,17 +3279,17 @@ export default function KonKandalPage() {
               <img
                 src={avatar}
                 alt="User Avatar"
-                className={`w-11 h-11 rounded-full ring-2 object-cover shadow ${isDark ? 'ring-cyan-500/50' : 'ring-cyan-600'}`}
+                className={`w-11 h-11 rounded-full ring-2 object-cover shadow ${isDark ? 'ring-amber-500/50' : 'ring-amber-600'}`}
               />
               <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition text-[11px] text-white">
                 <i className="fas fa-camera"></i>
               </div>
             </label>
             <div className="min-w-0 flex-1">
-              <span className={`font-black text-xs truncate block ${isDark ? 'text-cyan-400' : 'text-cyan-900'}`}>{username || 'User'}</span>
+              <span className={`font-black text-xs truncate block ${isDark ? 'text-amber-400' : 'text-amber-900'}`}>{username || 'User'}</span>
               <div className="flex items-center gap-2.5 mt-1">
                 <label className={`text-[10.5px] cursor-pointer underline flex items-center gap-1 font-semibold transition ${
-                  isDark ? 'text-slate-300 hover:text-white' : 'text-slate-700 hover:text-slate-950'
+                  isDark ? 'text-stone-300 hover:text-white' : 'text-stone-700 hover:text-stone-950'
                 }`}>
                   <input
                     type="file"
@@ -3341,18 +3320,18 @@ export default function KonKandalPage() {
               createNewSession();
               setDrawerOpen(false);
             }}
-            className="w-full mb-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-2.5 px-4 rounded-xl shadow-md flex items-center gap-2 justify-center text-xs cursor-pointer active:scale-95 transition"
+            className="w-full mb-3 bg-amber-600 hover:bg-amber-700 text-white font-black py-2.5 px-4 rounded-xl shadow-md flex items-center gap-2 justify-center text-xs cursor-pointer active:scale-95 transition"
           >
             <i className="fas fa-plus"></i> ជជែកថ្មី
           </button>
 
-          <div className={`mb-2 font-black text-xs flex items-center gap-2 ${isDark ? 'text-cyan-400' : 'text-cyan-800'}`}>
+          <div className={`mb-2 font-black text-xs flex items-center gap-2 ${isDark ? 'text-amber-400' : 'text-amber-800'}`}>
             <i className="fas fa-comments"></i> ប្រវត្តិជជែក
           </div>
 
           <ul className="flex-1 overflow-y-auto space-y-1.5 mb-4 pr-1">
             {sessions.length === 0 ? (
-              <li className={`text-xs italic p-3 text-center rounded-xl border border-dashed ${isDark ? 'text-slate-400 border-slate-800' : 'text-slate-500 border-slate-300'}`}>មិនទាន់មានប្រវត្តិ</li>
+              <li className={`text-xs italic p-3 text-center rounded-xl border border-dashed ${isDark ? 'text-stone-400 border-stone-800' : 'text-stone-500 border-stone-300'}`}>មិនទាន់មានប្រវត្តិ</li>
             ) : (
               sessions.map((session) => {
                 const isActive = session.id === currentSessionId;
@@ -3367,15 +3346,15 @@ export default function KonKandalPage() {
                     className={`flex items-center justify-between gap-2 p-2.5 rounded-xl cursor-pointer text-xs font-bold transition group ${
                       isActive
                         ? isDark
-                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                          : 'bg-cyan-100 text-cyan-950 border border-cyan-300 font-black shadow-xs'
+                          ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                          : 'bg-amber-50 text-amber-950 border border-amber-300 font-black shadow-xs'
                         : isDark
-                        ? 'hover:bg-slate-800 text-slate-300'
-                        : 'hover:bg-slate-100 text-slate-800'
+                        ? 'hover:bg-stone-800 text-stone-300'
+                        : 'hover:bg-stone-100 text-stone-800'
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <i className={`fas fa-comment-dots text-xs shrink-0 ${isActive ? (isDark ? 'text-cyan-400' : 'text-cyan-700') : 'text-slate-500'}`}></i>
+                      <i className={`fas fa-comment-dots text-xs shrink-0 ${isActive ? (isDark ? 'text-amber-400' : 'text-amber-700') : 'text-stone-500'}`}></i>
                       <span className="truncate">{session.title || 'Chat'}</span>
                     </div>
 
@@ -3391,7 +3370,7 @@ export default function KonKandalPage() {
                           description: 'តើអ្នកពិតជាចង់លុបការជជែកនេះចេញពីប្រវត្តិមែនទេ?'
                         });
                       }}
-                      className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
+                      className="p-1 rounded-lg text-stone-400 hover:text-rose-500 hover:bg-rose-500/10 transition cursor-pointer shrink-0"
                       title="លុបការជជែកនេះ"
                     >
                       <i className="fas fa-trash-can text-[11px]"></i>
@@ -3403,10 +3382,10 @@ export default function KonKandalPage() {
           </ul>
 
           <div className={`flex items-center justify-between p-3 rounded-xl mb-2 border shadow-xs transition ${
-            isDark ? 'bg-slate-800/80 border-slate-700/80 text-slate-200' : 'bg-slate-100 border-slate-300 text-slate-900 font-black'
+            isDark ? 'bg-stone-850/80 border-stone-750 text-stone-200' : 'bg-stone-100 border-stone-300 text-stone-900 font-black'
           }`}>
             <span className="text-xs font-bold flex items-center gap-2">
-              <i className={`fas fa-circle-half-stroke ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}></i>
+              <i className={`fas fa-circle-half-stroke ${isDark ? 'text-amber-400' : 'text-amber-700'}`}></i>
               ពន្លឺ ឬ ងងឹត Theme
             </span>
             <ThemeToggle theme={theme} onToggle={handleToggleTheme} />
@@ -3419,13 +3398,13 @@ export default function KonKandalPage() {
               isDark
                 ? isTtsMuted
                   ? 'bg-rose-500/15 border-rose-500/30 text-rose-300 hover:bg-rose-500/25'
-                  : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/25'
+                  : 'bg-amber-500/15 border-amber-500/30 text-amber-300 hover:bg-amber-500/25'
                 : isTtsMuted
                 ? 'bg-rose-100 border-rose-300 text-rose-900 hover:bg-rose-200'
-                : 'bg-emerald-100 border-emerald-300 text-emerald-950 hover:bg-emerald-200'
+                : 'bg-amber-100 border-amber-300 text-amber-950 hover:bg-amber-200'
             }`}
           >
-            <i className={`fas ${isTtsMuted ? 'fa-volume-xmark text-rose-500' : 'fa-volume-high text-emerald-600'}`}></i>
+            <i className={`fas ${isTtsMuted ? 'fa-volume-xmark text-rose-500' : 'fa-volume-high text-amber-600'}`}></i>
             <span>{isTtsMuted ? 'សំឡេងអាន បិទ • ចុចដើម្បីបើក' : 'សំឡេងអាន បើក • ចុចដើម្បីបិទ'}</span>
           </button>
 
@@ -3438,8 +3417,8 @@ export default function KonKandalPage() {
             }}
             className={`w-full font-black py-2.5 px-4 rounded-xl text-center text-xs mb-2 transition border shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
               isDark
-                ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 border-slate-700'
-                : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+                ? 'bg-stone-850/80 hover:bg-stone-800 text-stone-200 border-stone-700'
+                : 'bg-white hover:bg-stone-50 text-stone-800 border-stone-300'
             }`}
             title="ថយក្រោយទៅទំព័រដើម កែឈ្មោះ និងអាយុ"
           >
@@ -3453,11 +3432,11 @@ export default function KonKandalPage() {
               onClick={() => stopAllGlobalAudio()}
               className={`font-black py-2.5 px-2.5 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-1.5 cursor-pointer ${
                 isDark
-                  ? 'bg-cyan-600/20 hover:bg-cyan-600 text-cyan-300 hover:text-white border-cyan-500/30'
-                  : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-950 border-cyan-300'
+                  ? 'bg-stone-850 hover:bg-stone-800 text-stone-200 border-stone-700'
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-900 border-stone-300'
               }`}
             >
-              <i className={`fa-solid fa-user-tie ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}></i>
+              <i className="fa-solid fa-user-tie text-amber-500"></i>
               <span>កូនច្បង</span>
             </Link>
             <Link
@@ -3469,7 +3448,7 @@ export default function KonKandalPage() {
                   : 'bg-pink-100 hover:bg-pink-200 text-pink-950 border-pink-300'
               }`}
             >
-              <i className={`fa-solid fa-heart ${isDark ? 'text-pink-400' : 'text-pink-600'}`}></i>
+              <i className="fa-solid fa-heart text-pink-500"></i>
               <span>កូនពៅ</span>
             </Link>
           </div>
@@ -3481,11 +3460,11 @@ export default function KonKandalPage() {
             }}
             className={`w-full mb-2 font-black py-2.5 px-4 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-2 cursor-pointer ${
               isDark
-                ? 'bg-emerald-950/40 hover:bg-emerald-600/30 text-emerald-300 hover:text-white border-emerald-500/30'
-                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-950 border-emerald-300'
+                ? 'bg-amber-950/40 hover:bg-amber-600/30 text-amber-300 hover:text-white border-amber-500/30'
+                : 'bg-amber-50 hover:bg-amber-100 text-amber-950 border-amber-300'
             }`}
           >
-            <i className={`fas fa-layer-group ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}></i> ចូលរួមបង្រៀន AI ស៊ីតិច
+            <i className={`fas fa-layer-group ${isDark ? 'text-amber-400' : 'text-amber-700'}`}></i> ចូលរួមបង្រៀន AI ស៊ីតិច
           </button>
 
           <button
@@ -3496,11 +3475,11 @@ export default function KonKandalPage() {
             }}
             className={`w-full mb-2 font-black py-2.5 px-4 rounded-xl shadow-xs text-center text-xs transition border flex items-center justify-center gap-2 cursor-pointer ${
               isDark
-                ? 'bg-slate-800/80 hover:bg-slate-700 text-cyan-300 border-slate-700'
-                : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-300'
+                ? 'bg-stone-850 hover:bg-stone-800 text-stone-200 border-stone-700'
+                : 'bg-stone-100 hover:bg-stone-200 text-stone-900 border-stone-300'
             }`}
           >
-            <i className={`fas fa-broom ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}></i> <span>គ្រប់គ្រងទំហំផ្ទុក Cache</span>
+            <i className={`fas fa-broom ${isDark ? 'text-amber-400' : 'text-amber-700'}`}></i> <span>គ្រប់គ្រងទំហំផ្ទុក Cache</span>
           </button>
 
           <div className="grid grid-cols-2 gap-2 mb-2">
@@ -3521,11 +3500,11 @@ export default function KonKandalPage() {
               onClick={() => setDrawerOpen(false)}
               className={`font-black py-2 px-2.5 rounded-xl text-center text-[11px] transition border flex items-center justify-center gap-1.5 shadow-xs ${
                 isDark
-                  ? 'bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-700/80'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-900 border-slate-300'
+                  ? 'bg-stone-850 hover:bg-stone-800 text-stone-300 hover:text-white border-stone-700'
+                  : 'bg-stone-100 hover:bg-stone-200 text-stone-900 border-stone-300'
               }`}
             >
-              <i className={`fas fa-shield-halved text-xs ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}></i>
+              <i className={`fas fa-shield-halved text-xs ${isDark ? 'text-amber-400' : 'text-amber-700'}`}></i>
               <span>គោលការណ៍ឯកជនភាព</span>
             </Link>
           </div>
@@ -3551,10 +3530,10 @@ export default function KonKandalPage() {
         </div>
       </div>
 
-      {/* Permanent Fixed Header (stays pinned at top at all times, clean & spacious) */}
+      {/* Permanent Fixed Header */}
       <header
         className={`shrink-0 backdrop-blur-md border-b flex justify-between items-center z-30 transition-colors px-2 sm:px-4 py-1.5 sm:py-2 gap-1.5 sm:gap-3 ${
-          isDark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200 shadow-xs'
+          isDark ? 'bg-[#0f141c]/95 border-stone-800' : 'bg-[#fcfaf7]/95 border-stone-200/90 shadow-2xs'
         }`}
         style={{
           paddingTop: 'max(env(safe-area-inset-top, 0px), 0.5rem)'
@@ -3565,7 +3544,7 @@ export default function KonKandalPage() {
           <Link
             href="/"
             className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition shrink-0 ${
-              isDark ? 'text-slate-400 hover:text-white hover:bg-slate-800' : 'text-slate-600 hover:text-black hover:bg-slate-100'
+              isDark ? 'text-stone-400 hover:text-white hover:bg-stone-800' : 'text-stone-600 hover:text-black hover:bg-stone-100'
             }`}
             title="ត្រឡប់ទៅទំព័រដើម"
             onClick={() => stopAllGlobalAudio()}
@@ -3575,38 +3554,30 @@ export default function KonKandalPage() {
 
           <div className="relative shrink-0">
             <img
-              src={isRotanaAdmin ? '/img/DevPic.JPG' : 'https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite'}
-              alt={isRotanaAdmin ? 'Rotana NOB' : 'KonKandal Avatar'}
-              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover shadow-xs ring-2 ${
-                isRotanaAdmin ? 'ring-amber-400' : 'ring-cyan-500/30'
-              }`}
+              src={isRotanaAdmin ? '/img/DevPic.JPG' : 'https://api.dicebear.com/7.x/personas/svg?seed=SETECKandalInsider'}
+              alt={isRotanaAdmin ? 'Rotana NOB' : 'SETEC Chatbot កូនទី២'}
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover shadow-xs ring-2 ${
+                isRotanaAdmin ? 'ring-amber-400' : 'ring-amber-500/40'
+              } bg-stone-800`}
             />
-            <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${botStatus.dotColor} rounded-full ring-2 ring-white dark:ring-slate-950 transition-colors`}></span>
+            <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 ${botStatus.dotColor} rounded-full ring-2 ring-white dark:ring-stone-900 transition-colors`}></span>
           </div>
 
           <div className="min-w-0 flex-1 pr-0.5">
             <div className="flex items-center gap-1 min-w-0">
               <h1 className={`font-black text-xs sm:text-sm tracking-tight truncate ${
-                isRotanaAdmin ? 'text-amber-400' : isDark ? 'text-white' : 'text-slate-900'
+                isRotanaAdmin ? 'text-amber-400' : isDark ? 'text-white' : 'text-stone-900'
               }`}>
                 {isRotanaAdmin ? (
                   <span className="flex items-center gap-1 truncate">
                     <i className="fas fa-headset text-xs text-amber-400 shrink-0"></i>
                     <span>Live Support</span>
-                    <span className="text-[10px] text-slate-300 font-normal truncate"> - {clientUsername}</span>
+                    <span className="text-[10px] text-stone-300 font-normal truncate"> - {clientUsername}</span>
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 truncate">
-                    <span className="truncate">ស៊ីតិច កូនទី២</span>
-                    <span className="px-1 py-0.2 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-mono text-[8.5px] font-bold shrink-0">Unlocked</span>
-                    <button
-                      type="button"
-                      onClick={handleRelockKandal}
-                      className="p-0.5 rounded text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 text-[10px] transition cursor-pointer shrink-0"
-                      title="ចាក់សោទំព័រនេះវិញ"
-                    >
-                      <i className="fas fa-lock" />
-                    </button>
+                    <span className="truncate">កូនទី២ • SETEC Insider</span>
+                    <span className="px-1.5 py-0.2 rounded bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[8.5px] font-bold shrink-0">មហាស្លូត & Funny</span>
                   </span>
                 )}
               </h1>
@@ -3614,7 +3585,7 @@ export default function KonKandalPage() {
             <div className="flex items-center gap-1 text-[10px] min-w-0">
               <span className={`w-1.5 h-1.5 ${botStatus.dotColor} rounded-full inline-block animate-pulse shrink-0`}></span>
               <span className={`font-bold text-[8.5px] sm:text-[9.5px] truncate ${botStatus.textColor}`}>
-                {isRotanaAdmin ? 'Rotana Verified Agent' : botStatus.text}
+                {isRotanaAdmin ? 'Rotana Verified Agent' : 'ឆ្លើយតបរហ័ស • ជជែកសប្បាយៗ'}
               </span>
             </div>
           </div>
@@ -3638,8 +3609,8 @@ export default function KonKandalPage() {
                   : sessionState.remainingSessionSec <= 300
                   ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
                   : isDark
-                  ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
-                  : 'bg-cyan-50 text-cyan-700 border-cyan-200'
+                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                  : 'bg-amber-50 text-amber-800 border-amber-200'
               }`}
             >
               <i
@@ -3648,7 +3619,7 @@ export default function KonKandalPage() {
                     ? 'fa-hourglass-half text-amber-400 animate-spin'
                     : sessionState.remainingSessionSec <= 120
                     ? 'fa-stopwatch text-rose-400 animate-spin'
-                    : 'fa-stopwatch text-cyan-400'
+                    : 'fa-stopwatch text-amber-400'
                 } text-[8.5px] sm:text-[10px]`}
               ></i>
               <span className="hidden lg:inline">{sessionState.isLocked ? 'ម៉ោងសម្រាក: ' : 'ម៉ោងលេង: '}</span>
@@ -3718,20 +3689,20 @@ export default function KonKandalPage() {
               }}
               className={`px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[11px] font-bold flex items-center gap-1 sm:gap-1.5 transition active:scale-95 border cursor-pointer shrink-0 shadow-xs select-none ${
                 showBotMenu
-                  ? 'bg-emerald-500/25 border-emerald-400 text-emerald-500 dark:text-emerald-300 ring-1 ring-emerald-400/30'
+                  ? 'bg-amber-500/25 border-amber-400 text-amber-500 dark:text-amber-300 ring-1 ring-amber-400/30'
                   : isDark
-                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 ring-1 ring-emerald-500/20'
-                  : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 shadow-xs'
+                  ? 'bg-stone-850 border-stone-700 text-stone-200 hover:bg-stone-800'
+                  : 'bg-stone-100 border-stone-300 text-stone-800 hover:bg-stone-200'
               }`}
               title="ចុចដើម្បីប្ដូរទៅជជែកជាមួយ Chatbot ផ្សេងទៀត ដូចជា កូនច្បង ឬកូនពៅ"
             >
               <span className="flex items-center gap-0.5">
-                <i className="fa-solid fa-robot text-[10px] sm:text-xs text-emerald-500 dark:text-emerald-400"></i>
-                <i className="fa-solid fa-arrow-right-arrow-left text-[8px] sm:text-[9px] text-emerald-400"></i>
+                <i className="fa-solid fa-robot text-[10px] sm:text-xs text-amber-500"></i>
+                <i className="fa-solid fa-arrow-right-arrow-left text-[8px] sm:text-[9px] text-amber-400"></i>
               </span>
               <span className="font-extrabold hidden sm:inline">ប្ដូរតួ Bot</span>
               <span className="font-extrabold sm:hidden hidden min-[360px]:inline">ប្ដូរ</span>
-              <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-500/20 dark:bg-emerald-400/20 flex items-center justify-center">
+              <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-amber-500/20 flex items-center justify-center">
                 <i
                   className={`fas fa-chevron-down text-[6.5px] sm:text-[8px] transition-transform duration-200 ${
                     showBotMenu ? 'rotate-180' : ''
@@ -3740,7 +3711,7 @@ export default function KonKandalPage() {
               </span>
             </button>
 
-            {/* Floating Bot Switcher Dropdown (NO EMOJI, NO PARENTHESES) */}
+            {/* Floating Bot Switcher Dropdown */}
             {showBotMenu && (
               <>
                 <div
@@ -3748,18 +3719,18 @@ export default function KonKandalPage() {
                   onClick={() => setShowBotMenu(false)}
                 />
                 <div className={`absolute right-0 top-9 sm:top-10 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up font-kantumruy ${
-                  isDark ? 'bg-slate-900/98 border-slate-700 text-white shadow-black/80' : 'bg-white/98 border-slate-200 text-slate-900 shadow-xl'
+                  isDark ? 'bg-[#121720]/98 border-stone-750 text-white shadow-black/80' : 'bg-white/98 border-stone-200 text-stone-900 shadow-xl'
                 }`}>
-                  <div className="px-2 py-1 border-b border-slate-700/30 flex items-center justify-between mb-1.5">
-                    <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                      <i className="fa-solid fa-robot text-xs text-emerald-400"></i>
+                  <div className="px-2 py-1 border-b border-stone-700/30 flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <i className="fa-solid fa-robot text-xs text-amber-400"></i>
                       <i className="fa-solid fa-arrow-right-arrow-left text-[10px]"></i>
                       <span>ជ្រើសរើសតួ Chatbot ផ្សេង</span>
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowBotMenu(false)}
-                      className="text-slate-400 hover:text-white text-xs p-1 cursor-pointer"
+                      className="text-stone-400 hover:text-white text-xs p-1 cursor-pointer"
                     >
                       <i className="fas fa-times"></i>
                     </button>
@@ -3770,7 +3741,7 @@ export default function KonKandalPage() {
                       {
                         id: 'konbong',
                         name: 'ស៊ីតិច Chatbot កូនច្បង',
-                        role: 'រៀមច្បង IT Flexible កាច & ស្លូត',
+                        role: 'រៀមច្បង IT Flexible កាច និង ស្លូត',
                         href: '/KonBong',
                         avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot',
                         color: 'text-indigo-400',
@@ -3781,18 +3752,18 @@ export default function KonKandalPage() {
                       {
                         id: 'konkandal',
                         name: 'ស៊ីតិច Chatbot កូនទី២',
-                        role: 'មហាស្លូត & Funny',
+                        role: 'មហាស្លូត និង Funny',
                         href: '/KonKandal',
-                        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite',
-                        color: 'text-emerald-400',
-                        bg: 'bg-emerald-500/15',
-                        border: 'border-emerald-500/40',
+                        avatar: 'https://api.dicebear.com/7.x/personas/svg?seed=SETECKandalInsider',
+                        color: 'text-amber-400',
+                        bg: 'bg-amber-500/15',
+                        border: 'border-amber-500/40',
                         isCurrent: true
                       },
                       {
                         id: 'konpov',
                         name: 'ស៊ីតិច Roastbot កូនពៅ',
-                        role: 'ចែ Mommy & Daddy ស្ដេចឌឺ',
+                        role: 'ចែ Mommy និង Daddy ស្ដេចឌឺ',
                         href: '/KonPov',
                         avatar: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka',
                         color: 'text-pink-400',
@@ -3812,10 +3783,10 @@ export default function KonKandalPage() {
                           botItem.isCurrent
                             ? isDark
                               ? `${botItem.bg} border ${botItem.border} ${botItem.color}`
-                              : 'bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold'
+                              : 'bg-amber-50 border border-amber-300 text-amber-900 font-bold'
                             : isDark
-                            ? 'hover:bg-slate-800/70 border border-transparent text-slate-300'
-                            : 'hover:bg-slate-100 border border-transparent text-slate-700'
+                            ? 'hover:bg-stone-800/70 border border-transparent text-stone-300'
+                            : 'hover:bg-stone-100 border border-transparent text-stone-700'
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -3826,17 +3797,17 @@ export default function KonKandalPage() {
                             <div className="text-xs font-bold leading-tight flex items-center gap-1.5">
                               <span>{botItem.name}</span>
                               {botItem.isCurrent && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-400 font-mono">
+                                <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 font-mono">
                                   កំពុងជជែក
                                 </span>
                               )}
                             </div>
-                            <div className="text-[10px] text-slate-400 dark:text-slate-500">
+                            <div className="text-[10px] text-stone-400 dark:text-stone-500">
                               {botItem.role}
                             </div>
                           </div>
                         </div>
-                        <i className={`fa-solid ${botItem.isCurrent ? 'fa-check text-xs text-emerald-400' : 'fa-arrow-right text-[10px] opacity-40'}`}></i>
+                        <i className={`fa-solid ${botItem.isCurrent ? 'fa-check text-xs text-amber-400' : 'fa-arrow-right text-[10px] opacity-40'}`}></i>
                       </Link>
                     ))}
                   </div>
@@ -3864,12 +3835,12 @@ export default function KonKandalPage() {
             href="/privacy"
             className={`hidden md:inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 ${
               isDark
-                ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20'
-                : 'bg-cyan-50 border-cyan-300 text-cyan-800 hover:bg-cyan-100 shadow-xs'
+                ? 'bg-stone-850 border-stone-700 text-stone-300 hover:bg-stone-800'
+                : 'bg-stone-100 border-stone-300 text-stone-800 hover:bg-stone-200 shadow-xs'
             }`}
             title="គោលការណ៍ឯកជនភាព និងការការពារទិន្នន័យ"
           >
-            <i className="fas fa-shield-halved text-[9px] text-cyan-400"></i>
+            <i className="fas fa-shield-halved text-[9px] text-amber-400"></i>
             <span className="hidden sm:inline">Privacy</span>
           </Link>
 
@@ -3879,17 +3850,17 @@ export default function KonKandalPage() {
             onClick={() => setShowSavedRoastsModal(true)}
             className={`inline-flex items-center gap-1 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[9px] sm:text-[10.5px] font-bold border transition active:scale-95 shrink-0 cursor-pointer ${
               savedRoasts.length > 0
-                ? 'bg-[#124229] border-[#25613e] text-[#fbf8f2]'
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
                 : isDark
-                ? 'bg-[#0d2a1b] border-[#1c4d32] text-[#d7ccb7] hover:bg-[#123824]'
-                : 'bg-[#f4efe4] border-[#cfc6b4] text-[#0d3822] hover:bg-[#ebe2d3]'
+                ? 'bg-stone-850 border-stone-700 text-stone-300 hover:bg-stone-800'
+                : 'bg-stone-100 border-stone-300 text-stone-800 hover:bg-stone-200'
             }`}
             title="ពាក្យកំប្លែងដែលបានរក្សាទុក"
           >
-            <i className="far fa-bookmark text-[9px] sm:text-[9.5px] text-[#d4af37]"></i>
+            <i className="far fa-bookmark text-[9px] sm:text-[9.5px] text-amber-400"></i>
             <span className="hidden sm:inline">ពាក្យពេញចិត្ត</span>
             {savedRoasts.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-[#d4af37] text-[#082215] text-[9px] font-black">
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-500 text-stone-950 text-[9px] font-black">
                 {savedRoasts.length}
               </span>
             )}
@@ -3900,15 +3871,15 @@ export default function KonKandalPage() {
             onClick={() => setDrawerOpen(true)}
             className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition active:scale-95 text-xs border cursor-pointer shrink-0 ${
               isDark
-                ? 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 border-slate-800'
-                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200 shadow-xs'
+                ? 'bg-stone-850 text-stone-300 hover:bg-stone-800 border-stone-700'
+                : 'bg-stone-50 text-stone-700 hover:bg-stone-100 border-stone-200 shadow-xs'
             }`}
             title="ប្រវត្តិជជែក & ម៉ឺនុយ"
           >
             <i className="fas fa-bars"></i>
           </button>
 
-          {/* AI Mode Selection Floating Dropdown (Clean, Crisp, NO EMOJI) */}
+          {/* AI Mode Selection Floating Dropdown */}
           {showModeMenu && (
             <>
               <div
@@ -3916,16 +3887,16 @@ export default function KonKandalPage() {
                 onClick={() => setShowModeMenu(false)}
               />
               <div className={`absolute right-0 top-11 sm:top-12 z-50 w-64 rounded-2xl p-2.5 shadow-2xl border backdrop-blur-xl animate-scale-up ${
-                isDark ? 'bg-slate-900/98 border-slate-700 text-white shadow-black/80' : 'bg-white/98 border-slate-200 text-slate-900 shadow-xl'
+                isDark ? 'bg-[#121720]/98 border-stone-750 text-white shadow-black/80' : 'bg-white/98 border-stone-200 text-stone-900 shadow-xl'
               }`}>
-                <div className="px-2 py-1 border-b border-slate-700/30 flex items-center justify-between mb-1.5">
-                  <span className="text-[11px] font-black uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                <div className="px-2 py-1 border-b border-stone-700/30 flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                     <i className="fas fa-sliders-h text-xs"></i>
                     <span>ជ្រើសរើសម៉ូដ AI</span>
                   </span>
                   <button
                     onClick={() => setShowModeMenu(false)}
-                    className="text-slate-400 hover:text-white text-xs p-1 cursor-pointer"
+                    className="text-stone-400 hover:text-white text-xs p-1 cursor-pointer"
                   >
                     <i className="fas fa-times"></i>
                   </button>
@@ -3951,21 +3922,21 @@ export default function KonKandalPage() {
                           isSelected
                             ? isDark
                               ? `${m.bg} border ${m.border} ${m.text}`
-                              : 'bg-cyan-50 border border-cyan-300 text-cyan-900 font-bold'
+                              : 'bg-amber-50 border border-amber-300 text-amber-900 font-bold'
                             : isDark
-                            ? 'hover:bg-slate-800/80 text-slate-300'
-                            : 'hover:bg-slate-100 text-slate-700'
+                            ? 'hover:bg-stone-800/80 text-stone-300'
+                            : 'hover:bg-stone-100 text-stone-700'
                         }`}
                       >
-                        <span className="w-6 h-6 rounded-lg bg-slate-800/80 flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="w-6 h-6 rounded-lg bg-stone-800 flex items-center justify-center shrink-0 mt-0.5">
                           <i className={`fas ${m.icon} ${m.iconColor} text-xs`}></i>
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <span className="font-black text-xs">{m.title}</span>
-                            {isSelected && <i className="fas fa-check text-cyan-400 text-xs shrink-0"></i>}
+                            {isSelected && <i className="fas fa-check text-amber-400 text-xs shrink-0"></i>}
                           </div>
-                          <p className="text-[10px] text-slate-400 leading-tight mt-0.5">{m.desc}</p>
+                          <p className="text-[10px] text-stone-400 leading-tight mt-0.5">{m.desc}</p>
                         </div>
                       </button>
                     );
@@ -4158,17 +4129,17 @@ export default function KonKandalPage() {
           <img
             src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
             alt="Bot Avatar"
-            className="w-8 h-8 rounded-full ring-2 ring-cyan-500/30 shadow-xs shrink-0 mt-0.5"
+            className="w-8 h-8 rounded-xl ring-2 ring-amber-500/40 shadow-xs shrink-0 mt-0.5 bg-stone-800"
           />
           <div className="flex flex-col flex-1 min-w-0">
-            <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Chatbot កូនទី២</span>
+            <span className="font-bold text-amber-500 dark:text-amber-400 text-xs mb-1">ប្អូនទី២ • SETEC Insider</span>
             <div
               className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border ${
-                isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
+                isDark ? 'bg-[#151a22] border-stone-800 text-stone-200' : 'bg-white border-stone-200/90 text-stone-800'
               }`}
             >
               <p className="text-xs sm:text-sm font-medium leading-relaxed">
-                សួស្តី{username && username !== 'User' ? `គ្នាយើង ${username}` : 'គ្នាយើង'}! ខ្ញុំគឺ <b>ស៊ីតិច Chatbot កូនទី២</b> ឬ <b>ប្អូនទី២</b> មហាស្លូត & Funny ប្រចាំ SETEC! មានរឿងអីចង់ជជែកលេង ឬចង់សួរនាំរឿងរៀន Assignment IT, Design, និងជីវិតសិស្សនៅស៊ីតិច? មកជជែកជាមួយប្អូនទី២មក សប្បាយៗបំបាត់ស្រ្តេសហ្មង!
+                សួស្តី{username && username !== 'User' ? `គ្នាយើង ${username}` : 'គ្នាយើង'}! ខ្ញុំគឺ <b>ស៊ីតិច Chatbot កូនទី២</b> ឬ <b>ប្អូនទី២</b> ជាសិស្សច្បង Insider មហាស្លូត & Funny ប្រចាំ SETEC! មានរឿងអីចង់ជជែកលេង ឬចង់សួរនាំរឿងរៀន JavaScript, C#, Python, Network, Graphic Design, និងជីវិតសិស្សនៅស៊ីតិច? មកជជែកជាមួយប្អូនទី២មក សប្បាយៗបំបាត់ស្រ្តេសហ្មង!
               </p>
             </div>
           </div>
@@ -4178,11 +4149,11 @@ export default function KonKandalPage() {
         {messages.length === 0 && (
           <div className="w-full max-w-xl mx-auto py-3 animate-fade-in">
             <div className="text-center mb-3.5">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold shadow-xs">
-                <i className="fas fa-comments text-indigo-500 text-xs"></i>
-                <span>ក្តារជជែកជាមួយប្អូនទី២</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-[11px] font-bold shadow-xs">
+                <i className="fas fa-terminal text-amber-500 text-xs"></i>
+                <span>ក្តារជជែកបច្ចេកវិទ្យា & ជីវិតនិស្សិត</span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+              <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-1.5">
                 ជ្រើសរើសប្រធានបទដើម្បីជជែកលេង ឬសួរនាំរឿងរ៉ាវក្នុងវិទ្យាស្ថាន
               </p>
             </div>
@@ -4190,58 +4161,58 @@ export default function KonKandalPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {[
                 {
-                  tag: 'ព័ត៌មានក្តៅៗ',
-                  tagColor: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50',
-                  icon: 'fa-bullhorn',
-                  iconColor: 'text-rose-600 dark:text-rose-400',
-                  title: 'រឿងល្បីៗក្នុងវិទ្យាស្ថាន',
-                  desc: 'រឿងរ៉ាវប្លែកៗ និងរឿងផ្ទៃក្នុងរបស់និស្សិតឆ្នាំនេះ',
-                  prompt: 'សុំនិយាយរឿងរ៉ាវប្លែកៗរបស់និស្សិតនៅ SETEC ឆ្នាំនេះបន្តិចមើលប្អូនទី២'
-                },
-                {
-                  tag: 'ការប្រឡង',
+                  tag: 'JavaScript',
                   tagColor: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50',
-                  icon: 'fa-graduation-cap',
+                  icon: 'fa-code',
                   iconColor: 'text-amber-600 dark:text-amber-400',
-                  title: 'គន្លឹះប្រឡងកុំឱ្យសងលុយ',
-                  desc: 'តិចនិកប្រឡងកុំឱ្យធ្លាក់សង ៤៥ ដុល្លារមួយមុខៗ',
-                  prompt: 'ប្អូនទី២ មានតិចនិកប្រឡងកុំឱ្យធ្លាក់សង ៤៥ ដុល្លារនៅស៊ីទិចទេ'
+                  title: 'រឿងចម្លែកក្នុងកូដ JS',
+                  desc: 'typeof NaN ចេញ number និង object Object ពេញអេក្រង់',
+                  prompt: 'ខ្ញុំកំពុងរៀន JavaScript ជួយ roast ខ្ញុំបន្តិចមើលប្អូនទី២'
                 },
                 {
-                  tag: 'រឿងបងប្អូន',
-                  tagColor: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900/50',
-                  icon: 'fa-users',
-                  iconColor: 'text-indigo-600 dark:text-indigo-400',
-                  title: 'និយាយពីបងធំ និងកូនពៅ',
-                  desc: 'ចរិតបងកូនច្បងរៀនកូដ និងកូនពៅកំហូច',
-                  prompt: 'ប្អូនទី២ យល់យ៉ាងណាដែរចំពោះបងកូនច្បង និងមេកូនពៅ'
+                  tag: 'C# ឆ្នាំទី២',
+                  tagColor: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50',
+                  icon: 'fa-graduation-cap',
+                  iconColor: 'text-rose-600 dark:text-rose-400',
+                  title: 'ច្បាប់ប្រឡងសង ៤៥ ដុល្លារ',
+                  desc: 'តិចនិកការពារខ្លួនកុំឱ្យបង់ ៤៥ ដុល្លារនៅឆ្នាំទី២',
+                  prompt: 'ខ្ញុំរៀន C# នៅឆ្នាំ២ ខ្លាចប្រឡងសង ៤៥ ដុល្លារណាស់ប្អូនទី២'
                 },
                 {
-                  tag: 'ម្ហូបអាហារ',
-                  tagColor: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50',
-                  icon: 'fa-utensils',
-                  iconColor: 'text-emerald-600 dark:text-emerald-400',
-                  title: 'ហាងបាយឆ្ងាញ់ជិតសាលា',
-                  desc: 'កន្លែងញ៉ាំបាយ និងកាហ្វេជិតវិទ្យាស្ថានតម្លៃសមរម្យ',
-                  prompt: 'ហាងបាយ ឬកាហ្វេជិត SETEC មួយណាឆ្ងាញ់ហើយតម្លៃនិស្សិតប្អូនទី២'
-                },
-                {
-                  tag: 'បច្ចេកវិទ្យា',
+                  tag: 'Python & AI',
                   tagColor: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-900/50',
-                  icon: 'fa-wifi',
+                  icon: 'fa-robot',
                   iconColor: 'text-sky-600 dark:text-sky-400',
-                  title: 'អ៊ីនធឺណិត និងកិច្ចការផ្ទះ',
-                  desc: 'កូដយប់ជ្រៅ វ៉ាយហ្វាយស្លូ និងវិធីដោះស្រាយ',
-                  prompt: 'វ៉ាយហ្វាយ SETEC ស្លូខ្លាំង តើប្អូនទី២ មានតិចនិកអីធ្វើកូដទាន់គេ'
+                  title: 'AI Engineer ជំនាន់ថ្មី',
+                  desc: 'import tensorflow មួយបន្ទាត់តាំងខ្លួនជា AI Specialist',
+                  prompt: 'ខ្ញុំកំពុងរៀន Python ចង់ក្លាយជា AI Engineer'
                 },
                 {
-                  tag: 'រឿងផ្ទាល់ខ្លួន',
+                  tag: 'Graphic Design',
                   tagColor: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/50',
-                  icon: 'fa-heart',
+                  icon: 'fa-pen-nib',
                   iconColor: 'text-purple-600 dark:text-purple-400',
-                  title: 'ស្នេហាក្នុងវ័យសិក្សា',
-                  desc: 'លួចស្រឡាញ់គេក្នុងថ្នាក់ គួរធ្វើយ៉ាងណា',
-                  prompt: 'លួចស្រឡាញ់គេក្នុងថ្នាក់ គួរធ្វើម៉េចកុំឱ្យគេដឹងប្អូនទី២'
+                  title: 'Client សុំកែ Logo',
+                  desc: 'Photoshop គាំងមិនទាន់ save និង file Final v2',
+                  prompt: 'ខ្ញុំរៀន Graphic Design ជួប client សុំកែ Logo រហូត'
+                },
+                {
+                  tag: 'Assignment',
+                  tagColor: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-900/50',
+                  icon: 'fa-clock',
+                  iconColor: 'text-orange-600 dark:text-orange-400',
+                  title: 'កិច្ចការយប់ជ្រៅ',
+                  desc: 'សល់ ២ ម៉ោងទៀតដល់ម៉ោង ១២ យប់ គួរធ្វើយ៉ាងណា',
+                  prompt: 'យប់នេះដល់ Deadline Assignment ហើយនៅសល់ច្រើនមុខទៀត'
+                },
+                {
+                  tag: 'SETEC Campus',
+                  tagColor: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50',
+                  icon: 'fa-building-columns',
+                  iconColor: 'text-emerald-600 dark:text-emerald-400',
+                  title: 'ជណ្ដើរជើង ៥ ជាន់',
+                  desc: 'រឿងរ៉ាវប្លែកៗ និងបទពិសោធន៍រៀននៅវិទ្យាស្ថាន',
+                  prompt: 'ប្រាប់ពីបទពិសោធន៍ជីវិតនិស្សិតនៅស៊ីតិចតិចមើលប្អូនទី២'
                 }
               ].map((item, qIdx) => (
                 <button
@@ -4250,25 +4221,25 @@ export default function KonKandalPage() {
                   onClick={() => handleChat(item.prompt)}
                   className={`p-3 rounded-xl border text-left transition duration-150 group cursor-pointer flex flex-col justify-between ${
                     isDark
-                      ? 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 hover:border-slate-700 shadow-sm'
-                      : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 shadow-xs'
+                      ? 'bg-[#151a22] hover:bg-[#1b212c] border-stone-800 hover:border-amber-500/40 shadow-sm'
+                      : 'bg-white hover:bg-stone-50 border-stone-200 hover:border-amber-300 shadow-xs'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${item.tagColor}`}>
                       {item.tag}
                     </span>
-                    <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform group-hover:translate-x-0.5"></i>
+                    <i className="fas fa-chevron-right text-[10px] text-stone-400 group-hover:text-amber-500 transition-transform group-hover:translate-x-0.5"></i>
                   </div>
                   <div className="flex items-start gap-2.5 my-0.5">
-                    <div className="mt-0.5 w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                    <div className="mt-0.5 w-6 h-6 rounded-lg bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0">
                       <i className={`fas ${item.icon} ${item.iconColor} text-xs`}></i>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-bold text-xs text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                      <div className="font-bold text-xs text-stone-800 dark:text-stone-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                         {item.title}
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-relaxed mt-0.5">
+                      <p className="text-[11px] text-stone-500 dark:text-stone-400 line-clamp-1 leading-relaxed mt-0.5">
                         {item.desc}
                       </p>
                     </div>
@@ -4284,24 +4255,22 @@ export default function KonKandalPage() {
                 onClick={() => setContributeModalOpen(true)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition cursor-pointer active:scale-95 ${
                   isDark
-                    ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
-                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
+                    ? 'bg-[#151a22] border-stone-800 text-stone-300 hover:bg-stone-800 hover:border-amber-500/30'
+                    : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50 shadow-xs'
                 }`}
               >
-                <i className="fas fa-pen-to-square text-indigo-500 text-xs"></i>
+                <i className="fas fa-pen-to-square text-amber-500 text-xs"></i>
                 <span>ចែករំលែករឿងរ៉ាវក្នុងសាលាបន្ថែម</span>
               </button>
             </div>
           </div>
         )}
 
-
-
         {/* Real-time In-Chat System Logs */}
         {sessionLogs.map((log, lIdx) => (
           <div key={'log_' + lIdx} className="flex justify-center my-1.5 animate-fade-in">
-            <div className="px-3.5 py-1 rounded-full bg-slate-800/90 border border-slate-700/60 text-slate-300 text-[10.5px] font-medium flex items-center gap-1.5 shadow-xs backdrop-blur-sm">
-              <i className="fas fa-info-circle text-cyan-400 text-[11px]"></i>
+            <div className="px-3.5 py-1 rounded-full bg-stone-800/90 border border-stone-700/60 text-stone-300 text-[10.5px] font-medium flex items-center gap-1.5 shadow-xs backdrop-blur-sm">
+              <i className="fas fa-info-circle text-amber-400 text-[11px]"></i>
               <span>{log.text}</span>
             </div>
           </div>
@@ -4362,7 +4331,7 @@ export default function KonKandalPage() {
                         <i className="fas fa-trash-alt text-[8px]"></i>
                       </button>
                     )}
-                    <span className="font-bold text-cyan-500 dark:text-cyan-400 text-[11px]">{username}</span>
+                    <span className="font-bold text-amber-500 dark:text-amber-400 text-[11px]">{username}</span>
                     <label className="relative cursor-pointer group/avatar" title="ចុចដើម្បីប្ដូររូប Profile">
                       <input
                         type="file"
@@ -4373,7 +4342,7 @@ export default function KonKandalPage() {
                       <img
                         src={avatar}
                         alt="User Avatar"
-                        className="w-6 h-6 rounded-full ring-1 ring-cyan-400/40 shadow-xs object-cover hover:ring-2 hover:ring-cyan-400 transition"
+                        className="w-6 h-6 rounded-full ring-1 ring-amber-400/40 shadow-xs object-cover hover:ring-2 hover:ring-amber-400 transition"
                       />
                       <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition text-[7px] text-white">
                         <i className="fas fa-camera"></i>
@@ -4384,13 +4353,13 @@ export default function KonKandalPage() {
                   {msg.image && (
                     <div
                       onClick={() => setViewingImage({ url: msg.image, caption: msg.text })}
-                      className="cursor-pointer rounded-2xl overflow-hidden border border-cyan-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
+                      className="cursor-pointer rounded-2xl overflow-hidden border border-amber-400/40 shadow-md max-w-xs hover:opacity-95 transition mb-1"
                     >
                       <img src={msg.image} alt="User upload" className="max-h-56 w-auto object-cover" />
                     </div>
                   )}
 
-                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-sm text-xs sm:text-sm leading-relaxed bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 text-white w-full min-w-0 max-w-full break-all [overflow-wrap:anywhere] [word-break:break-all]">
+                  <div className="px-4 py-2.5 rounded-2xl rounded-tr-xs font-medium shadow-xs text-xs sm:text-sm leading-relaxed bg-amber-600 text-white w-full min-w-0 max-w-full break-all [overflow-wrap:anywhere] [word-break:break-all]">
                     {renderClickableContent(msg.text)}
                   </div>
                 </div>
@@ -4485,54 +4454,33 @@ export default function KonKandalPage() {
 
             return (
               <div key={idx} className="flex items-start gap-2.5 w-full min-w-0 max-w-[92%] sm:max-w-[85%] animate-fade-in">
-                {/* Interactive Animated Talking/Roasting Bot Avatar (DJ Beat / Surprise Popup / Puppet Talking Mouth "ហាមាត់ធំៗ") */}
-                <div className={`relative shrink-0 mt-0.5 ${isThisItemPlaying ? 'animate-puppet-talk' : ''}`}>
-                  {isThisItemPlaying && (
-                    <>
-                      {/* Concentric Radiating Bass Waves */}
-                      <span className="absolute inset-0 rounded-full animate-sound-wave-1 pointer-events-none"></span>
-                      <span className="absolute inset-0 rounded-full animate-sound-wave-2 pointer-events-none"></span>
-                    </>
-                  )}
+                {/* Clean Collegiate Avatar */}
+                <div className="relative shrink-0 mt-0.5">
                   <img
-                    src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
-                    alt="Bot Avatar"
-                    className={`w-8 h-8 rounded-full shadow-md shrink-0 transition-all duration-300 relative z-10 ${
-                      isThisItemPlaying
-                        ? 'ring-4 ring-cyan-400 ring-offset-2 ring-offset-slate-900 bot-avatar-beat-mega'
-                        : 'ring-2 ring-cyan-500/30'
-                    }`}
+                    src="https://api.dicebear.com/7.x/personas/svg?seed=SETECKandalInsider"
+                    alt="ប្អូនទី២"
+                    className={`w-8 h-8 rounded-xl shadow-xs shrink-0 transition-all duration-200 relative z-10 ${
+                      isThisItemPlaying ? 'ring-2 ring-amber-400' : 'ring-1 ring-amber-500/30'
+                    } bg-stone-800`}
                   />
-                  {/* Animated Puppet Talking Mouth (ហាមាត់ធំៗ បិទបើកៗដូចតុក្កតានិយាយ) */}
                   {isThisItemPlaying && (
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
-                      <div className="puppet-talking-mouth flex flex-col items-center justify-between overflow-hidden shadow-inner">
-                        {/* Top White Teeth */}
-                        <div className="w-full h-[2px] bg-white rounded-t-xs opacity-95"></div>
-                        {/* Cute Red Tongue */}
-                        <div className="w-3 h-2 bg-rose-500 rounded-full mb-0.5 animate-pulse"></div>
-                      </div>
-                    </div>
-                  )}
-                  {isThisItemPlaying && (
-                    <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 z-20">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-4.5 w-4.5 bg-gradient-to-tr from-cyan-600 via-teal-600 to-emerald-500 items-center justify-center text-[8.5px] text-white shadow-md ring-1 ring-white dark:ring-slate-900">
-                        <i className="fas fa-volume-up animate-pulse"></i>
+                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4 z-20">
+                      <span className="relative inline-flex rounded-full h-4 w-4 bg-amber-600 items-center justify-center text-[8px] text-white shadow-xs">
+                        <i className="fas fa-volume-up"></i>
                       </span>
                     </span>
                   )}
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="font-bold text-cyan-500 dark:text-cyan-400 text-xs mb-1">Chatbot កូនទី២</span>
+                  <span className="font-bold text-amber-500 dark:text-amber-400 text-xs mb-1">ប្អូនទី២ • SETEC Insider</span>
 
-                  {/* AI Thinking Indicator (Rendered ABOVE the message bubble while thinking) */}
+                  {/* Thinking Indicator */}
                   {isLoading && !msg.text && idx === messages.length - 1 && !isGeneratingMeme && (
-                    <div className="mb-2 flex items-center space-x-2 text-cyan-500 dark:text-cyan-400 px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full w-fit shadow-xs animate-fade-in transition-all duration-300">
+                    <div className="mb-2 flex items-center space-x-2 text-amber-500 dark:text-amber-400 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full w-fit shadow-xs animate-fade-in transition-all duration-300">
                       <div className="flex space-x-1 shrink-0">
-                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"></div>
-                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
-                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                        <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce"></div>
+                        <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                        <div className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                       </div>
                       <span className="text-[10.5px] sm:text-[11px] font-bold tracking-tight transition-all duration-300">
                         {typingStatus || 'កំពុងដំណើរការវិភាគទិន្នន័យ...'}
@@ -4541,8 +4489,8 @@ export default function KonKandalPage() {
                   )}
 
                   {msg.memeImage && (
-                    <div className="mb-2 rounded-2xl overflow-hidden border border-amber-400/60 shadow-md max-w-sm bg-slate-900">
-                      <div className="relative min-h-[220px] w-full flex items-center justify-center bg-slate-950 overflow-hidden">
+                    <div className="mb-2 rounded-2xl overflow-hidden border border-amber-400/60 shadow-md max-w-sm bg-stone-900">
+                      <div className="relative min-h-[220px] w-full flex items-center justify-center bg-stone-950 overflow-hidden">
                         <img
                           src={msg.memeImage}
                           alt="SETEC Meme"
@@ -4558,7 +4506,7 @@ export default function KonKandalPage() {
                           className="w-full h-auto max-h-[440px] object-contain cursor-pointer hover:scale-[1.02] transition-transform duration-200"
                         />
                       </div>
-                      <div className="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+                      <div className="p-2.5 bg-stone-900 border-t border-stone-800 flex items-center justify-between">
                         <span className="text-[10px] text-amber-300 font-extrabold flex items-center gap-1">
                           <i className="fas fa-laugh-squint"></i> Pure Meme
                         </span>
@@ -4577,17 +4525,17 @@ export default function KonKandalPage() {
 
                   <div
                     className={`p-3.5 sm:p-4 rounded-2xl rounded-tl-xs shadow-xs border w-full min-w-0 max-w-full overflow-hidden break-all [overflow-wrap:anywhere] [word-break:break-all] ${
-                      isDark ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-200/90 text-slate-800'
+                      isDark ? 'bg-[#151a22] border-stone-800 text-stone-200' : 'bg-white border-stone-200/90 text-stone-800'
                     }`}
                   >
                     <div className="text-xs sm:text-sm font-medium leading-relaxed whitespace-pre-wrap break-all [overflow-wrap:anywhere] [word-break:break-all] w-full min-w-0 max-w-full">
                       {msg.text ? renderClickableContent(msg.text) : (isLoading && idx === messages.length - 1 ? (
-                        <span className="text-cyan-500 dark:text-cyan-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
+                        <span className="text-amber-500 dark:text-amber-400 animate-pulse font-mono">កំពុងវាយអក្សរ... ▋</span>
                       ) : (
-                        <span className="text-slate-400 italic text-[11px]">...</span>
+                        <span className="text-stone-400 italic text-[11px]">...</span>
                       ))}
                       {isLoading && idx === messages.length - 1 && msg.text && (
-                        <span className="inline-block w-2 h-4 ml-1 bg-cyan-400 animate-pulse align-middle"></span>
+                        <span className="inline-block w-2 h-4 ml-1 bg-amber-400 animate-pulse align-middle"></span>
                       )}
                     </div>
 
@@ -4748,12 +4696,12 @@ export default function KonKandalPage() {
                             onClick={() => setQuoteModalData({ text: msg.text, persona: 'កូនទី២' })}
                             className={`px-2.5 py-1.5 rounded-xl text-[10.5px] font-bold border flex items-center gap-1 transition cursor-pointer select-none active:scale-95 ${
                               isDark
-                                ? 'bg-[#124229] text-[#fbf8f2] border-[#25613e] hover:bg-[#164e33]'
-                                : 'bg-[#fcfaf6] text-[#0d3822] border-[#cfc6b4] hover:bg-[#f4efe4]'
+                                ? 'bg-stone-800 text-stone-200 border-stone-700 hover:bg-stone-750'
+                                : 'bg-stone-100 text-stone-800 border-stone-200 hover:bg-stone-200'
                             }`}
                             title="ទាញយករូបភាព Quote Troll ទុកចែករំលែក"
                           >
-                            <i className="fas fa-camera text-[#d4af37] text-[10px]"></i>
+                            <i className="fas fa-camera text-amber-500 text-[10px]"></i>
                             <span>Quote</span>
                           </button>
 
@@ -4765,12 +4713,12 @@ export default function KonKandalPage() {
                               savedRoasts.includes(cleanRawOutput(msg.text))
                                 ? 'bg-amber-500/20 text-amber-500 border-amber-400'
                                 : isDark
-                                ? 'bg-[#124229] text-[#d7ccb7] border-[#25613e] hover:bg-[#164e33]'
-                                : 'bg-[#fcfaf6] text-[#0d3822] border-[#cfc6b4] hover:bg-[#f4efe4]'
+                                ? 'bg-stone-800 text-stone-300 border-stone-700 hover:bg-stone-750'
+                                : 'bg-stone-100 text-stone-800 border-stone-200 hover:bg-stone-200'
                             }`}
                             title="រក្សាទុកពាក្យកំប្លែងទុកមើលពេលក្រោយ"
                           >
-                            <i className={`${savedRoasts.includes(cleanRawOutput(msg.text)) ? 'fas text-amber-500' : 'far text-slate-400'} fa-bookmark text-[10px]`}></i>
+                            <i className={`${savedRoasts.includes(cleanRawOutput(msg.text)) ? 'fas text-amber-500' : 'far text-stone-400'} fa-bookmark text-[10px]`}></i>
                             <span>{savedRoasts.includes(cleanRawOutput(msg.text)) ? 'បានទុក' : 'រក្សាទុក'}</span>
                           </button>
                         </div>
@@ -4899,28 +4847,28 @@ export default function KonKandalPage() {
         {isGeneratingMeme && (
           <div className="flex items-start gap-2.5 max-w-[85%] animate-fade-in">
             <img
-              src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite"
-              alt="Bot Avatar"
-              className="w-9 h-9 rounded-full border-2 border-cyan-400 shadow"
+              src="https://api.dicebear.com/7.x/personas/svg?seed=SETECKandalInsider"
+              alt="ប្អូនទី២"
+              className="w-9 h-9 rounded-xl border border-amber-500/40 shadow-xs bg-stone-800"
             />
             <div className="flex flex-col flex-1 min-w-0">
-              <span className="font-bold text-cyan-400 text-xs mb-1">
-                Chatbot កូនទី២
+              <span className="font-bold text-amber-500 text-xs mb-1">
+                ប្អូនទី២ • SETEC Insider
               </span>
-              <div className="rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-gradient-to-br from-slate-900/90 to-cyan-950/90 p-4 shadow-2xl backdrop-blur-xl relative max-w-sm w-full">
-                <div className="w-full h-52 sm:h-60 rounded-xl bg-cyan-950/60 border border-cyan-500/30 flex flex-col items-center justify-center p-4 relative overflow-hidden backdrop-blur-2xl">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center mb-3 shadow-lg shadow-cyan-500/30">
-                    <i className="fas fa-wand-magic-sparkles text-white text-xl animate-pulse"></i>
+              <div className="rounded-2xl overflow-hidden border border-amber-500/30 bg-stone-900 p-4 shadow-xl relative max-w-sm w-full">
+                <div className="w-full h-52 sm:h-60 rounded-xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-600 flex items-center justify-center mb-3 shadow-md">
+                    <i className="fas fa-image text-white text-xl animate-pulse"></i>
                   </div>
-                  <h4 className="font-black text-sm text-cyan-200 mb-1 text-center flex items-center gap-1.5">
+                  <h4 className="font-black text-sm text-amber-200 mb-1 text-center flex items-center gap-1.5">
                     <i className="fas fa-palette text-amber-400 text-xs"></i>
                     <span>កំពុងបង្កើតរូបភាព Meme...</span>
                   </h4>
-                  <p className="text-[11px] text-cyan-300/80 text-center font-medium mb-3">
-                    ដំណើរការជាមួយ SETEC Neural Core & AI សូមរង់ចាំបន្តិចណា៎ប្អូន!
+                  <p className="text-[11px] text-stone-300 text-center font-medium mb-3">
+                    ដំណើរការរូបភាព Meme ស៊ីតិច សូមរង់ចាំបន្តិចណា៎!
                   </p>
-                  <div className="w-48 h-2 bg-cyan-950 rounded-full overflow-hidden border border-cyan-500/30">
-                    <div className="h-full bg-gradient-to-r from-cyan-500 via-sky-400 to-indigo-500 w-2/3 rounded-full animate-pulse"></div>
+                  <div className="w-48 h-2 bg-stone-800 rounded-full overflow-hidden border border-stone-700">
+                    <div className="h-full bg-amber-500 w-2/3 rounded-full animate-pulse"></div>
                   </div>
                 </div>
               </div>
@@ -4946,7 +4894,7 @@ export default function KonKandalPage() {
       {/* Chat Footer Input Area (Permanently pinned at bottom, ultra-clean & spacious) */}
       <footer
         className={`shrink-0 px-3 sm:px-4 pt-2 border-t backdrop-blur-md transition-colors z-30 ${
-          isDark ? 'bg-slate-950/90 border-slate-800/80' : 'bg-white/90 border-slate-200/80 shadow-xs'
+          isDark ? 'bg-[#0c1015]/95 border-stone-800' : 'bg-[#f7f5f0]/95 border-stone-200 shadow-xs'
         }`}
         style={{
           paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.65rem)'
@@ -4954,21 +4902,21 @@ export default function KonKandalPage() {
       >
         {/* Staged Image Preview Chip */}
         {selectedImage && (
-          <div className="mb-2 p-1.5 rounded-xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-between max-w-sm animate-fade-in">
+          <div className="mb-2 p-1.5 rounded-xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-between max-w-sm animate-fade-in">
             <div className="flex items-center gap-2 min-w-0">
               <img
                 src={selectedImage.previewUrl}
                 alt="Selected preview"
-                className="w-9 h-9 object-cover rounded-lg border border-cyan-400 shadow-xs"
+                className="w-9 h-9 object-cover rounded-lg border border-amber-400 shadow-xs"
               />
               <div className="text-[11px] truncate">
-                <span className="font-bold text-cyan-400 block truncate">{selectedImage.name}</span>
-                <span className="text-[9px] text-slate-400">ត្រៀមផ្ញើឱ្យ AI វិភាគ</span>
+                <span className="font-bold text-amber-400 block truncate">{selectedImage.name}</span>
+                <span className="text-[9px] text-stone-400">ត្រៀមផ្ញើឱ្យ AI វិភាគ</span>
               </div>
             </div>
             <button
               onClick={removeSelectedImage}
-              className="p-1 rounded-full text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
+              className="p-1 rounded-full text-stone-400 hover:text-rose-400 hover:bg-rose-500/10 transition cursor-pointer"
               title="លុបរូបភាពចេញ"
             >
               <i className="fas fa-times text-xs"></i>
@@ -4993,7 +4941,7 @@ export default function KonKandalPage() {
                 key={pIdx}
                 type="button"
                 onClick={() => setInputText(phrase)}
-                className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-700 dark:text-slate-200 hover:text-amber-700 dark:hover:text-amber-300 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600/50 font-medium text-[11px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs"
+                className="px-2.5 py-1 rounded-full bg-white dark:bg-stone-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 text-stone-700 dark:text-stone-200 hover:text-amber-700 dark:hover:text-amber-300 border border-stone-200 dark:border-stone-700 hover:border-amber-300 dark:hover:border-amber-600/50 font-medium text-[11px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs"
               >
                 {phrase}
               </button>
@@ -5001,10 +4949,10 @@ export default function KonKandalPage() {
           </div>
         ) : (
           <div className="space-y-2 mb-2.5">
-            {/* ROW 1: មុខងារដំណើរការ (Professional Feature Toolbar) */}
+            {/* ROW 1: មុខងារដំណើរការ (Collegiate Feature Toolbar) */}
             <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-2 overflow-x-auto pb-1 text-[11px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] shrink-0 shadow-2xs">
-                <i className="fas fa-sliders text-cyan-600 dark:text-cyan-400 text-xs"></i>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-stone-100 dark:bg-stone-800/90 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 font-bold text-[11px] shrink-0 shadow-2xs">
+                <i className="fas fa-sliders text-amber-500 text-xs"></i>
                 <span>មុខងារ</span>
               </div>
 
@@ -5031,13 +4979,13 @@ export default function KonKandalPage() {
               <button
                 type="button"
                 onClick={() => setIsSurvivalModalOpen(true)}
-                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
-                title="កម្មវិធីគណនាប្រឡងសង $45 និងសំឡេង"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-stone-800/90 hover:bg-stone-50 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-700 dark:text-stone-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
+                title="កម្មវិធីគណនាប្រឡងសង ៤៥ ដុល្លារ និងសំឡេង"
               >
                 <span className="w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
                   <i className="fas fa-calculator"></i>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-100">Survival $45</span>
+                <span className="font-semibold text-stone-800 dark:text-stone-100">Survival ៤៥$</span>
                 <span className="text-[9.5px] px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 font-bold border border-amber-200 dark:border-amber-800/60 flex items-center gap-1">
                   <i className="fas fa-volume-high text-[8.5px]"></i>
                   <span>សំឡេង</span>
@@ -5049,52 +4997,52 @@ export default function KonKandalPage() {
                 type="button"
                 onClick={() => handleRequestMeme()}
                 disabled={isGeneratingMeme || isLoading}
-                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-stone-800/90 hover:bg-stone-50 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-700 dark:text-stone-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 title="បង្កើតរូបភាព Meme ស៊ីតិច ៥ សន្លឹក"
               >
-                <span className="w-5 h-5 rounded-md bg-purple-500/15 dark:bg-purple-400/20 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
-                  <i className="fas fa-wand-magic-sparkles"></i>
+                <span className="w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-palette"></i>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-100">សុំ Meme ៥ សន្លឹក</span>
+                <span className="font-semibold text-stone-800 dark:text-stone-100">សុំ Meme ៥ សន្លឹក</span>
               </button>
 
               {/* Image Vision Analysis Tool */}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
-                title="បញ្ចូលរូបភាពឱ្យបងវិភាគ"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-stone-800/90 hover:bg-stone-50 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-700 dark:text-stone-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
+                title="បញ្ចូលរូបភាពឱ្យប្អូនទី២វិភាគ"
               >
-                <span className="w-5 h-5 rounded-md bg-cyan-500/15 dark:bg-cyan-400/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                <span className="w-5 h-5 rounded-md bg-amber-500/15 dark:bg-amber-400/20 text-amber-600 dark:text-amber-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
                   <i className="fas fa-camera"></i>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-100">វិភាគរូបភាព</span>
+                <span className="font-semibold text-stone-800 dark:text-stone-100">វិភាគរូបភាព</span>
               </button>
 
               {/* Quote Troll Tool */}
               <button
                 type="button"
                 onClick={() => setQuoteModalData({ text: '' })}
-                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
-                title="បង្កើត Quote Troll សម្រាប់ IG & X"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-stone-800/90 hover:bg-stone-50 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-700 dark:text-stone-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
+                title="បង្កើត Quote Troll ទុកចែករំលែក"
               >
-                <span className="w-5 h-5 rounded-md bg-blue-500/15 dark:bg-blue-400/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                <span className="w-5 h-5 rounded-md bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300 flex items-center justify-center text-[11px] shrink-0 font-bold">
                   <i className="fas fa-quote-left"></i>
                 </span>
-                <span className="font-semibold text-slate-800 dark:text-slate-100">Quote Troll IG/X</span>
+                <span className="font-semibold text-stone-800 dark:text-stone-100">Quote Troll</span>
               </button>
 
               {/* Reset Session Tool */}
               <button
                 type="button"
                 onClick={() => createNewSession()}
-                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-50 dark:hover:bg-slate-750 border border-slate-200/90 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white dark:bg-stone-800/90 hover:bg-stone-50 dark:hover:bg-stone-750 border border-stone-200 dark:border-stone-700 hover:border-stone-300 dark:hover:border-stone-600 text-stone-700 dark:text-stone-200 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer"
                 title="ជម្រះសារ ហើយជជែកថ្មី"
               >
-                <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                <span className="w-5 h-5 rounded-md bg-stone-100 dark:bg-stone-700/80 text-stone-600 dark:text-stone-300 flex items-center justify-center text-[11px] shrink-0 font-bold">
                   <i className="fas fa-rotate"></i>
                 </span>
-                <span className="font-medium text-slate-700 dark:text-slate-300">ជជែកថ្មី</span>
+                <span className="font-medium text-stone-700 dark:text-stone-300">ជជែកថ្មី</span>
               </button>
 
               {/* Field-Test Announcement Direct Tool Button */}
@@ -5112,37 +5060,36 @@ export default function KonKandalPage() {
               {/* Privacy Policy Direct Tool Button */}
               <Link
                 href="/privacy"
-                className="group inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/15 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-700 dark:text-cyan-300 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs"
+                className="group inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-stone-500/10 dark:bg-stone-500/15 hover:bg-stone-500/20 border border-stone-500/30 text-stone-700 dark:text-stone-300 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs"
                 title="គោលការណ៍ឯកជនភាព និងការការពារទិន្នន័យ"
               >
-                <span className="w-5 h-5 rounded-md bg-cyan-500/20 text-cyan-500 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                <span className="w-5 h-5 rounded-md bg-stone-500/20 text-stone-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
                   <i className="fas fa-shield-halved"></i>
                 </span>
                 <span className="font-semibold">Privacy</span>
               </Link>
             </div>
 
-            {/* ROW 2: សំណើជជែកលេងរហ័ស */}
+            {/* ROW 2: សំណើជជែកលេងរហ័ស (Technical & Campus Topics) */}
             <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 text-slate-100 font-bold text-[10px] shrink-0 border border-slate-700">
-                <i className="fas fa-hashtag text-indigo-400 text-xs"></i>
-                <span>ប្រធានបទពេញនិយម</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-800 text-stone-100 font-bold text-[10px] shrink-0 border border-stone-700">
+                <i className="fas fa-hashtag text-amber-400 text-xs"></i>
+                <span>ប្រធានបទ</span>
               </div>
               {[
-                { label: 'រឿង Drama ក្នុងសាលា', prompt: 'សុំនិយាយរឿង drama និស្សិតនៅ SETEC ឆ្នាំនេះបន្តិចមើលប្អូនទី២' },
-                { label: 'គន្លឹះប្រឡង ៤៥ ដុល្លារ', prompt: 'ប្អូនទី២ មានតិចនិកប្រឡងកុំឱ្យធ្លាក់សង ៤៥ ដុល្លារនៅស៊ីទិចទេ' },
-                { label: 'Troll បងកូនច្បង', prompt: 'ប្អូនទី២ ជួយ troll បងកូនច្បងបន្តិចមើល គាត់រៀនកូដឡើងជ្រុះសក់ហើយ' },
-                { label: 'រឿងឆ្មាក្នុងវិទ្យាស្ថាន', prompt: 'រឿងឆ្មាក្នុងវិទ្យាស្ថាន ស៊ីទិច មានអីខ្លះប្អូនទី២' },
-                { label: 'លេខកូដ Wi-Fi ស៊ីទិច', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីទិច បន្តិចមើលប្អូនទី២' },
-                { label: 'កាតាប Asus ROG', prompt: 'ប្រាប់ពីរឿងកាតាប Asus ROG ប្រចាំត្រកូលនិស្សិតស៊ីទិចតិចមើល' },
-                { label: 'ហាងបាយឆ្ងាញ់ជិតសាលា', prompt: 'ហាងបាយ ឬកាហ្វេជិត SETEC មួយណាឆ្ងាញ់ហើយតម្លៃនិស្សិតប្អូនទី២' }
+                { label: 'JavaScript ភាសាអភិវឌ្ឍ', prompt: 'ប្អូនទី២ ជួយ roast រឿងសរសេរកូដ JavaScript បន្តិចមើល' },
+                { label: 'C# ឆ្នាំទី២ ប្រឡងសង ៤៥$', prompt: 'ប្អូនទី២ ធ្លាប់ជួប Error C# ឆ្នាំទី២ អត់' },
+                { label: 'Python និង AI', prompt: 'ប្អូនទី២ យល់យ៉ាងណាអំពីរឿងរៀន Python និង AI' },
+                { label: 'Graphic Design និង Client', prompt: 'ប្រាប់ពីរឿងខាង Graphic Design ជួប Client បន្តិចមើល' },
+                { label: 'ជណ្ដើរជើង ៥ ជាន់', prompt: 'រៀបរាប់ពីអារម្មណ៍ឡើងជណ្ដើរជើង ៥ ជាន់នៅ SETEC តិចមើល' },
+                { label: 'បាយសាច់ជ្រូកមុខសាលា', prompt: 'ហាងបាយ ឬកាហ្វេជិត SETEC មួយណាឆ្ងាញ់ហើយតម្លៃនិស្សិតប្អូនទី២' }
               ].map((topic, tIdx) => (
                 <button
                   key={tIdx}
                   type="button"
                   onClick={() => handleChat(topic.prompt)}
                   disabled={isLoading}
-                  className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-xs flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-full bg-stone-100 dark:bg-stone-800/90 hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-200 border border-stone-200 dark:border-stone-700 font-semibold text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-xs flex items-center gap-1"
                 >
                   <span>{topic.label}</span>
                 </button>
@@ -5158,8 +5105,8 @@ export default function KonKandalPage() {
               <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[9px] uppercase tracking-wider flex items-center gap-1 shrink-0">
                 <i className="fas fa-list-check text-[10px]"></i> ToDo
               </span>
-              <span className="text-slate-700 dark:text-slate-200 truncate text-[11px] font-medium">
-                ត្រៀមផ្ញើស្វ័យប្រវត្ត៖ <span className="text-cyan-500 dark:text-cyan-300 font-bold">"{queuedPrompt.text}"</span>
+              <span className="text-stone-700 dark:text-stone-200 truncate text-[11px] font-medium">
+                ត្រៀមផ្ញើស្វ័យប្រវត្ត៖ <span className="text-amber-500 dark:text-amber-400 font-bold">"{queuedPrompt.text}"</span>
               </span>
             </div>
             <button
@@ -5169,7 +5116,7 @@ export default function KonKandalPage() {
                 setQueuedPrompt(null);
                 queuedPromptRef.current = null;
               }}
-              className="text-slate-400 hover:text-rose-400 p-1 rounded transition cursor-pointer shrink-0"
+              className="text-stone-400 hover:text-rose-400 p-1 rounded transition cursor-pointer shrink-0"
               title="កែសម្រួល ឬលុបចេញពី ToDo"
             >
               <i className="fas fa-times text-xs"></i>
@@ -5180,20 +5127,20 @@ export default function KonKandalPage() {
         {/* Clean Capsule Input Bar */}
         <div className={`flex items-center gap-1.5 p-1 sm:p-1.5 rounded-2xl sm:rounded-3xl border shadow-sm transition-all focus-within:ring-2 ${
           isRotanaAdmin
-            ? 'bg-slate-900 border-amber-500/70 shadow-lg shadow-amber-950/40 ring-1 ring-amber-500/30'
+            ? 'bg-stone-900 border-amber-500/70 shadow-lg shadow-amber-950/40 ring-1 ring-amber-500/30'
             : isDark
-            ? 'bg-slate-900 border-slate-700/80 focus-within:border-cyan-400/80 focus-within:ring-cyan-500/20'
-            : 'bg-white border-slate-200 focus-within:border-cyan-500/80 focus-within:ring-cyan-500/20'
+            ? 'bg-[#151a22] border-stone-800 focus-within:border-amber-500 focus-within:ring-amber-500/20'
+            : 'bg-white border-stone-200 focus-within:border-amber-500 focus-within:ring-amber-500/20'
         }`}>
           {/* Photo attach button */}
           <button
             onClick={() => fileInputRef.current?.click()}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition shrink-0 cursor-pointer ${
               selectedImage
-                ? 'bg-cyan-500 text-white shadow-xs'
+                ? 'bg-amber-600 text-white shadow-xs'
                 : isDark
-                ? 'text-slate-400 hover:text-cyan-400 hover:bg-slate-800'
-                : 'text-slate-500 hover:text-cyan-600 hover:bg-slate-100'
+                ? 'text-stone-400 hover:text-amber-400 hover:bg-stone-800'
+                : 'text-stone-500 hover:text-amber-600 hover:bg-stone-100'
             }`}
             title="ផ្ញើរូបភាព"
           >
@@ -5214,9 +5161,9 @@ export default function KonKandalPage() {
               }
             }}
             className={`flex-1 bg-transparent px-2.5 py-1.5 outline-none text-[16px] sm:text-sm font-sans ${
-              isDark ? 'text-white placeholder:text-slate-400' : 'text-slate-900 placeholder:text-slate-400'
+              isDark ? 'text-white placeholder:text-stone-400' : 'text-stone-900 placeholder:text-stone-400'
             }`}
-            style={{ color: isDark ? '#ffffff' : '#0f172a', caretColor: isDark ? '#38bdf8' : '#2563eb' }}
+            style={{ color: isDark ? '#ffffff' : '#1c1917', caretColor: '#d97706' }}
             placeholder={
               !isCreatorUser && Date.now() < spamLockUntil
                 ? `អ្នកជាប់ពិន័យ Spam • នៅសល់ ${Math.max(1, Math.ceil((spamLockUntil - Date.now()) / 1000))} វិនាទី...`
@@ -5240,14 +5187,14 @@ export default function KonKandalPage() {
             disabled={isGeneratingMeme || (!isCreatorUser && sessionState.isLocked) || (!isCreatorUser && Date.now() < spamLockUntil) || (!inputText.trim() && !selectedImage && !queuedPrompt)}
             className={`w-9 h-9 rounded-xl sm:rounded-2xl flex items-center justify-center transition active:scale-95 shadow-sm shrink-0 cursor-pointer ${
               !isCreatorUser && sessionState.isLocked
-                ? 'bg-[#1a3828] text-amber-400 cursor-not-allowed opacity-80 border border-amber-500/30'
+                ? 'bg-stone-800 text-amber-400 cursor-not-allowed opacity-80 border border-amber-500/30'
                 : !inputText.trim() && !selectedImage && !queuedPrompt
-                ? 'bg-slate-200 dark:bg-[#123321] text-slate-400 dark:text-[#537361] cursor-not-allowed opacity-40'
+                ? 'bg-stone-200 dark:bg-stone-800 text-stone-400 dark:text-stone-600 cursor-not-allowed opacity-40'
                 : isRotanaAdmin
                 ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm'
                 : isLoading
-                ? 'bg-[#195234] text-white shadow-sm'
-                : 'bg-[#0d3822] hover:bg-[#164e33] text-white shadow-sm border border-[#25613e]'
+                ? 'bg-amber-700 text-white shadow-sm'
+                : 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm border border-amber-500/30'
             }`}
             title={
               !isCreatorUser && sessionState.isLocked
@@ -5294,12 +5241,12 @@ export default function KonKandalPage() {
             >
               <i className="fas fa-times"></i>
             </button>
-            <div className="font-black text-cyan-400 text-base mb-3 pb-2 border-b border-slate-700/30">
+            <div className="font-black text-amber-400 text-base mb-3 pb-2 border-b border-stone-800">
               {selectedSessionModal.title}
             </div>
             <div className="space-y-3">
               {selectedSessionModal.messages?.map((msg, i) => (
-                <div key={i} className={`p-2.5 rounded-xl text-xs ${msg.role === 'user' ? 'bg-cyan-500/10 text-cyan-300 ml-6' : 'bg-slate-800/60 mr-6'}`}>
+                <div key={i} className={`p-2.5 rounded-xl text-xs ${msg.role === 'user' ? 'bg-amber-500/10 text-amber-300 ml-6' : 'bg-stone-800/80 mr-6'}`}>
                   <span className="font-black block text-[10px] mb-1">{msg.role === 'user' ? username : 'ប្អូនទី២'}</span>
                   <p>{msg.text}</p>
                 </div>
@@ -5330,13 +5277,13 @@ export default function KonKandalPage() {
         onClose={() => setViewingImage(null)}
       />
 
-      {/* Persona Info Modal: មហាស្លូត & Funny (កូនទី២) */}
+      {/* Persona Info Modal: មហាស្លូត & Funny • កូនទី២ */}
       {showPersonaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-sm rounded-3xl p-5 border shadow-2xl relative bg-slate-900 border-cyan-500/40 text-white animate-scale-up">
+          <div className="w-full max-w-sm rounded-3xl p-5 border shadow-2xl relative bg-stone-900 border-amber-500/40 text-stone-100 animate-scale-up">
             <button
               onClick={() => setShowPersonaModal(false)}
-              className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition cursor-pointer"
+              className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full flex items-center justify-center bg-stone-800 text-stone-400 hover:text-white hover:bg-stone-700 transition cursor-pointer"
               title="បិទ"
             >
               <i className="fas fa-times text-xs"></i>
@@ -5344,51 +5291,51 @@ export default function KonKandalPage() {
 
             <div className="text-center pt-2 pb-3">
               <div className="relative inline-block mx-auto mb-3">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-600 via-teal-600 to-emerald-500 p-0.5 shadow-xl">
-                  <img src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalPolite" alt="Persona" className="w-full h-full rounded-full object-cover bg-slate-800" />
+                <div className="w-16 h-16 rounded-2xl bg-stone-800 border-2 border-amber-500 p-0.5 shadow-xl">
+                  <img src="https://api.dicebear.com/7.x/personas/svg?seed=SETECKandalInsider" alt="Persona" className="w-full h-full rounded-xl object-cover bg-stone-900" />
                 </div>
-                <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow text-xs">
+                <span className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-500 text-stone-950 flex items-center justify-center shadow text-xs">
                   <i className="fas fa-crown"></i>
                 </span>
               </div>
               <h3 className="text-base font-black tracking-tight text-white flex items-center justify-center gap-1.5">
-                <span>មហាស្លូត & Funny - កូនទី២</span>
+                <span>មហាស្លូត & Funny • កូនទី២</span>
               </h3>
-              <p className="text-[11px] text-cyan-400 font-bold mt-0.5">
-                ស៊ីតិច Chatbot កូនទី២ • ប្អូនទី២ SETEC មហាស្លូត និងកំប្លែង
+              <p className="text-[11px] text-amber-400 font-bold mt-0.5">
+                ស៊ីតិច Chatbot កូនទី២ • ប្អូនទី២ SETEC Insider
               </p>
             </div>
 
-            <div className="space-y-2.5 text-xs bg-slate-950/60 rounded-2xl p-3.5 border border-slate-800 mb-4">
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                <span className="text-slate-400">កម្រិតឌឺបច្ចុប្បន្ន:</span>
+            <div className="space-y-2.5 text-xs bg-stone-950/80 rounded-2xl p-3.5 border border-stone-800 mb-4">
+              <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+                <span className="text-stone-400">កម្រិតឌឺបច្ចុប្បន្ន:</span>
                 <span className="font-black text-rose-400 flex items-center gap-1">
                   <i className="fas fa-bolt text-[10px]"></i>
                   {savageLevel === 'savage' ? 'ឌឺបាក់ក Savage' : savageLevel === 'medium' ? 'ឌឺល្មម' : 'ស្លូត'}
                 </span>
               </div>
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                <span className="text-slate-400">ចរិតលក្ខណៈ:</span>
-                <span className="font-bold text-cyan-300">
+              <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+                <span className="text-stone-400">ចរិតលក្ខណៈ:</span>
+                <span className="font-bold text-amber-400">
                   ប្អូនទី២ មហាស្លូត & Funny
                 </span>
               </div>
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
-                <span className="text-slate-400">ប្រព័ន្ធការពារ:</span>
+              <div className="flex items-center justify-between border-b border-stone-800 pb-2">
+                <span className="text-stone-400">ប្រព័ន្ធការពារ:</span>
                 <span className="font-bold text-emerald-400 flex items-center gap-1">
                   <i className="fas fa-shield-halved text-[10px]"></i> Anti-Jailbreak Active
                 </span>
               </div>
-              <p className="text-[11px] text-slate-300 italic pt-1 text-center leading-relaxed">
+              <p className="text-[11px] text-stone-300 italic pt-1 text-center leading-relaxed">
                 គ្នាយើងអើយ មានរឿងអីចង់ជជែកលេង ឬសួររឿងរៀនសូត្រ សួរមក ប្អូនទី២ ចាំជជែកកំដរ!
               </p>
             </div>
 
             <button
               onClick={() => setShowPersonaModal(false)}
-              className="w-full py-2.5 rounded-xl font-black text-xs bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white shadow-lg shadow-cyan-500/25 active:scale-98 transition cursor-pointer"
+              className="w-full py-2.5 rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-500 text-white shadow-md active:scale-98 transition cursor-pointer"
             >
-              យល់ព្រម! ខ្ញុំត្រៀមខ្លួនរួចរាល់ហើយ
+              យល់ព្រម ខ្ញុំត្រៀមខ្លួនរួចរាល់ហើយ
             </button>
           </div>
         </div>
