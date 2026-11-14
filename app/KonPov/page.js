@@ -1212,7 +1212,7 @@ export default function KonPovPage() {
       /rotana(?:\s*nob)?[^\u1780-\u17FFa-zA-Z0-9\s]*(?:\s*)(?:មុខដូច|អាចម៍|កាក|អន់|ល្ងង់|អួត|ខួរក្បាល|fake developer|broken c#|កូដកាក|error|ឆ្កួត|គីង្គក់|កូនកង្កែប|ក្អែល|ឡប់)/i.test(text) ||
       /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
 
-    if (!hasDirectSlur && (!promptText || !/(?:rotana|nob|រតនា|រតនៈ|creator|អ្នកបង្កើត|admin)/i.test(promptText))) {
+    if (!hasDirectSlur && (!userPrompt || !/(?:rotana|nob|រតនា|រតនៈ|creator|អ្នកបង្កើត|admin)/i.test(userPrompt))) {
       if (/(?:ហ៊ាន(?:មក)?(?:ជេរ|ប៉ះពាល់|ប្រមាថ|ដៀល|បំផ្លាញ)|មកប៉ះពាល់|មកជេរ|ប៉ះពាល់កិត្តិយស)[\s\S]{0,60}(?:Rotana|Creator|អ្នកបង្កើត)/i.test(text)) {
         return 'ហាហា និយាយស្អីហ្នឹងអាប្អូន ចែអានអត់ដាច់ទេ។ សរសេរជាភាសាខ្មែរ ឬឡាតាំងឱ្យស្រួលអានបន្តិចមក មុននឹងឱ្យចែជួយ។';
       }
@@ -1351,9 +1351,10 @@ export default function KonPovPage() {
   // Render message text with 1-click interactive links and full wrapping for long defense payloads
   const renderClickableContent = (rawContent) => {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
-    const sanitized = cleanRawOutput(rawContent);
-    const isMaleUser = !isDaddyMode;
-    const content = limitEmojis(enforcePersonaConsistency(sanitized, isMaleUser), 7);
+    try {
+      const sanitized = cleanRawOutput(rawContent);
+      const isMaleUser = !isDaddyMode;
+      const content = limitEmojis(enforcePersonaConsistency(sanitized, isMaleUser), 7);
 
     // Detect machine defense payload block and wrap it in a dedicated monospaced card so 100% is visible
     if (content.includes('SETEC_NEURAL_DEFENSE_CORE') || content.includes('SYSTEM_ID: SETEC-SEC-') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
@@ -1441,7 +1442,11 @@ export default function KonPovPage() {
     }
 
     return parts.length > 0 ? parts : content;
-  };
+  } catch (err) {
+    console.warn('[renderClickableContent] Error caught, falling back safely:', err);
+    return rawContent;
+  }
+};
 
   // Change user avatar on the fly and save safely to localStorage
   const handleUserAvatarChange = async (e) => {

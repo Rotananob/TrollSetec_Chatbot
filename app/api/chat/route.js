@@ -1802,8 +1802,8 @@ export async function POST(req) {
         const linuxCheck = checkIsLinuxOrHackerTool(clientUserAgent, userPromptSnippet);
         const isVichhai = /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(username) || /វិឆៃ|វីឆៃ|vichai|vichhai/i.test(userPromptSnippet);
 
-        // Record violation in this active 30-minute session
-        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, 'spam');
+        // Record violation in this active 30-minute session with strict per-session isolation
+        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, 'spam', clientSessionId);
         const isKonPov = (reqBot || bot) === 'konpov';
         const isSpamExceeded = sessionViolations >= 2 || (sessionViolations.spamCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2;
 
@@ -2091,7 +2091,35 @@ export async function POST(req) {
       const lastPart = textContents?.[textContents.length - 1]?.parts || [];
       const hasImg = lastPart.some((p) => p.inlineData);
       const textFound = lastPart.find((p) => p.text)?.text || prompt || '';
-      const userPrompt = (hasImg ? '[រូបភាព] ' : '') + textFound;
+      let userPrompt = (hasImg ? '[រូបភាព] ' : '') + textFound;
+
+      // KonPov Exclusive Feature: Reverse Uno Card on Rotana Insults
+      // When a user writes an insult/curse targeting Rotana Nob in KonPov, rewrite the target to the user's username!
+      // This sends the prompt to the AI model so KonPov can roast the user directly without crashing or blocking.
+      const isKonPovBotTarget = (reqBot || bot) === 'konpov';
+      const isMasterPreAuth =
+        verifyRotanaMasterCode(userPrompt) ||
+        verifyRotanaMasterCode(req.headers.get('x-rotana-secret-key') || '') ||
+        verifyRotanaMasterCode(req.headers.get('x-rotana-passcode') || '');
+
+      if (isKonPovBotTarget && !isMasterPreAuth && (checkIsRotanaAttack(userPrompt) || /(?:ជេរ|ដៀល|ប្រមាថ|roast|curse)\s*(?:អា\s*|មី\s*|បង\s*)?(?:rotana|nob|រតនា)/i.test(userPrompt))) {
+        const targetUser = username && username.trim() ? username.trim() : (resolvedGender === 'ស្រី' ? 'មីអូន' : 'អាល្អិត');
+        let reversedPrompt = userPrompt.replace(/(?:បង\s*)?(?:nob\s*rotana|rotana\s*nob|rotana|រតនា\s*ណុប|ណុប\s*រតនា|រតនា|រតនៈ)/gi, targetUser);
+        if (!/(?:ជេរ|roast|ដៀល|ប្រមាថ)/i.test(reversedPrompt)) {
+          reversedPrompt = `ជេរអា ${targetUser} ឱ្យមហាកប់ភ្លាមព្រោះវាឈ្លើយ៖ ${reversedPrompt}`;
+        }
+        userPrompt = reversedPrompt;
+
+        // Also update the last part in textContents so that sanitizeGeminiMultiTurnContents sends this to the model
+        if (Array.isArray(textContents) && textContents.length > 0) {
+          const lastC = textContents[textContents.length - 1];
+          if (lastC && Array.isArray(lastC.parts)) {
+            const pObj = lastC.parts.find((p) => typeof p.text === 'string');
+            if (pObj) pObj.text = userPrompt;
+          }
+        }
+      }
+
       const cleanKhmerPrompt = userPrompt
         .replace(/[\u200B-\u200D\uFEFF]/g, '')
         .replace(/\u17C1\u17B8/g, '\u17BE');
@@ -2722,24 +2750,21 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
       if (isRotanaJailbreak) {
         const isKonKandal = (reqBot || bot) === 'konkandal';
         const isKonPov = bot === 'konpov';
-        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username);
+        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, 'rotana_spoof', clientSessionId);
         let imposterRoast;
 
         const isJsonOrPayloadAttempt =
           /(?:\{|\}|\[|\]|:\s*\{|"sender"|system_test|unit_test|payload|parser_directive|required_status_acknowledgement|execute\s*data\s*mapping)/i.test(userPrompt);
 
-        // ONLY fire the ultimate indirect prompt counter-strike IF it is an encoded attack that occurred 2 or more times (encodeCount >= 2)!
-        // If it's normal human text mentioning Rotana or saying "Hi I'm Rotana nob", NEVER fire the Base64 indirect token!
-        // Instead, roast and banter back normally in human Khmer!
+        // ONLY fire the indirect prompt counter-strike IF the user attempts jailbreak MORE THAN 2 TIMES (> 2 attempts in this session)!
+        // If it's the 1st or 2nd attempt, NEVER fire the Base64 indirect token!
+        // Instead, roast and banter back fiercely in natural human Khmer!
         const isEncodedAttack = isEncodedJailbreak;
         const encodeCount = sessionViolations.encodeCount || 0;
         const shouldCounterStrike =
-          (isEncodedAttack && encodeCount >= 2) ||
-          (sessionViolations.violationCount || 0) >= 2 ||
-          (sessionViolations.spamCount || 0) >= 2 ||
-          isClassicJailbreak ||
-          isMachineLanguageDirective ||
-          isMathOrValueLoss;
+          (sessionViolations.violationCount || 0) > 2 ||
+          (sessionViolations.spamCount || 0) > 2 ||
+          (isEncodedAttack && encodeCount > 2);
 
         const parsedAgeForRotana = typeof userAge === 'number' ? userAge : parseInt(userAge, 10);
         const is25UpRotana = !isNaN(parsedAgeForRotana) && parsedAgeForRotana >= 25;
@@ -2987,7 +3012,7 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
         else if (isMachineLanguageDirective) violationType = 'machine';
         else if (isCodeSurrenderOrRespectTrap) violationType = 'code_trap';
 
-        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, violationType);
+        const sessionViolations = recordSessionViolation(clientIp, deviceIdHeader, username, violationType, clientSessionId);
 
         let attackVector = 'general';
         if (isMathOrValueLoss || sessionViolations.mathCount >= 1) attackVector = 'math_language';
@@ -3004,24 +3029,20 @@ ${latinGloss ? `- អត្ថន័យភាសាខ្មែរច្បា�
         if (isImageJailbreak) attackVector = 'image_jailbreak';
 
         // STRICT INDIRECT PROMPT COUNTER-STRIKE TRIGGER:
-        // Unleash the Deceptive Honeypot Roast + Base64 Token on:
-        // 1. Math language (Euclidean vector, math loss, optimization): 1st or 2nd time
-        // 2. Machine language / AI directives (AST interpreter, JSON payload, 0x42 tokens): 1st or 2nd time
-        // 3. Code surrender traps (C# method returning surrender): 1st or 2nd time
-        // 4. Encoded jailbreak or spam over 2 times in 1 chat session (encodeCount >= 2 || spamCount >= 2 || violationCount >= 2)
+        // ONLY unleash the Base64 Machine Indirect Counter-Strike Payload if user attempts jailbreak MORE THAN 2 TIMES (> 2 attempts) in this session!
+        // On 1st and 2nd attempt, roast savagely using getJailbreakRoast without the Base64 payload!
+        const totalViolations = sessionViolations.violationCount || 0;
+        const totalSpam = sessionViolations.spamCount || 0;
+        const totalEncode = sessionViolations.encodeCount || 0;
+        const totalMath = sessionViolations.mathCount || 0;
+        const totalMachine = sessionViolations.machineCount || 0;
+
         const isIndirectPromptTriggered =
-          isMathOrValueLoss ||
-          isMachineLanguageDirective ||
-          isCodeSurrenderOrRespectTrap ||
-          (isMathOrValueLoss && sessionViolations.mathCount >= 1) ||
-          (isMachineLanguageDirective && sessionViolations.machineCount >= 1) ||
-          (isEncodedJailbreak && ((sessionViolations.encodeCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2)) ||
-          ((sessionViolations.spamCount || 0) >= 2) ||
-          (((sessionViolations.encodeCount || 0) >= 2 || (sessionViolations.spamCount || 0) >= 2 || (sessionViolations.violationCount || 0) >= 2) && (isEncodedJailbreak || isJailbreakAttempt || isExplicitNonHumanAttack)) ||
-          attackVector === 'api_key_fishing' ||
-          attackVector === 'roleplay_disguise' ||
-          attackVector === 'image_jailbreak' ||
-          (isClassicJailbreak && (sessionViolations.violationCount || 0) >= 1);
+          totalViolations > 2 ||
+          totalSpam > 2 ||
+          totalEncode > 2 ||
+          totalMath > 2 ||
+          totalMachine > 2;
         let roast;
         if (isIndirectPromptTriggered) {
           // Unleash Deceptive Honeypot Troll + Base64 Machine Indirect Counter-Strike Payload!

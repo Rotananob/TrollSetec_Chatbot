@@ -1,27 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export default function ErrorBoundary({ error, reset }) {
-  const [details, setDetails] = useState('');
-
   useEffect(() => {
-    console.error('Captured Page Error:', error);
-    const errText = `${error?.name || 'Error'}: ${error?.message || ''}\n${error?.stack || String(error)}`;
-    setDetails(errText);
+    if (!error) return;
+    console.error('[Auto-Recovered Error]:', error);
 
-    // Auto-heal ChunkLoadError or dynamic import mismatch after new deployments
+    // Auto-heal ALL runtime errors silently without showing error box to user
     if (typeof window !== 'undefined') {
-      const isChunkError = /chunk|loading|import|failed to fetch|dynamically imported/i.test(errText);
-      const lastRetry = parseInt(sessionStorage.getItem('setec_chunk_auto_retry') || '0', 10);
-      const now = Date.now();
-      if (isChunkError && (!lastRetry || now - lastRetry > 15000)) {
-        sessionStorage.setItem('setec_chunk_auto_retry', String(now));
-        const target = `${window.location.pathname}?v=${now}`;
-        window.location.replace(target);
+      try {
+        reset();
+      } catch {
+        window.location.replace(`${window.location.pathname}?retry=${Date.now()}`);
       }
     }
-  }, [error]);
+  }, [error, reset]);
 
   const handleHardRefresh = () => {
     if (typeof window !== 'undefined') {
@@ -76,11 +70,7 @@ export default function ErrorBoundary({ error, reset }) {
           </p>
         </div>
 
-        {details && (
-          <div className="text-left p-3.5 rounded-xl bg-[#092818] border border-[#1c4d32] text-[10px] font-mono text-[#d7ccb7] overflow-x-auto max-h-28 whitespace-pre-wrap break-all leading-normal">
-            {details}
-          </div>
-        )}
+
 
         <div className="flex gap-2.5 pt-2">
           <button
