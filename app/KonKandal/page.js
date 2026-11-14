@@ -8,6 +8,8 @@ import AntiSpamModal from '@/components/AntiSpamModal';
 import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
+import MusicPromptModal from '@/components/MusicPromptModal';
+import RoastMusicPlayer from '@/components/RoastMusicPlayer';
 import ErrorReportModal from '@/components/ErrorReportModal';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import SmartCacheWarningModal from '@/components/SmartCacheWarningModal';
@@ -47,6 +49,7 @@ import { buildGeminiMultiTurnContents } from '../utils/geminiHistoryFormatter';
 
 const getChatEndpoint = () => getApiEndpoint('/api/chat');
 const getMemeEndpoint = () => getApiEndpoint('/api/generate-meme');
+const getMusicEndpoint = () => getApiEndpoint('/api/generate-music');
 
 const getBypassHeaders = () => {
   if (typeof window === 'undefined') return {};
@@ -182,6 +185,10 @@ export default function KonKandalPage() {
   // Meme Generation State
   const [isGeneratingMeme, setIsGeneratingMeme] = useState(false);
   const [showMemeModal, setShowMemeModal] = useState(false);
+
+  // Roast Music Generation State
+  const [isGeneratingMusic, setIsGeneratingMusic] = useState(false);
+  const [showMusicModal, setShowMusicModal] = useState(false);
 
   const [username, setUsername] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -1385,7 +1392,7 @@ export default function KonKandalPage() {
         setSessions(remoteSessions);
         const mostRecent = remoteSessions[0];
         setCurrentSessionId(mostRecent.id);
-        const validMsgs = (mostRecent.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+        const validMsgs = (mostRecent.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.musicTrack || m.image));
         if (validMsgs.length > 0) {
           setMessages(validMsgs);
           try {
@@ -1749,6 +1756,103 @@ export default function KonKandalPage() {
     }
   };
 
+  // Dedicated AI Roast Music Generator Trigger (8-Tracks per 1-Hour per Device Quota)
+  const handleRequestMusic = async (config = null) => {
+    let history = [];
+    try {
+      const raw = localStorage.getItem('setec_music_history');
+      if (raw) history = JSON.parse(raw);
+    } catch {}
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+    history = (Array.isArray(history) ? history : []).filter((t) => now - t < oneHour);
+
+    if (history.length >= 8) {
+      const oldest = history[0];
+      const remainingMin = Math.max(1, Math.ceil((oldest + oneHour - now) / (60 * 1000)));
+      const refusalMsg = `អូយ bro ${username}! បង្កើតភ្លេង Roast ឡើងក្ដៅ Spk ហើយ! 1 ម៉ោងអាច generate បាន 8 បទណា bro! ចាំ ${remainingMin} នាទីទៀតសិនចាំមក Diss បន្ត! 🎵🔥`;
+      const updated = [...messages, { role: 'bot', text: refusalMsg, isError: true }];
+      setMessages(updated);
+      saveCurrentSessionMessages(updated);
+      return;
+    }
+
+    if (config && typeof config === 'object' && (config.prompt || config.topic)) {
+      handleExecuteMusic(config);
+    } else {
+      setShowMusicModal(true);
+    }
+  };
+
+  const handleExecuteMusic = async ({ prompt: musicIdea = '', topic = 'csharp', genre = 'rap' }) => {
+    setIsGeneratingMusic(true);
+    const userMsg = {
+      role: 'user',
+      text: `សុំបង្កើតភ្លេង Roast៖ "${musicIdea || 'ប្រឡងធ្លាក់ C# សង $45'}" [${genre.toUpperCase()}]`
+    };
+    const updatedWithUser = [...messages, userMsg];
+    setMessages(updatedWithUser);
+    saveCurrentSessionMessages(updatedWithUser);
+
+    try {
+      const res = await fetch(getMusicEndpoint(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-id': getDeviceId()
+        },
+        body: JSON.stringify({
+          prompt: musicIdea,
+          topic,
+          genre,
+          bot: 'konkandal',
+          username
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.audioUrl) {
+        let history = [];
+        try {
+          const raw = localStorage.getItem('setec_music_history');
+          if (raw) history = JSON.parse(raw);
+        } catch {}
+        const now = Date.now();
+        history = (Array.isArray(history) ? history : []).filter((t) => now - t < 60 * 60 * 1000);
+        history.push(now);
+        localStorage.setItem('setec_music_history', JSON.stringify(history));
+
+        const botMusicMsg = {
+          role: 'bot',
+          text: `🔥 Drop the beat! នេះជាបទ Diss Track ថ្មីសម្រាប់ bro ${username}៖ **"${data.title}"** [${data.genre}]! ចុច Play ស្ដាប់កូដ Diss ឥឡូវនេះ! 🎧⚡`,
+          musicTrack: {
+            audioUrl: data.audioUrl,
+            title: data.title,
+            genre: data.genre,
+            bpm: data.bpm,
+            lyrics: data.lyrics,
+            engine: data.engine
+          }
+        };
+        const updatedWithBot = [...updatedWithUser, botMusicMsg];
+        setMessages(updatedWithBot);
+        saveCurrentSessionMessages(updatedWithBot);
+      } else {
+        const errorText = data.message || `អូយ bro ${username}! ការបង្កើតភ្លេង Roast មិនទាន់ជោគជ័យ សាកល្បងម្ដងទៀតណា bro! 🎵`;
+        const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
+        setMessages(updatedWithBot);
+        saveCurrentSessionMessages(updatedWithBot);
+      }
+    } catch {
+      const errorText = `អូយ bro ${username}! Studio បង្កើតភ្លេង Roast កំពុងរវល់ខ្លាំងពេក សូមសាកល្បងម្ដងទៀតនៅបន្តិចទៀតណា bro! 🎧`;
+      const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
+      setMessages(updatedWithBot);
+      saveCurrentSessionMessages(updatedWithBot);
+    } finally {
+      setIsGeneratingMusic(false);
+    }
+  };
+
   const [typingStatus, setTypingStatus] = useState('');
   const [activeThinkingStages, setActiveThinkingStages] = useState([]);
 
@@ -2016,6 +2120,15 @@ export default function KonKandalPage() {
       const memePrompt = promptText.replace(/\/meme|សុំបង្កើតរូបភាព\s*meme|បង្កើតរូបភាព\s*meme|សុំ\s*meme|បង្កើត\s*meme|គូរ\s*meme|ចង់បាន\s*meme/gi, '').replace(/^[:៖"'\s]+|[:៖"'\s]+$/g, '').trim();
       setInputText('');
       handleRequestMeme(memePrompt);
+      return;
+    }
+
+    // Check if user is asking to generate roast music / song
+    const isMusicRequest = /(?:បង្កើត|សុំ|ច្រៀង|ធ្វើ|ចង់បាន|និពន្ធ).*?(?:ភ្លេង|ចម្រៀង|music|song|diss\s*track|beat)|\/music|\/song/i.test(promptText);
+    if (isMusicRequest) {
+      const musicTopic = promptText.replace(/\/music|\/song|សុំបង្កើតភ្លេង\s*roast|បង្កើតភ្លេង\s*roast|សុំភ្លេង\s*roast|បង្កើតភ្លេង|សុំភ្លេង|ច្រៀង|ធ្វើចម្រៀង|បង្កើតចម្រៀង|ចង់បានភ្លេង|diss track/gi, '').replace(/^[:៖"'\s]+|[:៖"'\s]+$/g, '').trim();
+      setInputText('');
+      handleRequestMusic({ prompt: musicTopic });
       return;
     }
 
@@ -4439,7 +4552,7 @@ export default function KonKandalPage() {
               );
             }
           } else {
-            if (!msg.text && !msg.memeImage && !(isLoading && idx === messages.length - 1)) {
+            if (!msg.text && !msg.memeImage && !msg.musicTrack && !(isLoading && idx === messages.length - 1)) {
               return null;
             }
             const rawSt = audioStates[idx] || 'idle';
@@ -4517,6 +4630,18 @@ export default function KonKandalPage() {
                         </a>
                       </div>
                     </div>
+                  )}
+
+                  {msg.musicTrack && (
+                    <RoastMusicPlayer
+                      audioUrl={msg.musicTrack.audioUrl}
+                      title={msg.musicTrack.title}
+                      genre={msg.musicTrack.genre}
+                      bpm={msg.musicTrack.bpm}
+                      lyrics={msg.musicTrack.lyrics}
+                      engine={msg.musicTrack.engine}
+                      bot="konkandal"
+                    />
                   )}
 
                   <div
@@ -5002,6 +5127,23 @@ export default function KonKandalPage() {
                 <span className="font-semibold text-stone-800 dark:text-stone-100">សុំ Meme ៥ សន្លឹក</span>
               </button>
 
+              {/* AI Roast Music Generator Tool */}
+              <button
+                type="button"
+                onClick={() => handleRequestMusic()}
+                disabled={isGeneratingMusic || isLoading}
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-300/80 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                title="បង្កើតភ្លេង Roast ស៊ីតិច (Lyria 3.5 & Rap Beats)"
+              >
+                <span className="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-music"></i>
+                </span>
+                <span className="font-semibold">បង្កើតភ្លេង Roast</span>
+                <span className="text-[9.5px] px-1.5 py-0.5 rounded-md bg-emerald-600 text-white font-black shadow-xs flex items-center gap-1">
+                  <span>AI</span>
+                </span>
+              </button>
+
               {/* Image Vision Analysis Tool */}
               <button
                 type="button"
@@ -5263,6 +5405,19 @@ export default function KonKandalPage() {
         botPersona="កូនទី២"
         isDark={isDark}
         isGenerating={isGeneratingMeme}
+      />
+
+      {/* Custom Roast Music Prompt Modal */}
+      <MusicPromptModal
+        isOpen={showMusicModal}
+        onClose={() => setShowMusicModal(false)}
+        onSubmit={(config) => {
+          setShowMusicModal(false);
+          handleExecuteMusic(config);
+        }}
+        botPersona="កូនទី២"
+        isDark={isDark}
+        isGenerating={isGeneratingMusic}
       />
 
       {/* Full Image Viewer Modal */}

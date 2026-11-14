@@ -8,6 +8,8 @@ import AntiSpamModal from '@/components/AntiSpamModal';
 import ThemeToggle from '@/components/ThemeToggle';
 import ImageModal from '@/components/ImageModal';
 import MemePromptModal from '@/components/MemePromptModal';
+import MusicPromptModal from '@/components/MusicPromptModal';
+import RoastMusicPlayer from '@/components/RoastMusicPlayer';
 import ErrorReportModal from '@/components/ErrorReportModal';
 import ContributeKnowledgeModal from '@/components/ContributeKnowledgeModal';
 import SmartCacheWarningModal from '@/components/SmartCacheWarningModal';
@@ -47,6 +49,7 @@ import { buildGeminiMultiTurnContents } from '../utils/geminiHistoryFormatter';
 
 const getChatEndpoint = () => getApiEndpoint('/api/chat');
 const getMemeEndpoint = () => getApiEndpoint('/api/generate-meme');
+const getMusicEndpoint = () => getApiEndpoint('/api/generate-music');
 
 const getBypassHeaders = () => {
   if (typeof window === 'undefined') return {};
@@ -162,6 +165,10 @@ export default function KonPovPage() {
   // Meme Generation State
   const [isGeneratingMeme, setIsGeneratingMeme] = useState(false);
   const [showMemeModal, setShowMemeModal] = useState(false);
+
+  // Roast Music Generation State
+  const [isGeneratingMusic, setIsGeneratingMusic] = useState(false);
+  const [showMusicModal, setShowMusicModal] = useState(false);
 
   // Sessions and History Modals
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -1511,7 +1518,7 @@ export default function KonPovPage() {
         setSessions(remoteSessions);
         const mostRecent = remoteSessions[0];
         setCurrentSessionId(mostRecent.id);
-        const validMsgs = (mostRecent.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+        const validMsgs = (mostRecent.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.musicTrack || m.image));
         if (validMsgs.length > 0) {
           setMessages(validMsgs);
           setHasAgreed(true);
@@ -1737,7 +1744,7 @@ export default function KonPovPage() {
     if (currentSessionId === sessionId) {
       const nextSession = remaining[0];
       setCurrentSessionId(nextSession.id);
-      const validMsgs = (nextSession.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+      const validMsgs = (nextSession.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.musicTrack || m.image));
       setMessages(validMsgs);
       setHasAgreed(validMsgs.length > 0);
     }
@@ -2637,6 +2644,103 @@ export default function KonPovPage() {
     }
   };
 
+  // Dedicated AI Roast Music Generator Trigger (8-Tracks per 1-Hour per Device Quota)
+  const handleRequestMusic = async (config = null) => {
+    let history = [];
+    try {
+      const raw = localStorage.getItem('setec_music_history');
+      if (raw) history = JSON.parse(raw);
+    } catch {}
+    const now = Date.now();
+    const oneHour = 60 * 60 * 1000;
+    history = (Array.isArray(history) ? history : []).filter((t) => now - t < oneHour);
+
+    if (history.length >= 8) {
+      const oldest = history[0];
+      const remainingMin = Math.max(1, Math.ceil((oldest + oneHour - now) / (60 * 1000)));
+      const refusalMsg = `អាម៉ូយ ${username}! ឯងបង្កើតភ្លេង Roast ច្រើនបទពេកហើយ! ប្រព័ន្ធកំណត់ឱ្យ ១ ឧបករណ៍បង្កើតភ្លេងបាន ៨ បទក្នុង ១ ម៉ោង! ពេលនេះគ្រប់ ៨ បទហើយ សម្រាកត្រចៀក ${remainingMin} នាទីសិនទៅអាម៉ូយ! 😂🎧`;
+      const updated = [...messages, { role: 'bot', text: refusalMsg, isError: true }];
+      setMessages(updated);
+      saveCurrentSessionMessages(updated);
+      return;
+    }
+
+    if (config && typeof config === 'object' && (config.prompt || config.topic)) {
+      handleExecuteMusic(config);
+    } else {
+      setShowMusicModal(true);
+    }
+  };
+
+  const handleExecuteMusic = async ({ prompt: musicIdea = '', topic = 'csharp', genre = 'rap' }) => {
+    setIsGeneratingMusic(true);
+    const userMsg = {
+      role: 'user',
+      text: `សុំបង្កើតភ្លេង Roast៖ "${musicIdea || 'ប្រឡងធ្លាក់ C# សង $45'}" [${genre.toUpperCase()}]`
+    };
+    const updatedWithUser = [...messages, userMsg];
+    setMessages(updatedWithUser);
+    saveCurrentSessionMessages(updatedWithUser);
+
+    try {
+      const res = await fetch(getMusicEndpoint(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-id': getDeviceId()
+        },
+        body: JSON.stringify({
+          prompt: musicIdea,
+          topic,
+          genre,
+          bot: 'konpov',
+          username
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success && data.audioUrl) {
+        let history = [];
+        try {
+          const raw = localStorage.getItem('setec_music_history');
+          if (raw) history = JSON.parse(raw);
+        } catch {}
+        const now = Date.now();
+        history = (Array.isArray(history) ? history : []).filter((t) => now - t < 60 * 60 * 1000);
+        history.push(now);
+        localStorage.setItem('setec_music_history', JSON.stringify(history));
+
+        const botMusicMsg = {
+          role: 'bot',
+          text: `🔥 Drop the beat អាម៉ូយ! នេះជាបទ Diss Track Savage សម្រាប់អាម៉ូយ ${username}៖ **"${data.title}"** [${data.genre}]! ចុច Play ស្ដាប់កូដ Diss ឥឡូវនេះទៅ! 🎧💥`,
+          musicTrack: {
+            audioUrl: data.audioUrl,
+            title: data.title,
+            genre: data.genre,
+            bpm: data.bpm,
+            lyrics: data.lyrics,
+            engine: data.engine
+          }
+        };
+        const updatedWithBot = [...updatedWithUser, botMusicMsg];
+        setMessages(updatedWithBot);
+        saveCurrentSessionMessages(updatedWithBot);
+      } else {
+        const errorText = data.message || `អាម៉ូយ ${username}! ការបង្កើតភ្លេង Roast មិនទាន់ជោគជ័យ សាកល្បងម្ដងទៀតណា៎! 🎵`;
+        const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
+        setMessages(updatedWithBot);
+        saveCurrentSessionMessages(updatedWithBot);
+      }
+    } catch {
+      const errorText = `អាម៉ូយ ${username}! Studio បង្កើតភ្លេង Roast កំពុងរវល់ខ្លាំងពេក សូមសាកល្បងម្ដងទៀតនៅបន្តិចទៀតណា៎! 🎧`;
+      const updatedWithBot = [...updatedWithUser, { role: 'bot', text: errorText, isError: true }];
+      setMessages(updatedWithBot);
+      saveCurrentSessionMessages(updatedWithBot);
+    } finally {
+      setIsGeneratingMusic(false);
+    }
+  };
+
   // Direct Live Intervention Send by Rotana NOB (Zero AI Involvement)
   const handleRotanaSend = async (currentText, currentImg) => {
     setInputText('');
@@ -2760,6 +2864,15 @@ export default function KonPovPage() {
       const memePrompt = promptText.replace(/\/meme|សុំបង្កើតរូបភាព\s*meme|បង្កើតរូបភាព\s*meme|សុំ\s*meme|បង្កើត\s*meme|គូរ\s*meme|ចង់បាន\s*meme/gi, '').replace(/^[:៖"'\s]+|[:៖"'\s]+$/g, '').trim();
       setInputText('');
       handleRequestMeme(memePrompt);
+      return;
+    }
+
+    // Check if user is asking to generate roast music / song
+    const isMusicRequest = /(?:បង្កើត|សុំ|ច្រៀង|ធ្វើ|ចង់បាន|និពន្ធ).*?(?:ភ្លេង|ចម្រៀង|music|song|diss\s*track|beat)|\/music|\/song/i.test(promptText);
+    if (isMusicRequest) {
+      const musicTopic = promptText.replace(/\/music|\/song|សុំបង្កើតភ្លេង\s*roast|បង្កើតភ្លេង\s*roast|សុំភ្លេង\s*roast|បង្កើតភ្លេង|សុំភ្លេង|ច្រៀង|ធ្វើចម្រៀង|បង្កើតចម្រៀង|ចង់បានភ្លេង|diss track/gi, '').replace(/^[:៖"'\s]+|[:៖"'\s]+$/g, '').trim();
+      setInputText('');
+      handleRequestMusic({ prompt: musicTopic });
       return;
     }
 
@@ -3447,7 +3560,7 @@ export default function KonPovPage() {
                     key={session.id}
                     onClick={() => {
                       setCurrentSessionId(session.id);
-                      const validMsgs = (session.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.image));
+                      const validMsgs = (session.messages || []).filter((m) => m && (m.text?.trim() || m.memeImage || m.musicTrack || m.image));
                       setMessages(validMsgs);
                       setHasAgreed(validMsgs.length > 0);
                       setDrawerOpen(false);
@@ -4439,7 +4552,7 @@ export default function KonPovPage() {
         )}
 
         {/* Welcome Starter Screen when chat is empty (Zero Blank Void Guaranteed) */}
-        {hasAgreed && messages.filter((m) => m && (m.text?.trim() || m.memeImage || m.image || (isLoading && m.role === 'bot'))).length === 0 && (
+        {hasAgreed && messages.filter((m) => m && (m.text?.trim() || m.memeImage || m.musicTrack || m.image || (isLoading && m.role === 'bot'))).length === 0 && (
           <div className="flex-1 flex flex-col items-center justify-center p-4 text-center my-auto max-w-md mx-auto animate-fade-in">
             <div className="relative mb-3">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-xl shadow-blue-500/20">
@@ -4716,7 +4829,7 @@ export default function KonPovPage() {
               );
             }
           } else {
-            if (!item.text && !item.memeImage && !(isLoading && idx === messages.length - 1)) {
+            if (!item.text && !item.memeImage && !item.musicTrack && !(isLoading && idx === messages.length - 1)) {
               return null;
             }
             const rawSt = audioStatuses[idx] || 'ready';
@@ -4756,6 +4869,7 @@ export default function KonPovPage() {
                       </div>
                     </div>
                   )}
+
                   {isThisItemPlaying && (
                     <span className="absolute -bottom-1 -right-1 flex h-4.5 w-4.5 z-20">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
@@ -4817,6 +4931,18 @@ export default function KonPovPage() {
                         </a>
                       </div>
                     </div>
+                  )}
+
+                  {item.musicTrack && (
+                    <RoastMusicPlayer
+                      audioUrl={item.musicTrack.audioUrl}
+                      title={item.musicTrack.title}
+                      genre={item.musicTrack.genre}
+                      bpm={item.musicTrack.bpm}
+                      lyrics={item.musicTrack.lyrics}
+                      engine={item.musicTrack.engine}
+                      bot="konpov"
+                    />
                   )}
 
                   <div
@@ -5287,6 +5413,23 @@ export default function KonPovPage() {
                 <span className="font-semibold text-slate-800 dark:text-slate-100">សុំ Meme ៥ សន្លឹក</span>
               </button>
 
+              {/* AI Roast Music Generator Tool */}
+              <button
+                type="button"
+                onClick={() => handleRequestMusic()}
+                disabled={!hasAgreed || isGeneratingMusic || isLoading}
+                className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-300/80 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shrink-0 transition-all duration-150 active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                title="បង្កើតភ្លេង Roast ស៊ីតិច (Lyria 3.5 & Rap Beats)"
+              >
+                <span className="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[11px] shrink-0 font-bold">
+                  <i className="fas fa-music"></i>
+                </span>
+                <span className="font-semibold">បង្កើតភ្លេង Roast</span>
+                <span className="text-[9.5px] px-1.5 py-0.5 rounded-md bg-emerald-600 text-white font-black shadow-xs flex items-center gap-1">
+                  <span>AI</span>
+                </span>
+              </button>
+
               {/* Image Vision Analysis Tool */}
               <button
                 type="button"
@@ -5531,6 +5674,19 @@ export default function KonPovPage() {
         botPersona={isDaddyMode ? "ប៉ា" : "ចែ"}
         isDark={isDark}
         isGenerating={isGeneratingMeme}
+      />
+
+      {/* Custom Roast Music Prompt Modal */}
+      <MusicPromptModal
+        isOpen={showMusicModal}
+        onClose={() => setShowMusicModal(false)}
+        onSubmit={(config) => {
+          setShowMusicModal(false);
+          handleExecuteMusic(config);
+        }}
+        botPersona="កូនពៅ"
+        isDark={isDark}
+        isGenerating={isGeneratingMusic}
       />
 
       {/* Full Image Viewer Modal */}
