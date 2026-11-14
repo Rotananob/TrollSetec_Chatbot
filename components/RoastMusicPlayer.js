@@ -2,6 +2,176 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 
+// Web Audio 808 Hip-Hop / Lo-Fi Backing Beat Engine
+class BackingBeatEngine {
+  constructor(bpm = 120) {
+    this.bpm = bpm;
+    this.ctx = null;
+    this.timerId = null;
+    this.step = 0;
+    this.gainNode = null;
+    this.volume = 0.32;
+    this.isRunning = false;
+  }
+
+  init() {
+    if (typeof window === 'undefined') return;
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+        this.gainNode = this.ctx.createGain();
+        this.gainNode.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+        this.gainNode.connect(this.ctx.destination);
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+  }
+
+  setBpm(bpmStr) {
+    const parsed = parseInt(bpmStr, 10);
+    this.bpm = !isNaN(parsed) && parsed >= 60 && parsed <= 180 ? parsed : 120;
+  }
+
+  playKick(time) {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(135, time);
+      osc.frequency.exponentialRampToValueAtTime(35, time + 0.12);
+      gain.gain.setValueAtTime(0.85, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.32);
+      osc.connect(gain);
+      gain.connect(this.gainNode);
+      osc.start(time);
+      osc.stop(time + 0.33);
+    } catch {}
+  }
+
+  playSnare(time) {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const oscGain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(180, time);
+      oscGain.gain.setValueAtTime(0.35, time);
+      oscGain.gain.exponentialRampToValueAtTime(0.01, time + 0.09);
+      osc.connect(oscGain);
+      oscGain.connect(this.gainNode);
+      osc.start(time);
+      osc.stop(time + 0.1);
+
+      const bufferSize = Math.floor(this.ctx.sampleRate * 0.15);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(1100, time);
+      const noiseGain = this.ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.45, time);
+      noiseGain.gain.exponentialRampToValueAtTime(0.01, time + 0.14);
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(this.gainNode);
+      noise.start(time);
+      noise.stop(time + 0.15);
+    } catch {}
+  }
+
+  playHiHat(time, open = false) {
+    if (!this.ctx) return;
+    try {
+      const dur = open ? 0.14 : 0.04;
+      const bufferSize = Math.floor(this.ctx.sampleRate * dur);
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.setValueAtTime(7500, time);
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(open ? 0.22 : 0.15, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.gainNode);
+      noise.start(time);
+      noise.stop(time + dur);
+    } catch {}
+  }
+
+  playSubBass(time, freq = 55) {
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(0.4, time);
+      gain.gain.exponentialRampToValueAtTime(0.01, time + 0.42);
+      osc.connect(gain);
+      gain.connect(this.gainNode);
+      osc.start(time);
+      osc.stop(time + 0.43);
+    } catch {}
+  }
+
+  start() {
+    if (this.isRunning) return;
+    this.init();
+    if (!this.ctx) return;
+    this.isRunning = true;
+    this.step = 0;
+
+    const intervalMs = (60000 / this.bpm) / 4;
+    const bassNotes = [43.65, 43.65, 51.91, 38.89];
+
+    this.timerId = setInterval(() => {
+      if (!this.ctx || !this.isRunning) return;
+      const now = this.ctx.currentTime + 0.02;
+      const step16 = this.step % 16;
+      const barNum = Math.floor((this.step % 64) / 16);
+      const currentBass = bassNotes[barNum % bassNotes.length];
+
+      if (step16 % 2 === 0) {
+        this.playHiHat(now, step16 === 14);
+      }
+      if (step16 === 0 || step16 === 8 || step16 === 10) {
+        this.playKick(now);
+        this.playSubBass(now, currentBass);
+      }
+      if (step16 === 4 || step16 === 12) {
+        this.playSnare(now);
+      }
+
+      this.step++;
+    }, intervalMs);
+  }
+
+  stop() {
+    this.isRunning = false;
+    if (this.timerId) {
+      clearInterval(this.timerId);
+      this.timerId = null;
+    }
+    this.step = 0;
+  }
+}
+
 export default function RoastMusicPlayer({
   audioUrl,
   title = 'SETEC Roast Track',
@@ -15,7 +185,18 @@ export default function RoastMusicPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showLyrics, setShowLyrics] = useState(false);
+  const [beatEnabled, setBeatEnabled] = useState(true);
   const audioRef = useRef(null);
+  const beatEngineRef = useRef(null);
+
+  useEffect(() => {
+    beatEngineRef.current = new BackingBeatEngine(parseInt(bpm, 10) || 120);
+    return () => {
+      if (beatEngineRef.current) {
+        beatEngineRef.current.stop();
+      }
+    };
+  }, [bpm]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -30,6 +211,9 @@ export default function RoastMusicPlayer({
     const onEnded = () => {
       setIsPlaying(false);
       setCurrentTime(0);
+      if (beatEngineRef.current) {
+        beatEngineRef.current.stop();
+      }
     };
 
     audio.addEventListener('timeupdate', updateTime);
@@ -40,6 +224,9 @@ export default function RoastMusicPlayer({
       audio.removeEventListener('timeupdate', updateTime);
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', onEnded);
+      if (beatEngineRef.current) {
+        beatEngineRef.current.stop();
+      }
     };
   }, []);
 
@@ -51,6 +238,9 @@ export default function RoastMusicPlayer({
       if (isPlaying) {
         audio.pause();
         setIsPlaying(false);
+        if (beatEngineRef.current) {
+          beatEngineRef.current.stop();
+        }
       } else {
         // Pause any other playing audio on the page
         document.querySelectorAll('audio').forEach((el) => {
@@ -58,9 +248,28 @@ export default function RoastMusicPlayer({
         });
         await audio.play();
         setIsPlaying(true);
+        if (beatEnabled && beatEngineRef.current) {
+          beatEngineRef.current.start();
+        }
       }
     } catch {
       setIsPlaying(false);
+      if (beatEngineRef.current) {
+        beatEngineRef.current.stop();
+      }
+    }
+  };
+
+  const toggleBeat = () => {
+    const nextState = !beatEnabled;
+    setBeatEnabled(nextState);
+    if (!beatEngineRef.current) return;
+    if (nextState) {
+      if (isPlaying) {
+        beatEngineRef.current.start();
+      }
+    } else {
+      beatEngineRef.current.stop();
     }
   };
 
@@ -185,21 +394,43 @@ export default function RoastMusicPlayer({
           </div>
         </div>
 
-        {/* Action Row: Lyrics Toggle & Download */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+        {/* Action Row: Beat Toggle, Lyrics Drawer & Download */}
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-2 border-t border-slate-800/80 flex-wrap">
+          {/* Backing Beat Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleBeat}
+            className={`text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded-xl border transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+              beatEnabled
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/50 shadow-xs'
+                : 'bg-slate-900 text-zinc-400 border-slate-800 hover:text-zinc-200'
+            }`}
+            title="ភ្លេង Beat 808 Bass អមពីក្រោយបទចម្រៀង"
+          >
+            <i className={`fas fa-drum ${beatEnabled ? 'text-emerald-400' : 'text-zinc-500'} text-[10px]`}></i>
+            <span>Beat អម: {beatEnabled ? 'បើក' : 'បិទ'}</span>
+            {beatEnabled && isPlaying && (
+              <span className="flex gap-0.5 items-end h-2.5 ml-0.5">
+                <span className="w-0.5 h-1.5 bg-emerald-400 animate-pulse"></span>
+                <span className="w-0.5 h-2.5 bg-emerald-400 animate-pulse delay-75"></span>
+                <span className="w-0.5 h-2 bg-emerald-400 animate-pulse delay-150"></span>
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             onClick={() => setShowLyrics(!showLyrics)}
-            className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/60 text-emerald-300 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/60 text-emerald-300 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
           >
             <i className="fas fa-scroll text-[10px]"></i>
-            <span>{showLyrics ? 'លាក់ទំនុកច្រៀង' : 'មើលទំនុកច្រៀង Roast'}</span>
+            <span>{showLyrics ? 'លាក់ទំនុកច្រៀង' : 'ទំនុកច្រៀង Roast'}</span>
           </button>
 
           <a
             href={audioUrl}
             download={`setec-roast-${title.replace(/[^a-zA-Z0-9\u1780-\u17FF]/g, '_')}.wav`}
-            className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+            className="text-[11px] font-bold px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
             title="ទាញយកបទចម្រៀង"
           >
             <i className="fas fa-download text-[10px]"></i>

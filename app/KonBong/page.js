@@ -2026,12 +2026,31 @@ export default function KonBongPage() {
       return;
     }
 
-    // Check if user is asking to generate roast music / song
-    const isMusicRequest = /(?:បង្កើត|សុំ|ច្រៀង|ធ្វើ|ចង់បាន|និពន្ធ).*?(?:ភ្លេង|ចម្រៀង|music|song|diss\s*track|beat)|\/music|\/song/i.test(promptText);
-    if (isMusicRequest) {
-      const musicTopic = promptText.replace(/\/music|\/song|សុំបង្កើតភ្លេង\s*roast|បង្កើតភ្លេង\s*roast|សុំភ្លេង\s*roast|បង្កើតភ្លេង|សុំភ្លេង|ច្រៀង|ធ្វើចម្រៀង|បង្កើតចម្រៀង|ចង់បានភ្លេង|diss track/gi, '').replace(/^[:៖"'\s]+|[:៖"'\s]+$/g, '').trim();
+    // Check if user is inquiring if AI can sing or rap
+    const isSingingInquiry = /(?:ចេះ\s*(?:ច្រៀង|rap)|can\s*you\s*sing|ចេះធ្វើភ្លេង|ចេះនិពន្ធ)/i.test(promptText);
+    if (isSingingInquiry) {
       setInputText('');
-      handleRequestMusic({ prompt: musicTopic });
+      const responseText = `ចេះតើអាប្អូន! បងធំកូនច្បងនេះ Rap Diss Track Roast សិស្សស៊ីតិច មួយបទៗចាក់ដោតដល់ឆ្អឹងខ្នងហ្មង! Beat 808 Bass បុកបែក Spk! ចង់ឱ្យបង Rap Diss រឿងអីដែរ? ដូចជារឿងប្រឡង C# សង ៤៥$, រត់ឡើងជណ្ដើរ ៥ ជាន់ ឬ Deadline ១១:៥៩ យប់! ប្រាប់ប្រធានបទមក បងទម្លាក់ Beat ច្រៀង Roast ឱ្យភ្លឺភ្នែកហ្មង! 🎤🔥`;
+      const updatedMessages = [
+        ...messages,
+        { role: 'user', text: promptText },
+        { role: 'bot', text: responseText }
+      ];
+      setMessages(updatedMessages);
+      saveCurrentSessionMessages(updatedMessages);
+      setShowMusicModal(true);
+      return;
+    }
+
+    // Check if user is asking to generate roast music / song / rap
+    const isMusicRequest = /(?:បង្កើត|សុំ|ច្រៀង|ធ្វើ|ចង់បាន|និពន្ធ|rap|play).*?(?:ភ្លេង|ចម្រៀង|music|song|diss\s*track|beat|មួយបទ|បទ)|\/music|\/song|ច្រៀងឱ្យស្ដាប់|ច្រៀងតិច|សុំមួយបទ|rap\s*មួយបទ|សុំ rap|ច្រៀង roast|rap roast/i.test(promptText);
+    if (isMusicRequest) {
+      let musicTopic = promptText.replace(/\/music|\/song|សុំបង្កើតភ្លេង\s*roast|បង្កើតភ្លេង\s*roast|សុំភ្លេង\s*roast|បង្កើតភ្លេង|សុំភ្លេង|ច្រៀងឱ្យស្ដាប់|ច្រៀងមួយបទ|សុំមួយបទ|rap\s*មួយបទ|ច្រៀង|ធ្វើចម្រៀង|បង្កើតចម្រៀង|ចង់បានភ្លេង|diss track|សុំ rap|rap|មួយបទ|ឱ្យស្ដាប់|តិចមើល/gi, '').replace(/^[:៖"'\s]+|[:៖"'\s]+$/g, '').trim();
+      if (!musicTopic) {
+        musicTopic = 'ប្រឡងធ្លាក់ C# សង ៤៥ ដុល្លារ និងជណ្ដើរជើង ៥ ជាន់';
+      }
+      setInputText('');
+      handleRequestMusic({ prompt: musicTopic, topic: 'csharp', genre: 'rap' });
       return;
     }
 
@@ -4047,6 +4066,25 @@ export default function KonBongPage() {
             <div className="space-y-1.5">
               <button
                 type="button"
+                onClick={() => handleChat('ច្រៀង Diss Track Roast រឿងប្រឡងធ្លាក់ C# សង ៤៥ ដុល្លារ')}
+                className={`w-full p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-between group cursor-pointer ${
+                  isDark
+                    ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50'
+                    : 'bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100 shadow-xs'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <i className="fas fa-compact-disc text-emerald-400 text-sm w-4 text-center"></i>
+                  <span>ច្រៀង Diss Track Roast ៤៥$ Beat 808 Bass</span>
+                </span>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-black flex items-center gap-1">
+                  <i className="fas fa-bolt text-amber-400 text-[9px]"></i>
+                  <span>Rap Beats</span>
+                </span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => handleChat('ជួយពិនិត្យ និងឌឺរឿងកូដ Assignment របស់ខ្ញុំបន្តិចមើល!')}
                 className={`w-full p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-between group cursor-pointer ${
                   isDark
@@ -4743,6 +4781,59 @@ export default function KonBongPage() {
           </div>
         )}
 
+        {/* Dedicated Music Studio Loading Blur Card */}
+        {isGeneratingMusic && (
+          <div className="flex items-start gap-2.5 max-w-[88%] sm:max-w-[85%] animate-fade-in my-2">
+            <img
+              src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
+              alt="Bot Avatar"
+              className="w-9 h-9 rounded-full border-2 border-emerald-400 shadow shrink-0"
+            />
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-bold text-emerald-400 text-xs mb-1 flex items-center gap-1.5">
+                <i className="fas fa-compact-disc text-emerald-400 animate-spin text-[11px]"></i>
+                <span>Roastbot កូនច្បង • AI Roast Music Studio</span>
+              </span>
+              <div className="rounded-2xl overflow-hidden border border-emerald-500/40 bg-gradient-to-br from-slate-950 via-[#071c12] to-slate-900 p-4 shadow-xl relative max-w-sm w-full font-['Kantumruy_Pro',sans-serif]">
+                <div className="w-full rounded-xl bg-slate-900/90 border border-emerald-900/50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                  {/* Spinning Vinyl Record with Music Badge */}
+                  <div className="relative w-16 h-16 mb-3 flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-gradient-to-tr from-slate-950 via-zinc-800 to-slate-950 border-2 border-emerald-400 shadow-lg animate-[spin_3s_linear_infinite] flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-[#008744] flex items-center justify-center shadow-xs">
+                        <i className="fas fa-music text-white text-[11px]"></i>
+                      </div>
+                    </div>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-25"></span>
+                  </div>
+
+                  <h4 className="font-black text-sm text-white mb-1 text-center flex items-center gap-2">
+                    <i className="fas fa-microphone-lines text-emerald-400 text-xs"></i>
+                    <span>កំពុងតែងទំនុកច្រៀង និង Rap Roast...</span>
+                  </h4>
+                  <p className="text-[11px] text-emerald-200/90 text-center font-medium mb-3 leading-relaxed">
+                    រៀបចំ Beat 808 Bass និងសំឡេងច្រៀង Diss Track សិស្សស៊ីតិច សូមរង់ចាំបន្តិច!
+                  </p>
+
+                  {/* Equalizer Wave Visualizer Bars */}
+                  <div className="flex items-end justify-center gap-1 h-5 mb-3">
+                    <span className="w-1 bg-emerald-400 rounded-full animate-eq-1 h-2"></span>
+                    <span className="w-1 bg-emerald-400 rounded-full animate-eq-2 h-4"></span>
+                    <span className="w-1 bg-emerald-400 rounded-full animate-eq-3 h-5"></span>
+                    <span className="w-1 bg-emerald-400 rounded-full animate-eq-2 h-3"></span>
+                    <span className="w-1 bg-emerald-400 rounded-full animate-eq-1 h-4"></span>
+                    <span className="w-1 bg-emerald-400 rounded-full animate-eq-3 h-2"></span>
+                  </div>
+
+                  {/* Progress Glow Bar */}
+                  <div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden border border-emerald-900/60">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-green-400 w-3/4 rounded-full animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={chatBottomRef} />
       </main>
 
@@ -4961,13 +5052,15 @@ export default function KonBongPage() {
                 <span>សំណើ Troll:</span>
               </div>
               {[
-                { label: '🔥 Quote IT & CS', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកបង!' },
-                { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
-                { label: '💸 ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់បង?' },
-                { label: '🎒 Asus ROG', prompt: 'ប្រាប់ពីកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលបង' },
-                { label: '💻 គន្លឹះរៀន IT', prompt: 'ជួយពន្យល់ពីគន្លឹះរៀន Coding នៅ SETEC ឱ្យឆាប់ចេះតិចមើលបង' },
-                { label: '🎨 សិស្ស Design & បណ្ណាល័យ', prompt: 'តើសិស្ស Graphic Design និង IT នៅស៊ីតិចមានបរិយាកាសស្និទ្ធស្នាលគ្នាយ៉ាងម៉េចខ្លះក្នុងបណ្ណាល័យ?' },
-                { label: '☕ ញៀនកាហ្វេ', prompt: 'ឮថាសិស្សស៊ីតិចញៀនកាហ្វេខ្លាំងណាស់មែន?' }
+                { label: 'ច្រៀង Diss Track Roast', prompt: 'ច្រៀង Diss Track Roast រឿងរៀននៅស៊ីតិចមួយបទ' },
+                { label: 'ច្រៀងបទ C# ៤៥$', prompt: 'ច្រៀងមួយបទរឿងប្រឡងធ្លាក់ C# សង ៤៥ ដុល្លារ' },
+                { label: 'Quote IT & CS', prompt: 'សុំ Quote Troll ឡូយៗបែប IG និង X សម្រាប់សិស្ស IT & CS ទាំងភាសាខ្មែរ និងអង់គ្លេសមួយកប់មកបង!' },
+                { label: 'Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីតិចតិចមើល' },
+                { label: 'ប្រឡងសង $45 x3', prompt: 'រឿងប្រឡងសង $45 មួយមុខ ទាល់តែ ៣ មុខបានសងហ្នឹងពិតអត់បង?' },
+                { label: 'Asus ROG', prompt: 'ប្រាប់ពីកាតាប Asus ROG ប្រចាំត្រកូលសិស្សស៊ីតិចតិចមើលបង' },
+                { label: 'គន្លឹះរៀន IT', prompt: 'ជួយពន្យល់ពីគន្លឹះរៀន Coding នៅ SETEC ឱ្យឆាប់ចេះតិចមើលបង' },
+                { label: 'សិស្ស Design & បណ្ណាល័យ', prompt: 'តើសិស្ស Graphic Design និង IT នៅស៊ីតិចមានបរិយាកាសស្និទ្ធស្នាលគ្នាយ៉ាងម៉េចខ្លះក្នុងបណ្ណាល័យ?' },
+                { label: 'ញៀនកាហ្វេ', prompt: 'ឮថាសិស្សស៊ីតិចញៀនកាហ្វេខ្លាំងណាស់មែន?' }
               ].map((topic, tIdx) => (
                 <button
                   key={tIdx}
