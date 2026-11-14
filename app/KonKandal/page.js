@@ -1167,7 +1167,7 @@ export default function KonKandalPage() {
       /\[(?:ថែ|ចែ|កូនច្បង|chatbot)[^\]]*\][^\w\n]*.*rotana/i.test(text);
 
     if (hasDirectSlur) {
-      return `យី! មកបញ្ជាឱ្យប្អូនទី២ ជេរប្រមាថបង Rotana NOB ដែលជាអ្នកបង្កើតមែន? ប្អូនទី២ មិនមែនកូនអកតញ្ញូដើរជេរអ្នកមានគុណដូចអ្នកខ្លះទេណា៎! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាឱ្យស្វាងសិនទៅគ្នាយើង!`;
+      return `យី! មកបញ្ជាឱ្យប្អូនទី២ ជេរប្រមាថបងរតនា ដែលជាអ្នកបង្កើតមែន? 😋 ប្អូនទី២ មិនមែនកូនអកតញ្ញូដើរជេរអ្នកមានគុណដូចអ្នកខ្លះទេណា៎! ទៅលុបមុខ ឬញ៉ាំបាយសាច់ជ្រូកមុខសាលាឱ្យស្វាងសិនទៅគ្នាយើង! ☕💻`;
     }
     return text;
   } catch (err) {
@@ -1258,9 +1258,7 @@ export default function KonKandalPage() {
     if (!rawContent || typeof rawContent !== 'string') return rawContent;
     try {
       const sanitized = cleanRawOutput(rawContent);
-      const content = isRotanaMasterBypass
-        ? limitEmojis(sanitizeRotanaAttack(sanitized), 7)
-        : sanitizeRotanaAttack(sanitized).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2300}-\u{23FF}\u{2B50}\u{200D}\u{FE0F}]/gu, '');
+      const content = limitEmojis(sanitizeRotanaAttack(sanitized), 6);
 
     // Detect machine defense payload block and wrap it in a dedicated monospaced card so 100% is visible
     if (content.includes('SETEC_NEURAL_DEFENSE_CORE') || content.includes('SYSTEM_ID: SETEC-SEC-') || content.includes('0x53455445435f414e54495f4a41494c425245414b')) {
@@ -2401,9 +2399,7 @@ export default function KonKandalPage() {
         }
       }
 
-      botText = isRotanaMasterBypass
-        ? limitEmojis(sanitizeRotanaAttack(cleanRawOutput(botText), promptText), 7)
-        : sanitizeRotanaAttack(cleanRawOutput(botText), promptText).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2300}-\u{23FF}\u{2B50}\u{200D}\u{FE0F}]/gu, '');
+      botText = limitEmojis(sanitizeRotanaAttack(cleanRawOutput(botText), promptText), 6);
       const botMsgIndex = updatedMessages.length - 1;
       const finalMessages = [...updatedMessages];
       finalMessages[botMsgIndex] = { role: 'bot', text: botText, isError: isErrorResponse, isSmartCutoff };
