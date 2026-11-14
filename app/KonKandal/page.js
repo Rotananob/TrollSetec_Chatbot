@@ -4165,121 +4165,122 @@ export default function KonKandalPage() {
           </div>
         </div>
 
-        {/* Quick Prompts when no messages sent yet (KonKandal Exclusive 2-Column Grid) */}
+        {/* KonKandal Topic Board */}
         {messages.length === 0 && (
           <div className="w-full max-w-xl mx-auto py-3 animate-fade-in">
-            <div className="text-center mb-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-600 dark:text-violet-300 text-[11px] font-bold shadow-xs">
-                <i className="fas fa-sparkles text-amber-400 animate-pulse"></i>
-                <span>ប្រធានបទកម្សាន្ត &amp; Gossip ជាមួយប្អូនទី២</span>
-              </span>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                ជ្រើសរើសដើម្បីចាប់ផ្ដើមជជែក troll, សួរនាំរឿងសាលា ឬ drama SETEC
+            <div className="text-center mb-3.5">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] font-bold shadow-xs">
+                <i className="fas fa-comments text-indigo-500 text-xs"></i>
+                <span>ក្តារជជែកជាមួយប្អូនទី២</span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
+                ជ្រើសរើសប្រធានបទដើម្បីជជែកលេង ឬសួរនាំរឿងរ៉ាវក្នុងវិទ្យាស្ថាន
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {[
                 {
-                  icon: 'fa-fire-flame-curved',
-                  iconColor: 'text-rose-500 dark:text-rose-400',
-                  badge: 'Hot Tea 🍵',
-                  badgeBg: 'bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/20',
-                  title: 'Drama & Gossip ស៊ីទិច',
-                  desc: 'រឿងល្បីៗ និង drama និស្សិតក្នុងសាលាឆ្នាំហ្នឹង',
-                  prompt: 'សុំ gossip រឿង drama និស្សិតនៅ SETEC ឆ្នាំហ្នឹងបន្តិចមើល៎ប្អូនទី២!'
+                  tag: 'ព័ត៌មានក្តៅៗ',
+                  tagColor: 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/50',
+                  icon: 'fa-bullhorn',
+                  iconColor: 'text-rose-600 dark:text-rose-400',
+                  title: 'រឿងល្បីៗក្នុងវិទ្យាស្ថាន',
+                  desc: 'រឿងរ៉ាវប្លែកៗ និងរឿងផ្ទៃក្នុងរបស់និស្សិតឆ្នាំនេះ',
+                  prompt: 'សុំនិយាយរឿងរ៉ាវប្លែកៗរបស់និស្សិតនៅ SETEC ឆ្នាំនេះបន្តិចមើលប្អូនទី២'
                 },
                 {
-                  icon: 'fa-shield-halved',
-                  iconColor: 'text-amber-500 dark:text-amber-400',
-                  badge: 'Survival ⚡',
-                  badgeBg: 'bg-amber-500/10 text-amber-600 dark:text-amber-300 border-amber-500/20',
-                  title: 'តិចនិកគេច Re-exam $45',
-                  desc: 'ក្បាច់ប្រឡងកុំឱ្យធ្លាក់សង $45 មួយមុខៗ',
-                  prompt: 'ប្អូនទី២ មានតិចនិក hack ប្រឡងកុំឱ្យធ្លាក់ $45 នៅ ស៊ីទិច ទេ?'
+                  tag: 'ការប្រឡង',
+                  tagColor: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/50',
+                  icon: 'fa-graduation-cap',
+                  iconColor: 'text-amber-600 dark:text-amber-400',
+                  title: 'គន្លឹះប្រឡងកុំឱ្យសងលុយ',
+                  desc: 'តិចនិកប្រឡងកុំឱ្យធ្លាក់សង ៤៥ ដុល្លារមួយមុខៗ',
+                  prompt: 'ប្អូនទី២ មានតិចនិកប្រឡងកុំឱ្យធ្លាក់សង ៤៥ ដុល្លារនៅស៊ីទិចទេ'
                 },
                 {
-                  icon: 'fa-masks-theater',
-                  iconColor: 'text-violet-500 dark:text-violet-400',
-                  badge: 'Roast 🎭',
-                  badgeBg: 'bg-violet-500/10 text-violet-600 dark:text-violet-300 border-violet-500/20',
-                  title: 'Troll បងកូនច្បង & កូនពៅ',
-                  desc: 'មតិប្អូនទី២ ចំពោះចរិតបងធំ និងកូនពៅម៉ែ',
-                  prompt: 'ប្អូនទី២ យល់យ៉ាងណាដែរចំពោះបងកូនច្បង និងមេកូនពៅ?'
+                  tag: 'រឿងបងប្អូន',
+                  tagColor: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-900/50',
+                  icon: 'fa-users',
+                  iconColor: 'text-indigo-600 dark:text-indigo-400',
+                  title: 'និយាយពីបងធំ និងកូនពៅ',
+                  desc: 'ចរិតបងកូនច្បងរៀនកូដ និងកូនពៅកំហូច',
+                  prompt: 'ប្អូនទី២ យល់យ៉ាងណាដែរចំពោះបងកូនច្បង និងមេកូនពៅ'
                 },
                 {
-                  icon: 'fa-mug-hot',
-                  iconColor: 'text-emerald-500 dark:text-emerald-400',
-                  badge: 'Foodie 😋',
-                  badgeBg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20',
-                  title: 'អាហារដ្ឋាន & កាហ្វេជិតសាលា',
-                  desc: 'កន្លែងញ៉ាំបាយ និងកាហ្វេជិត SETEC តម្លៃសមរម្យ',
-                  prompt: 'ហាងបាយ ឬកាហ្វេជិត SETEC មួយណាឆ្ងាញ់ហើយតម្លៃនិស្សិតប្អូនទី២?'
+                  tag: 'ម្ហូបអាហារ',
+                  tagColor: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/50',
+                  icon: 'fa-utensils',
+                  iconColor: 'text-emerald-600 dark:text-emerald-400',
+                  title: 'ហាងបាយឆ្ងាញ់ជិតសាលា',
+                  desc: 'កន្លែងញ៉ាំបាយ និងកាហ្វេជិតវិទ្យាស្ថានតម្លៃសមរម្យ',
+                  prompt: 'ហាងបាយ ឬកាហ្វេជិត SETEC មួយណាឆ្ងាញ់ហើយតម្លៃនិស្សិតប្អូនទី២'
                 },
                 {
-                  icon: 'fa-laptop-code',
-                  iconColor: 'text-cyan-500 dark:text-cyan-400',
-                  badge: 'IT Trick 💻',
-                  badgeBg: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-300 border-cyan-500/20',
-                  title: 'Wi-Fi & Assignment Hack',
-                  desc: 'កូដយប់ជ្រៅ Wi-Fi ស្លូ និងគន្លឹះដោះស្រាយ',
-                  prompt: 'Wi-Fi SETEC ស្លូខ្លាំង តើប្អូនទី២ មានតិចនិកអីធ្វើកូដទាន់គេ?'
+                  tag: 'បច្ចេកវិទ្យា',
+                  tagColor: 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-900/50',
+                  icon: 'fa-wifi',
+                  iconColor: 'text-sky-600 dark:text-sky-400',
+                  title: 'អ៊ីនធឺណិត និងកិច្ចការផ្ទះ',
+                  desc: 'កូដយប់ជ្រៅ វ៉ាយហ្វាយស្លូ និងវិធីដោះស្រាយ',
+                  prompt: 'វ៉ាយហ្វាយ SETEC ស្លូខ្លាំង តើប្អូនទី២ មានតិចនិកអីធ្វើកូដទាន់គេ'
                 },
                 {
-                  icon: 'fa-heart-crack',
-                  iconColor: 'text-pink-500 dark:text-pink-400',
-                  badge: 'Crush 🤫',
-                  badgeBg: 'bg-pink-500/10 text-pink-600 dark:text-pink-300 border-pink-500/20',
-                  title: 'Crush & ជីវិតនិស្សិត',
-                  desc: 'លួចស្រឡាញ់ crush ក្នុងថ្នាក់ គួរ crush back ម៉េច?',
-                  prompt: 'លួចស្រឡាញ់ crush ក្នុងថ្នាក់ គួរធ្វើម៉េចកុំឱ្យគេដឹងប្អូនទី២?'
+                  tag: 'រឿងផ្ទាល់ខ្លួន',
+                  tagColor: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-900/50',
+                  icon: 'fa-heart',
+                  iconColor: 'text-purple-600 dark:text-purple-400',
+                  title: 'ស្នេហាក្នុងវ័យសិក្សា',
+                  desc: 'លួចស្រឡាញ់គេក្នុងថ្នាក់ គួរធ្វើយ៉ាងណា',
+                  prompt: 'លួចស្រឡាញ់គេក្នុងថ្នាក់ គួរធ្វើម៉េចកុំឱ្យគេដឹងប្អូនទី២'
                 }
               ].map((item, qIdx) => (
                 <button
                   key={qIdx}
                   type="button"
                   onClick={() => handleChat(item.prompt)}
-                  className={`p-3 rounded-2xl border text-left transition-all duration-200 group cursor-pointer relative overflow-hidden flex flex-col justify-between hover:scale-[1.01] active:scale-[0.99] ${
+                  className={`p-3 rounded-xl border text-left transition duration-150 group cursor-pointer flex flex-col justify-between ${
                     isDark
-                      ? 'bg-slate-900/70 hover:bg-slate-800/90 border-slate-800 hover:border-violet-500/50 shadow-md hover:shadow-violet-500/10'
-                      : 'bg-white hover:bg-violet-50/50 border-slate-200/80 hover:border-violet-300 shadow-xs hover:shadow-violet-200/50'
+                      ? 'bg-slate-900/90 hover:bg-slate-800/90 border-slate-800 hover:border-slate-700 shadow-sm'
+                      : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300 shadow-xs'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
-                        isDark ? 'bg-slate-800 border border-slate-700' : 'bg-slate-100 border border-slate-200'
-                      }`}>
-                        <i className={`fas ${item.icon} ${item.iconColor} text-xs`}></i>
-                      </div>
-                      <span className="font-bold text-xs text-slate-800 dark:text-slate-100 group-hover:text-violet-600 dark:group-hover:text-violet-300 transition-colors">
-                        {item.title}
-                      </span>
-                    </div>
-                    <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-full border ${item.badgeBg} shrink-0`}>
-                      {item.badge}
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${item.tagColor}`}>
+                      {item.tag}
                     </span>
+                    <i className="fas fa-chevron-right text-[10px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform group-hover:translate-x-0.5"></i>
                   </div>
-                  <p className="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-relaxed pl-9">
-                    {item.desc}
-                  </p>
+                  <div className="flex items-start gap-2.5 my-0.5">
+                    <div className="mt-0.5 w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                      <i className={`fas ${item.icon} ${item.iconColor} text-xs`}></i>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-xs text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                        {item.title}
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-relaxed mt-0.5">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>
 
             {/* Contribute Link */}
-            <div className="mt-2.5 text-center">
+            <div className="mt-3 text-center">
               <button
                 type="button"
                 onClick={() => setContributeModalOpen(true)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition cursor-pointer active:scale-95 ${
                   isDark
-                    ? 'bg-violet-950/40 border-violet-500/40 text-violet-300 hover:bg-violet-900/50'
-                    : 'bg-violet-50 border-violet-200 text-violet-800 hover:bg-violet-100 shadow-xs'
+                    ? 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800 hover:border-slate-700'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs'
                 }`}
               >
-                <i className="fas fa-layer-group text-violet-400 text-xs"></i>
-                <span>ចូលរួមបង្រៀន AI ប្អូនទី២ (Contribute Knowledge)</span>
+                <i className="fas fa-pen-to-square text-indigo-500 text-xs"></i>
+                <span>ចែករំលែករឿងរ៉ាវក្នុងសាលាបន្ថែម</span>
               </button>
             </div>
           </div>
@@ -5112,27 +5113,27 @@ export default function KonKandalPage() {
               </Link>
             </div>
 
-            {/* ROW 2: សំណើជជែកលេងរហ័ស (KonKandal Violet/Indigo Style) */}
+            {/* ROW 2: សំណើជជែកលេងរហ័ស */}
             <div style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10.5px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-700 to-indigo-700 text-white font-bold text-[10px] shrink-0 shadow-xs">
-                <i className="fas fa-sparkles text-amber-300 text-xs"></i>
-                <span>ប្រធានបទប្អូនទី២៖</span>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 text-slate-100 font-bold text-[10px] shrink-0 border border-slate-700">
+                <i className="fas fa-hashtag text-indigo-400 text-xs"></i>
+                <span>ប្រធានបទពេញនិយម</span>
               </div>
               {[
-                { label: '🎭 Drama ស៊ីទិច', prompt: 'សុំ gossip រឿង drama និស្សិតនៅ SETEC ឆ្នាំហ្នឹងបន្តិចមើល៎ប្អូនទី២!' },
-                { label: '⚡ Hack Re-exam $45', prompt: 'ប្អូនទី២ មានតិចនិក hack ប្រឡងកុំឱ្យធ្លាក់ $45 នៅ ស៊ីទិច ទេ?' },
-                { label: '🤣 Troll បងកូនច្បង', prompt: 'ប្អូនទី២ ជួយ troll បងកូនច្បងបន្តិចមើល គាត់រៀនកូដឡើងជ្រុះសក់ហើយ!' },
-                { label: '🐱 រឿងឆ្មា SETEC', prompt: 'រឿងឆ្មាក្នុងវិទ្យាស្ថាន ស៊ីទិច មានអីខ្លះប្អូនទី២?' },
-                { label: '📶 Wi-Fi setec86a', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីទិច បន្តិចមើលប្អូនទី២' },
-                { label: '🎒 កាតាប Asus ROG', prompt: 'ប្រាប់ពីរឿងកាតាប Asus ROG ប្រចាំត្រកូលនិស្សិតស៊ីទិចតិចមើល' },
-                { label: '🍜 ហាងបាយជិតសាលា', prompt: 'ហាងបាយ ឬកាហ្វេជិត SETEC មួយណាឆ្ងាញ់ហើយតម្លៃនិស្សិតប្អូនទី២?' }
+                { label: 'រឿង Drama ក្នុងសាលា', prompt: 'សុំនិយាយរឿង drama និស្សិតនៅ SETEC ឆ្នាំនេះបន្តិចមើលប្អូនទី២' },
+                { label: 'គន្លឹះប្រឡង ៤៥ ដុល្លារ', prompt: 'ប្អូនទី២ មានតិចនិកប្រឡងកុំឱ្យធ្លាក់សង ៤៥ ដុល្លារនៅស៊ីទិចទេ' },
+                { label: 'Troll បងកូនច្បង', prompt: 'ប្អូនទី២ ជួយ troll បងកូនច្បងបន្តិចមើល គាត់រៀនកូដឡើងជ្រុះសក់ហើយ' },
+                { label: 'រឿងឆ្មាក្នុងវិទ្យាស្ថាន', prompt: 'រឿងឆ្មាក្នុងវិទ្យាស្ថាន ស៊ីទិច មានអីខ្លះប្អូនទី២' },
+                { label: 'លេខកូដ Wi-Fi ស៊ីទិច', prompt: 'សុំលេខសម្ងាត់ Wi-Fi ស៊ីទិច បន្តិចមើលប្អូនទី២' },
+                { label: 'កាតាប Asus ROG', prompt: 'ប្រាប់ពីរឿងកាតាប Asus ROG ប្រចាំត្រកូលនិស្សិតស៊ីទិចតិចមើល' },
+                { label: 'ហាងបាយឆ្ងាញ់ជិតសាលា', prompt: 'ហាងបាយ ឬកាហ្វេជិត SETEC មួយណាឆ្ងាញ់ហើយតម្លៃនិស្សិតប្អូនទី២' }
               ].map((topic, tIdx) => (
                 <button
                   key={tIdx}
                   type="button"
                   onClick={() => handleChat(topic.prompt)}
                   disabled={isLoading}
-                  className="px-2.5 py-1 rounded-full bg-violet-500/10 dark:bg-violet-950/50 hover:bg-violet-500/20 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-200 border border-violet-400/30 dark:border-violet-600/40 font-semibold text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-semibold text-[10.5px] shrink-0 transition active:scale-95 cursor-pointer shadow-xs flex items-center gap-1"
                 >
                   <span>{topic.label}</span>
                 </button>
