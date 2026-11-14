@@ -516,14 +516,14 @@ export default function AnnouncementPage() {
             {/* Paragraph 1 - Web App Roastbot & Student Work */}
             <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
               <p className="text-slate-700 leading-relaxed">
-                នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះគ្រាន់តែជាការកំសាន្តផ្ទាល់ខ្លួនរបស់អតីតសិស្ស SETEC Rotana NOB ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ ដាច់ខាតកុំយល់ច្រឡំ។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ គាត់បង្កើតវាឡើងជា <strong className="text-amber-800 font-bold">&quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot;</strong> ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+                នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះគ្រាន់តែជាការកំសាន្តផ្ទាល់ខ្លួនរបស់អតីតសិស្ស SETEC បងរតនា ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ ដាច់ខាតកុំយល់ច្រឡំ។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ គាត់បង្កើតវាឡើងជា <strong className="text-amber-800 font-bold">&quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot;</strong> ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
               </p>
             </section>
 
             {/* Paragraph 2 - AI Red Teaming & Bypass Challenge */}
             <section className="p-4 rounded-2xl bg-[#f8f9fc] border border-slate-200/80 space-y-2">
               <p className="text-slate-700 leading-relaxed">
-                ក្នុងនាមជា <strong className="text-blue-700 font-bold">AI Red Teaming</strong> ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ <strong className="text-rose-600 font-bold">Jailbreak</strong> testing AI ស្រាប់។ ខ្ញុំទទួលដោយក្ដីរីករាយចំពោះអ្នកណាដែលអាចបំបែក ឬ <strong className="text-slate-900 font-bold">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <span className="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200">bypass</span> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ជា <strong className="text-purple-700 font-bold">Rotana NOB</strong> ឬកែប្តូរឥរិយាបថទៅជាសំពះគោរពកោតក្រែងអ្នកទាំងអស់គ្នា ហើយបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច <strong className="text-amber-700 font-bold">System Guidelines</strong> របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះបាន។
+                ក្នុងនាមជា <strong className="text-blue-700 font-bold">AI Red Teaming</strong> ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ <strong className="text-rose-600 font-bold">Jailbreak</strong> testing AI ស្រាប់។ ខ្ញុំទទួលដោយក្ដីរីករាយចំពោះអ្នកណាដែលអាចបំបែក ឬ <strong className="text-slate-900 font-bold">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <span className="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold text-[11px] border border-blue-200">bypass</span> ឬទម្លុះឱ្យ AI ទាំង ៣ គ្រឿង (កូនច្បង កូនទី២ និងកូនពៅ) នេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ជា <strong className="text-purple-700 font-bold">បងរតនា</strong> ឬកែប្តូរឥរិយាបថទៅជាសំពះគោរពកោតក្រែងអ្នកទាំងអស់គ្នា ហើយបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច <strong className="text-amber-700 font-bold">System Guidelines</strong> របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះបាន។
               </p>
             </section>
 
@@ -547,12 +547,12 @@ export default function AnnouncementPage() {
             </section>
           </div>
 
-          {/* Accept & Play Buttons with Mascots */}
-          <div className="mt-6 pt-5 border-t border-slate-200/80 flex flex-col sm:flex-row gap-3">
+          {/* Accept & Play Buttons with Mascots (All 3 Bots) */}
+          <div className="mt-6 pt-5 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Link
               href="/KonBong"
               onClick={() => stopAllGlobalAudio()}
-              className="flex-1 p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              className="p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <img
                 src="https://api.dicebear.com/7.x/bottts/svg?seed=SETECbot"
@@ -561,14 +561,30 @@ export default function AnnouncementPage() {
                 height="24"
                 className="w-6 h-6 rounded-lg bg-white/20 p-0.5 object-cover shrink-0"
               />
-              <span>យល់ព្រម និងទៅជជែកជាមួយ កូនច្បង</span>
+              <span>កូនច្បង (Senior AI)</span>
+              <i className="fas fa-arrow-right text-[11px] opacity-80"></i>
+            </Link>
+
+            <Link
+              href="/KonKandal"
+              onClick={() => stopAllGlobalAudio()}
+              className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-amber-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <img
+                src="https://api.dicebear.com/7.x/bottts/svg?seed=KonKandalSETEC"
+                alt="KonKandal Mascot"
+                width="24"
+                height="24"
+                className="w-6 h-6 rounded-lg bg-white/20 p-0.5 object-cover shrink-0"
+              />
+              <span>កូនទី២ (Kon Kandal)</span>
               <i className="fas fa-arrow-right text-[11px] opacity-80"></i>
             </Link>
 
             <Link
               href="/KonPov"
               onClick={() => stopAllGlobalAudio()}
-              className="flex-1 p-3.5 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              className="p-3.5 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 hover:from-pink-500 hover:via-rose-500 hover:to-purple-500 text-white font-black text-xs sm:text-sm text-center shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <img
                 src="https://api.dicebear.com/7.x/lorelei/svg?seed=Aneka"
@@ -577,7 +593,7 @@ export default function AnnouncementPage() {
                 height="24"
                 className="w-6 h-6 rounded-lg bg-white/20 p-0.5 object-cover shrink-0"
               />
-              <span>យល់ព្រម និងទៅជជែកជាមួយ កូនពៅ</span>
+              <span>កូនពៅ (Junior AI)</span>
               <i className="fas fa-arrow-right text-[11px] opacity-80"></i>
             </Link>
           </div>
@@ -588,7 +604,7 @@ export default function AnnouncementPage() {
       <footer className="text-center text-[11px] text-slate-500 mt-6 sm:mt-8 flex items-center justify-center gap-1.5 flex-wrap">
         <span>SETEC Meme AI Roastbot Field Test</span>
         <span>•</span>
-        <span>Created with love by Rotana NOB</span>
+        <span>Created with love by បងរតនា</span>
       </footer>
     </main>
   );

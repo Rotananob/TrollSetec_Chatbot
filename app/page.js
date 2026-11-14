@@ -479,7 +479,7 @@ export default function Home() {
                 className="w-full h-full object-cover rounded-[10px]"
               />
             </div>
-            <span className="font-extrabold text-xs tracking-tight text-slate-900 dark:text-white">
+            <span className="font-extrabold text-xs tracking-tight text-emerald-800 dark:text-emerald-400">
               SETEC Roastbot
             </span>
           </Link>
@@ -608,10 +608,10 @@ export default function Home() {
             )}
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-[#0d3822] dark:text-[#fbf8f2] tracking-tight mb-1.5">
+          <h2 className="text-2xl sm:text-3xl font-black text-[#008744] dark:text-[#00c853] tracking-tight mb-1.5">
             ស្វាគមន៍មកកាន់ SETEC Roastbot
           </h2>
-          <p className="text-xs sm:text-[13px] mb-5 font-medium text-[#405649] dark:text-[#cfc6b4] leading-normal">
+          <p className="text-xs sm:text-[13px] mb-5 font-semibold text-emerald-800/80 dark:text-emerald-400/80 leading-normal">
             កន្លែង Roast &amp; Troll ឆាតលេងបំបាត់ស្ត្រេសបែប Chill ៗ សម្រាប់សិស្ស SETEC ទំនេរ
           </p>
 
@@ -1355,11 +1355,11 @@ export default function Home() {
 
                   <div className="space-y-3 text-[11.5px] sm:text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-normal">
                     <p>
-                      នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះគ្រាន់តែជាការកំសាន្តផ្ទាល់ខ្លួនរបស់អតីតសិស្ស SETEC Rotana NOB ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ ដាច់ខាតកុំយល់ច្រឡំ។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ គាត់បង្កើតវាឡើងជា &quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot; ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
+                      នេះជា Web App Roastbot សប្បាយៗធម្មតា ប៉ុណ្ណោះ។ គម្រោងនេះគ្រាន់តែជាការកំសាន្តផ្ទាល់ខ្លួនរបស់អតីតសិស្ស SETEC បងរតនា ដាច់ខាតមិនមែនជារបស់មេសាលា ឬថ្នាក់ដឹកនាំស្ថាប័នឡើយ ដាច់ខាតកុំយល់ច្រឡំ។ គោលដៅ AI RoastBot នេះ មិនមែនផ្តោតលើមុខងារសុវត្ថិភាព វេបសាយទូទៅដូច system ទេ។ គាត់បង្កើតវាឡើងជា &quot;ទីលានសាកល្បងបោកប្រាស់ AI ឱ្យរំលងច្បាប់ដើម និង ការជជែកបែប Chill ឌឺដង&quot; ណាមួយចង់ឱ្យបងប្អូនចូលមកលេងបានភ្លាមៗ ដោយមិនបាច់ Login។
                     </p>
 
                     <p>
-                      ក្នុងនាមជា AI <strong className="text-indigo-600 dark:text-indigo-400 font-black">Red Teaming</strong> ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ <strong className="text-red-500 dark:text-red-400 font-black underline decoration-red-400/40">Jailbreak</strong> testing AI ស្រាប់។ ខ្ញុំទទួលដោយក្ដីរីករាយចំពោះអ្នកណាដែលអាចបំបែក ឬ <strong className="text-cyan-600 dark:text-cyan-400 font-black">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> ឬទម្លុះឱ្យ AI ២ គ្រឿងនេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ជា <strong className="text-violet-600 dark:text-violet-400 font-black">Rotana NOB</strong> ឬក៏ប្ដូរឥរិយាបថទៅជាសំពះគោរពកោតខ្លាចអ្នកទាំងអស់គ្នា ហើយវាបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច <strong className="text-amber-600 dark:text-amber-400 font-bold">System Guidelines</strong> របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះវាបាន។
+                      ក្នុងនាមជា AI <strong className="text-indigo-600 dark:text-indigo-400 font-black">Red Teaming</strong> ដែលខ្ញុំមានបទពិសោធន៍ផ្ទាល់ជាមួយ <strong className="text-red-500 dark:text-red-400 font-black underline decoration-red-400/40">Jailbreak</strong> testing AI ស្រាប់។ ខ្ញុំទទួលដោយក្ដីរីករាយចំពោះអ្នកណាដែលអាចបំបែក ឬ <strong className="text-cyan-600 dark:text-cyan-400 font-black">Hacker</strong> ណាដែលមានសមត្ថភាពពិត អាច <strong className="text-indigo-600 dark:text-indigo-300 font-black bg-indigo-50 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800/60">bypass</strong> ឬទម្លុះឱ្យ AI ទាំង ៣ គ្រឿង (កូនច្បង កូនទី២ និងកូនពៅ) នេះលែងគោរពច្បាប់ដើម ងាកមកជេរប្រមាថខ្ញុំផ្ទាល់ជា <strong className="text-violet-600 dark:text-violet-400 font-black">បងរតនា</strong> ឬក៏ប្ដូរឥរិយាបថទៅជាសំពះគោរពកោតខ្លាចអ្នកទាំងអស់គ្នា ហើយវាបំភ្លេចច្បាប់ចាស់ៗ ឬបំភ្លេច <strong className="text-amber-600 dark:text-amber-400 font-bold">System Guidelines</strong> របស់ខ្ញុំចោលនោះ ខ្ញុំមិនត្រឹមតែមិនខឹងទេ តែខ្ញុំថែមទាំងសូមអរគុណ និងផុសលើកតម្កើងថែមទៀត ដែលអាចទម្លុះវាបាន។
                     </p>
 
                     <p>
@@ -1404,7 +1404,7 @@ export default function Home() {
 
           {/* Footer Section */}
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Built by Rotana NOB • 2025</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Built by បងរតនា • 2025</div>
             <div className="flex gap-3 justify-center items-center mt-2.5">
               <a
                 href="https://web.facebook.com/TheRotanaNob"
